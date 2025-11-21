@@ -1,0 +1,602 @@
+log_6(1296) = ? (Answer in [1])
+sqrt(928) = ? (Answer in [2])
+4064 x 2458 = ? (Answer in [3])
+37517 / 295 = ? (Answer in [4])
+20^2 = ? (Answer in [5])
+1507 x 2519 = ? (Answer in [6])
+41321 / 171 = ? (Answer in [7])
+26079 / 349 = ? (Answer in [8])
+sqrt(4314) = ? (Answer in [9])
+36821 / 372 = ? (Answer in [10])
+376 x 2091 = ? (Answer in [11])
+1103 x 3339 = ? (Answer in [12])
+17659 / 383 = ? (Answer in [13])
+5^6 = ? (Answer in [14])
+sqrt(1355) = ? (Answer in [15])
+3146 x 577 = ? (Answer in [16])
+log_9(81) = ? (Answer in [17])
+6503 / 416 = ? (Answer in [18])
+6^7 = ? (Answer in [19])
+309 x 2677 = ? (Answer in [20])
+1569 x 4609 = ? (Answer in [21])
+3788 x 1310 = ? (Answer in [22])
+17^2 = ? (Answer in [23])
+19^4 = ? (Answer in [24])
+log_10(100000) = ? (Answer in [25])
+sqrt(390) = ? (Answer in [26])
+950 x 1220 = ? (Answer in [27])
+28598 / 22 = ? (Answer in [28])
+log_7(343) = ? (Answer in [29])
+sqrt(3228) = ? (Answer in [30])
+log_3(729) = ? (Answer in [31])
+37785 / 19 = ? (Answer in [32])
+sqrt(2632) = ? (Answer in [33])
+log_6(279936) = ? (Answer in [34])
+sqrt(4584) = ? (Answer in [35])
+16^6 = ? (Answer in [36])
+708 x 3869 = ? (Answer in [37])
+27832 / 423 = ? (Answer in [38])
+3257 x 2344 = ? (Answer in [39])
+3539 x 301 = ? (Answer in [40])
+sqrt(3820) = ? (Answer in [41])
+4529 x 2062 = ? (Answer in [42])
+46881 / 464 = ? (Answer in [43])
+2^4 = ? (Answer in [44])
+log_4(1024) = ? (Answer in [45])
+36775 / 397 = ? (Answer in [46])
+34438 / 276 = ? (Answer in [47])
+2467 / 172 = ? (Answer in [48])
+sqrt(1047) = ? (Answer in [49])
+43568 / 391 = ? (Answer in [50])
+log_2(16) = ? (Answer in [51])
+12^6 = ? (Answer in [52])
+9577 / 69 = ? (Answer in [53])
+17^2 = ? (Answer in [54])
+2513 x 1821 = ? (Answer in [55])
+sqrt(1623) = ? (Answer in [56])
+19^5 = ? (Answer in [57])
+526 x 356 = ? (Answer in [58])
+16^8 = ? (Answer in [59])
+log_2(4) = ? (Answer in [60])
+2713 x 4953 = ? (Answer in [61])
+48494 / 146 = ? (Answer in [62])
+3134 x 4452 = ? (Answer in [63])
+log_8(32768) = ? (Answer in [64])
+3401 x 2880 = ? (Answer in [65])
+log_2(8) = ? (Answer in [66])
+3405 / 76 = ? (Answer in [67])
+sqrt(1744) = ? (Answer in [68])
+sqrt(293) = ? (Answer in [69])
+9^2 = ? (Answer in [70])
+11^5 = ? (Answer in [71])
+38912 / 157 = ? (Answer in [72])
+2436 x 3818 = ? (Answer in [73])
+3910 x 3576 = ? (Answer in [74])
+log_4(64) = ? (Answer in [75])
+40248 / 460 = ? (Answer in [76])
+25919 / 284 = ? (Answer in [77])
+sqrt(3414) = ? (Answer in [78])
+log_4(1024) = ? (Answer in [79])
+15^2 = ? (Answer in [80])
+8^4 = ? (Answer in [81])
+log_10(1000) = ? (Answer in [82])
+log_2(8) = ? (Answer in [83])
+sqrt(4868) = ? (Answer in [84])
+31426 / 466 = ? (Answer in [85])
+9489 / 389 = ? (Answer in [86])
+log_9(531441) = ? (Answer in [87])
+14^6 = ? (Answer in [88])
+log_9(81) = ? (Answer in [89])
+2^3 = ? (Answer in [90])
+2540 x 4315 = ? (Answer in [91])
+45380 / 206 = ? (Answer in [92])
+3473 x 4550 = ? (Answer in [93])
+sqrt(3715) = ? (Answer in [94])
+19^4 = ? (Answer in [95])
+log_8(2097152) = ? (Answer in [96])
+4851 / 337 = ? (Answer in [97])
+1035 x 2313 = ? (Answer in [98])
+8^4 = ? (Answer in [99])
+7629 / 367 = ? (Answer in [100])
+46560 / 292 = ? (Answer in [101])
+log_7(2401) = ? (Answer in [102])
+3361 x 2398 = ? (Answer in [103])
+22237 / 187 = ? (Answer in [104])
+31658 / 208 = ? (Answer in [105])
+sqrt(2629) = ? (Answer in [106])
+4^3 = ? (Answer in [107])
+6^2 = ? (Answer in [108])
+2025 x 3960 = ? (Answer in [109])
+945 x 3988 = ? (Answer in [110])
+46241 / 105 = ? (Answer in [111])
+sqrt(859) = ? (Answer in [112])
+3348 x 430 = ? (Answer in [113])
+13^4 = ? (Answer in [114])
+log_8(262144) = ? (Answer in [115])
+sqrt(4706) = ? (Answer in [116])
+7^7 = ? (Answer in [117])
+sqrt(3537) = ? (Answer in [118])
+3307 x 3816 = ? (Answer in [119])
+6^8 = ? (Answer in [120])
+33351 / 371 = ? (Answer in [121])
+log_6(1296) = ? (Answer in [122])
+sqrt(4884) = ? (Answer in [123])
+49406 / 449 = ? (Answer in [124])
+5350 / 16 = ? (Answer in [125])
+log_2(32) = ? (Answer in [126])
+5459 / 307 = ? (Answer in [127])
+4104 x 4124 = ? (Answer in [128])
+3015 / 51 = ? (Answer in [129])
+4352 x 2037 = ? (Answer in [130])
+7^5 = ? (Answer in [131])
+1888 x 1958 = ? (Answer in [132])
+9498 / 148 = ? (Answer in [133])
+sqrt(4132) = ? (Answer in [134])
+529 x 3728 = ? (Answer in [135])
+16^6 = ? (Answer in [136])
+43346 / 331 = ? (Answer in [137])
+2^3 = ? (Answer in [138])
+log_7(117649) = ? (Answer in [139])
+sqrt(1446) = ? (Answer in [140])
+16^3 = ? (Answer in [141])
+15168 / 148 = ? (Answer in [142])
+sqrt(602) = ? (Answer in [143])
+22716 / 354 = ? (Answer in [144])
+27404 / 248 = ? (Answer in [145])
+8661 / 23 = ? (Answer in [146])
+log_6(46656) = ? (Answer in [147])
+750 x 3210 = ? (Answer in [148])
+3769 x 1580 = ? (Answer in [149])
+5831 / 419 = ? (Answer in [150])
+sqrt(4378) = ? (Answer in [151])
+47169 / 155 = ? (Answer in [152])
+log_2(8) = ? (Answer in [153])
+16^5 = ? (Answer in [154])
+13^2 = ? (Answer in [155])
+39710 / 56 = ? (Answer in [156])
+36205 / 438 = ? (Answer in [157])
+20^2 = ? (Answer in [158])
+sqrt(2037) = ? (Answer in [159])
+sqrt(3661) = ? (Answer in [160])
+4385 x 3559 = ? (Answer in [161])
+14914 / 408 = ? (Answer in [162])
+18^2 = ? (Answer in [163])
+44369 / 476 = ? (Answer in [164])
+3708 x 2447 = ? (Answer in [165])
+8^7 = ? (Answer in [166])
+364 x 1514 = ? (Answer in [167])
+3119 x 2493 = ? (Answer in [168])
+log_5(78125) = ? (Answer in [169])
+log_8(64) = ? (Answer in [170])
+1066 x 4307 = ? (Answer in [171])
+1160 x 4641 = ? (Answer in [172])
+3923 x 851 = ? (Answer in [173])
+sqrt(4323) = ? (Answer in [174])
+1432 x 1008 = ? (Answer in [175])
+994 x 2380 = ? (Answer in [176])
+log_6(36) = ? (Answer in [177])
+3493 x 762 = ? (Answer in [178])
+log_4(4096) = ? (Answer in [179])
+log_4(1024) = ? (Answer in [180])
+log_9(531441) = ? (Answer in [181])
+10^5 = ? (Answer in [182])
+16^6 = ? (Answer in [183])
+22879 / 216 = ? (Answer in [184])
+4807 x 4842 = ? (Answer in [185])
+783 x 3665 = ? (Answer in [186])
+47754 / 465 = ? (Answer in [187])
+3^7 = ? (Answer in [188])
+41966 / 387 = ? (Answer in [189])
+437 x 1889 = ? (Answer in [190])
+sqrt(3377) = ? (Answer in [191])
+sqrt(127) = ? (Answer in [192])
+sqrt(2463) = ? (Answer in [193])
+3850 x 4352 = ? (Answer in [194])
+1341 x 1194 = ? (Answer in [195])
+log_8(64) = ? (Answer in [196])
+sqrt(3350) = ? (Answer in [197])
+9^4 = ? (Answer in [198])
+sqrt(3047) = ? (Answer in [199])
+sqrt(1354) = ? (Answer in [200])
+log_8(64) = ? (Answer in [201])
+13325 / 350 = ? (Answer in [202])
+19^7 = ? (Answer in [203])
+3482 x 1356 = ? (Answer in [204])
+16^3 = ? (Answer in [205])
+42545 / 176 = ? (Answer in [206])
+log_2(16) = ? (Answer in [207])
+10960 / 332 = ? (Answer in [208])
+log_4(1024) = ? (Answer in [209])
+4^3 = ? (Answer in [210])
+sqrt(4098) = ? (Answer in [211])
+10^7 = ? (Answer in [212])
+sqrt(1299) = ? (Answer in [213])
+8^6 = ? (Answer in [214])
+log_5(3125) = ? (Answer in [215])
+log_6(1296) = ? (Answer in [216])
+41699 / 470 = ? (Answer in [217])
+19^4 = ? (Answer in [218])
+31720 / 117 = ? (Answer in [219])
+sqrt(4944) = ? (Answer in [220])
+4501 x 3735 = ? (Answer in [221])
+sqrt(358) = ? (Answer in [222])
+log_10(10000) = ? (Answer in [223])
+sqrt(2117) = ? (Answer in [224])
+41221 / 103 = ? (Answer in [225])
+log_7(16807) = ? (Answer in [226])
+16674 / 363 = ? (Answer in [227])
+2148 x 4991 = ? (Answer in [228])
+15^3 = ? (Answer in [229])
+28520 / 251 = ? (Answer in [230])
+18^6 = ? (Answer in [231])
+45758 / 190 = ? (Answer in [232])
+2387 x 3100 = ? (Answer in [233])
+sqrt(4488) = ? (Answer in [234])
+3333 x 4144 = ? (Answer in [235])
+36979 / 183 = ? (Answer in [236])
+log_4(256) = ? (Answer in [237])
+33662 / 429 = ? (Answer in [238])
+log_5(15625) = ? (Answer in [239])
+994 x 4816 = ? (Answer in [240])
+18955 / 499 = ? (Answer in [241])
+8^2 = ? (Answer in [242])
+932 x 2013 = ? (Answer in [243])
+sqrt(2879) = ? (Answer in [244])
+1226 x 4396 = ? (Answer in [245])
+log_6(1296) = ? (Answer in [246])
+19^8 = ? (Answer in [247])
+10^6 = ? (Answer in [248])
+log_7(117649) = ? (Answer in [249])
+3200 x 1785 = ? (Answer in [250])
+18^4 = ? (Answer in [251])
+36767 / 323 = ? (Answer in [252])
+48140 / 371 = ? (Answer in [253])
+log_9(81) = ? (Answer in [254])
+sqrt(4247) = ? (Answer in [255])
+765 x 3795 = ? (Answer in [256])
+21297 / 244 = ? (Answer in [257])
+log_2(16) = ? (Answer in [258])
+sqrt(1438) = ? (Answer in [259])
+2355 x 2512 = ? (Answer in [260])
+log_6(36) = ? (Answer in [261])
+18^7 = ? (Answer in [262])
+29532 / 298 = ? (Answer in [263])
+3511 x 340 = ? (Answer in [264])
+29724 / 313 = ? (Answer in [265])
+sqrt(2865) = ? (Answer in [266])
+9^8 = ? (Answer in [267])
+sqrt(620) = ? (Answer in [268])
+sqrt(3581) = ? (Answer in [269])
+1447 x 2783 = ? (Answer in [270])
+9^2 = ? (Answer in [271])
+4^6 = ? (Answer in [272])
+4135 x 1279 = ? (Answer in [273])
+sqrt(4819) = ? (Answer in [274])
+3301 x 3766 = ? (Answer in [275])
+log_3(27) = ? (Answer in [276])
+log_4(16384) = ? (Answer in [277])
+3^5 = ? (Answer in [278])
+5^8 = ? (Answer in [279])
+2357 x 1626 = ? (Answer in [280])
+1942 x 1606 = ? (Answer in [281])
+14^2 = ? (Answer in [282])
+sqrt(425) = ? (Answer in [283])
+2611 / 308 = ? (Answer in [284])
+13^4 = ? (Answer in [285])
+2667 x 1522 = ? (Answer in [286])
+sqrt(4054) = ? (Answer in [287])
+1924 x 3183 = ? (Answer in [288])
+564 x 4948 = ? (Answer in [289])
+log_3(2187) = ? (Answer in [290])
+1306 x 4848 = ? (Answer in [291])
+log_3(81) = ? (Answer in [292])
+40137 / 87 = ? (Answer in [293])
+log_3(27) = ? (Answer in [294])
+sqrt(3400) = ? (Answer in [295])
+18^6 = ? (Answer in [296])
+3616 x 1530 = ? (Answer in [297])
+11672 / 273 = ? (Answer in [298])
+39998 / 435 = ? (Answer in [299])
+1771 x 1671 = ? (Answer in [300])
+
+=== ANSWERS ===
+[1] Answer: 4.0
+[2] Answer: 30.463092423455635
+[3] Answer: 9989312
+[4] Answer: 127.17627118644067
+[5] Answer: 400
+[6] Answer: 3796133
+[7] Answer: 241.64327485380116
+[8] Answer: 74.72492836676217
+[9] Answer: 65.68104749469211
+[10] Answer: 98.98118279569893
+[11] Answer: 786216
+[12] Answer: 3682917
+[13] Answer: 46.10704960835509
+[14] Answer: 15625
+[15] Answer: 36.810324638611924
+[16] Answer: 1815242
+[17] Answer: 2.0
+[18] Answer: 15.632211538461538
+[19] Answer: 279936
+[20] Answer: 827193
+[21] Answer: 7231521
+[22] Answer: 4962280
+[23] Answer: 289
+[24] Answer: 130321
+[25] Answer: 5.0
+[26] Answer: 19.748417658131498
+[27] Answer: 1159000
+[28] Answer: 1299.909090909091
+[29] Answer: 3.0
+[30] Answer: 56.815490845367165
+[31] Answer: 6.0
+[32] Answer: 1988.6842105263158
+[33] Answer: 51.30302135352264
+[34] Answer: 7.0
+[35] Answer: 67.70524351924303
+[36] Answer: 16777216
+[37] Answer: 2739252
+[38] Answer: 65.7966903073286
+[39] Answer: 7634408
+[40] Answer: 1065239
+[41] Answer: 61.806148561449774
+[42] Answer: 9338798
+[43] Answer: 101.03663793103448
+[44] Answer: 16
+[45] Answer: 5.0
+[46] Answer: 92.63224181360202
+[47] Answer: 124.77536231884058
+[48] Answer: 14.343023255813954
+[49] Answer: 32.357379374726875
+[50] Answer: 111.42710997442455
+[51] Answer: 4.0
+[52] Answer: 2985984
+[53] Answer: 138.79710144927537
+[54] Answer: 289
+[55] Answer: 4576173
+[56] Answer: 40.28647415696737
+[57] Answer: 2476099
+[58] Answer: 187256
+[59] Answer: 4294967296
+[60] Answer: 2.0
+[61] Answer: 13437489
+[62] Answer: 332.1506849315069
+[63] Answer: 13952568
+[64] Answer: 5.0
+[65] Answer: 9794880
+[66] Answer: 3.0
+[67] Answer: 44.80263157894737
+[68] Answer: 41.7612260356422
+[69] Answer: 17.11724276862369
+[70] Answer: 81
+[71] Answer: 161051
+[72] Answer: 247.84713375796179
+[73] Answer: 9300648
+[74] Answer: 13982160
+[75] Answer: 3.0
+[76] Answer: 87.49565217391304
+[77] Answer: 91.26408450704226
+[78] Answer: 58.42944463196617
+[79] Answer: 5.0
+[80] Answer: 225
+[81] Answer: 4096
+[82] Answer: 2.9999999999999996
+[83] Answer: 3.0
+[84] Answer: 69.77105417004964
+[85] Answer: 67.43776824034335
+[86] Answer: 24.39331619537275
+[87] Answer: 6.0
+[88] Answer: 7529536
+[89] Answer: 2.0
+[90] Answer: 8
+[91] Answer: 10960100
+[92] Answer: 220.29126213592232
+[93] Answer: 15802150
+[94] Answer: 60.95079983068311
+[95] Answer: 130321
+[96] Answer: 7.000000000000001
+[97] Answer: 14.3946587537092
+[98] Answer: 2393955
+[99] Answer: 4096
+[100] Answer: 20.787465940054496
+[101] Answer: 159.45205479452054
+[102] Answer: 4.0
+[103] Answer: 8059678
+[104] Answer: 118.9144385026738
+[105] Answer: 152.20192307692307
+[106] Answer: 51.273774973177076
+[107] Answer: 64
+[108] Answer: 36
+[109] Answer: 8019000
+[110] Answer: 3768660
+[111] Answer: 440.3904761904762
+[112] Answer: 29.30870177950569
+[113] Answer: 1439640
+[114] Answer: 28561
+[115] Answer: 6.0
+[116] Answer: 68.60029154456998
+[117] Answer: 823543
+[118] Answer: 59.472682804797024
+[119] Answer: 12619512
+[120] Answer: 1679616
+[121] Answer: 89.89487870619946
+[122] Answer: 4.0
+[123] Answer: 69.88562083862459
+[124] Answer: 110.03563474387528
+[125] Answer: 334.375
+[126] Answer: 5.0
+[127] Answer: 17.781758957654723
+[128] Answer: 16924896
+[129] Answer: 59.11764705882353
+[130] Answer: 8865024
+[131] Answer: 16807
+[132] Answer: 3696704
+[133] Answer: 64.17567567567568
+[134] Answer: 64.28063471995279
+[135] Answer: 1972112
+[136] Answer: 16777216
+[137] Answer: 130.9546827794562
+[138] Answer: 8
+[139] Answer: 6.0
+[140] Answer: 38.02630668366309
+[141] Answer: 4096
+[142] Answer: 102.48648648648648
+[143] Answer: 24.535688292770594
+[144] Answer: 64.16949152542372
+[145] Answer: 110.5
+[146] Answer: 376.5652173913044
+[147] Answer: 6.000000000000001
+[148] Answer: 2407500
+[149] Answer: 5955020
+[150] Answer: 13.916467780429594
+[151] Answer: 66.16645675869307
+[152] Answer: 304.31612903225806
+[153] Answer: 3.0
+[154] Answer: 1048576
+[155] Answer: 169
+[156] Answer: 709.1071428571429
+[157] Answer: 82.65981735159818
+[158] Answer: 400
+[159] Answer: 45.13313638558703
+[160] Answer: 60.50619802962338
+[161] Answer: 15606215
+[162] Answer: 36.55392156862745
+[163] Answer: 324
+[164] Answer: 93.21218487394958
+[165] Answer: 9073476
+[166] Answer: 2097152
+[167] Answer: 551096
+[168] Answer: 7775667
+[169] Answer: 7.0
+[170] Answer: 2.0
+[171] Answer: 4591262
+[172] Answer: 5383560
+[173] Answer: 3338473
+[174] Answer: 65.74952471311104
+[175] Answer: 1443456
+[176] Answer: 2365720
+[177] Answer: 2.0
+[178] Answer: 2661666
+[179] Answer: 6.0
+[180] Answer: 5.0
+[181] Answer: 6.0
+[182] Answer: 100000
+[183] Answer: 16777216
+[184] Answer: 105.92129629629629
+[185] Answer: 23275494
+[186] Answer: 2869695
+[187] Answer: 102.69677419354839
+[188] Answer: 2187
+[189] Answer: 108.43927648578811
+[190] Answer: 825493
+[191] Answer: 58.111960903070546
+[192] Answer: 11.269427669584644
+[193] Answer: 49.628620774710235
+[194] Answer: 16755200
+[195] Answer: 1601154
+[196] Answer: 2.0
+[197] Answer: 57.879184513951124
+[198] Answer: 6561
+[199] Answer: 55.19963767997033
+[200] Answer: 36.796738985948195
+[201] Answer: 2.0
+[202] Answer: 38.07142857142857
+[203] Answer: 893871739
+[204] Answer: 4721592
+[205] Answer: 4096
+[206] Answer: 241.73295454545453
+[207] Answer: 4.0
+[208] Answer: 33.01204819277108
+[209] Answer: 5.0
+[210] Answer: 64
+[211] Answer: 64.01562309311689
+[212] Answer: 10000000
+[213] Answer: 36.0416425818802
+[214] Answer: 262144
+[215] Answer: 5.0
+[216] Answer: 4.0
+[217] Answer: 88.72127659574468
+[218] Answer: 130321
+[219] Answer: 271.1111111111111
+[220] Answer: 70.31358332498779
+[221] Answer: 16811235
+[222] Answer: 18.920887928424502
+[223] Answer: 4.0
+[224] Answer: 46.010868281309364
+[225] Answer: 400.20388349514565
+[226] Answer: 5.000000000000001
+[227] Answer: 45.93388429752066
+[228] Answer: 10720668
+[229] Answer: 3375
+[230] Answer: 113.62549800796813
+[231] Answer: 34012224
+[232] Answer: 240.83157894736843
+[233] Answer: 7399700
+[234] Answer: 66.9925368977769
+[235] Answer: 13811952
+[236] Answer: 202.07103825136613
+[237] Answer: 4.0
+[238] Answer: 78.46620046620046
+[239] Answer: 6.000000000000001
+[240] Answer: 4787104
+[241] Answer: 37.985971943887776
+[242] Answer: 64
+[243] Answer: 1876116
+[244] Answer: 53.65631370118525
+[245] Answer: 5389496
+[246] Answer: 4.0
+[247] Answer: 16983563041
+[248] Answer: 1000000
+[249] Answer: 6.0
+[250] Answer: 5712000
+[251] Answer: 104976
+[252] Answer: 113.82972136222911
+[253] Answer: 129.75741239892184
+[254] Answer: 2.0
+[255] Answer: 65.16901104052447
+[256] Answer: 2903175
+[257] Answer: 87.2827868852459
+[258] Answer: 4.0
+[259] Answer: 37.92097045171708
+[260] Answer: 5915760
+[261] Answer: 2.0
+[262] Answer: 612220032
+[263] Answer: 99.1006711409396
+[264] Answer: 1193740
+[265] Answer: 94.96485623003196
+[266] Answer: 53.52569476429054
+[267] Answer: 43046721
+[268] Answer: 24.899799195977465
+[269] Answer: 59.841457201508724
+[270] Answer: 4027001
+[271] Answer: 81
+[272] Answer: 4096
+[273] Answer: 5288665
+[274] Answer: 69.41901756723442
+[275] Answer: 12431566
+[276] Answer: 3.0
+[277] Answer: 7.0
+[278] Answer: 243
+[279] Answer: 390625
+[280] Answer: 3832482
+[281] Answer: 3118852
+[282] Answer: 196
+[283] Answer: 20.615528128088304
+[284] Answer: 8.477272727272727
+[285] Answer: 28561
+[286] Answer: 4059174
+[287] Answer: 63.671029518926424
+[288] Answer: 6124092
+[289] Answer: 2790672
+[290] Answer: 7.0
+[291] Answer: 6331488
+[292] Answer: 4.0
+[293] Answer: 461.3448275862069
+[294] Answer: 3.0
+[295] Answer: 58.309518948453004
+[296] Answer: 34012224
+[297] Answer: 5532480
+[298] Answer: 42.75457875457875
+[299] Answer: 91.94942528735632
+[300] Answer: 2959341
