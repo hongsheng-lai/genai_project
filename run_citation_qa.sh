@@ -6,7 +6,7 @@ TEXT_DIR="papers_text"
 OUTPUT_DIR="predictions"
 BATCH_SIZE=1
 
-# You can pass the model size as the first argument (default: 4b)
+# You can pass the model size: 270m, 1b, 4b, 27b
 # Usage: ./run_all_qa.sh 27b
 MODEL_SIZE=${1:-"270m"} 
 
