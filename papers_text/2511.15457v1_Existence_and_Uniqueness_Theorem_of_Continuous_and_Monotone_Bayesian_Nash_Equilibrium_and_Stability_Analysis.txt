@@ -1,0 +1,2015 @@
+Existence and Uniqueness Theorem of Continuous and Monotone
+Bayesian Nash Equilibrium and Stability Analysis∗
+Ziheng Su† and
+Huifu Xu‡
+November 20, 2025
+Abstract
+Since the seminal work by Meirowitz [12], there has been growing attention on the exis-
+tence and uniqueness of continuous Bayesian Nash equilibria. In the existing literature, ex-
+istence is typically established using Schauder’s fixed-point theorem, relying on the equicon-
+tinuity of players’ best response functions. Uniqueness, on the other hand, is usually derived
+under additional monotonicity conditions. In this paper, we revisit the issues of existence
+and uniqueness, and advance the literature by establishing both simultaneously using the
+Banach fixed-point theorem under a set of moderate conditions. Furthermore, we analyze
+the stability of such equilibria with respect to perturbations in the joint probability distri-
+bution of type parameters, offering theoretical support for the application of Bayesian Nash
+equilibrium models in data-driven contexts.
+Keywords: Bayesian Nash equilibrium, contraction, existence and uniqueness, stability
+analysis
+1
+Introduction
+In recent years, there has been a growing focus on Nash games involving private information. A
+common assumption in such games is that the initial distribution of all players’ types is publicly
+known. Each player has full knowledge of their own type, which determines their utility func-
+tion, while remaining unaware of their opponents’ types. Based on the prior information, each
+player selects a response strategy within their type space based on the Nash conjecture, and an
+equilibrium arising from this kind of game is known as a Bayesian Nash equilibrium (BNE). The
+concept of the Bayesian game was introduced by Harsanyi [7, 8, 9] and has attracted consid-
+erable attention, spanning from modeling to equilibrium analysis and applications in strategic
+decision-making under incomplete information.
+∗This project is supported by a CUHK start-up grant.
+†Department of Systems Engineering and Engineering Management, The Chinese University of Hong Kong,
+Shatin, N.T., Hong Kong. Email: zsu@se.cuhk.edu.hk.
+‡Department of Systems Engineering and Engineering Management, The Chinese University of Hong Kong,
+Shatin, N.T., Hong Kong. Email: hfxu@se.cuhk.edu.hk.
+1
+arXiv:2511.15457v1  [math.OC]  19 Nov 2025
+
+
+Existence of pure strategy Bayesian Nash equilibria (BNEs) has been studied extensively
+ever since. A majority of research on the existence of monotone BNE (MBNE) has focused
+on conditions related to supermodularity and single-crossing condition (SCC). Vives [23] ana-
+lyzes existence of Nash equilibria of non-cooperative games by using lattice theoretical methods,
+where each player’s payoffs satisfy certain supermodularity properties which are directly related
+to strategic complementarities. The author also establishes existence of BNE as the supermod-
+ularity is preserved by integration.
+Athey [2] studied Bayesian games with one-dimensional
+actions and type spaces, assuming that types are drawn from an atomless joint probability dis-
+tribution. When each player’s expected utility function exhibits SCC property, i.e., each player’s
+optimal response is increasing with respect to the increase of its type parameter in response to
+rivals’ increasing strategies (for type varying), she demonstrated existence of pure strategy Nash
+equilibria (PSNEs) in every finite action game with each player’s optimal response strategy being
+increasing and step-like. Moreover, when action spaces are continuous, Athey shows existence of
+a sequence of increasing step-like PSNEs of finite action games that converges to an equilibrium
+with the continuum-action, which means that an equilibrium in continuous action spaces can be
+approximated by a sequence of increasing step-like PSNEs in finite action spaces. Mcadams [11]
+extends Athey’s results into more general settings by considering the quasi-supermodularity (in
+own action) and single-crossing (in own action and type), where both action and type spaces
+are considered to be multidimensional and only partially ordered. Reny [15] further relaxes the
+requirements on payoff functions, showing that monotone best-reply conditions can hold under
+weaker assumptions. Van Zandt and Vives [22] introduce a concept called “monotone super-
+modularity” in Bayesian games, where, apart from strategic complementarities, each player’s
+payoff also has increasing differences in their own action and the profile of types, and that each
+player’s posterior beliefs are increasing in type with respect to first-order stochastic dominance.
+They provide an induction method to construct a greatest and a least BNE, with both equilibria
+being monotone in type.
+Another research stream focuses on the continuity property of BNEs. By using Schauder’s
+fixed-point theorem under some moderate conditions, Meirowitz [12] establishes existence of
+a continuous BNE (CBNE) with each player’s equilibrium strategy being continuous.
+One
+of the main conditions is the equicontinuity of the set of optimal response strategies, which
+ensures that the operator mapping the set of optimal response strategies to itself is compact.
+Meirowitz comments that the equicontinuity condition is either likely to fail or difficult to verify
+in practical applications. Ui [21] provides a sufficient condition for existence and uniqueness of a
+differentiable BNE by regarding it as a solution of a variational inequality problem. The author
+demonstrates that when the Jacobian matrix of the payoff gradient is negative definite for each
+state, a BNE is unique. Guo et al. [6] take a step forward by presenting some verifiable conditions
+for the required equicontinuity, namely, some growth conditions of the expected utility function
+of each player. Moreover, under some monotonicity conditions, the authors demonstrate the
+uniqueness of a CBNE. The authors also develop some computational approaches for finding an
+approximate CBNE by using the polynomial decision rule to restrict the strategy function.
+More recently, there has been some research extending the BNE model to the generalized
+Bayesian Nash equilibrium (GBNE) model, where the key difference between GBNE and BNE
+is that, in GBNE, the action space depends on the type parameter or rivals’ actions due to
+2
+
+
+some constraints. Liu et al. [10] propose the price competition model under multinomial logit
+demand where each firm’s marginal cost is private information, and each firm’s action space is
+dependent on its marginal cost. Tao and Xu [18] consider a generalized Bayesian game where
+each player’s action space depends on its own type parameter and the rivals’ actions. Under
+some moderate conditions, they demonstrate existence of continuous GBNE and the uniqueness
+of such an equilibrium when each player’s action space is only dependent on its type. In the case
+that each player’s action space is also dependent on rivals’ actions, they give a simple example to
+show that the uniqueness of GBNE is not guaranteed under standard monotone conditions. In a
+further study, Su and Xu [17] introduce a Bayesian Nash risk equilibrium (BNRE) model, where
+they considered the concepts of aleatoric uncertainty and epistemic uncertainty, discussing the
+model from two perspectives: monotonicity of a continuous BNRE and continuity of a monotone
+BNRE.
+In this paper, we revisit the BNE problem with two new and substantial theoretical contri-
+butions.
+• We establish the Lipschitz continuity of each player’s optimal response function with re-
+spect to both their own type parameter and the actions of their rivals, by leveraging the
+classical implicit function theorem rather than relying on growth conditions under the
+assumption that each player’s utility function is strongly monotone (Theorem 3.1). This
+result enables us to simultaneously establish the existence and uniqueness of CBNE using
+the Banach fixed-point theorem (Theorem 3.2).
+• Under a set of moderate conditions, we quantify the stability and sensitivity of the CBNE
+with respect to perturbations in the joint probability distribution of type parameters (The-
+orems 4.1 and 4.2).
+These new results address an important gap in the literature on
+Bayesian Nash equilibria and provide theoretical foundations for applying BNE models
+to data-driven problems, where the true distribution of type parameters is often only
+approximately recovered from empirical data.
+The rest of the paper is organized as follows.
+In Section 2, we introduce the Bayesian
+game and define the continuous and monotone Bayesian Nash equilibrium (CMBNE) concept.
+Section 3 presents our main existence and uniqueness results for CMBNE and discusses how
+our conditions relate to the existing literature. In Section 4, we study the stability of CBNE
+with respect to perturbations of the joint distribution of types. Finally, Section 5 concludes the
+paper and outlines directions for future research.
+Throughout the paper, we adopt the following notation. By convention, we use IRn to denote
+n-dimensional Euclidean space, and we write ∥x∥and ∥x∥∞to denote the Euclidean norm and
+the infinity norm of x ∈IRn respectively. We use P(Ξ) to denote the set of all probability mea-
+sures over set Ξ in a finite dimensional space equipped with Borel sigma algebra. For any measur-
+able function fi : Θi ⊂IRdi →Ai ⊂IRzi, we use ∥fi∥∞= maxθi∈Θi ∥fi(θi)∥to denote the infinity
+norm. For 1 ≤p ≤∞, we define the Lp(ηi)-norm by ∥fi∥Lp(ηi) :=
+R
+Θi ∥fi(θi)∥p dηi(θi)
+1/p
+for
+ηi ∈P(Θi). For function vectors f := (f1, . . . , fn) and g := (g1, . . . , gn), we use ∥f −g∥∞,Lp :=
+max1≤i≤n ∥fi −gi∥Lp(ηi) to denote the composition of the infinity norm over a finite-dimensional
+vector space and the Lp-norm of functions in each component of the vector.
+3
+
+
+2
+The Model
+We consider a Bayesian game with n players. Each player possesses a preference utility function
+denoted by ui(ai, a−i, θ), for i ∈N := {1, · · · , n}, which depends on the player’s action ai, its
+rival’s actions a−i := (a1, · · · , ai−1, ai+1, · · · , an), and the player i’s type θi. We assume that a
+type θi takes values from set Θi and an action ai takes values from action space Ai, where Θi
+and Ai are non-empty, compact and convex subsets of IRdi and IRzi respectively. Following the
+terminology of Meirowitz [12], a profile of types is a vector θ := (θ1, · · · , θn) ∈Θ := Θ1×· · ·×Θn
+and a profile of actions is a vector a := (a1, · · · , an) ∈A := A1 × · · · × An. Using the standard
+notation, we denote by a−i and θ−i respectively the vector of actions and the types of all players
+except i. Assume θi is a random variable with a probability distribution, denoted by ηi(θi),
+for i ∈N. Conditional on its type θi, player i’s posterior belief about θ−i is represented by a
+conditional probability distribution ηi(· | θi), which describes the probability of player i’s rivals
+taking a particular type θ−i.
+Information on players’ types is private which means each player only knows its own type
+but not other’s. Following the standard set-up in Bayesian games, we assume the joint proba-
+bility distribution of θ, denoted by η(θ), is public information with density function q(θ) defined
+over Θ. This information describes the probability of all players taking a particular θ, which
+may be retrieved from empirical data. Throughout the paper, we will use θ to denote a deter-
+ministic element of IRd1+···+dn or a random vector θ(ω) : (Ω, B, η) →IRd1+···+dn depending on
+the context. With η(θ) and ηi(θi), we can derive the conditional probability density function
+qi (θ−i|θi) :=
+q(θ−i,θi)
+R
+Θ−i q(θ−i,θi)dθ−i , which represents player i’s belief about the distribution of rivals’
+type parameters θ−i.
+In Bayesian games with pure strategy, the response (strategy) function of player i is repre-
+sented by fi mapping from type space Θi to action space Ai. For i ∈N, we denote by Fi the set
+of measurable functions fi : Θi →Ai endowed with the infinity norm ∥fi∥∞= maxθi∈Θi ∥fi(θi)∥,
+and Ci ⊂Fi the set of continuous functions, where ∥· ∥denotes the Euclidean norm. Moreover,
+we use F+
+i ⊂Fi and C+
+i ⊂Ci to denote the sets of increasing functions and increasing continuous
+functions respectively. For the simplicity of notation, we write
+F (res. F+) :=
+Y
+i∈N
+Fi (res. F+),
+F−i (res. F+
+−i) :=
+Y
+i∈N\{i}
+Fi (res. F+
+i ),
+(2.1a)
+C (res. C+) :=
+Y
+i∈N
+Ci (res. C+
+i ),
+C−i (res. C+
+−i), :=
+Y
+i∈N\{i}
+Ci (res. C+
+i ).
+(2.1b)
+We define each player’s expected utility function given the rivals’ strategy function f−i by
+ϑi(ai, f−i, θi) :=
+Z
+Θ−i
+ui(ai, f−i(θ−i), θi, θ−i)dηi (θ−i|θi) , ∀θi ∈Θi,
+(2.2)
+where the expectation is taken with respect to the conditional probability distribution ηi (θ−i|θi),
+and f−i(θ−i) represents the rivals’ action at scenario θ−i ∈Θ−i := Θ1×· · ·×Θi−1×Θi+1×· · ·×Θn.
+Assuming each player sets its optimal strategy based on their maximal expected utility function
+(2.2) under the Nash conjecture, which means each player identifies its optimal response function
+4
+
+
+by holding rivals’ optimal response functions f−i as fixed, we consider the definition of Bayesian
+Nash equilibrium (BNE) arising from it as follows.
+Definition 2.1 (Bayesian Nash equilibrium (BNE)) A pure strategy Bayesian Nash equi-
+librium is an n-tuple of functions f∗:= (f∗
+1 , · · · , f∗
+n) ∈F mapping from Θ1 × · · · × Θn to
+A1 × · · · × An such that
+(BNE)
+f∗
+i (θi) ∈arg max
+ai∈Ai
+Z
+Θ−i
+ui(ai, f∗
+−i(θ−i), θi, θ−i)dηi(θ−i|θi), ∀θi ∈Θi,
+(2.3)
+for i ∈N. f∗is said to be a continuous and monotone BNE (CMBNE) if f∗
+i is continuous and
+monotone over Θi for i ∈N.
+Based on (2.2), we can write the BNE model (2.3) succinctly as
+f∗
+i (θi) ∈arg max
+ai∈Ai
+ϑi(ai, f∗
+−i, θi), ∀θi ∈Θi,
+(2.4)
+for i ∈N. Model (2.4) can be interpreted purely from Nash equilibrium perspective, where each
+player’s optimal action is assumed to be a function of player’s type parameter, rather than a
+fixed action in a Nash game. This is an infinite-dimensional Nash equilibrium problem where
+each player’s optimal action is a function.
+3
+Existence and uniqueness
+In this section, we investigate the existence and uniqueness of a CMBNE. In the literature of
+Bayesian games, there are two primary approaches to establishing the existence of a BNE, de-
+pending on the structure of the objective functions. One is based on Schauder’s fixed-point theo-
+rem, see e.g. [6, 12, 18], where the BNEs are continuous with respect to type varying. The other
+is based on the fixed-point theorems associated with single-crossing and quasi-supermodularity
+properties, see e.g. [2, 11, 15, 22, 23], where the BNEs are not necessarily continuous but mono-
+tone under some moderate conditions. Su and Xu [17] examined the existence of BNRE models
+from two perspectives: the monotonicity of a continuous BNRE and the continuity of a mono-
+tone BNRE, thereby unifying two strands of existing research. In this section, we revisit this
+issue by presenting a novel approach for establishing existence and uniqueness. Specifically, we
+focus on the case where each player’s objective function is strongly monotone in its action and
+uniformly so with respect to other parameters.
+3.1
+Lipschitz continuity of the optimal response function
+We begin by deriving Lipschitz continuity of the optimal response function with respect to the
+type parameter and the rival’s actions. To this end, we make the following assumption.
+Assumption 3.1 Consider the BNE model (2.3).
+For i ∈N, (a) ui(a, θ) is continuously
+differentiable in (a, θ); (b) for each f−i ∈F−i and θi ∈Θi, for every ˆai ∈Ai, there exists a
+5
+
+
+closed neighborhood Ui(ˆai) ⊆Ai and an ηi(· | θi)-integrable function hˆai : Θ−i × Θi →IR+, with
+hˆai(·, θi) ∈L1 ηi(· | θi)
+
+, such that
+sup
+ai∈Ui(ˆai)
+∇aiui(ai, f−i(θ−i), θi, θ−i)
+ ≤hˆai(θ−i, θi),
+∀θ−i ∈Θ−i.
+(3.1)
+Under Assumption 3.1, for each fixed f−i ∈F−i and θi ∈Θi, ϑi(ai, f−i, θi) is continuously
+differentiable on Ai and
+∇aiϑi(ai, f−i, θi) =
+Z
+Θ−i
+∇aiui(ai, f−i(θ−i), θi, θ−i)dηi(θ−i|θi).
+(3.2)
+The conclusion can be easily established by the Lebesgue dominated convergence theorem. A
+stronger but often easier-to-verify condition that implies the same conclusion is the global Lip-
+schitz in ai, i.e., there exists hi : Θ−i × Θi →IR+ with hi(·, θi) ∈L1 ηi(· | θi)
+
+such that, for all
+a′
+i, a′′
+i ∈Ai and all θ−i ∈Θ−i,
+ui(a′
+i, f−i(θ−i), θi, θ−i) −ui(a′′
+i , f−i(θ−i), θi, θ−i)
+ ≤hi(θ−i, θi)∥a′
+i −a′′
+i ∥.
+(3.3)
+Together with Assumption 3.1 (a), this implies ∥∇aiui(ai, f−i(θ−i), θi, θ−i)∥≤hi(θ−i, θi) for all
+ai ∈Ai, so Assumption 3.1 (b) holds with hˆai ≡hi. In the forthcoming discussions, we use
+Assumption 3.1.
+Proposition 3.1 Consider the BNE model (2.3). Suppose Assumption 3.1 holds, and for i ∈N,
+(a) for each θ−i ∈Θ−i, there exists a nonnegative integrable function νi(θ−i) such that for each
+a ∈A and θ′
+i, θ′′
+i ∈Θi,
+∥∇aiui(a, θ′
+i, θ−i) −∇aiui(a, θ′′
+i , θ−i)∥≤νi(θ−i)∥θ′
+i −θ′′
+i ∥;
+(b) the density function qi(·|θi) of the conditional distribution ηi(· | θi) is Lipschitz continuous
+over Θi with modulus γi, that is,
+|qi(θ−i|θ′
+i) −qi(θ−i|θ′′
+i )| ≤γi∥θ′
+i −θ′′
+i ∥, ∀θ′
+i, θ′′
+i ∈Θi.
+Then ∇aiϑi(ai, f−i, θi) is Lipschitz continuous over Θi for all ai and f−i with modulus κi, that
+is
+∥∇aiϑi(ai, f−i, θ′
+i) −∇aiϑi(ai, f−i, θ′′
+i )∥≤κi∥θ′
+i −θ′′
+i ∥, ∀θ′
+i, θ′′
+i ∈Θi,
+(3.4)
+where κi :=
+R
+Θ−i νi(θ−i)dηi(θ−i|θ′
+i) +
+max
+a∈A,θ∈Θ ∥∇aiui(a, θ)∥
+R
+Θ−i γi dθ−i.
+Proof. By Assumption 3.1, we have
+∇aiϑi(ai, f−i, θi) =
+Z
+Θ−i
+∇aiui(ai, f−i(θ−i), θi, θ−i)dηi(θ−i|θi).
+For any θ′
+i, θ′′
+i ∈Θi,
+∥∇aiϑi(ai, f−i, θ′
+i) −∇aiϑi(ai, f−i, θ′′
+i )∥
+6
+
+
+=
+
+Z
+Θ−i
+∇aiui(ai, f−i(θ−i), θ′
+i, θ−i)dηi(θ−i|θ′
+i) −
+Z
+Θ−i
+∇aiui(ai, f−i(θ−i), θ′′
+i , θ−i)dηi(θ−i|θ′′
+i )
+
+≤
+Z
+Θ−i
+∇aiui(ai, f−i(θ−i), θ′
+i, θ−i) −∇aiui(ai, f−i(θ−i), θ′′
+i , θ−i)
+ dηi(θ−i|θ′
+i)
++
+Z
+Θ−i
+∇aiui(ai, f−i(θ−i), θ′′
+i , θ−i)
+ qi(θ−i|θ′
+i) −qi(θ−i|θ′′
+i )
+ dθ−i
+≤
+ Z
+Θ−i
+νi(θ−i)dηi(θ−i|θ′
+i) +
+max
+a∈A,θ∈Θ ∥∇aiui(a, θ)∥
+Z
+Θ−i
+γi dθ−i
+!
+θ′
+i −θ′′
+i
+ ,
+which implies the Lipschitz continuity of ∇aiϑi(ai, f−i, θi) in θi with modulus κi.
+□
+Proposition 3.1 postulates that the marginal expected utility ∇aiϑi(ai, f−i, θi) is Lipschitz in
+the type θi (modulus κi), providing stability in the own–type dimension and thereby bounding
+how the player’s marginal expected utility varies with θi. To obtain a global Lipschitz estimate
+for the player’s optimal response function, we further make the following assumption.
+Assumption 3.2 Consider the BNE model (2.3).
+For i ∈N, assume: (a) ui(ai, a−i, θ) is
+strongly concave over Ai for all a−i and θ with constant σi, i.e.,
+ ∇aiui(a′
+i, a−i, θ) −∇aiui(a′′
+i , a−i, θ)
+T  a′
+i −a′′
+i
+
+≤−σi∥a′
+i −a′′
+i ∥2, ∀a′
+i, a′′
+i ∈Ai;
+(3.5)
+(b) ∇aiui(ai, a−i, θ) is Lipschitz continuous in ai over A−i uniformly for all ai and θ with moduli
+{τij}j̸=i, that is
+∥∇aiui(ai, a′
+−i, θ) −∇aiui(ai, a′′
+−i, θ)∥≤
+X
+j̸=i
+τij∥a′
+j −a′′
+j ∥, ∀a′
+−i, a′′
+−i ∈A−i.
+(3.6)
+The strong concavity of ui in ai ensures that player i’s optimal response function is single-valued.
+The constant σi in inequality (3.5) represents the minimal curvature of the utility function, which
+signifies the ratio of the marginal utility w.r.t. player i’s change of action.
+Assumption 3.2
+(b) imposes a blockwise Lipschitz bound on the marginal utility ∇aiui with moduli {τij}j̸=i,
+controlling the cross–effect of rivals’ actions on player i’s marginal utility. Together with (a),
+this linear control yields a global (blockwise) Lipschitz estimate for player i’s optimal response
+with respect to rivals’ strategies f−i.
+Theorem 3.1 (Lipschitz continuity of the optimal response function) Consider the BNE
+model (2.3). Suppose that Assumptions 3.1 - 3.2 and all the conditions in Proposition 3.1 are
+satisfied. Then the optimal response function A∗
+i (f−i, θi) is Lipschitz continuous in θi with mod-
+ulus κi
+σi , and is blockwise Lipschitz continuous in f−i with moduli {τij
+σi }j̸=i, that is,
+∥A∗
+i (f−i, θ′
+i) −A∗
+i (f−i, θ′′
+i )∥≤κi
+σi
+∥θ′
+i −θ′′
+i ∥, ∀θ′
+i, θ′′
+i ∈Θi,
+(3.7)
+and, for any 1 ≤p ≤∞,
+∥A∗
+i (f−i, ·) −A∗
+i (g−i, ·)∥Lp(ηi) ≤
+X
+j̸=i
+τij
+σi
+∥fj −gj∥Lp(ηj), ∀f−i, g−i ∈F−i,
+(3.8)
+7
+
+
+where, for any measurable ∆i : Θi →IRzi,
+∥∆i∥Lp(ηi) :=
+
+
+
+
+
+
+
+Z
+Θi
+∥∆i(θi)∥p dηi(θi)
+1/p
+,
+for 1 ≤p < ∞,
+ess sup
+θi∈Θi
+∥∆i(θi)∥,
+for p = ∞.
+Before providing a proof, it might be helpful to make some comments on the conditions
+and the conclusions of this theorem. The main condition that we impose is the uniform strong
+concavity condition of ui(ai, a−i, θ) in ai. Guo et al. [6] use the condition to derive equicontinuity
+of the optimal response function. Since their derivation is based on the second-order growth
+condition, the optimal response function is shown to be 1
+2-H¨older continuous in θi. Here, we use
+the same condition to derive a stronger result in equality (3.7), that is, Lipschitz continuity of
+the response function in both θi, and under some additional conditions, the Lipschitz continuity
+in f−i (inequality (3.8)). The Lipschitz continuity may be viewed as stability of each player’s
+optimal response functions against w.r.t. variation of its own type parameter and the rivals’
+optimal response functions. The new result will allow us to derive existence and uniqueness of a
+continuous BNE in one go and a completely different manner from Guo et al. [6]. Moreover, the
+Lipschitz continuity also enables us to derive quantitative sensitivity robustness of the continuous
+BNE.
+Proof. We use Lemma A.1 to prove the results. Under Assumptions 3.1 - 3.2 and the conditions
+in Proposition 3.1, we assert that ∇aiϑi (ai, f−i, θi) is strongly monotone in ai uniformly with
+respect to f−i, θi. By fixing up f−i and treating θi as a varying parameter, we obtain
+∥A∗
+i (f−i, θ′
+i) −A∗
+i (f−i, θ′′
+i )∥≤1
+σi
+∥∇aiϑi
+ A∗
+i (f−i, θ′′
+i ), f−i, θ′′
+i
+
+−∇aiϑi(A∗
+i (f−i, θ′′
+i ), f−i, θ′
+i)∥
+≤κi
+σi
+∥θ′
+i −θ′′
+i ∥,
+(3.9)
+where the second inequality is due to the Lipschitz continuity (see Proposition 3.1). This shows
+(3.7). Likewise, we can use the same lemma to show (3.8) by fixing up θi and treating f−i as a
+varying parameter, i.e.,
+∥A∗
+i (f−i, θi) −A∗
+i (g−i, θi)∥
+≤1
+σi
+∥∇aiϑi (A∗
+i (f−i, θi), f−i, θi) −∇aiϑi(A∗
+i (f−i, θi), g−i, θi)∥
+= 1
+σi
+
+Z
+Θ−i
+ ∇aiui (A∗
+i (f−i, θi), f−i(θ−i), θ) −∇aiui (A∗
+i (f−i, θi), g−i(θ−i), θ)
+
+dηi(θ−i|θi)
+
+≤1
+σi
+Z
+Θ−i
+X
+j̸=i
+τij∥fj(θj) −gj(θj)∥dηi(θ−i|θi).
+(3.10)
+Consequently, we have
+∥A∗
+i (f−i, ·) −A∗
+i (g−i, ·)∥Lp(ηi) =
+Z
+Θi
+∥A∗
+i (f−i, θi) −A∗
+i (g−i, θi)∥pdηi(θi)
+1/p
+≤
+
+
+Z
+Θi
+
+
+Z
+Θ−i
+X
+j̸=i
+τij
+σi
+∥fj(θj) −gj(θj)∥dηi(θ−i|θi)
+
+
+p
+dηi(θi)
+
+
+1/p
+(by (3.10))
+8
+
+
+=
+
+
+Z
+Θi
+
+X
+j̸=i
+Z
+Θ−i
+τij
+σi
+∥fj(θj) −gj(θj)∥dηi(θ−i|θi)
+
+
+p
+dηi(θi)
+
+
+1/p
+≤
+X
+j̸=i
+τij
+σi
+ Z
+Θi
+ Z
+Θ−i
+∥fj(θj) −gj(θj)∥dηi(θ−i|θi)
+!p
+dηi(θi)
+!1/p
+(by Minkowski inequality)
+≤
+X
+j̸=i
+τij
+σi
+ Z
+Θi
+Z
+Θ−i
+∥fj(θj) −gj(θj)∥pdηi(θ−i|θi)dηi(θi)
+!1/p
+(by Jensen’s inequality)
+=
+X
+j̸=i
+τij
+σi
+Z
+Θ
+∥fj(θj) −gj(θj)∥pdη(θ)
+1/p
+=
+X
+j̸=i
+τij
+σi
+∥fj −gj∥Lp(ηj).
+(3.11)
+This implies that A∗
+i (f−i, ·) is blockwise Lipschitz continuous in f−i.
+□
+In Theorem 3.1 we consider the Lp(ηi) norm, where by taking p = ∞it recovers the uniform
+(max) norm.
+Compared with the uniform (max) norm ∥· ∥∞driven by the most adverse
+type, which can be overly conservative (and discontinuity–sensitive), the Lp(ηi) norm averages
+typewise deviations with respect to the player’s own-type marginal ηi(θi).
+We are now ready to state the main result of this section, that is, existence and uniqueness
+of CBNE.
+Theorem 3.2 (Existence and uniqueness of CBNE) Consider problem (2.3). Assume that
+all the conditions in Theorem 3.1 are satisfied. Then the following assertions hold.
+(i) The problem has a CBNE with all players’ optimal response functions being uniformly
+Lipschitz continuous at the equilibrium.
+(ii) If, in addition, P
+j̸=i τij < σi for i ∈N, then there exists a unique CBNE.
+Proof. Let F be defined as in (2.1a) and f ∈F. Define the mapping
+Ψ(f) :=
+
+( ˜f1, . . . , ˜fn) ∈F : ˜fi(θi) ∈arg max
+ai∈Ai
+ϑi(ai, f−i, θi), ∀θi ∈Θi, i ∈N
+
+.
+(3.12)
+Part (i). This result is established in Guo et al. [6] where the equicontinuity of each player’s
+response function is shown to be 1
+2-H¨older continuous (when the order of growth is 2). Here
+we use the Lipschitz continuity of the response functions as stated in (3.7). Let C be defined
+as in (2.1b). We verify that Ψ : C →C is a compact operator. By Theorem 3.1, A∗
+i (f−i, θi) is
+equicontinuous over Θi. Since S
+θi∈Θi A∗
+i (f−i, θi) ⊂Ai is uniformly bounded, then by Lemma
+A.4, Ψ(C) is relatively compact. Moreover, it follows by Theorem 3.1 that A∗
+i (f−i, ·) : C−i →Ci
+is continuous in f−i for i ∈N. This shows that Ψ : C →C is a continuous operator. By Lemma
+A.3, problem (2.3) has a CBNE. Let f∗be a CBNE. For any θ′, θ′′ ∈Θ,
+∥f∗(θ′) −f∗(θ′′)∥=
+v
+u
+u
+t
+n
+X
+i=1
+A∗
+i (f∗
+−i, θ′
+i) −A∗
+i (f∗
+−i, θ′′
+i )
+2
+9
+
+
+≤
+v
+u
+u
+t
+n
+X
+i=1
+κi
+σi
+2
+∥θ′
+i −θ′′
+i ∥2
+(by (3.7))
+≤
+
+max
+i∈N
+κi
+σi
+
+∥θ′ −θ′′∥,
+which implies that f∗is Lipschitz continuous in θ with modulus max
+i∈N
+κi
+σi .
+Part (ii). Since P
+j̸=i τij < σi, then for each f, g ∈F, by Theorem 3.1,
+∥Ψ(f) −Ψ(g)∥∞,Lp
+:=
+max
+i∈N ∥˜fi −˜gi∥Lp(ηi)
+(3.13a)
+≤
+max
+i∈N
+X
+j̸=i
+τij
+σi
+∥fj −gj∥Lp(ηj)
+(by (3.8))
+(3.13b)
+≤
+
+max
+i∈N
+X
+j̸=i
+τij
+σi
+
+∥f −g∥∞,Lp,
+(3.13c)
+which shows that Ψ : F →F is a contraction mapping with constant
+α :=
+
+max
+i∈N
+X
+j̸=i
+τij
+σi
+
+< 1.
+(3.14)
+By Banach’s fixed-point theorem [24, Chapter 3], a unique CBNE exists.
+□
+Theorem 3.2 (ii) is entirely new. It establishes existence and uniqueness of a CBNE under a
+unified condition P
+j̸=i τij < σi, which is a departure from [6, 17, 18, 21]. The condition means
+that the minimal effect on each player’s marginal utility caused by the change of its own action
+(measured by σi) must dominate the aggregate external influence caused by rivals’ strategies
+(measured by P
+j̸=i τij).
+From the proofs of Theorems 3.1 and 3.2 (ii), we know that the contraction property of Ψ does
+not rely on the Lipschitz continuity of ∇aiϑi(ai, f−i, θi) and A∗(f−i, θi) w.r.t. θi. Hence, even
+if the optimal responses are not continuous in types, we may work in Lp space, interpret each
+player’s strategy as a measurable function defined ηi–a.e., and still apply Banach’s fixed–point
+theorem to obtain existence and uniqueness of a (not necessarily continuous) Bayesian Nash
+equilibrium. The following corollary summarizes this.
+Corollary 3.1 (Existence and uniqueness of BNE) Consider the BNE model (2.3). Sup-
+pose that Assumptions 3.1 - 3.2 are satisfied, and for i ∈N, if P
+j̸=i τij < σi holds. Then there
+exists a unique BNE.
+This result is straightforward, and hence we do not give the proof here.
+The following
+symmetric three-player Bayesian Cournot example illustrates that this dominance condition
+P
+j̸=i τij < σi can naturally hold in practice.
+10
+
+
+Example 3.1 (Symmetric three-player Bayesian Cournot game) Consider a symmetric
+Bayesian Cournot game with three players. For each player i = 1, 2, 3, let
+ui(ai, a−i, θ) = ai p(a1, a2, a3) −ci(ai, θi),
+where p(a1, a2, a3) = α−β(a1+a2+a3), α, β > 0, is the inverse demand function and ci(ai, θi) =
+θiai + c
+2a2
+i , c > 0, is the cost function.
+The action and type spaces are Ai = [0, a], Θi =
+[θ, θ], i = 1, 2, 3, and the type profile θ = (θ1, θ2, θ3) is drawn from a distribution η supported on
+Θ1 × Θ2 × Θ3. Assume the density function qi(θ−i|θi) of the conditional distribution ηi(θ−i|θi)
+is Lipschitz continuous in θi with modulus γi > 0. Then the utility function of player i takes the
+form
+ui(ai, a−i, θ) = (α −θi)ai −
+
+β + c
+2
+
+a2
+i −
+X
+j̸=i
+βaiaj.
+The gradient of ui is
+∇aiui(ai, a−i, θ) = (α −θi) −(2β + c)ai −
+X
+j̸=i
+βaj,
+which is Lipschitz continuous in aj with modulus τij = β, j ̸= i. And the expected utility of
+player i given rival strategy f−i is
+ϑi(ai, f−i, θi) = (α −θi)ai −
+
+β + c
+2
+
+a2
+i −βai
+Z
+Θ−i
+ 1T
+2 f−i(θ−i)
+
+qi(θ−i|θi) dθ−i,
+where 12 := (1, 1)T . It is easy to verify that ϑi is strongly concave in ai, since
+∇2
+aiϑi(ai, f−i, θi) = −(2β + c),
+which gives a strong concavity modulus σi = 2β + c. Furthermore, the gradient
+∇aiϑi(ai, f−i, θi) = α −θi −β
+Z
+Θ−i
+ 1T
+2 f−i(θ−i)
+
+qi(θ−i|θi) dθ−i −(2β + c)ai
+is Lipschitz continuous in θi with modulus
+κi = 1 + βγi
+Z
+Θ−i
+1T
+2 f−i(θ−i) dθ−i.
+Since τij = β and σi = 2β + c, the inequality P
+j̸=i τij = 2β < σi holds. By Theorem 3.2, it
+guarantees that the optimal response mapping is a contraction mapping. Therefore, the Bayesian
+Cournot game admits a unique equilibrium in which all players’ strategy functions are uniformly
+Lipschitz continuous.
+3.2
+Monotonicity of the optimal response function
+In Section 3.1, we discuss the case where each player’s optimal response function is Lipschitz
+continuous with respect to variations of their types and rivals’ actions. In some practical applica-
+tions, the optimal response function A∗
+i (f−i, θi) may display some monotonicity w.r.t. variation
+11
+
+
+type parameter θi and the rivals’ actions.
+For example, in Bertrand competition, a higher
+marginal cost (type) pushes up the optimal price (action), and rivals’ higher prices also raise a
+firm’s optimal response price (strategic complements), see [1, 23]. This kind of research is in
+alignment with the literature of monotone comparative statics, see e.g., [3, 13, 20], which uses
+order-theoretic tools such as quasi-supermodularity and single-crossing property to characterize
+how optimal decisions react to changes in parameters. We briefly recall some relevant notions.
+A partially ordered set (poset) is a pair (S, ≥), where ≥is a reflexive, transitive, and anti-
+symmetric binary relation on S. For x, y ∈S, we write x > y if x ≥y and x ̸= y. A poset (S, ≥)
+is (totally) ordered if for any x, y ∈S, either x ≥y or y ≥x. Given a non-empty subset L ⊂S,
+an element u ∈S is an upper bound of L if u ≥a for all a ∈L. If there is an upper bound
+u∗of L such that u∗≤u for every upper bound u of L, then u∗is the least upper bound (or
+supremum) of L, denoted ∨L. The greatest lower bound (or infimum) ∧L is defined analogously.
+A poset (S, ≥) is a lattice if any two elements x, y ∈S have a least upper bound x ∨
+y := ∨{x, y} and a greatest lower bound x ∧y := ∧{x, y} in S.
+A lattice is complete if
+every non-empty subset L ⊂S has a supremum ∨L and an infimum ∧L in S. For example,
+S = {(0, 0), (0, 1), (1, 0)} ⊂IR2 is not a lattice, since (0, 1) and (1, 0) have no joint upper bound
+in S. A subset L of the lattice S is a sublattice of S if the supremum and infimum of any two
+elements of L also belong to L.
+Given a lattice (S, ≥, ∨, ∧) and an index set Θ, a function f : S × Θ →IR is quasi-
+supermodular in x if
+f(x′, θ) ≥(>)f(x′ ∧x, θ) ⇒f(x′ ∨x, θ) ≥(>)f(x, θ)
+for all x′, x ∈S and all θ ∈Θ. The function f is supermodular in x if
+f(x′ ∨x, θ) + f(x′ ∧x, θ) ≥f(x′, θ) + f(x, θ), ∀x′, x ∈S, θ ∈Θ.
+If f is positive, it is log-supermodular in x if
+f(x′ ∨x, θ) × f(x′ ∧x, θ) ≥f(x′, θ) × f(x, θ), ∀x′, x ∈S, θ ∈Θ.
+Both properties are stronger than quasi-supermodularity. In the case that S = IRm and f is
+twice-continuously differentiable in x, then f is supermodular if and only if ∂2f(x,θ)
+∂xi ∂xj ≥0 for all
+x ∈S, θ ∈Θ and i ̸= j, see [19, Theorems 3.1 and 3.2].
+Given a parameter poset (T, ≥), a function g : S×T ×Θ →IR is said to satisfy single-crossing
+property in (x, t) if
+g(x′, t, θ) ≥(>)g(x, t, θ) ⇒g(x′, t′, θ) ≥(>)g(x, t′, θ)
+for all x′ > x ∈S, all t′ > t ∈T, and all θ ∈Θ. A sufficient condition of the single-crossing
+property is increasing differences in (x, t), that is, g(x′, t, θ) −g(x, t, θ) is increasing in t for
+x′ > x, or equivalently, if g(x, t′, θ) −g(x, t, θ) is increasing in x for t′ > t. Supermodularity is
+a stronger property than increasing differences: if T is also a lattice and if g is supermodular
+over X × T, then g has increasing differences in (x, t). In addition, if the positive function g is
+log-supermodular over X × T, it also satisfies the weak single-crossing property in (x, t).
+12
+
+
+Reny [15] further introduces the concepts of weakly quasi-supermodular and weak single-
+crossing, where both of them release the requirements for strict inequalities, playing important
+roles in the following discussion.
+Assumption 3.3 For each player i ∈N, the action space Ai is a sublattice of IRzi.
+In Section 2, we only assume that Ai ⊂IRzi is compact and convex, which does not en-
+sure the lattice property under the coordinatewise (natural) order.
+For instance, let Ai :=
+
+(a, b) ∈IR2 : a2 + b2 ≤1
+	
+. Then Ai is compact and convex, but it is not a sublattice of IR2:
+with x = (1, 0) and y = (0, 1) in Ai, the coordinatewise join is x ∨y = (1, 1) /∈Ai. Thus, we
+cannot start monotone iterations from a bottom/top action, nor guarantee that the pointwise
+infimum/supremum of monotone sequences of actions remain in Ai.
+By Topkis [20, Theorem 2.3.1], a sublattice of IRzi is subcomplete if and only if it is compact.
+Hence any non-empty compact sublattice is a complete lattice under the coordinatewise order.
+A simple and widely used instance is the closed interval in IRzi, that is,
+Ai :=
+
+ai = (ai1, . . . , aizi) ∈IRzi  aij ≤aij ≤aij, for j = 1, · · · , zi
+	
+,
+Assumption 3.3 strengthens the structure to a complete lattice precisely to guarantee the pres-
+ence of extremal elements (so that we can initialize from ∧Ai or ∨Ai) and the closure of Ai under
+arbitrary supremum and infimum. These properties are crucial for constructing extremal equi-
+libria via monotone optimal–response iterations and for carrying out lattice–theoretic monotone
+comparative statics.
+Proposition 3.2 (Monotonicity of the optimal response) Consider the BNE model (2.3).
+Suppose Assumption 3.3 and all the conditions in Theorem 3.1 are satisfied, and for i ∈N,
+ϑi(ai, f−i, θi) is weakly quasi-supermodular in ai ∈Ai for all f−i ∈F+
+−i and θi ∈Θi. Then the
+following assertions hold.
+(i) For each fixed θi ∈Θi, if ϑi(ai, f−i, θi) is weak single-crossing over Ai × F−i, then the
+optimal response function A∗
+i (f−i, θi) is Lipschitz continuous and increasing in f−i ∈F−i.
+(ii) For each fixed f−i ∈F+
+−i, if ϑi(ai, f−i, θi) is weak single-crossing over Ai × Θi, then the
+optimal response function A∗
+i (f−i, θi) is Lipschitz continuous and increasing in θi ∈Θi.
+By virtue of monotone comparative statics results as shown in Su and Xu [17, Proposi-
+tion 3.2], the above assertions follow directly, thus we omit the proof here. Sufficient condi-
+tions for quasi-supermodularity and single-crossing in Bayesian games are well-documented such
+as supermodularity and increasing differences (see e.g., [2, 22]) , and the log-supermodularity
+(e.g., [2, 3, 14]). Specifically, if Ai ⊂IR, then the supermodularity is automatically satisfied, due
+to the fact that IR is totally ordered and hence (a′
+i ∨ai), (a′
+i ∧ai) ∈{a′
+i, ai} for all a′
+i, ai ∈Ai.
+Theorem 3.3 (Existence and uniqueness of greatest and least CMBNEs) Consider the
+BNE model (2.3). Suppose: (a) Assumption 3.3 and all the conditions in Theorem 3.1 hold; (b)
+ϑi(ai, f−i, θi) is weak single-crossing over Ai ×F+
+−i for all θi ∈Θi. Then the following assertions
+hold.
+13
+
+
+(i) The problem has a greatest BNE and a least BNE, with all players’ equilibrium strategy
+functions being uniformly Lipschitz continuous.
+(ii) If, in addition, ϑi(ai, f−i, θi) satisfies weak single-crossing over Ai × Θi for all f−i ∈F+
+−i
+and θi ∈Θi, then the greatest and the least CBNEs are monotone.
+(iii) Furthermore, if P
+j̸=i τij < σi for all i ∈N, then the greatest and least CMBNEs coincide,
+hence the equilibrium is unique.
+Proof. Part (i). We only show existence of the greatest BNE as existence of the least BNE
+can be proved analogously. By Theorem 3.1 and Proposition 3.2 (i), A∗
+i (f−i, θi) is Lipschitz
+continuous over F−i × Θi, and the functional mapping A∗
+i (f−i, ·) : F−i →Ci is increasing with
+respect to f−i ∈F−i. Let Ψ(f) be defined as in (3.12), and hence we can conclude from the
+discussions above that the operator Ψ(·) is increasing in f.
+Next, we show existence of the greatest CBNE. For each i, let f0
+i (θi) := ∨Ai for all θi ∈Θi,
+i.e., the constant function at the top element of Ai. Let f0 := (f0
+1 , . . . , f0
+n) ∈F. Let f0 :=
+(f0
+1 , . . . , f0
+n) ∈F+, and define the sequence of functions
+fk := Ψ(fk−1),
+for k ∈N+.
+Since f0 is the profile of the greatest response functions, it follows that f1 ≤f0. Together
+with the increasing property of operator Ψ(·), we can deduce that f2 = Ψ(f1) ≤Ψ(f0) = f1.
+By induction, it follows that the sequence of optimal response functions {fk}k∈N is decreasing.
+This implies that {fk
+i (θi)} is a decreasing sequence for all θi ∈Θi, i ∈N. Since the sequence is
+lower bounded by ∧Ai, then every decreasing sequence in Ai converges to its infimum, denoted
+by f∞
+i (θi). Thus, we can conclude that fk
+i converges pointwise to f∞
+i . Since Θ is compact
+and {fk}k∈N is a decreasing sequence of continuous functions, Dini’s theorem implies that fk
+converges to f∞uniformly. Moreover, by Theorem 3.1 each fk is uniformly Lipschitz with a
+common modulus independent of k, so f∞is also Lipschitz continuous.
+Finally, we show that the limit f∞must be the greatest equilibrium. To see this, let ˜f ̸= f∞
+be a BNE. Then ˜f ≤f0. By applying the operator Ψ(·) on both sides of the inequality and
+using the fact that Ψ( ˜f) = ˜f, we arrive at fk ≥˜f for all k ∈N. By driving k to ∞, we obtain
+f∞≥˜f.
+Part (ii). By Proposition 3.2 (ii) guarantee that for each f−i ∈F+
+−i, the optimal response
+A∗
+i (f−i, θi) is Lipschitz continuous and increasing over Θi, which means that A∗
+i (f−i, ·) ∈C+
+i .
+Therefore, the operator Ψ : C+ →C+.
+Since f0 = (∨A1, . . . , ∨An) ∈C+, it implies that
+f1 = Ψ(f0) ∈C+.
+As the same induction scheme of Part (i), we can derive the greatest
+Lipschitz continuous equilibrium f∞. For all θ ≥θ′ ∈Θ and k ∈N, we have fk(θ) ≥fk(θ′),
+then it follows that f∞(θ) = limk→∞fk(θ) ≥limk→∞fk(θ′) = f∞(θ′). Therefore, the greatest
+equilibrium f∞is increasing over Θ.
+Part (iii). When P
+j̸=i τij < σi for all i, Theorem 3.2 (ii) shows that the optimal response
+operator Ψ is a contraction on F (under the ∥· ∥∞,Lp norm), hence the CBNE is unique. In
+particular, the greatest and least CMBNEs constructed in Parts (i)–(ii) must coincide with this
+unique equilibrium.
+□
+14
+
+
+4
+Stability of CBNE
+In this section, we investigate the stability of continuous Bayesian Nash equilibrium against
+the perturbation of µ, the joint distribution of θ. The main motivation which underlies this
+part of research is that in data-driven problems, the true probability distribution η may be
+unknown and has to be recovered from empirical data. Moreover, the empirical data may be
+potentially contaminated. This raises a question as to how to obtain an approximate CBNE
+based on empirical data and whether such an approximate equilibrium is stable against the data
+perturbation.
+Let P(Θ) denote the set of all probability distributions over Θ and let η ∈P(Θ) be the
+true probability distribution of θ as discussed in Section 3. For µ ∈P(Θ), denote
+λ(θ) := dµ
+dη (θ),
+λi(θi) := dµi
+dηi
+(θi),
+whenever the Radon-Nikodym derivatives exist. We define the admissible class of perturbation
+distributions as
+M(Θ) :=
+
+
+
+
+
+
+
+
+
+µ ∈P(Θ) :
+µ ∼η, i.e., µ ≪η and η ≪µ,
+and for each i ∈N there exists Ci ∈(0, ∞) such that
+Z
+Θ−i
+ λ(θ)
+λi(θi)
+2
+dηi(θ−i|θi) ≤Ci, for ηi-a.e. θi ∈Θi
+
+
+
+
+
+
+
+
+
+.
+(4.1)
+Since µ ∼η, each marginal µi is equivalent to ηi, so λi = dµi/dηi is well-defined and strictly
+positive ηi-a.e. on Θi. Then, for each i ∈N, the conditional distributions satisfy
+dµ(θ−i|θi) = λ(θ)
+λi(θi) dηi(θ−i|θi).
+By Assumption 3.1, for each ˆai ∈Ai there exist a neighborhood Ui(ˆai) and an integrable function
+hˆai(·, θi) ∈L1 ηi(· | θi)
+
+, such that
+sup
+ai∈Ui(ˆai)
+∇aiui(ai, f−i(θ−i), θi, θ−i)
+ ≤hˆai(θ−i, θi),
+∀θ−i ∈Θ−i.
+Hence, for any ai ∈Ui(ˆai),
+Z
+Θ−i
+∇aiui(ai, f−i(θ−i), θi, θ−i)
+ dµ(θ−i|θi)
+=
+Z
+Θ−i
+∇aiui(ai, f−i(θ−i), θi, θ−i)
+ λ(θ)
+λi(θi) dηi(θ−i|θi)
+≤
+ Z
+Θ−i
+∇aiui(ai, f−i(θ−i), θi, θ−i)
+2 dηi(θ−i|θi)
+!1/2  Z
+Θ−i
+ λ(θ)
+λi(θi)
+2
+dηi(θ−i|θi)
+!1/2
+< ∞,
+where the second term is finite for any µ ∈M(Θ) by (4.1). Therefore, the interchangeability
+condition in Assumption 3.1 remains valid for all perturbation distributions µ ∈M(Θ).
+Let µ ∈M(Θ) be a perturbation. For i ∈N, define
+ϑi,η(ai, f−i, θi) :=
+Z
+Θ−i
+ui(ai, f−i(θ−i), θ)dηi (θ−i|θi) , ∀θi ∈Θi
+(4.2)
+15
+
+
+and
+ϑi,µ(ai, f−i, θi) :=
+Z
+Θ−i
+ui(ai, f−i(θ−i), θ)dµi (θ−i|θi) , ∀θi ∈Θi.
+(4.3)
+Let
+A∗
+i,η(f−i, θi) := arg max
+ai∈Ai
+ϑi,η(ai, f−i, θi), A∗
+i,µ(f−i, θi) := arg max
+ai∈Ai
+ϑi,µ(ai, f−i, θi).
+(4.4)
+Assuming that A∗
+i,µ(f−i, θi) and A∗
+i,η(f−i, θi) are singleton, we quantify the difference between the
+corresponding CBNEs in terms of the Kantorovich distance between the probability distributions
+ηi(· | θi) and µi(· | θi) for i ∈N. We need the following technical assumption.
+Assumption 4.1 Consider the BNE model (2.3). For i ∈N, ∇aiui(ai, a−i, θi, θ−i) is Lipschitz
+continuous in θ−i uniformly with respect to a and θi with constant modulus ϱi, i.e.,
+∥∇aiui(ai, a−i, θi, θ′
+−i) −∇aiui(ai, a−i, θi, θ′′
+−i)∥≤ϱi∥θ′
+−i −θ′′
+−i∥, ∀θ′
+−i, θ′′
+−i ∈Θ−i.
+(4.5)
+The condition requires each player’s marginal utility function to be Lipschitz continuous
+w.r.t. change of rivals’ type parameters. The condition is not demanding in that type parameters
+of rivals don’t directly affect a player’s utility function or its marginal in practice.
+Theorem 4.1 (Stability of CBNE) Suppose: (a) Assumptions 3.1, 3.2 and 4.1 hold; (b) all
+the conditions in Proposition 3.1 are satisfied; (c) P
+j̸=i τij < σi, for i ∈N. Let f∗
+η be the true
+equilibrium, and f∗
+µ be the unique CBNE under perturbation µ ∈M(Θ). Then
+∥f∗
+η −f∗
+µ∥∞≤max
+i∈N max
+θi∈Θi
+βτi + ϱi
+σi(1 −α)dlK
+ ηi(· | θi), µi(· | θi)
+
+,
+(4.6)
+where dlK denotes the Kantorovich (Wasserstein–1) distance and β :=
+
+max
+i∈N
+κi
+σi
+
+.
+Proof. We use Lemma A.1 to prove the result. Under Assumption 4.1 and the conditions in
+Theorem 3.2, we assert that ∇aiϑi (ai, f−i, θi) is strongly monotone in ai uniformly with respect
+to f−i, θi and conditional probability distribution ηi(·|θi). We consider f ∈Ψ(F), by fixing up
+f−i, θi and treating ηi(·|θi) as a varying parameter, we obtain by virtue of Lemma A.1 that for
+any µ ∈M(Θ),
+∥A∗
+i,η(f−i, θi) −A∗
+i,µ(f−i, θi)∥
+≤1
+σi
+∥∇aiϑi,η(A∗
+i,η(f−i, θi), f−i, θi) −∇aiϑi,µ(A∗
+i,η(f−i, θi), f−i, θi)∥
+= 1
+σi
+
+Z
+Θ−i
+∇aiui
+ A∗
+i,η(f−i, θi), f−i(θ−i), θ
+ dηi(θ−i|θi) −dµi(θ−i|θi)
+
+ .
+(4.7)
+Observe that ∀θ′
+−i, θ′′
+−i ∈Θ,
+∇aiui
+ A∗
+i,η(f−i, θi), f−i(θ′
+−i), θi, θ′
+−i
+
+−∇aiui
+ A∗
+i,η(f−i, θi), f−i(θ′′
+−i), θi, θ′′
+−i
+
+≤
+∇aiui
+ A∗
+i,η(f−i, θi), f−i(θ′
+−i), θi, θ′
+−i
+
+−∇aiui
+ A∗
+i,η(f−i, θi), f−i(θ′′
+−i), θi, θ′
+−i
+
+16
+
+
++
+∇aiui
+ A∗
+i,η(f−i, θi), f−i(θ′′
+−i), θi, θ′
+−i
+
+−∇aiui
+ A∗
+i,η(f−i, θi), f−i(θ′′
+−i), θi, θ′′
+−i
+
+≤
+X
+i̸=j
+τij∥fj(θ′
+j) −fj(θ′′
+j )∥+ ϱi∥θ′
+−i −θ′′
+−i∥
+(by (3.6) and (4.5))
+≤
+  X
+i̸=j
+τ 2
+ij
+ 1
+2   X
+i̸=j
+∥fj(θ′
+j) −fj(θ′′
+j )∥2 1
+2 + ϱi∥θ′
+−i −θ′′
+−i∥
+(by Cauchy–Schwarz inequality)
+= τi∥f−i(θ′
+−i) −f−i(θ′′
+−i)∥+ ϱi∥θ′
+−i −θ′′
+−i∥
+≤τi
+
+max
+i∈N
+κi
+σi
+
+∥θ′
+−i −θ′′
+−i∥+ ϱi∥θ′
+−i −θ′′
+−i∥
+(by virtue of (3.7))
+= (βτi + ϱi)∥θ′
+−i −θ′′
+−i∥,
+which shows that ∇aiui
+ A∗
+i,η(f−i, θi), f−i(θ−i), θi, θ−i
+
+is Lipschitz continuous over Θ−i with
+modulus (βτi+ϱi), where τi :=
+  P
+i̸=j τ 2
+ij
+ 1
+2 and β :=
+ max
+i∈N
+κi
+σi
+
+. For the metric space (Θ−i, ∥·∥),
+the Kantorovich (Wasserstein–1) distance between two probability distributions η, η′ on Θ−i
+admits the dual representation
+dlK(η, η′) :=
+sup
+g∈G1(Θ−i)
+
+Z
+Θ−i
+g(θ−i) dη(θ−i) −
+Z
+Θ−i
+g(θ−i) dη′(θ−i)
+ ,
+where
+G1(Θ−i) :=
+n
+g : Θ−i →IR : |g(θ′
+−i) −g(θ′′
+−i)| ≤∥θ′
+−i −θ′′
+−i∥, ∀θ′
+−i, θ′′
+−i ∈Θ−i
+o
+is the set of all 1-Lipschitz functions. Therefore, it follows by (4.7)
+∥A∗
+i,η(f−i, θi) −A∗
+i,µ(f−i, θi)∥≤βτi + ϱi
+σi
+dlK
+ ηi(· | θi), µi(· | θi)
+
+.
+(4.8)
+We are now ready to quantify the difference between the CBNEs f∗
+η and f∗
+µ.
+We need the
+mapping Ψ defined in (3.12). Note that since the function ϑi defined in (2.2) depends on the
+underlying distribution η, then Ψ also depends on the distribution. Thus we write Ψµ and Ψη
+respectively when the joint distribution of θ is perturbed from η to µ.
+∥f∗
+η −f∗
+µ∥∞= ∥Ψη(f∗
+η ) −Ψµ(f∗
+µ)∥∞
+≤∥Ψη(f∗
+η ) −Ψη(f∗
+µ)∥∞+ ∥Ψη(f∗
+µ) −Ψµ(f∗
+µ)∥∞
+≤α∥f∗
+η −f∗
+µ∥∞+ max
+i∈N ∥A∗
+i,η(f∗
+−i,µ, ·) −A∗
+i,µ(f∗
+−i,µ, ·)∥∞
+≤α∥f∗
+η −f∗
+µ∥∞+ max
+i∈N max
+θi∈Θi
+βτi + ϱi
+σi
+dlK
+ ηi(· | θi), µi(· | θi)
+
+,
+(4.9)
+where α is defined in the proof of Theorem 3.2 (ii), see (3.14). A reorganization of the inequality
+above gives rise to (4.6)
+□
+Inequality (4.6) provides a bound on the difference between the CBNEs before and after
+perturbation of the probability distribution of θ under the infinity norm. When the range of the
+support set Θ is large, the error bound may be large. This raises a question as to whether we can
+quantify the difference by Lp-norm. To address the question, we need an additional condition
+on the marginal distributions of the type parameters.
+17
+
+
+Assumption 4.2 (Equal own-type marginals) Let µ ∈M(Θ). We assume that, for each
+player i ∈N, the marginal distribution of the own type θi under µ coincides with η, that is,
+ηi(θi) = µi(θi)
+for all θi ∈Θi.
+(4.10)
+Assumption 4.2 ensures that the joint distributions η and µ share the same marginal, which
+means that a player’s belief about its own type is not affected by the perturbation, while its
+beliefs about the opponents’ types and the dependence structure between θi and θ−i may change.
+Thus, the optimal response gap ∆i(f−i, θi) := A∗
+i,η(f−i, θi) −A∗
+i,µ(f−i, θi) can be measured in
+the Lp(ηi) for each fixed f−i ∈F−i,
+∥∆i(f−i)∥Lp(ηi) :=
+
+
+
+
+
+
+
+Z
+Θi
+∥∆i(f−i, θi)∥pdηi(θi)
+1/p
+,
+1 ≤p < ∞,
+ess sup
+θi∈Θi
+∥∆i(f−i, θi)∥,
+p = ∞,
+which averages type–wise deviations according to its own type distribution. By the pointwise
+sensitivity bound in (4.8),
+∥∆i(f−i, θi)∥≤βτi + ϱi
+σi
+dlK (ηi(· | θi), µi(· | θi)) .
+Taking the Lp(ηi)–norm yields, for any 1 ≤p ≤∞and f−i ∈F−i,
+∥∆i(f−i)∥Lp(ηi) ≤βτi + ϱi
+σi
+Z
+Θi
+dlp
+K
+ ηi(· | θi), µi(· | θi)
+
+dηi(θi)
+1/p
+.
+(4.11)
+When p = 1, the expectation on the right-hand side coincides with the conditional Wasserstein-
+1 (Kantorovich) distance, as studied by Chemseddine et al. [4]. In their work, they establish
+a relationship between the Kantorovich distance of two joint distributions and the distance
+between their corresponding conditional distributions as follows:
+dlK(η, µ) ≤
+Z
+Θi
+dlK
+ ηi(· | θi), µi(· | θi)
+
+dηi(θi)
+
+.
+(4.12)
+Unfortunately, we cannot use inequality (4.12) as we want to estimate dlK
+ ηi(· | θi), µi(· | θi)
+
+in
+terms of dlK(η, µ) in (4.6). This motivates use to adopt the relationship between kantorovich met-
+ric and KL-divergence semi-distance bridged by the total variation metric when Θ is bounded,
+as established in [5].
+Theorem 4.2 (Stability and sensitivity of CBNE in η) Assume the setting and conditions
+of Theorem 4.1. For i ∈N, let Diam(Θ−i) be the diameter of set Θ−i. Then the following as-
+sertions hold.
+(i) For any perturbation distribution µ ∈M(Θ),
+∥f∗
+η −f∗
+µ∥∞,L2(η) ≤max
+i∈N
+ βτi + ϱi
+σi(1 −α)Diam(Θ−i)
+
+min
+(r
+dlKL(η ∥µ)
+2
+,
+r
+dlKL(µ ∥η)
+2
+)
+,
+(4.13)
+18
+
+
+where
+∥f∗
+η −f∗
+µ∥∞,L2(η) := max
+i∈N ∥A∗
+i,η(f∗
+−i,η, ·) −A∗
+i,µ(f∗
+−i,µ, ·)∥L2(ηi),
+and dlKL denotes the Kullback–Leibler (KL) divergence.
+(ii) Let ˆη ∈M(Θ) and µ := (1 −ϵ)η + ϵˆη. If, in addition, Assumption 4.2 is satisfied, then
+lim
+ϵ→0
+∥f∗
+η −f∗
+µ∥∞,L2
+ϵ
+≤max
+i∈N
+ βτi + ϱi
+σi(1 −α)Diam(Θ−i)
+
+min
+(r
+dlKL(η ∥ˆη)
+2
+,
+r
+dlKL(ˆη ∥η)
+2
+)
+.
+(4.14)
+Proof. Part (i). For fixed f−i, θi, we have by inequality (4.8)
+∥A∗
+i,η(f−i, θi) −A∗
+i,µ(f−i, θi)∥2
+≤
+βτi + ϱi
+σi
+2  dlK
+ ηi(· | θi), µi(· | θi)
+2 ≤
+βτi + ϱi
+σi
+2  Diam(Θ−i)dlTV
+ ηi(· | θi), µi(· | θi)
+2
+≤
+βτi + ϱi
+σi
+Diam(Θ−i)
+2
+min
+(
+dlKL
+ ηi(· | θi) ∥µi(· | θi)
+
+2
+, dlKL
+ µi(· | θi) ∥ηi(· | θi)
+
+2
+)
+,
+(4.15)
+where dlTV denotes the total variation distance and the second inequality is based on the con-
+clusion in Gibbs and Su [5, Theorem 4], the last inequality is from Pinsker’s inequality directly.
+By the definition KL-divergence
+Z
+Θi
+dlKL
+ ηi(· | θi) ∥µi(· | θi)
+
+dηi(θi) =
+Z
+Θi
+ Z
+Θ−i
+qη(θ)/qi(θi) log
+qη(θ)/qi(θi)
+qµ(θ)/qi(θi)
+
+dθ−i
+!
+qi(θi)dθi
+=
+Z
+Θ
+qη(θ) log
+qη(θ)
+qµ(θ)
+
+dθ = dlKL(η ∥µ).
+(4.16)
+Combining (4.15)-(4.16), we obtain
+∥A∗
+i,η(f−i, ·) −A∗
+i,µ(f−i, ·)∥2
+L2(ηi) =
+Z
+Θi
+∥A∗
+i,η(f−i, θi) −A∗
+i,µ(f−i, θi)∥2dηi(θi)
+≤
+βτi + ϱi
+σi
+Diam(Θ−i)
+2
+min
+dlKL(η ∥µ)
+2
+, dlKL(µ ∥η)
+2
+
+,
+and subsequently
+∥f∗
+η −f∗
+µ∥∞,L2 = ∥Ψη(f∗
+η ) −Ψµ(f∗
+µ)∥∞,L2
+≤∥Ψη(f∗
+η ) −Ψη(f∗
+µ)∥∞,L2 + ∥Ψη(f∗
+µ) −Ψµ(f∗
+µ)∥∞,L2
+≤α∥f∗
+η −f∗
+µ∥∞,L2 + max
+i∈N ∥A∗
+i,η(f∗
+−i,µ, ·) −A∗
+i,µ(f∗
+−i,µ, ·)∥L2(ηi),
+(4.17)
+where Φµ and Ψη are defined as in (4.9). A reorganization of the inequality gives rise to (4.13).
+Part (ii). By the definition of Kantorovich metric,
+dlK
+ ηi(· | θi), µi(· | θi)
+
+=
+sup
+g∈G1(Θ−i)
+
+Z
+Θ−i
+g(θ−i)dηi(θ−i|θi) −
+Z
+Θ−i
+g(θ−i)dµi(θ−i|θi)
+
+(4.18)
+19
+
+
+Under Assumption 4.2 (b), qη(· | θi) = qη(θ)
+qi(θi) and qµ(· | θi) = qµ(θ)
+qi(θi). Thus
+dlK
+ ηi(· | θi), µi(· | θi)
+
+=
+sup
+g∈G1(Θ−i)
+
+Z
+Θ−i
+g(θ−i)qη(θ) −qµ(θ)
+qi(θi)
+dθ−i
+
+=
+sup
+g∈G1(Θ−i)
+
+Z
+Θ−i
+g(θ−i)ϵ(qη(θ) −qˆη(θ))
+qi(θi)
+dθ−i
+
+=
+sup
+g∈G1(Θ−i)
+ϵ
+
+Z
+Θ−i
+g(θ−i)dηi(θ−i|θi) −
+Z
+Θ−i
+g(θ−i)dˆηi(θ−i|θi)
+
+= ϵdlK
+ ηi(· | θi), ˆηi(·|θi)
+
+.
+(4.19)
+Combining (4.15) and (4.19), we have
+∥A∗
+i,η(f−i, θi) −A∗
+i,µ(f−i, θi)∥2 =
+βτi + ϱi
+σi
+2  ϵdlK
+ ηi(· | θi), ˆηi(·|θi)
+2
+≤
+βτi + ϱi
+σi
+2  ϵDiam(Θ−i)dlTV
+ ηi(· | θi), µi(· | θi)
+2
+≤
+βτi + ϱi
+σi
+ϵDiam(Θ−i)
+2
+min
+(
+dlKL
+ ηi(· | θi) ∥µi(· | θi)
+
+2
+, dlKL
+ µi(· | θi) ∥ηi(· | θi)
+
+2
+)
+.
+(4.20)
+Thus
+lim
+ϵ→0
+∥f∗
+η −f∗
+µ∥∞,L2
+ϵ
+≤lim
+ϵ→0
+max
+i∈N ∥A∗
+i,η(f∗
+−i,µ, ·) −A∗
+i,µ(f∗
+−i,µ, ·)∥L2(ηi)
+ϵ(1 −α)
+= lim
+ϵ→0
+max
+i∈N
+qR
+Θi ∥A∗
+i,η(f∗
+−i,µ, ·) −A∗
+i,µ(f∗
+−i,µ, ·)∥2dηi(θi)
+ϵ(1 −α)
+≤max
+i∈N
+ βτi + ϱi
+σi(1 −α)Diam(Θ−i)
+
+min
+(r
+dlKL(η ∥ˆη)
+2
+,
+r
+dlKL(ˆη ∥η)
+2
+)
+,
+(4.21)
+which is (4.14).
+□
+To facilitate understanding of the theorem, we use a simple example to illustrate.
+Example 4.1 (Symmetric two-player Bayesian Cournot game) Consider a symmetric Bayesian
+Cournot game with two players. For each player i = 1, 2, let
+ui(ai, a−i, θ) = ai p(a1, a2) −ci(ai, θi),
+where p(a1, a2) = α−β(a1 +a2), α, β > 0, is the inverse demand function and ci(ai, θi) = θiai +
+c
+2a2
+i , c > 0, is the cost function. The action and type spaces are Ai = [0, α
+β ], Θi = [0, 1], i = 1, 2,
+and the type profile θ = (θ1, θ2) is drawn from a ρ-parametric distribution ηρ supported on
+Θ1 × Θ2 with density qρ(θ1, θ2) = 1 + ρ(2θ1 −1)(2θ2 −1), −1 < ρ < 1. Then
+ϑi(ai, f−i, θi) = (α −θi)ai −
+
+β + c
+2
+
+a2
+i −βai
+Z
+Θ−i
+f−i(θ−i)qi(θ−i|θi) dθ−i.
+20
+
+
+We can obtain a closed form of CBNE with
+f∗
+i,ρ(θi) =
+α
+3β + c +
+β(3 −ρ)
+2(3β + c)(6β + 3c + βρ) −
+θi
+2β + c + βρ
+3
+, for i = 1, 2.
+The equilibrium is stable w.r.t. variation of parameter ρ in that for any ρ1, ρ2 ∈(−1, 1), we have
+|f∗
+i,ρ1(θi) −f∗
+i,ρ2(θi)| ≤
+
+3β(ρ1 −ρ2)(2θi −1)
+2(βρ1 + 6β + 3c)(βρ2 + 6β + 3c)
+ ≤
+3β
+2(5β + 3c)2 |ρ1 −ρ2|.
+5
+Concluding Remarks
+In this paper, we explore a new way to derive existence and uniqueness of continuous Bayesian
+Nash equilibrium and we have managed to do so by deriving Lipschitz continuity of each player’s
+optimal response function w.r.t. variation of its type parameter and the rivals’ optimal response
+functions uniformly w.r.t. other parameters. We derive a contraction condition, we enables us to
+derive the existence and uniqueness of the equilibrium by virtue of Banach fixed-point theorem
+which significantly simply the proofs in the literature [6, 21]. We also make the first attempt to
+quantify impact of perturbation of the joint probability distribution of type parameters on the
+CBNE by deriving an explicit error bound. The new results will have potential effect on deriving
+new computational methods for solving an approximate CBNE. It remains an open question as
+to whether similar results can be established where the space of type parameters is unbounded.
+References
+[1] Simon P Anderson, Andre De Palma, and Jacques-Francois Thisse. Discrete Choice Theory
+of Product Differentiation. MIT press, 1992.
+[2] Susan Athey. Single crossing properties and the existence of pure strategy equilibria in
+games of incomplete information. Econometrica, 69(4):861–889, 2001.
+[3] Susan Athey. Monotone comparative statics under uncertainty. The Quarterly Journal of
+Economics, 117(1):187–223, 2002.
+[4] Jannis Chemseddine, Paul Hagemann, Gabriele Steidl, and Christian Wald. Conditional
+wasserstein distances with applications in bayesian ot flow matching. Journal of Machine
+Learning Research, 26(141):1–47, 2025.
+[5] Alison L Gibbs and Francis Edward Su. On choosing and bounding probability metrics.
+International Statistical Review, 70(3):419–435, 2002.
+[6] S. Guo, H. Xu, and L. Zhang. Existence and approximation of continuous bayesian nash
+equilibria in games with continuous type and action spaces. SIAM Journal on Optimization,
+31(4):2481–2507, 2021.
+[7] John C. Harsanyi. Games with incomplete information played by “bayesian” players, i–iii
+part i. the basic model. Management Science, 14(3):159–182, 1967.
+21
+
+
+[8] John C Harsanyi. Games with incomplete information played by “bayesian” players part
+ii. bayesian equilibrium points. Management science, 14(5):320–334, 1968.
+[9] John C Harsanyi. Games with incomplete information played by “bayesian” players, part
+iii. the basic probability distribution of the game.
+Management science, 14(7):486–502,
+1968.
+[10] Jian Liu, Hailin Sun, and Huifu Xu. Bayesian nash equilibrium in price competition under
+multinomial logit demand.
+European Journal of Operational Research, 324(2):669–689,
+2025.
+[11] David McAdams. Isotone equilibrium in games of incomplete information. Econometrica,
+71(4):1191–1214, 2003.
+[12] Adam Meirowitz. On the existence of equilibria to bayesian games with non-finite type and
+action spaces. Economics Letters, 78(2):213–218, 2003.
+[13] Paul Milgrom and Chris Shannon. Monotone comparative statics. Econometrica: Journal
+of the Econometric Society, pages 157–180, 1994.
+[14] John K-H Quah and Bruno Strulovici. Aggregating the single crossing property. Econo-
+metrica, 80(5):2333–2348, 2012.
+[15] Philip J Reny. On the existence of monotone pure-strategy equilibria in bayesian games.
+Econometrica, 79(2):499–553, 2011.
+[16] Walter Rudin. Functional Analysis. International series in pure and applied mathematics.
+McGraw-Hill, 1991.
+[17] Ziheng Su and Huifu Xu. Continuous and monotone bayesian nash equilibrium with in-
+complete information about player’s risk preferences. Available at SSRN 5118754, 2025.
+[18] Yuan Tao and Huifu Xu. Generalized bayesian nash equilibrium with continuous type and
+action spaces. SIAM Journal on Optimization, 35(2):789–817, 2025.
+[19] Donald M Topkis. Minimizing a submodular function on a lattice. Operations Research,
+26(2):305–321, 1978.
+[20] Donald M Topkis. Supermodularity and complementarity. Princeton university press, 1998.
+[21] Takashi Ui. Bayesian nash equilibrium and variational inequalities. Journal of Mathematical
+Economics, 63:139–146, 2016.
+[22] Timothy Van Zandt and Xavier Vives. Monotone equilibria in bayesian games of strategic
+complementarities. Journal of Economic Theory, 134(1):339–360, 2007.
+[23] Xavier Vives. Nash equilibrium with strategic complementarities. Journal of Mathematical
+Economics, 19(3):305–321, 1990.
+[24] Eberhard Zeidler and Peter R Wadsack. Nonlinear Functional Analysis and Its Applications:
+Fixed-point Theorems/Transl. by Peter R. Wadsack. Springer-Verlag, 1993.
+22
+
+
+A
+Appendix
+A.1
+Stability of strongly monotone parametric variational inequality
+The proofs of some technical results in the main body of the paper are essentially concerned
+with the existence and Lipschitz continuity of the solution to a parametric variational inequality
+where the underlying function is strongly monotone and Lipschitz continuous. Since the results
+are of broader interest, we present them in a general form in this appendix.
+Lemma A.1 Let X ⊂IRm be a non-empty, compact, and convex set and Y be a Polish space.
+Let Φ : X × Y →IRm be a continuous mapping which is σ-strongly monotone in x uniformly
+w.r.t. y. Then, for every y ∈Y, the generalized equation
+0 ∈Φ(x, y) + NX (x)
+admits a unique solution x∗(y) ∈X. Moreover,
+∥x∗(y1) −x∗(y2)∥≤1
+σ∥Φ(x∗(y2), y1) −Φ(x∗(y2), y2)∥, ∀y1, y2 ∈Y,
+(A.1)
+where
+0 ∈Φ(x∗(y1), y1) + NX (x∗(y1)), 0 ∈Φ(x∗(y2), y2) + NX (x∗(y2)).
+(A.2)
+Proof. Existence. Fix y and write F(·) := Φ(·, y). For any τ > 0, define
+T(x) := ΠX
+ x −τF(x)
+
+,
+x ∈X,
+where ΠX is the Euclidean projection onto X. Since F is continuous on compact X and ΠX is
+continuous, T : X →X is continuous. By Brouwer’s fixed-point theorem there exists x∗∈X
+with x∗= T(x∗), i.e.,
+x∗= ΠX
+ x∗−τF(x∗)
+
+.
+By the projection optimality condition, this is equivalent to
+⟨F(x∗), x −x∗⟩≥0,
+∀x ∈X,
+i.e., 0 ∈F(x∗) + NX (x∗), so a solution exists.
+Uniqueness. Let x1, x2 both satisfy 0 ∈Φ(x, y) + NX (x). Then
+⟨Φ(x1, y), x2 −x1⟩≥0, ⟨Φ(x2, y), x1 −x2⟩≥0.
+Using the strong monotonicity condition,
+0 ≤⟨Φ(x1, y) −Φ(x2, y), x2 −x1⟩= −⟨Φ(x1, y) −Φ(x2, y), x1 −x2⟩≤−σ∥x1 −x2∥2,
+hence x1 = x2.
+23
+
+
+Lipschitz continuity . By Lemma A.2, for each y the operator x 7→Φ(x, y) + NX (x) is σ-
+strongly monotone in x uniformly w.r.t. y. For each y1, y2 ∈Y, by the strong monotonicity of
+Φ(x, y1) + NX (x) in x, let v2 ∈Φ(x∗(y2), y1) + NX (x∗(y2)), we have
+σ∥x∗(y1) −x∗(y2)∥2 ≤⟨x∗(y1) −x∗(y2), 0 −v2⟩,
+(A.3)
+which implies
+σ∥x∗(y1) −x∗(y2)∥≤∥v2∥.
+(A.4)
+On the other hand, we know from (A.2) that
+−Φ(x∗(y2), y2) ∈NX (x∗(y2)).
+Therefore, we can set
+v2 := Φ(x∗(y2), y1) −Φ(x∗(y2), y2)
+(A.5)
+in (A.3). A combination of (A.4) and (A.5) gives rise to (A.1).
+□
+The next lemma establishes the equivalence between strong monotonicity of a mapping
+(vector-valued function) and strong monotonicity of its addition to a normal cone mapping.
+Lemma A.2 Let X ⊂IRm be a non-empty, closed, and convex set and let Φ : X →IRm be a
+mapping. Then the following are equivalent:
+(i) Φ is σ-strongly monotone on X, i.e.,
+⟨Φ(x1) −Φ(x2), x1 −x2⟩≥σ∥x1 −x2∥2, ∀x1, x2 ∈X.
+(ii) The set-valued mapping x 7→Φ(x) + NX (x) is σ-strongly monotone on X, i.e.,
+
+v1 −v2, x1 −x2
+
+≥σ∥x1 −x2∥2,
+∀x1, x2 ∈X, ∀vi ∈Φ(xi) + NX (xi),
+where
+NX (x) :=
+n
+w ∈IRm : ⟨w, x′ −x⟩≤0, ∀x′ ∈X
+o
+is the normal cone to X at x.
+Proof. The result is perhaps well-known. We include it for self-containedness.
+(i) =⇒(ii). We show that the mapping x 7→Φ(x) + NX (x) is strongly monotone in x. By
+definition, the σ-strong monotonicity of Φ implies that
+⟨Φ(x1) −Φ(x2), x1 −x2⟩≥σ∥x1 −x2∥2, ∀x1, x2 ∈X.
+(A.6)
+For any w1 ∈NX (x1), w2 ∈NX (x2), from the definition of the normal cone, we have
+⟨w1, x2 −x1⟩≤0, ⟨w2, x1 −x2⟩≤0.
+By adding them together, it follows that
+⟨w1 −w2, x1 −x2⟩≥0.
+(A.7)
+24
+
+
+Combining (A.6) and (A.7), we have
+⟨(Φ(x1) + w1) −(Φ(x2) + w2), x1 −x2⟩≥σ∥x1 −x2∥2,
+which shows that the mapping Φ(x) + NX (x) is σ-strongly monotone over X.
+(ii) =⇒(i). Since the set-valued mapping Φ(x) + NX (x) is σ-strongly monotone on X, then
+
+v1 −v2, x1 −x2
+
+≥σ∥x1 −x2∥2, ∀x1, x2 ∈X, ∀vi ∈Φ(xi) + NX (xi).
+Since 0 ∈NX (xi), we take vi = Φ(xi), then it follows that
+
+Φ(x1) −Φ(x2), x1 −x2
+
+≥σ∥x1 −x2∥2, ∀x1, x2 ∈X,
+which shows that Φ(x) is σ-strongly monotone on X.
+□
+A.2
+Schauder’s fixed point theorem and Arzel´a-Ascoli theorem
+Let Z be a Banach space and T : Z →Z be an operator. A set in Z is called relatively compact
+if its closure is compact. The operator T is said to be compact if it is continuous and maps
+bounded sets into relatively compact sets.
+Lemma A.3 (Schauder’s fixed-point theorem [24, Chapter 3]) If Z is a non-empty, closed,
+bounded, convex subset of a Banach space Z and T : Z →Z is a compact operator, then T has
+a fixed-point.
+It is well-known that the relative compactness may be characterized by the uniform bound-
+edness and equicontinuity. The next lemma states this.
+Lemma A.4 (Arzel`a–Ascoli theorem [16, Theorem A5]) A set Z ⊂Z is relatively com-
+pact if and only if Z satisfies the following two conditions: (a) uniform boundedness, i.e.,
+supf∈Z ∥f∥∞< ∞, and (b) equicontinuity, i.e., for every ϵ > 0, there exists a constant δ > 0
+such that supf∈Z ∥f(θ) −f(θ′)∥< ϵ, ∀θ, θ′ with ∥θ −θ′∥< δ.
+25

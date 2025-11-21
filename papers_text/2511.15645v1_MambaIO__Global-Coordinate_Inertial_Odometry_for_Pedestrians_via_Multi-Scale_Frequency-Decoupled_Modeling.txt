@@ -1,0 +1,757 @@
+1
+MambaIO: Global-Coordinate Inertial Odometry for Pedestrians via
+Multi-Scale Frequency-Decoupled Modeling
+Shanshan Zhang1
+Abstract—Inertial Odometry (IO) enables real-time localiza-
+tion using only acceleration and angular velocity measurements
+from an Inertial Measurement Unit (IMU), making it a promis-
+ing solution for localization in consumer-grade applications.
+Traditionally, IMU measurements in IO have been processed
+under two coordinate system paradigms: the body coordinate
+frame and the global coordinate frame, with the latter being
+widely adopted. However, recent studies in drone scenarios have
+demonstrated that the body frame can significantly improve
+localization accuracy, prompting a re-evaluation of the suit-
+ability of the global frame for pedestrian IO. To address this
+issue, this paper systematically evaluates the effectiveness of the
+global coordinate frame in pedestrian IO through theoretical
+analysis, qualitative inspection, and quantitative experiments.
+Building upon these findings, we further propose MambaIO,
+which decomposes IMU measurements into high-frequency and
+low-frequency components using a Laplacian pyramid. The low-
+frequency component is processed by a Mamba architecture to
+extract implicit contextual motion cues, while the high-frequency
+component is handled by a convolutional structure to capture
+fine-grained local motion details. Experiments on multiple public
+datasets show that MambaIO substantially reduces localization
+error and achieves state-of-the-art (SOTA) performance. To the
+best of our knowledge, this is the first application of the Mamba
+architecture to the inertial odometry task.
+Index
+Terms—Inertial
+Odometry,
+Laplacian
+pyramids,
+Mamba, coordinate frame, localization.
+I. INTRODUCTION
+The Inertial Measurement Unit (IMU) serves as the primary
+data source for Inertial Odometry (IO), providing acceleration
+and angular velocity measurements [1]. Owing to its low cost,
+compact size, and minimal power consumption, the IMU is
+widely integrated into mobile devices such as smartphones,
+robots, and unmanned aerial vehicles (UAV).
+IO aims to estimate the trajectory of a moving carrier (e.g.,
+humans or drones) based solely on acceleration and angular
+velocity measurements from the IMU, enabling high-precision
+self-localization and tracking. Traditional IO approaches pri-
+marily rely on numerical integration, but noise and bias inher-
+ent in IMU measurements accumulate over time, leading to
+significant drift errors. In contrast, learning-based IO methods,
+trained end-to-end on large-scale IMU datasets, automatically
+uncover latent motion regularities and demonstrate superior
+performance in terms of localization accuracy, robustness, and
+cross-scenario generalizability [2].
+Early learning-based IO methods attempted to estimate the
+pose of the carrier directly in the body coordinate frame.
+1Shanshan Zhang is with the Department of Information and Communica-
+tion Engineering, National and Local Joint Engineering Research Center of
+Navigation and Location-Based Services, Xiamen University, Xiamen 361005,
+China (e-mail: lxzheng@xmu.edu.cn).
+However, RoNIN reported that the body frame undergoes
+frequent changes during motion, resulting in discontinuous
+motion representations and associated issues. To mitigate these
+problems, RoNIN introduced a Heading-Agnostic Coordinate
+Frame (HACF), defined as any coordinate system whose Z-
+axis is aligned with the gravity direction, thereby providing a
+more stable and reliable motion representation. This approach
+has since become the prevailing data processing paradigm in
+the IO community. Nevertheless, recent studies in drone-based
+scenarios have shown that, under certain conditions, using the
+body frame directly can lead to substantially improved local-
+ization accuracy. This counterintuitive observation motivates a
+reassessment of a fundamental question:
+Is the global coordinate representation truly beneficial
+for pedestrian IO?
+To address this question, we first conduct a systematic
+analysis of the representational characteristics of inertial data
+under different coordinate frames. Through kinematic analysis
+and visualization, we verify that the global coordinate frame
+provides more discriminative feature representations for pedes-
+trian motion. Building on this finding, we propose MambaIO,
+which decomposes IMU measurements into frequency compo-
+nents to enable targeted learning. Experimental results demon-
+strate that MambaIO further improves localization accuracy in
+pedestrian IO, with selected results shown in Fig. 3.
+The main contributions of this work are summarized as
+follows:
+• Coordinate Frame Representation Analysis: We system-
+atically compare the representational capabilities of the
+global and body-fixed coordinate frames and their impact on
+learning performance, empirically validating the necessity of
+adopting the global frame in pedestrian IO.
+• Laplacian
+Pyramid
+Decomposition:
+We
+propose
+a
+PyTorch-based Laplacian pyramid method that efficiently
+decomposes
+IMU
+measurements
+into
+high-
+and
+low-
+frequency components, thereby enhancing the specificity
+and effectiveness of subsequent feature learning.
+• Mamba Module: We introduce the Mamba architecture
+to specifically model the contextual motion information
+embedded in the low-frequency IMU measurements com-
+ponent.
+• Multi-Path Convolutional Module: We design a multi-
+scale convolutional module to extract local motion features
+from the high-frequency IMU measurements component,
+which collaborates with the Mamba module to achieve
+comprehensive modeling of motion dynamics.
+arXiv:2511.15645v1  [cs.CV]  19 Nov 2025
+
+
+2
+II. RELATED WORK
+From a methodological perspective, research on IO can
+be broadly divided into two categories: traditional methods
+based on Newtonian mechanics and data-driven approaches
+leveraging machine learning.
+Newtonian Mechanics-Based Methods: Early approaches,
+exemplified by Strapdown Inertial Navigation Systems (SINS),
+estimate the position and orientation of a carrier by nu-
+merically integrating the acceleration and angular velocity
+outputs of IMUs. However, these methods are highly sensitive
+to measurement accuracy, as even minor noise and bias in
+IMU measurements accumulate over time during integration,
+leading to significant drift errors. To mitigate such errors,
+various physical priors have been introduced as corrective
+constraints. For instance, Pedestrian Dead Reckoning (PDR)
+assumes a stable gait cycle, while Zero Velocity Update
+(ZUPT) exploits the prior knowledge that the velocity of a
+foot-mounted IMU is zero during stance phases. Furthermore,
+multi-sensor fusion techniques have been widely adopted to
+enhance system robustness by incorporating auxiliary infor-
+mation such as gait phase detection, vision, LiDAR, or GPS
+signals. In these frameworks, IMU data are typically fused
+with external measurements through Extended Kalman Filters
+(EKF), Invariant Extended Kalman Filters (IEKF), or factor
+graph optimization for joint state estimation. Nevertheless,
+physics-based methods often rely on strong assumptions about
+motion patterns or require additional hardware support, which
+limits their generalization capability and deployment flexibility
+in complex real-world environments.
+Learning-Based Methods: With the rapid development of
+deep learning, researchers have explored end-to-end models
+that learn motion mappings from large-scale IMU datasets to
+improve the accuracy, robustness, and cross-scenario adapt-
+ability of IO. Early representative works such as RIDI [3]
+and PDRNet [4] first classify the mounting position of IMU
+and then regress the human’s velocity or displacement. Sub-
+sequently, RoNIN identified the representation discontinuity
+inherent in the body-fixed frame used by RIDI—caused by
+changes in device orientation—and proposed the HACF, such
+as the global coordinate frame. RoNIN also systematically
+compared multiple network architectures, including TCN,
+LSTM, and ResNet. Following this work, most studies adopted
+global coordinate frame for IMU preprocessing, employing
+model architectures based on CNNs, LSTMs, Transformers,
+or their hybrid variants. For example, TLIO [5] and LIDR
+[6] extended RoNIN by integrating Stochastic Cloning Ex-
+tended Kalman Filters (SCEKF) and Left Invariant Extended
+Kalman Filters (LIEKF), respectively; IMUNet [7], DeepILS
+[8], and DeepLite [9] focused on lightweight network de-
+sign; CTIN [10], SBIPTVT [11], and iMOT [12] introduced
+attention mechanisms to enhance temporal modeling; RNIN-
+VIO, SCHNN, and SSHNN constructed multi-branch hybrid
+networks combining CNNs, LSTMs, and attention modules.
+III. METHODOLOGY
+To examine the influence of different coordinate frames on
+pedestrian IO and to explore potential improvements in local-
+ization accuracy, this section first presents formal definitions
+of the body frame and the global frame in Section III-A.
+Section III-B then provides qualitative evidence from three
+complementary analyses, demonstrating that—unlike findings
+reported in drone-based applications—the global frame yields
+more discriminative representations of pedestrian motion.
+Building on this observation, Section III-C introduces Mam-
+baIO, which operates in the global coordinate frame and
+decomposes IMU measurements using a Laplacian pyramid.
+Dedicated modules are subsequently designed to model the
+implicit information embedded in each frequency component,
+thereby substantially enhancing the localization accuracy of
+pedestrian IO.
+A. Coordinate Frame Definitions
+1) Body Coordinate Frame: As shown in Fig.3, the IMU
+directly measures angular velocity and acceleration in its own
+body frame. These measurements serve as input data during
+training, while the corresponding labels (e.g., human velocity)
+are obtained from more accurate algorithms or external sensors
+(e.g., RoNIN mounted an additional smartphone on the chest
+to collect human velocity). For simplicity, sensor bias and
+noise are temporarily neglected. At time t, the measured
+quantities in the body frame are related to the true physical
+values as follows:
+Input Data:
+(
+ωbody
+t,meas = ωbody
+t,true
+abody
+t,meas = abody
+t,true + Rt,global→body gglobal
+Label:
+n
+vbody
+t,meas = Rt,global→body vglobal
+t,true
+(1)
+where ωbody
+t,meas and ωbody
+t,true denote the measured and true
+angular velocities expressed in the body frame, respectively;
+abody
+t,meas and abody
+t,true denote the measured and true accelerations
+expressed in the body frame, respectively; Rt,global→body is
+the rotation matrix that transforms vectors from the global
+frame to the body frame; and gglobal = [0, 0, g]⊤represents
+the gravitational acceleration vector in the global frame, with
+g ≈9.81 m/s2. vbody
+t,meas denotes the measured velocity of the
+carrier (e.g., human or UAV) expressed in the body frame,
+and vglobal
+t,true denotes the true velocity of the carrier expressed
+in the global frame.
+2) Global Coordinate Frame: The input data and labels
+in the global coordinate frame can be obtained by applying
+rotational transformations to the corresponding quantities in
+the body frame. Consequently, at time t, the model’s input
+data and labels are expressed as:
+Input Data:
+(
+ωglobal
+t,meas = Rt,body→globalωbody
+t,true
+aglobal
+t,meas = Rt,body→globalabody
+t,true + gglobal
+Label:
+n
+vglobal
+t,meas = vglobal
+t,true
+(2)
+where ωglobal
+t,meas and aglobal
+t,meas denote the angular velocity and
+acceleration measurements in the global frame, respectively;
+Rt,body→global is the rotation matrix transforming vectors from
+the body frame to the global frame, typically estimated from
+IMU data via preintegration or pose estimation algorithms, and
+approximately satisfies the orthogonality condition:
+Rt,body→global Rt,global→body = I
+(3)
+
+
+3
+Fig. 1. Schematic diagram of the coordinate system transformation relationship between the IMU and the carrier’s center of mass in UAV and pedestrian
+motion scenarios.
+where I denotes the identity matrix.
+Fundamentally, Equations (1) and (2) are mathematically
+equivalent, representing the same IMU and velocity measure-
+ments in different reference frames. However, as illustrated
+in Fig. 3, the IMU is typically not co-located with the
+center of mass of the carrier (e.g., a pedestrian or a drone),
+causing measurements expressed in the IMU body frame to
+inadequately capture the true motion dynamics of the carrier.
+In drone-based scenarios, the IMU is rigidly attached to
+the carrier, and measurements can be accurately transformed
+to the carrier’s center of mass using a pre-calibrated fixed
+transformation matrix that encodes the relative translation and
+rotation between the IMU and the carrier. This process is
+straightforward and highly accurate; consequently, some stud-
+ies argue that the linear coupling between IMU measurements
+and pose information in Equation (1) provides a sufficient
+learning signal.
+In contrast, for Pedestrian IO, the transformation from the
+IMU to the human body’s center of mass varies significantly
+over time and is generally infeasible to obtain in real time.
+For example, in RoNIN, human velocity is estimated from a
+smartphone mounted on the chest, while IMU measurements
+may originate from another phone held arbitrarily by the user.
+Under such practical conditions, models often directly estimate
+the carrier’s true velocity from raw IMU readings, implicitly
+learning the complex, time-varying mapping between the IMU
+location and an approximate human center of mass.
+In this context, the linear coupling described in Equation (1)
+is insufficient to fully characterize the non-rigid, time-varying
+nature of this mapping. By comparison, the nonlinear coupling
+embodied in Equation (2) offers a more appropriate repre-
+sentation of human motion. Moreover, the global coordinate
+frame explicitly aligns measurements to a consistent refer-
+ence orientation, effectively mitigating disturbances caused
+by rapid changes in carrier heading and thereby yielding
+motion representations that are more consistent and seman-
+tically meaningful. This observation aligns with the findings
+reported in RoNIN, which attributes severe discontinuities in
+motion representation to the drastic frame-to-frame orientation
+variations inherent in the body-fixed frame.
+In summary, under clearly defined coordinate systems and
+data collection protocols, using raw IMU measurements in the
+body frame to estimate carrier velocity is viable for drone
+IO. However, for pedestrian IO, the transformation between
+the IMU and the human center of mass is highly dynamic
+and difficult to model, leading to significant representational
+discontinuities—a phenomenon consistent with prior empirical
+observations. Fig. 4 further illustrates the fundamental differ-
+ences between these two IO learning paradigms.
+B. Representation Analysis
+To systematically evaluate the impact of different coordinate
+frames on the feature representational capacity in pedestrian
+inertial odometry (IO) and to validate the analysis presented
+in Section III-A, we conduct comparative experiments using
+Principal Component Analysis (PCA), t-SNE, and trajectory
+inference visualization. All experiments are performed on six
+publicly available pedestrian inertial datasets. Key findings are
+summarized below; a complete analysis is provided in the
+appendix.
+
+
+4
+Fig. 2.
+Comparison of metrics on the xxx dataset. Scatter points closer to
+the bottom-left corner indicate the algorithm has lower ATE and RTE, i.e.,
+higher localization accuracy.
+Fig. 3.
+Comparison of metrics on the xxx dataset. Scatter points closer to
+the bottom-left corner indicate the algorithm has lower ATE and RTE, i.e.,
+higher localization accuracy.
+PCA constructs orthogonal principal components to re-
+place correlated variables in high-dimensional data, thereby
+enabling dimensionality reduction and interpretable structure
+analysis. The analysis pipeline for inertial data under different
+coordinate frames is as follows: (1) concatenate the latent
+features extracted by the RoNIN-ResNet model from all test
+samples into a high-dimensional feature matrix; (2) apply
+PCA to this matrix and compute normalized singular values,
+each corresponding to the variance explained by one principal
+component; (3) calculate the cumulative explained variance
+(i.e., energy coverage ratio) of the top k = 50 principal
+components to quantify the efficiency of capturing essential
+motion information. As shown in Fig. 3, under the RoNIN-
+ResNet model, the global coordinate frame (red curve) con-
+sistently achieves higher cumulative explained variance than
+the body-fixed frame (black curve), attaining greater energy
+coverage with the same number of principal components. This
+indicates that the global frame concentrates critical motion
+information more effectively—a trend consistently observed
+across all other datasets (see Appendix).
+t-SNE maps high-dimensional features into a two- or three-
+dimensional space while preserving local neighborhood rela-
+tionships, making it suitable for qualitatively evaluating feature
+separability. We extract features from raw IMU data in both the
+body-fixed and global frames on the RoNIN dataset and apply
+t-SNE for dimensionality reduction, coloring each sample
+according to its ground-truth speed magnitude. As shown in
+Fig. 4, features in the body-fixed frame exhibit substantial
+mixing across different speed levels with indistinct boundaries,
+suggesting a limited ability to encode speed-related motion
+semantics. In contrast, features in the global frame naturally
+cluster by speed, forming well-separated, coherent regions that
+enhance feature separability and provide a more discriminative
+representation for downstream models. Consistent patterns are
+observed across all other datasets (see Appendix).
+To further validate the influence of coordinate frame se-
+lection on practical localization performance, we train and
+evaluate the RoNIN-ResNet model using data represented in
+both coordinate frames, and compare the alignment between
+predicted and ground-truth trajectories. As shown in Fig. 5,
+trajectories inferred from the global frame exhibit superior
+smoothness and positional accuracy compared with those
+from the body-fixed frame, more faithfully reconstructing
+the true motion state. This observation is highly consistent
+with the preceding PCA and t-SNE analyses, demonstrating
+that enhanced feature representation directly translates into
+improved motion modeling capability. Additional trajectory vi-
+sualizations across different network architectures (e.g., CNN,
+Transformer) and datasets are provided in the Appendix, all
+of which further corroborate this conclusion.
+Synthesizing evidence from the three experimental perspec-
+tives, we derive the following key conclusions: the assump-
+tion of “linear superposition of motion information and pose
+variation” inherent in the body-fixed frame fails to capture
+the complex, non-rigid, and nonlinear relative motion between
+pedestrians and IMUs, resulting in structurally deficient fea-
+ture representations. In contrast, the global coordinate frame
+substantially enhances both feature compactness and class
+separability, producing a more discriminative and consistent
+latent representation for pedestrian IO. This representational
+advantage ultimately leads to more accurate and robust trajec-
+tory estimation, thereby validating both the effectiveness and
+necessity of adopting the global coordinate frame in pedestrian
+inertial odometry.
+C. MambaIO
+Motivated by the analyses in the preceding sections, which
+indicate that the global coordinate frame provides superior
+feature representations for pedestrian IO, we further investigate
+strategies to enhance localization accuracy within this frame.
+We observe that end-to-end learning directly on raw IMU
+measurements is susceptible to interference from mixed signal
+components, including high-frequency noise and redundant
+local motions, which impedes the model’s ability to focus on
+salient motion cues. To address this, we propose MambaIO:
+a novel architecture that first decomposes IMU signals in the
+global frame into multi-scale frequency components using a
+Laplacian pyramid, separating the low-frequency component,
+which primarily encodes global motion trends, from the high-
+frequency component, which captures local dynamic details.
+Subsequently, a multi-path convolutional module, specialized
+
+
+5
+Fig. 4. Schematic diagram of the proposed MambaIO architecture, including the Laplacian pyramid and the multi-path convolutional kernel Mamba module.
+for local modeling, processes the high-frequency component,
+while a Mamba module, adept at long-range sequential mod-
+eling, handles the low-frequency component. The outputs
+from both pathways are then fused to enable precise motion
+state inference. The overall architecture of MambaIO draws
+inspiration from the design principles of ConvNeXt, and its
+schematic diagram is presented in Fig. 6.
+1) Laplacian Pyramid Decomposition Module: Existing
+studies suggest that convolutional operations are inherently
+effective for capturing local spatiotemporal features, corre-
+sponding to high-frequency signal components, whereas atten-
+tion mechanisms or state space models (e.g., Mamba) excel
+at modeling long-range dependencies associated with low-
+frequency trends. Therefore, explicitly decomposing IMU sig-
+nals by frequency and designing dedicated modeling pathways
+for different bands can substantially improve the specificity
+and efficiency of feature learning.
+The classical Laplacian pyramid generates multi-resolution
+low-frequency subbands through successive low-pass filtering
+and downsampling, followed by upsampling and residual
+computation to extract high-frequency details at each level.
+However, directly integrating external frequency decomposi-
+tion tools, such as FFT-based filters, into deep learning frame-
+works often results in non-differentiable operations, training
+instability, or inefficient inference. To circumvent these issues
+while preserving the essence of multi-scale decomposition, we
+design a lightweight, differentiable approximation using native
+PyTorch operations.
+Specifically, given the input feature X ∈RN×L in the
+global coordinate frame, where N = 6 denotes the three-axis
+acceleration and three-axis angular velocity, and L = 200
+is the number of samples in the temporal window, we first
+employ depthwise convolution to approximate low-pass filter-
+ing. The convolution kernel weights are fixed to a normalized
+averaging kernel Kavg ∈Rk, satisfying P
+i Kavg(i) = 1,
+and a stride s = 2 is applied to compress the sequence
+length, thereby jointly approximating low-pass filtering and
+downsampling. In our experiments, we set the kernel size
+k = 5, yielding the downsampled low-frequency feature:
+Xld = DWConvavg(X) ∈RN×⌊L/s⌋
+(4)
+This design enables differentiable and efficient low-pass filter-
+ing with negligible computational overhead, avoiding gradient
+truncation. Next, we apply nearest-neighbor upsampling to Xld
+to restore the original sequence length, obtaining a smooth
+low-frequency component:
+Xlow = NearestUpSample(Xld) ∈RN×L.
+(5)
+Here, NearestUpSample(·) denotes the nearest-neighbor up-
+sampling operation. Finally, the high-frequency detail com-
+ponent is obtained by computing the residual between the
+original input and the low-frequency component:
+Xhigh = X −Xlow ∈RN×L
+(6)
+This decomposition pipeline is fully differentiable, compu-
+tationally efficient, and effectively decouples local dynamics
+from global trends in IMU signals, providing a robust foun-
+dation for subsequent pathway-specific modeling.
+2) Multi-Path Convolution Module: The Laplacian pyramid
+isolates the high-frequency component Xhigh, which primar-
+ily encodes local motion details. To efficiently extract local
+spatiotemporal features from this component, we design a
+lightweight Multi-Path Convolution (MPC) module. This mod-
+ule employs three parallel depthwise convolutions with distinct
+kernel sizes (k1 = 1, k2 = 3, k3 = 7) to capture motion
+patterns across multi-scale local receptive fields. The outputs
+
+
+6
+from all paths are concatenated along the channel dimension
+to form a comprehensive local representation:
+X0 = DWConvk=1(Xhigh) ∈RN×L
+X1 = DWConvk=3(Xhigh) ∈RN×L
+X2 = DWConvk=7(Xhigh) ∈RN×L
+Xconcat = Concat(X0, X1, X2) ∈R3N×L
+(7)
+where DWConv denotes depthwise convolution with learnable
+weights, Xi ∈RN×L is the output of the i-th path, and
+Concat(·) represents concatenation along the channel dimen-
+sion.
+Following the design principles of RepViT, we enhance
+cross-channel interaction by inserting a lightweight Squeeze-
+and-Excitation (SE) block after concatenation, followed by a
+pointwise convolution for channel fusion, yielding the final
+output of the high-frequency branch:
+XMPC = Conv
+ SEBlock(Xconcat)
+
+∈RN×L
+(8)
+where XMPC denotes the output of the MPC module, serving as
+the enriched local feature representation for subsequent fusion
+with the low-frequency pathway.
+3) Mamba Module: State Space Models (SSM), inspired
+by continuous dynamical systems, have been widely adopted
+to model long-range dependencies in sequential data, achiev-
+ing strong performance in computer vision and sequential
+modeling tasks. Mamba extends the classical SSM by in-
+corporating an input-dependent selective mechanism, enabling
+linear-complexity modeling of global context while effectively
+focusing on salient information.
+State Space Model: The standard continuous-time SSM is
+defined as:
+˙h(t) = Ah(t) + Bx(t)
+(9)
+y(t) = Ch(t)
+(10)
+where x(t) ∈RS×D denotes the input sequence (with S as the
+sequence length and D as the number of channels), h(t) ∈RH
+is the hidden state of size H, y(t) ∈RS×D is the output,
+and A ∈RH×H, B ∈RH×D, C ∈RD×H are learnable
+parameters.
+Discretization: For discrete sequence processing, the sys-
+tem is typically discretized using Zero-Order Hold. Given a
+sampling interval ∆, the discretized parameters are:
+˜A = exp(∆A)
+(11)
+˜B = (∆A)−1(exp(∆A) −I) · (∆B)
+(12)
+yielding the recurrence:
+ht = ˜Aht−1 + ˜Bxt
+(13)
+yt = Cht
+(14)
+This process is equivalent to convolving the input sequence
+with a structured kernel ¯K = (C ˜B, C ˜A ˜B, . . . , C ˜AS−1 ˜B), i.e.,
+y = x ∗¯K.
+Mamba enhances this framework with an input-dependent
+selection mechanism that improves its ability to attend to
+relevant contextual cues. As the internal mechanics of Mamba
+are not central to this work, we omit further details. We
+implement the Mamba module following the MambaVision
+construction, as illustrated in Fig. 7. Based on the State
+Space Discretization (SSD) procedure, the computation in the
+Mamba module can be abstracted as:
+X1 = SSD
+ σ(Conv(Linear(Xlow)))
+
+(15)
+X2 = σ(Conv(Linear(Xlow)))
+(16)
+XMamba = Linear
+ Concat(X1, X2)
+
+(17)
+where σ denotes a nonlinear activation function and Linear
+represents a linear projection layer.
+This module captures global motion dependencies from the
+low-frequency component Xlow with O(L) linear complexity,
+complementing the high-frequency MPC module. Prior work
+indicates that adding attention mechanisms in deeper layers
+can further improve modeling accuracy; therefore, a standard
+attention module is appended after the final Mamba block to
+enhance the representational weight of critical frames.
+Finally, the outputs of the MPC module (XMPC) and the
+Mamba module (XMamba) are fused to obtain the final rep-
+resentation of the dual-path Laplacian pyramid architecture,
+which is subsequently used for pose regression:
+Xout = Conv(Concat(XMPC, XMamba)) ∈RN×L
+(18)
+IV. EXPERIMENTS
+A. Experimental Setup
+1) Datasets: We conduct experiments on six publicly avail-
+able pedestrian inertial odometry datasets: RIDI, RoNIN,
+RNIN, OxIOD, TLIO, and IMUNet. These datasets cover
+diverse indoor and outdoor environments and include a wide
+range of motion patterns, such as walking, running, and
+stair climbing, providing a comprehensive basis for evaluating
+model generalization and robustness.
+2) Baseline Methods: Considering that learning-based ap-
+proaches substantially outperform traditional physics-driven
+methods in localization accuracy, we select representative
+deep learning models as baselines. These include CNN-based
+methods: RoNIN-ResNet, IMUNet, DeepLite, DeepILS, and
+the network proposed in TLIO; attention- or LSTM-based
+methods: RoNIN-LSTM, CTIN, iMOT, and SPBIT; and hybrid
+architectures, such as the network proposed in RNIN. In
+addition, following the practices in IMUNet and DeepLite,
+we include general-purpose networks that have demonstrated
+strong performance in other domains, including RepViT, Mo-
+bileNetv3, and MobileNetV4, to enable fair cross-architecture
+comparison.
+3) Evaluation Metrics: We adopt two widely used metrics
+in inertial odometry: Absolute Trajectory Error (ATE) and Rel-
+ative Trajectory Error (RTE). ATE computes the root-mean-
+square error between the estimated trajectory and the ground-
+truth trajectory after global alignment, reflecting overall local-
+ization accuracy. RTE measures trajectory error within a fixed-
+length sliding window, evaluating short-term consistency and
+drift control.
+
+
+7
+4) Training Details: The model employs four hierarchical
+feature extraction stages with channel dimensions [64, 128,
+256, 512]. We optimize the network using Adam with an
+initial learning rate of 10−4 and terminate training early if
+the learning rate decays to 10−6. The maximum number of
+training epochs is set to 40, based on validation set observa-
+tions indicating that most models begin to overfit beyond this
+point. All experiments are conducted on five NVIDIA RTX
+3090 GPUs using CUDA 12.2 and PyTorch 2.5.1.
+B. Coordinate Frame Representation Comparison
+Figure 8 presents the ATE and RTE results of all baseline
+methods when trained and evaluated under the body-fixed
+and global coordinate frames separately. It is evident that,
+in the body-fixed frame, most models struggle to learn ef-
+fective motion representations, resulting in substantially lower
+localization accuracy compared to their performance in the
+global frame. This finding is consistent with the trajectory
+visualization analysis in
+III-B, which shows that the global
+coordinate frame provides a more stable and discriminative
+motion representation, thereby markedly enhancing model
+performance. Detailed comparative results across additional
+datasets are provided in the Appendix.
+C. Algorithm Comparison
+Table 1 summarizes the quantitative results of all methods
+on the six public pedestrian IO datasets. The experiments
+demonstrate that the proposed MambaIO consistently outper-
+forms existing state-of-the-art approaches across most scenar-
+ios. For example, on the RoNIN dataset, MambaIO reduces
+ATE by approximately x% and RTE by about x% compared
+to RoNIN-ResNet. On the largest dataset, TLIO, MambaIO
+further improves over the latest Transformer-based inertial
+localization method, reducing ATE by x%–x% and RTE by
+x%–x%. These results quantitatively confirm the significant
+gains in localization accuracy achieved by our method.
+To provide a visual assessment of localization perfor-
+mance, we present representative trajectories from each dataset
+(Fig. 9). For simple straight-line or gently curved trajectories
+(Fig. 9(a)–(c)), both RoNIN-ResNet and MambaIO closely
+follow the ground-truth paths. In contrast, for trajectories with
+multiple turns or complex dynamics (Fig. 9(d)–(f)), RoNIN-
+ResNet exhibits noticeable deviations, whereas MambaIO
+maintains high accuracy. This improvement is attributed to
+the Laplacian pyramid’s multi-scale decomposition of IMU
+signals, which allows the model to jointly capture local details
+and global trends, resulting in a more robust and precise
+motion representation.
+D. Ablation Study
+To evaluate the effectiveness of the proposed components,
+we construct two ablation variants: (1) Conv-only, which
+processes raw IMU signals using only the multi-path convolu-
+tion module; and (2) Mamba-only, which processes raw IMU
+signals using only the Mamba module. Table 2 presents the
+performance of these variants, the full MambaIO model, and
+RoNIN-ResNet across the six datasets.
+The results indicate that while Conv-only achieves basic
+localization capability, its accuracy is substantially lower than
+that of the full MambaIO, suggesting that local modeling
+alone is insufficient to capture the complex multi-scale dynam-
+ics in IMU signals. Similarly, Mamba-only underperforms,
+highlighting the limited ability of purely global modeling to
+represent high-frequency local details such as gait transients or
+turning jitter. Notably, both ablation variants still outperform
+RoNIN-ResNet, confirming the intrinsic effectiveness of the
+designed modules. The full MambaIO achieves the best per-
+formance across all datasets, significantly surpassing current
+state-of-the-art methods, which strongly validates the com-
+plementary benefits of the high/low-frequency decomposition
+strategy and the dual-path collaborative architecture.
+In summary, the ablation study not only confirms the neces-
+sity of each component but also underscores the critical role
+of multi-scale feature disentanglement and joint local–global
+modeling in enhancing pedestrian inertial localization accu-
+racy.
+V. CONCLUSION
+This work systematically investigates the influence of coor-
+dinate frame selection on pedestrian inertial odometry, high-
+lighting the representational advantages of the global coor-
+dinate frame in non-rigid carrier scenarios. Building on this
+insight, we propose MambaIO, which employs a Laplacian
+pyramid to separate high- and low-frequency components of
+IMU signals and integrates a multi-path convolution module
+with a Mamba module to jointly model local details and
+global motion trends. Despite Mamba’s linear complexity,
+which is lower than that of conventional Transformers, its
+inference speed remains relatively limited when processing
+long sequences, particularly in resource-constrained mobile
+deployment settings. Future research will focus on developing
+even lighter and more efficient sequence modeling strategies
+to further improve real-time performance while maintaining
+accuracy.
+REFERENCES
+[1] A. K. Panja, C. Chowdhury, and S. Neogy, “Survey on inertial sensor-
+based ils for smartphone users,” CCF Transactions on Pervasive Com-
+puting and Interaction, vol. 4, no. 3, pp. 319–337, 2022.
+[2] S. Herath, H. Yan, and Y. Furukawa, “Ronin: Robust neural inertial
+navigation in the wild: Benchmark, evaluations, & new methods,”
+in 2020 IEEE International Conference on Robotics and Automation
+(ICRA), 2020, pp. 3146–3152.
+[3] H. Yan, Q. Shan, and Y. Furukawa, “Ridi: Robust imu double integra-
+tion,” in ECCV, V. Ferrari, M. Hebert, C. Sminchisescu, and Y. Weiss,
+Eds.
+Cham: Springer International Publishing, 2018, pp. 641–656.
+[4] O. Asraf, F. Shama, and I. Klein, “Pdrnet: A deep-learning pedestrian
+dead reckoning framework,” IEEE Sensors Journal, vol. 22, no. 6, pp.
+4932–4939, 2022.
+[5] W. Liu, D. Caruso, E. Ilg, J. Dong, A. I. Mourikis, K. Daniilidis,
+V. Kumar, and J. Engel, “Tlio: Tight learned inertial odometry,” IEEE
+Robotics and Automation Letters, vol. 5, no. 4, pp. 5653–5660, 2020.
+[6] D. Yang, H. Liu, X. Jin, J. Chen, C. Wang, X. Ding, and K. Xu,
+“Enhancing vio robustness under sudden lighting variation: A learning-
+based imu dead-reckoning for uav localization,” IEEE Robotics and
+Automation Letters, vol. 9, no. 5, pp. 4535–4542, 2024.
+[7] B. Zeinali, H. Zanddizari, and M. J. Chang, “Imunet: Efficient regression
+architecture for inertial imu navigation and positioning,” IEEE Transac-
+tions on Instrumentation and Measurement, vol. 73, no. 2516213, 2024.
+
+
+8
+[8] O. Tariq, B. Dastagir, M. Bilal, and D. Han, “Deepils: Towards accu-
+rate domain invariant aiot-enabled inertial localization system,” IEEE
+Internet of Things Journal, pp. 1–1, 2025.
+[9] C. Chen and X. Pan, “Deep learning for inertial positioning: A survey,”
+IEEE Transactions on Intelligent Transportation Systems, vol. 25, no. 9,
+pp. 10 506–10 523, 2024.
+[10] B. Rao, E. Kazemi, Y. Ding, D. M. Shila, F. M. Tucker, and L. Wang,
+“Ctin: Robust contextual transformer network for inertial navigation,”
+Proceedings
+of
+the
+AAAI
+Conference
+on
+Artificial
+Intelligence,
+vol. 36, no. 5, pp. 5413–5421, Jun. 2022. [Online]. Available:
+https://ojs.aaai.org/index.php/AAAI/article/view/20479
+[11] X. Li, K. Li, J. Liu, and R. Gao, “Smartphone-based indoor pedestrian
+tracking via transformer,” in 2024 27th International Conference on
+Computer Supported Cooperative Work in Design (CSCWD), 2024, pp.
+1280–1285.
+[12] S. M. Nguyen, L. D. Tran, D. Viet Le, and P. J. M. Havinga, “iMoT:
+Inertial Motion Transformer for Inertial Navigation,” arXiv e-prints, p.
+arXiv:2412.12190, Dec. 2024.

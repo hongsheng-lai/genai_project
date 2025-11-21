@@ -1,0 +1,1286 @@
+The SA-FARI Dataset:
+Segment Anything in Footage of Animals for Recognition and Identification
+Dante Francisco Wasmuht1, Otto Brookes3, Maximillian Schall4, Pablo Palencia5, Chris Beirne6, Tilo Burghardt3,
+Majid Mirmehdi3, Hjalmar K¨uhl7, Mimi Arandjelovic8, Sam Pottie9, Peter Bermant1, Brandon Asheim1, Yi Jin Toh1,
+Adam Elzinga1, Jason Holmberg1, Andrew Whitworth6, Eleanor Flatt6, Laura Gustafson2, Chaitanya Ryali2, Yuan-Ting Hu2,
+Baishan Guo2, Andrew Westbury2, Kate Saenko2, Didac Suris2
+1Conservation X Labs (CXL)
+2Meta
+3University of Bristol
+4Hasso Plattner Institute
+5University of Oviedo
+6Osa Conservation
+7Senckenberg Museum of Natural History
+8Max Planck Institute for Evolutionary Anthropology
+9Climate Corridors
+Abstract
+Automated video analysis is critical for wildlife conserva-
+tion. A foundational task in this domain is multi-animal
+tracking (MAT), which underpins applications such as indi-
+vidual re-identification and behavior recognition. However,
+existing datasets are limited in scale, constrained to a few
+species, or lack sufficient temporal and geographical diver-
+sity – leaving no suitable benchmark for training general-
+purpose MAT models applicable across wild animal popu-
+lations. To address this, we introduce SA-FARI, the largest
+open-source MAT dataset for wild animals. It comprises
+11,609 camera trap videos collected over approximately
+10 years (2014-2024) from 741 locations across 4 conti-
+nents, spanning 99 species categories. Each video is ex-
+haustively annotated culminating in ∼46 hours of densely
+annotated footage containing 16,224 masklet identities and
+942,702 individual bounding boxes, segmentation masks,
+and species labels.
+Alongside the task-specific annota-
+tions, we publish anonymized camera trap locations for
+each video. Finally, we present comprehensive benchmarks
+on SA-FARI using state-of-the-art vision-language models
+for detection and tracking, including SAM 3, evaluated
+with both species-specific and generic animal prompts. We
+also compare against vision-only methods developed specif-
+ically for wildlife analysis. SA-FARI is the first large-scale
+dataset to combine high species diversity, multi-region cov-
+erage, and high-quality spatio-temporal annotations, offer-
+ing a new foundation for advancing generalizable multi-
+animal tracking in the wild.
+The dataset is available at
+conservationxlabs.com/SA-FARI.
+1. Introduction
+Motivation.
+Biodiversity is declining at unprecedented
+rates – orders of magnitude faster than at any time in the
+last tens of millions of years [13].
+To address this cri-
+sis, supportive tools are urgently needed to scale up con-
+servation efforts [28, 48].
+Among the most pressing is
+the development of automated video analysis methods [35],
+whose outputs (e.g. species, individual identity, behaviour)
+Figure 1.
+SA-FARI Dataset Overview and Annotation.
+We
+1) collect camera trap videos from 741 independent sampling loca-
+tions across 4 continents, 2) label them with 99 species categories,
+and 3) exhaustively manually annotate spatio-temporal masklets
+for each individual animal. Each video includes frame-level anno-
+tations, resulting in 16,224 unique identity masklets across ∼46
+hours of video that form the by far largest dataset of its kind.
+Its rich annotations enable robust benchmarking of multi-animal
+tracking methods and support the development of generalizable,
+spatially accurate video understanding for wildlife.
+are essential for downstream ecological and conservation-
+related tasks, such as abundance estimation, occupancy
+modelling, and health monitoring [14, 22, 24]. The need
+for automated methods is particularly driven by the growing
+amount of data collected by in-situ sensors – such as cam-
+era traps (CTs) – which now vastly exceed the processing
+capacity of human experts within the time frames required
+for effective conservation [10, 38].
+Task. A foundational requirement for automated wild-
+life monitoring is the ability to localise individual ani-
+mals in space and time, where localisation can for instance
+be achieved by either detection or segmentation in visual
+recordings. This task, jointly referred to as multi-animal
+tracking (MAT), underpins several critical computer vision
+applications, such as individual, species, and behaviour
+arXiv:2511.15622v1  [cs.CV]  19 Nov 2025
+
+
+Figure 2. Sample Skims from the SA-FARI Dataset. Each video–species pair is annotated with an exhaustive spatio-temporal segmen-
+tation of all animals belonging to that species category. The dataset captures a wide range of challenging scenarios, including: multiple
+animals in the same scene (a–d), occlusions between animals or with other scene elements (e), animals reappearing after leaving the
+frame (f), unconventional or partial views (g), small animals (c), nighttime conditions (b, e, g), and camouflaged animals (h).
+
+
+recognition [21, 42, 49], by providing spatio-temporal an-
+imal representations that serve as a prerequisite for robust
+categorisation. Spatial representations encompass coat pat-
+terns, body shape, and pose [43, 44, 56], and also help
+to prevent shortcut learning of spurious background cues,
+which are known to hinder out-of-distribution (OOD) gen-
+eralisation [5, 9, 27]. Temporal dynamics – including gait,
+locomotion, and social interactions – capture movement and
+behavioural context [3, 7, 40]. Both spatial and temporal
+characteristics are unique to species, while also encoding
+information at the level of individuals and their behaviours.
+State-of-the-art & Limitations. Robust methodolog-
+ical progress is closely tied to the availability of datasets
+for system training and evaluation. In recent years, encour-
+aging progress has been made, with several high-quality,
+large-scale animal datasets introduced for species classi-
+fication [47], and re-identification and behaviour recogni-
+tion [8, 15, 36]. However, despite its recognised impor-
+tance, MAT remains comparatively underdeveloped – par-
+ticularly for in-the-wild settings. While existing datasets
+are valuable, they exhibit several limitations: (i) Datasets
+developed specifically for MAT [2, 17, 53] lack scale (less
+than one hour of annotated footage) and do not include
+videos captured by standard ecological sensors used in
+the field (e.g. CTs or unmanned areal vehicles (UAVs));
+(ii) While several larger datasets do exist, they typically fo-
+cus on a small number of species – no more than 5 – and
+even the most comprehensive among them provide no more
+than 10 hours of annotated footage [4, 26]; (iii) In-the-wild
+tracking datasets based on UAV footage [16, 18, 26, 34] are
+generally collected from a single location or protected area.
+While they may span multiple habitats, they typically cover
+a narrow geographic range and short temporal window, lim-
+iting their ecological diversity; (iv) Finally, most datasets
+provide localisation only via bounding boxes. Where seg-
+mentation masks are included, they are often generated au-
+tomatically without manual post-processing [16], leaving
+annotation quality uncertain. These limitations mean that
+existing datasets are not suitable for training or evaluating
+urgently needed general MAT models.
+Contribution. We present SA-FARI, by far the largest
+open-source MAT dataset for wild animals. SA-FARI com-
+prises 11,609 camera trap videos collected over 10 years
+from 741 locations across 4 continents.
+Each video is
+exhaustively annotated (see Fig. 1) with animal bounding
+boxes, segmentation masks, species category labels, and
+individual masklet identities, resulting in ∼46 hours of
+annotated footage spanning 99 wild animal species cate-
+gories. This is 5× greater in total annotated duration and
+2× broader in species diversity than any existing MAT
+dataset to date. Unlike prior datasets, SA-FARI captures a
+wide range of species, behaviours, and environments across
+diverse ecological and geographical contexts, making it
+uniquely suited for training and evaluating general MAT
+models. To our knowledge, it is also the only large-scale
+dataset to include high-quality manually annotated segmen-
+tation masks for wild multi-animal tracking. Additionally,
+we benchmark state-of-the-art video segmentation models
+on the SA-FARI test set. Our results show that training on
+SA-FARI leads to over 20-point gains in HOTA metrics, un-
+derscoring the value of our large-scale, diverse annotations.
+2. Related Work
+MAT is a specific case of multi-object tracking (MOT),
+a well-established task in computer vision with numerous
+benchmark datasets and associated methods [2, 17]. While
+MOT has seen rapid progress in human-centric domains,
+development of MAT for wild animal monitoring has lagged
+behind – largely due to the lack of large, diverse, and well-
+annotated datasets. In this section, we review existing re-
+sources (see Tab. 1) and highlight their limitations regarding
+training generalisable models for wildlife conservation.
+Throughout the paper, we use “tracklet” to refer to both
+bounding box or mask sequences that represent the tempo-
+ral evolution of an object’s location or shape across frames.
+“Masklets” refer specifically to tracklets that contain mask
+information, i.e., sequences where each element is a seg-
+mentation mask rather than just a bounding box.
+MAT
+Benchmark
+Datasets.
+The
+AnimalTrack
+dataset [53], often cited as the primary MAT benchmark,
+contains 58 YouTube videos of animals in large groups (av-
+eraging 33 animals per video), with 1,927 annotated track-
+lets across 10 species. GMOT [2] includes 16 YouTube
+videos, with 980 tracklets over three species (averaging 61
+animals per video). The TAO dataset [17] comprises 429
+videos from existing benchmarks (Charades [45], AVA [23],
+and HACS [55]), with 985 annotated tracklets across 51 cat-
+egories and two animals per video in average. BURST [1]
+builds on top of TAO, annotating a segmentation mask for
+each bounding box. Other datasets include tracking annota-
+tions as a by-product of pose estimation or re-identification
+tasks. For instance, APT-36K [52], designed primarily for
+pose estimation, includes keypoint-based tracking annota-
+tions. Some datasets are collected in semi-controlled [32,
+50] or fully controlled [33, 37] environments such as en-
+closures or labs. While valuable, these datasets lack in-situ
+footage from ecological sensors, and therefore do not cap-
+ture animals in natural environments, limiting generalisa-
+tion to real-world conservation applications.
+Wild MAT Datasets. A small number of datasets fo-
+cus on multi-animal tracking in the wild, primarily using
+UAV footage. BuckTales [34] includes 12 high-resolution
+UAV videos of blackbuck antelopes, with 680 annotated
+tracklets and an average of 75 individuals per video. All
+footage was captured at a lekking site during the breeding
+season, limiting behavioural diversity. BaboonLand [18]
+
+
+Dataset
+# Sites
+# Species
+# Videos
+Duration (h)
+# Tracklets
+Segmentation
+Source
+AnimalTrack [53]
+—
+10
+58
+0.23
+2k
+✗
+YouTube
+GMOT [2]†
+—
+4
+16
+0.03
+1k
+✗
+YouTube
+TAO [17] / BURST [1]†
+—
+51
+429
+3.60
+1k
+✗/ ✓
+Varied
+BuckTales [34]
+1
+1
+12
+0.21
+0.7k
+✗
+UAV
+BaboonLaand [18]
+1
+1
+18
+0.32
+1k
+✗
+UAV
+KABR [26]
+1
+3
+742
+10.00
+—
+✗
+UAV
+WildLive [16]
+1
+3
+22
+0.70
+0.3k
+✓
+UAV
+CCR [4]
+3
+1
+27
+10.00
+12k
+✗
+Video Camera
+MammAlps [20]
+3
+5
+2,384
+14.50
+6k
+✗
+Camera Trap
+PanAf500 [8]
+12
+2
+500
+2.10
+1.5k
+✗
+Camera Trap
+SA-FARI (ours)
+741
+99
+11,609
+45.78
+16k
+✓
+Camera Trap
+†: For datasets that contain objects other than animals, we report numbers for the relevant fauna categories only.
+Table 1. A Comparison of Prominent Video Datasets for MAT. SA-FARI surpasses existing datasets in both diversity and scale, with
+nearly 100 species categories and hundreds of independent locations – far exceeding other camera trap video datasets. It also provides
+more tracklets than any other dataset, including those beyond camera traps, and uniquely offers dense, manually verified segmentation an-
+notations in form of accurate masklets. All datasets remain complementary, reflecting distinct ecological contexts and collection strategies.
+contains 18 videos across three baboon troops, filmed in
+open landscapes at Mpala Research Centre, Kenya, with
+dense tracking annotations (up to 70 individuals per frame).
+KABR [25, 26] includes ∼10 hours of UAV footage of
+Grevy’s zebras, plains zebras, and giraffes, collected over
+15 days at Mpala. WildLive [16] features 22 drone videos
+from Ol Pejeta Conservancy, Kenya, with 291 tracklets of
+zebras, giraffes, and elephants, and automatically generated
+segmentation masks. While these datasets contain valuable
+in-the-wild footage, they are limited to a narrow geographic
+and temporal scope (typically a single protected area over
+short deployments), focus on only a few species, and often
+capture animals within a single behavioural context such as
+mating or social aggregation. Additionally, they rely heav-
+ily on automated annotations without manual correction,
+limiting the quality of spatio-temporal annotations.
+Behaviour & Re-ID Datasets with MAT Annotations.
+Several high-quality datasets not originally developed for
+tracking include MAT annotations to support behaviour
+or identity recognition.
+LoTE [30] contains 28k images
+with bounding boxes and segmentation masks for behaviour
+recognition across 11 species. MammAlps [20] includes 6K
+tracklets spanning 8.5 hours of footage from nine cameras
+across three alpine sites, covering five species (over 90%
+of footage features deer). PanAf500 [8] provides bound-
+ing boxes and tracklets for 500 camera trap videos of chim-
+panzees and gorillas (180k frames, ∼2 hours). The Chim-
+panzee Faces and Re-identification (CCR) dataset [4] in-
+cludes over 5k face and 12k body tracks (1M frames, ∼10
+hours) from three field sites. The Rolandseck and Bavarian
+Forest datasets [41] contain dense tracking and segmenta-
+tion annotations for less than 100 videos but are not publicly
+available. These datasets, while valuable, lack the species
+coverage, spatio-temporal breadth, and annotation precision
+necessary to support the development of generalisable MAT
+models for wildlife conservation.
+3. The SA-FARI Dataset
+Data Collection. To create SA-FARI we consolidated a
+large number of camera trap videos into one large public
+dataset. Data came from 4 continents, representing distinct
+ecoregions (Central Africa, South America, Mesoamerica,
+Southern Europe; see Fig. S1) and seven partner organiza-
+tions: Osa Conservation, Los Amigos Biological Station,
+Institute for Game and Wildife Research (IREC, UCLM-
+CSIC-JCCM), Biodiversity Research Institute (IMIB, UO-
+CSIC-PA), Pan African Programme: The Cultures Chim-
+panzee and Conservation X Labs. The camera trap videos
+were recorded across 741 independent sampling points.
+Data was collected using several brands and models of
+commercially available camera traps (Browning, Bushnell,
+Reconyx, Solaris, Spypoint, Ltl Acorn, Tetrao). Camera
+traps were set up using standardized procedures usually
+0.3m to 2m from the ground at known wildlife crossings,
+gathering, feeding, resting or potential viewing sites. 2,790
+videos from Costa Rica were recorded by cameras set up
+in tree crowns (arboreal camera traps) between 8 and 24m
+from the ground. Camera traps are motion triggered, and
+at night time videos are recorded with an IR flash invisible
+to the species of interest. Videos were captured at differ-
+ent resolutions (320×194 to 2688×1234) with frame rates
+ranging from 10 to 60 FPS (while most were captured at
+30 FPS) and videos lasting between 0.5s and 90s (with most
+videos lasting 15s). The total data collection spanned ap-
+proximately 10 years (2014-2024). All videos within the
+dataset contain at least one animal. All camera trap videos
+also contain audio (not used in this work).
+Species Annotation.
+Each video was annotated with
+common names (e.g. fox) for animals observed in the video
+by several experts from the local teams that provided the
+data. For each video, 2-4 independent annotators then con-
+firmed the common name of the observed animals. Videos
+with animals of different species were subsequently disam-
+
+
+Figure 3. Taxonomic Abundance of Videos. Each circle repre-
+sents the relative abundance (i.e. number of videos) of taxonomic
+groups within the SA-FARI dataset, from Class to Order to Fam-
+ily. Circle size is proportional to the number of associated videos,
+while edge colors indicate the continent(s) where the taxa were
+recorded. This visualisation highlights both the taxonomic and
+geographic diversity captured in the dataset.
+Figure 4. Masklet Statistics. Distribution of key masklet-level
+metrics across the SA-FARI dataset. Average masklet size and av-
+erage IoU are computed by first averaging within each masklet and
+then across all masklets in a video. The total number of masklets
+and occlusion events are summed per video. Dotted lines indicate
+the medians of each distribution.
+biguated during the temporal segmentation and tracklet an-
+notation process by assigning independent common names
+to each tracklet. Common names of animals are referred to
+as species categories elsewhere in this paper.
+We also provide the latin names (e.g. Vulpes vulpes) and
+associated taxonomic ranks and hierarchy (e.g. Kingdom:
+Animalia - Phylum: Chordata - Class: Mammalia - Order:
+Carnivora - Family: Canidae - Genus: Vulpes - Species:
+Vulpes vulpes) down to at least the family but usually down
+to the species level, where appropriate. See Fig. 3 for an
+overview of the species distribution statistics.
+For each
+video we also provide date and time stamps (if available) as
+well as an anonymized string indicating the sampling site.
+Segmentation Mask Annotation. The spatio-temporal
+segmentation annotations were created as part of the SAM 3
+data engine, which annotates the videos at 6 fps. The pro-
+cess begins with an automatic stage, where SAM 3 is used
+to pseudo-annotate all video-species category pairs, gener-
+ating initial masks for each sample. These masklets are then
+deduplicated based on their Intersection over Union (IoU)
+to remove redundant annotations.
+Following the automatic step, human annotators review
+the results. They first check that the animal is visible and
+can be segmented, excluding cases where it is too blurred
+or indistinct (e.g. within a flock). Next, a second annotator
+corrects the masklets by removing incorrect ones and using
+online SAM 2 [39] in the loop to improve or add masklets
+as needed. Finally, a round of exhaustivity checking is per-
+formed to confirm that all possible masklets have been in-
+cluded. Bounding boxes are not annotated manually, they
+are trivially derived from the segmentation masks by com-
+puting their spatial limits. For further details on the human
+annotation process, see the SAM 3 [12] paper.
+Train & Test Splits. The dataset was divided into train-
+ing and test subsets according to the following procedure.
+We set a maximum of 1,000 videos for the test set. Within
+this limit, we aimed to maximize the diversity of species
+categories represented, while ensuring that all videos from
+the same camera trap are assigned to the same split. To
+achieve this, camera traps were sorted by their ratio of
+species categories to videos.
+We then greedily selected
+camera traps in order, prioritizing those that contributed the
+most new species categories to the test set. After each selec-
+tion, the ordering was updated to deprioritize camera traps
+whose species categories had already been included in the
+test set. This process continued until the test set reached the
+target size. This approach ensures a diverse and represen-
+tative test set, while maintaining strict separation of camera
+trap locations between the training and test splits. Fig. 5
+shows the full species distribution statistics across splits.
+Category Augmentation. Next, we augment the dataset
+with negative species category labels, which are essential
+for evaluating and training the precision of detection mod-
+
+
+Figure 5. Distribution of Species Category in the SA-FARI Dataset. The two panels show the number of videos per species category,
+broken down by data split. The distribution follows a long-tailed pattern typical of real-world wildlife datasets, with a few dominant
+species and many rarely observed ones. Notably, several species, such as the Saki monkey, appear only in the test set, reflecting the natural
+open-world setting of camera trap deployments.
+els. Negative species are those that do not appear in a given
+video. We generate two types of negative species labels,
+each with a different level of difficulty. First, we group
+species categories into families, and if a family contains
+very few species categories, we further group them into or-
+ders or classes, resulting in a total of 29 groups. For ev-
+ery video-species category pair, we randomly select another
+species category from the same group as a hard negative
+(ensuring that it is not present in the video), as well as a
+species category from a different group as an easy nega-
+tive (also randomly selected and not present in the video).
+This approach is feasible because the label annotation is ex-
+haustive, meaning that all species categories present in each
+video are fully annotated.
+Test Set Partitioning. We further partition the SA-FARI
+test set into five subsets: challenging, night, multi-masklet,
+large-masklet, and small-masklet.
+These subsets are in-
+tended to enable a more detailed analysis of the dataset
+characteristics and the performance of different methods.
+A masklet is considered “challenging” if it meets at least
+one of the following criteria: (1) the animal is moving, as
+measured by the average inter-frame IoU of the masklet be-
+ing < 0.7 (i.e., when the overlap between the masklet’s
+masks in consecutive frames is low, indicating significant
+movement in pixel coordinates), or (2) the number of oc-
+clusions is ≥2. The challenging subset (106 videos) in-
+cludes all videos that contain at least one such masklet. The
+night subset (598 videos) includes all the videos recorded
+at night. The multi-masklet subset (136 videos) consists
+of videos with two or more animals, regardless of species
+category. Finally, we define the large-masklet subset (211
+videos) as the set of videos whose average masklet size is
+greater than the 75th percentile, and the small-masklet sub-
+set (212 videos) as those with average masklet size smaller
+than the 25th percentile. The masklet size is defined as the
+average mask size per frame, calculated over all frames in
+which the masklet is present. Each frame-level mask size is
+normalized by the image size, resulting in a value between
+0 and 1. Fig. 2 shows examples from the SA-FARI dataset,
+including videos with multiple masklets, examples of oc-
+clusions, and other challenging scenarios.
+Dataset Statistics. SA-FARI contains 11,609 videos of
+99 different animal species categories (4 classes, 23 orders,
+53 families and 82 genera). 29 species categories contribute
+to 90% of the data with spider monkeys, collared pecca-
+ries and agoutis being the top-3 most common species (see
+Fig. 5). 67 (67.7%) of the species categories belong to the
+Mammalia class with 10 orders, 33 families and 57 genera;
+27 (27%) species categories belong to the Aves class with
+10 orders, 17 families and 23 genera; 4 (4.0%) species cate-
+gories belong to the Reptilia class with 2 orders, 2 Families
+and 2 genera. 1 (1.0%) species category belongs to the Am-
+phibia class (see Fig. 5). The most data and largest variety in
+species categories came from the South- and Mesoamerican
+recording locations. A minimum of 165 (22.3%) recording
+locations provided 90% of the data (see Fig. S2) and a min-
+imum of 147 (19.8%) recording locations provided 90% of
+all species category variety.
+The dataset contains 16,224 masklets, i.e. individual ani-
+mals, while each video contains on average of 1.4 masklets,
+
+
+# Videos
+Duration
+(min)
+# Species
+# Masklets
+# Annotations
+(boxes & masks)
+# Video-species pairs
+(incl. negatives)
+# Sampling Locations
+(independent sites)
+Train
+10,776
+2,545
+91
+15,141
+880,361
+31,282
+650
+Test
+833
+202
+83
+1,083
+62,341
+2,322
+91
+Total
+11,609
+2,747
+99
+16,224
+942,702
+33,604
+741
+Table 2. Dataset and Split Statistics. Summary of key statistics for the SA-FARI dataset across training and test splits. The test split is
+designed to maximise both species diversity and site diversity, with no overlap in camera trap locations between splits. Metrics include
+total number of videos, annotated duration (in minutes), species categories, spatio-temporal masklets, annotated bounding boxes and
+segmentation masks, video–species pairs (including negatives), and the number of independent sampling sites.
+with 2,623 videos (22.7%) containing 2 masklets or more
+and some videos containing up to 14 masklets. The top
+three species categories with the highest average number
+of masklets/video were red river hogs (6.7 masklets/video),
+white-lipped peccaries (3.5 masklets/video) and african ele-
+phants (3.3 masklets/video). The distributions of average
+masklet sizes, object motion measured via interframe IoU,
+number of masklets and masklet occlusions on the video
+level are shown in Fig. 4.
+4. Benchmarks
+In this section, we benchmark a range of animal detection
+and retrieval methods on the SA-FARI dataset. In particu-
+lar, we evaluate two classes of models: (1) vision–language
+models for the spatio-temporal localisation of species cat-
+egory instances in video, based on species name prompt-
+ing, and (2) species-agnostic animal instance detection us-
+ing vision-only generic detectors combined with strong
+general-purpose tracking algorithms. Note that the latter
+can be simulated via prompting of vision–language mod-
+els using a generic query (e.g. “animal”) to align with more
+common vision-only benchmarks in animal tracking.
+Species-Specific Prompt Evaluation. In this setting, all
+vision–language models are provided with the species cat-
+egory via a prompt and are tasked to localise (i.e. detect
+or segment) and track all instances of that species through-
+out the video. Specifically, we follow the evaluation proto-
+col for video promptable concept segmentation (PCS) de-
+scribed in SAM 3 [12].
+Overall, we benchmark three models. The first two are
+GLEE [51], an open-vocabulary detector and tracker, and
+LLMDet [19], a recent detection-only model designed for
+open-world scenarios. Since LLMDet lacks an integrated
+tracker, we pair it with an independent tracking module.
+The third model, SAM 3, extends the Segment Any-
+thing Model 2 (SAM 2) [39] to support open-vocabulary,
+text-based promptable segmentation and tracking. It can
+segment and track all instances of a user-specified con-
+cept across images and videos, using a DETR-style detec-
+tor and a SAM 2-style memory-based tracker with a shared
+vision-language backbone. SAM 3 is trained on a large,
+diverse dataset of images and videos annotated with mil-
+lions of unique concept phrases, collected via a human-
+and AI-in-the-loop pipeline. It is currently the state-of-the-
+art model for open-vocabulary segmentation and tracking
+across a wide range of domains.
+As shown in Tab. 3, SAM 3 outperforms both GLEE and
+LLMDet, exceeding the performance of the latter (row 2),
+closest competing model by +11.4 cgF1 and + 7.2 pHOTA.
+Noting SAM 3’s superior performance in this setting, we
+evaluate SAM 3 under two additional configurations: (1)
+training with SA-FARI included proportionally alongside
+other datasets, and (2) explicitly fine-tuned on SA-FARI.
+The three variants are referred to as SAM 3, SAM 3 (SA-
+FARI), and SAM 3 FT (SA-FARI), respectively.
+SAM 3 achieves the highest performance when it is fine-
+tuned on SA-FARI (row 5).
+Notably, incorporating SA-
+FARI data into training (row 4) or fine-tuning (row 5) leads
+to substantial improvements in performance. Specifically,
+the fine-tuned SAM 3 model (row 5) outperforms its coun-
+terpart (row 3) by +32.9, +19.6, and +19.1 on cgF1 pHOTA,
+and TETA, respectively, exhibiting the value of domain-
+specific data on the performance of SOTA models.
+Species-Agnostic Prompt Evaluation. In this setting,
+species categories are replaced with the generic query “an-
+imal”. While this is not the primary intended use case for
+the benchmark, it reflects common practice in the camera
+trap detection and tracking literature [6, 20, 41] and, thus,
+can provide comparative context in a well-established do-
+main. For this evaluation we utilise our test set videos with
+exhaustive species annotation with standard F1 and HOTA
+metrics. Results are reported for the SAM 3 (SA-FARI)
+configuration explained above, as well as for three track-
+ing methods: BoostSort++ [46], OCSort [11], and Byte-
+Track [54], all using the latest MegaDetector (MD) [6] as
+the detector. Note that SAM 3 models trained on SA-FARI
+were not exposed to the “animal” query during training; this
+prompt is used only at inference time.
+As shown in Tab. 4, SAM 3 trained on SA-FARI out-
+performs other methods by a substantial margin, surpassing
+the closest competing models on IDF1 and HOTA by +23.9
+(row 4 vs. row 3) and +18.9 (row 4 vs. row 2), respectively.
+
+
+cgF1
+pHOTA
+TETA
+Method
+Total
+Det
+Ass
+1 GLEE
+-0.2
+7.5
+1.2
+49.7
+22.0
+2 LLMDet + SAM 3 TR
+2.6
+41.3
+21.4
+80.0
+30.4
+3 SAM 3
+14.0
+48.5
+28.4
+83.4
+39.6
+4 SAM 3 (SA-FARI)
+39.0
+63.1
+47.9
+83.9
+52.1
+5 SAM 3 FT (SA-FARI) 46.9
+68.1
+55.4
+84.6
+58.7
+Table 3. Species Category-Specific Evaluation Results. The in-
+clusion of SA-FARI during training (row 4) or fine-tuning (row 5)
+leads to a substantial improvement in performance over the base-
+line (row 3). The highest performance is shown in bold. See §4.
+IDF1
+HOTA
+Method
+Total
+Det
+Ass
+1
+MD+ByteTrack
+38.6
+39.5
+20.8
+75.6
+2
+MD+OCSort
+33.9
+45.5
+27.9
+74.9
+3
+MD+BoostSort++
+47.2
+38.3
+18.4
+80.8
+4
+SAM 3 (SA-FARI)
+71.1
+64.4
+50.0
+83.7
+Table 4. Species Category-Agnostic Evaluation Results. SAM 3
+(SA-FARI) surpasses all other models by large margins. SAM 3
+was trained on the species-specific version of the training set. The
+highest performance is shown in bold. See §4.
+SA-FARI Subset Evaluation.
+Finally, we report the
+performance of the SAM 3 (SA-FARI) model using the
+species-specific prompting strategy on the splits described
+in § 3. As shown in Tab. 5, samples containing smaller
+masklets are significantly harder to detect and track than
+those with larger masklets, as expected. The performance
+on large masks is +29.2 greater than small ones on the
+pHOTA metric. Masklets with occlusions and motion (in
+the “challenging” subset) are similarly difficult to detect,
+underperforming the overall set by -4.1 pHOTA-Det, and
+are also substantially harder to track (-9.3 pHOTA-Ass com-
+pared to the overall set).
+The difficulty of samples with multiple animals is com-
+parable to the average difficulty across the test set (e.g. 67.8
+vs. 68.1 pHOTA for multiple animals and the overall set,
+respectively). This is because, while detecting and tracking
+multiple animals is inherently more challenging owing to
+increased individual ambiguity, these samples are positively
+correlated with large masks, which compensates for the in-
+creased tracking difficulty. Finally, nighttime videos present
+somewhat more challenging detection scenarios, which re-
+sult in slightly lower scores, however, these results remain
+largely comparable to those from the rest of the test set (e.g.
+44.1 vs. 46.9 cgF1 and 66.0 vs. 68.1 pHOTA for night-
+time and overall set, respectively). Note that, as mentioned
+in §3, the night subset includes a majority of the videos in
+SA-FARI/test.
+cgF1
+pHOTA
+TETA
+SA-FARI/test split
+Total
+Det
+Ass
+Large masks
+63.4
+81.4
+72.5
+91.6
+71.7
+Small masks
+25.3
+52.2
+38.5
+71.3
+46.9
+Multiple animals
+45.9
+67.8
+54.5
+85.1
+59.6
+Challenging
+36.8
+61.7
+51.3
+75.3
+59.6
+Night
+44.1
+66.0
+53.2
+83.1
+61.9
+All
+46.9
+68.1
+55.4
+84.6
+58.7
+Table 5. Performance Across Test-Time Factors in SA-FARI.
+Samples with smaller masklets are significantly harder to detect
+and track than those with larger ones. Occluded or moving animals
+(“challenging”) are similatly hard to detect but notably harder to
+track. Videos with multiple animals exhibit moderate difficulty,
+offset by their tendency to contain larger masks. Nighttime sam-
+ples yield overall performance comparable to the full test set.
+5. Conclusion
+We present SA-FARI, a new large-scale dataset for MAT
+in the wild.
+By consolidating over 11,000 camera trap
+videos from over 700 sampling sites, SA-FARI offers un-
+precedented scale and diversity, encompassing 99 species
+categories and sightings spanning a decade. We provide
+exhaustive, and – for the first time – manually verified
+spatio-temporal segmentation annotations at scale, result-
+ing in over 16,000 reliable, high-quality masklets which are
+associated to individual animal identities. SA-FARI thereby
+addresses a critical gap, as previous datasets are limited by
+narrow geographic and temporal scope, few species, and
+less reliable annotation methods.
+Our results show that even SOTA models perform poorly
+in this domain without large-scale, richly annotated collec-
+tions like SA-FARI, underscoring the difficulties presented
+by real-world data sourced in the wild. Critically, incor-
+porating our training split leads to substantial performance
+gains, with the fine-tuned SAM 3 model achieving a three-
+fold improvement over its baseline. Analysis of our test
+splits highlights challenges, providing a roadmap for future
+data collection, annotations, and model development.
+SA-FARI can be extended, for instance by adding new
+modalities such as animal body pose, depth, and natural lan-
+guage descriptions. The integrated audio streams present a
+compelling opportunity for future multi-modal model de-
+velopment that leverage vocalizations to enhance detection,
+species classification and tracking robustness in the wild.
+Future data integration should prioritize additional
+ecoregions to capture a wider array of species and mitigate
+geographic bias. By providing a rich, diverse, and rigor-
+ously annotated benchmark, we hope to accelerate progress
+toward the development of generalizable and robust track-
+ing systems capable of enabling more effective and scalable
+biodiversity monitoring and protection across the globe.
+
+
+Acknowledgements. Osa Conservation acknowledges field support
+from staff members, volunteers and the Osa Camera Trap Network to
+collect and annotate their video data, and funding from Michael Simons
+and Sabrina Karklins, Biome Conservation, the Bobolink Foundation, the
+BAND Foundation, the Krystyna and Dan Houser Foundation, Troper Wo-
+jcicki Philanthropies, the KHR McNeely Family Fund, and the Mazar
+Family Charitable Foundation Trust.
+We thank Haitham Khedr and Ho Kei Cheng for their help with model
+evaluations, and Tengyu Ma for help with annotations.
+We thank the Pan African Programme: ‘The Cultured Chimpanzee’
+team and its collaborators for allowing the use of their data for this
+paper. We thank Amelie Pettrich, Antonio Buzharevski, Eva Martinez
+Garcia, Ivana Kirchmair, Sebastian Sch¨utte, Linda Gerlach and Fabina
+Haas.
+We also thank management and support staff across all sites;
+specifically Yasmin Moebius, Geoffrey Muhanguzi, Martha Robbins,
+Henk Eshuis, Sergio Marrocoli and John Hart.
+Thanks to the team
+at https://www.chimpandsee.org particularly Briana Harder, Anja Lands-
+mann, Laura K. Lynn, Zuzana Mach´aˇckov´a, Heidi Pfund, Kristeena Sigler
+and Jane Widness. The work that allowed for the collection of the dataset
+was funded by the Max Planck Society, Max Planck Society Innovation
+Fund, and Heinz L. Krekeler. In this respect we would like to thank: Min-
+istre des Eaux et Forˆets, Minist`ere de l’Enseignement sup´erieur et de la
+Recherche scientifique in Cˆote d’Ivoire; Institut Congolais pour la Conser-
+vation de la Nature, Minist`ere de la Recherche Scientifique in Democratic
+Republic of Congo; Forestry Development Authority in Liberia; Direc-
+tion Des Eaux Et Forˆets, Chasses Et Conservation Des Sols in Senegal;
+Makerere University Biological Field Station, Uganda National Council
+for Science and Technology, Uganda Wildlife Authority, National Forestry
+Authority in Uganda; National Institute for Forestry Development and Pro-
+tected Area Management, Ministry of Agriculture and Forests, Ministry of
+Fisheries and Environment in Equatorial Guinea. The authors would like
+to thank the Animal Biometrics group within the Machine Learning and
+Computer Vision (MaVi) research group at the University of Bristol for
+their valuable support. The work carried out by the group was partly sup-
+ported by the UKRI Centre for Doctoral Training in Interactive Artificial
+Intelligence (CDT in Interactive AI) under grant EP/S022937/1.
+We thank the Biodiversa+ project “Big Picture” (ref.
+Proyecto
+PCI2024-153504 convocatoria europea Biodiversa+, funded by MI-
+CIU/AEI) and Plan Nacional ref. PID2022-142919OB-100 for sharing
+their data for this paper.
+We extend our sincere gratitude to Conservaci´on Amaz´onica–ACCA
+for access to the Los Amigos Conservation Concession and for ongoing lo-
+gistical support. We also thank the promotores (field rangers) of Los Ami-
+gos, whose dedication to maintaining the concession and whose assistance
+with camera trap deployment and monitoring made this work possible.
+References
+[1] Ali Athar, Jonathon Luiten, Paul Voigtlaender, Tarasha Khu-
+rana, Achal Dave, Bastian Leibe, and Deva Ramanan. Burst:
+A benchmark for unifying object recognition, segmentation
+and tracking in video. In WACV, 2023. 3, 4
+[2] Hexin Bai, Wensheng Cheng, Peng Chu, Juehuan Liu, Kai
+Zhang, and Haibin Ling. Gmot-40: A benchmark for generic
+multiple object tracking. In Proceedings of the IEEE/CVF
+Conference on Computer Vision and Pattern Recognition,
+pages 6719–6728, 2021. 3, 4
+[3] Daniele Baieri, Riccardo Cicciarella, Michael Kr¨utzen,
+Emanuele Rodol`a, and Silvia Zuffi. Model-based metric 3d
+shape and motion reconstruction of wild bottlenose dolphins
+in drone-shot videos.
+arXiv preprint arXiv:2504.15782,
+2025. 3
+[4] Max Bain, Arsha Nagrani, Daniel Schofield, and Andrew
+Zisserman. Count, crop and recognise: Fine-grained recog-
+nition in the wild.
+In Workshop on Computer Vision for
+Wildlife Conservation, ICCV, 2019. 3, 4
+[5] Sara Beery, Grant Van Horn, and Pietro Perona. Recognition
+in terra incognita. In Proceedings of the European confer-
+ence on computer vision (ECCV), pages 456–473, 2018. 3
+[6] Sara Beery,
+Dan Morris,
+and Siyu Yang.
+Efficient
+pipeline for camera trap image review.
+arXiv preprint
+arXiv:1907.06772, 2019. 7
+[7] Otto Brookes, Majid Mirmehdi, Hjalmar S. K¨uhl, and Tilo
+Burghardt. Triple-stream deep metric learning of great ape
+behavioural actions. In Proceedings of the 18th International
+Joint Conference on Computer Vision, Imaging and Com-
+puter Graphics Theory and Applications, pages 294–302,
+2023. 3
+[8] Otto Brookes, Majid Mirmehdi, Colleen Stephens, Samuel
+Angedakin, Katherine Corogenes, Dervla Dowd, Paula
+Dieguez, Thurston C Hicks, Sorrel Jones, Kevin Lee, et al.
+Panaf20k: A large video dataset for wild ape detection and
+behaviour recognition. International Journal of Computer
+Vision, 132(8):3086–3102, 2024. 3, 4
+[9] Otto Brookes,
+Maksim Kukushkin,
+Majid Mirmehdi,
+Colleen Stephens, Paula Dieguez, Thurston C Hicks, Sorrel
+Jones, Kevin Lee, Maureen S McCarthy, Amelia Meier, et al.
+The panaf-fgbg dataset: Understanding the impact of back-
+grounds in wildlife behaviour recognition. In Proceedings
+of the Computer Vision and Pattern Recognition Conference,
+pages 5433–5443, 2025. 3
+[10] A Cole Burton, Eric Neilson, Dario Moreira, Andrew La-
+dle, Robin Steenweg, Jason T Fisher, Erin Bayne, and Stan
+Boutin. Wildlife camera trapping: a review and recommen-
+dations for linking surveys to ecological processes. Journal
+of applied ecology, 52(3):675–685, 2015. 1
+[11] Jinkun Cao, Jiangmiao Pang, Xinshuo Weng, Rawal Khi-
+rodkar, and Kris Kitani. Observation-centric sort: Rethink-
+ing sort for robust multi-object tracking. In Proceedings of
+the IEEE/CVF Conference on Computer Vision and Pattern
+Recognition, pages 9686–9696, 2023. 7
+[12] Nicolas Carion, Laura Gustafson, Yuan-Ting Hu, Shoub-
+hik Debnath, Ronghang Hu, Didac Suris, Chaitanya Ryali,
+Kalyan Vasudev Alwala, Haitham Khedr, Andrew Huang,
+Jie Lei, Tengyu Ma, Baishan Guo, Arpit Kalla, Markus
+Marks, Joseph Greer, Meng Wang, Peize Sun, Roman R¨adle,
+Triantafyllos Afouras, Effrosyni Mavroudi, Katherine Xu,
+Tsung-Han Wu, Yu Zhou, Liliane Momeni, Rishi Hazra,
+Shuangrui Ding, Sagar Vaze, Francois Porcher, Feng Li,
+Siyuan Li, Aishwarya Kamath, Ho Kei Cheng, Piotr Dol-
+lar, Nikhila Ravi, Kate Saenko, Pengchuan Zhang, and
+Christoph Feichtenhofer.
+Sam 3: Segment anything with
+concepts. 5, 7, 1
+[13] Gerardo Ceballos, Paul R Ehrlich, Anthony D Barnosky,
+Andr´es Garc´ıa, Robert M Pringle, and Todd M Palmer. Ac-
+celerated modern human–induced species losses: Entering
+the sixth mass extinction. Science advances, 1(5):e1400253,
+2015. 1
+[14] Richard B Chandler and J Andrew Royle. Spatially explicit
+models for inference about density in unmarked or partially
+
+
+marked populatioins. The Annals of Applied Statistics, pages
+936–954, 2013. 1
+[15] Jun Chen, Ming Hu, Darren J Coker, Michael L Berumen,
+Blair Costelloe, Sara Beery, Anna Rohrbach, and Mohamed
+Elhoseiny. Mammalnet: A large-scale video benchmark for
+mammal recognition and behavior understanding. In Pro-
+ceedings of the IEEE/CVF conference on computer vision
+and pattern recognition, pages 13052–13061, 2023. 3
+[16] Nguyen Ngoc Dat, Thomas Stuart Richardson, Matthew
+Watson,
+Kilian Meier,
+Jenna Marie Kline,
+Sid Reid,
+Guy Maalouf, Duncan Hine, Majid Mirmehdi, and Tilo
+Burghardt. Wildlive: Near real-time visual wildlife track-
+ing onboard UAVs. In 5th Workshop on CV4Animals: Com-
+puter Vision for Animal Behavior Tracking and Modeling, In
+conjunction with Computer Vision and Pattern Recognition
+2025, 2025. 3, 4
+[17] Achal Dave, Tarasha Khurana, Pavel Tokmakov, Cordelia
+Schmid, and Deva Ramanan. Tao: A large-scale benchmark
+for tracking any object. In European conference on computer
+vision, pages 436–454. Springer, 2020. 3, 4
+[18] Isla Duporge, Maksim Kholiavchenko, Roi Harel, Scott
+Wolf, Daniel I Rubenstein, Margaret C Crofoot, Tanya
+Berger-Wolf, Stephen J Lee, Julie Barreau, Jenna Kline, et al.
+Baboonland dataset: Tracking primates in the wild and au-
+tomating behaviour recognition from drone videos: I. du-
+porge et al. International Journal of Computer Vision, pages
+1–12, 2025. 3, 4
+[19] Shenghao Fu, Qize Yang, Qijie Mo, Junkai Yan, Xihan Wei,
+Jingke Meng, Xiaohua Xie, and Wei-Shi Zheng. Llmdet:
+Learning strong open-vocabulary object detectors under the
+supervision of large language models.
+In Proceedings of
+the IEEE/CVF conference on computer vision and pattern
+recognition, 2025. 7
+[20] Valentin Gabeff, Haozhe Qi, Brendan Flaherty, Gencer Sum-
+bul, Alexander Mathis, and Devis Tuia. Mammalps: A multi-
+view video behavior monitoring dataset of wild mammals in
+the swiss alps. In Proceedings of the Computer Vision and
+Pattern Recognition Conference, pages 13854–13864, 2025.
+4, 7
+[21] Tomer Gadot, S, tefan Istrate, Hyungwon Kim, Dan Morris,
+Sara Beery, Tanya Birch, and Jorge Ahumada. To crop or
+not to crop: Comparing whole-image and cropped classifica-
+tion on a large dataset of camera trap images. IET Computer
+Vision, 18(8):1193–1208, 2024. 3
+[22] Neil A Gilbert, John DJ Clare, Jennifer L Stenglein, and Ben-
+jamin Zuckerberg. Abundance estimation of unmarked ani-
+mals based on camera-trap data. Conservation Biology, 35
+(1):88–100, 2021. 1
+[23] Chunhui Gu, Chen Sun, Sudheendra Vijayanarasimhan, Car-
+oline Pantofaru, David A. Ross, George Toderici, Yeqing Li,
+Susanna Ricco, Rahul Sukthankar, Cordelia Schmid, and Ji-
+tendra Malik. Ava: A video dataset of spatio-temporally lo-
+calized atomic visual actions. 2018 IEEE/CVF Conference
+on Computer Vision and Pattern Recognition, pages 6047–
+6056, 2017. 3
+[24] Jose Jimenez, Richard Chandler, Jorge Tobajas, Esther
+Descalzo, Rafael Mateo, and Pablo Ferreras. Generalized
+spatial mark–resight models with incomplete identification:
+An application to red fox density estimates. Ecology and
+Evolution, 9(8):4739–4748, 2019. 1
+[25] Maksim Kholiavchenko, Jenna Kline, Maksim Kukushkin,
+Otto Brookes, Sam Stevens, Isla Duporge, Alec Sheets,
+Reshma R Babu, Namrata Banerji, Elizabeth Campolongo,
+et al. Deep dive into kabr: a dataset for understanding un-
+gulate behavior from in-situ drone video. Multimedia Tools
+and Applications, pages 1–20, 2024. 4
+[26] Maksim Kholiavchenko, Jenna Kline, Michelle Ramirez,
+Sam Stevens, Alec Sheets, Reshma Babu, Namrata Banerji,
+Elizabeth Campolongo, Matthew Thompson, Nina Van Tiel,
+Jackson Miliko, Eduardo Bessa, Isla Duporge, Tanya Berger-
+Wolf, Daniel Rubenstein, and Charles Stewart. Kabr: In-situ
+dataset for kenyan animal behavior recognition from drone
+videos. In Proceedings of the IEEE/CVF Winter Conference
+on Applications of Computer Vision, pages 31–40, 2024. 3,
+4
+[27] Pang
+Wei
+Koh,
+Shiori
+Sagawa,
+Henrik
+Marklund,
+Sang Michael Xie,
+Marvin Zhang,
+Akshay Balsubra-
+mani, Weihua Hu, Michihiro Yasunaga, Richard Lanas
+Phillips, Irena Gao, et al. Wilds: A benchmark of in-the-
+wild distribution shifts.
+In International conference on
+machine learning, pages 5637–5664. PMLR, 2021. 3
+[28] Hjalmar S K¨uhl and Tilo Burghardt.
+Animal biometrics:
+quantifying and detecting phenotypic appearance. Trends in
+ecology & evolution, 28(7):432–441, 2013. 1
+[29] Siyuan Li, Martin Danelljan, Henghui Ding, Thomas E.
+Huang, and Fisher Yu. Tracking every thing in the wild. In
+Proceedings of the European Conference on Computer Vi-
+sion (ECCV), 2022. 2
+[30] Dan Liu, Jin Hou, Shaoli Huang, Jing Liu, Yuxin He,
+Bochuan Zheng, Jifeng Ning, and Jingdong Zhang. Lote-
+animal: A long time-span dataset for endangered animal be-
+havior understanding. In Proceedings of the IEEE/CVF In-
+ternational Conference on Computer Vision, pages 20064–
+20075, 2023. 4
+[31] Jonathon Luiten, Aljosa Osep, Patrick Dendorfer, Philip
+Torr, Andreas Geiger, Laura Leal-Taix´e, and Bastian Leibe.
+Hota:
+A higher order metric for evaluating multi-object
+tracking. International Journal of Computer Vision, pages
+1–31, 2020. 2
+[32] Xiaoxuan Ma,
+Stephan Kaufhold,
+Jiajun Su,
+Wentao
+Zhu, Jack Terwilliger, Andres Meza, Yixin Zhu, Federico
+Rossano, and Yizhou Wang.
+Chimpact: A longitudinal
+dataset for understanding chimpanzee behaviors. Advances
+in Neural Information Processing Systems, 36:27501–27531,
+2023. 3
+[33] Hemal Naik, Alex Hoi Hang Chan, Junran Yang, Mathilde
+Delacoux, Iain D Couzin, Fumihiro Kano, and M´at´e Nagy.
+3d-pop-an automated annotation approach to facilitate mark-
+erless 2d-3d tracking of freely moving birds with marker-
+based motion capture. In Proceedings of the IEEE/CVF con-
+ference on computer vision and pattern recognition, pages
+21274–21284, 2023. 3
+[34] Hemal Naik, Junran Yang, Dipin Das, Margaret C Crofoot,
+Akanksha Rathore, and Vivek H Sridhar. Bucktales: A multi-
+uav dataset for multi-object tracking and re-identification of
+
+
+wild antelopes. Advances in Neural Information Processing
+Systems, 37:81992–82009, 2024. 3, 4
+[35] Ran Nathan, Christopher T Monk, Robert Arlinghaus, Timo
+Adam, Josep Al´os, Michael Assaf, Henrik Baktoft, Chris-
+tine E Beardsworth, Michael G Bertram, Allert I Bijleveld,
+et al. Big-data approaches lead to an increased understand-
+ing of the ecology of animal movement. Science, 375(6582):
+eabg1780, 2022. 1
+[36] Xun Long Ng, Kian Eng Ong, Qichen Zheng, Yun Ni,
+Si Yong Yeo, and Jun Liu. Animal kingdom: A large and
+diverse dataset for animal behavior understanding. In Pro-
+ceedings of the IEEE/CVF conference on computer vision
+and pattern recognition, pages 19023–19034, 2022. 3
+[37] Malte Pedersen, Joakim Bruslund Haurum, Stefan Hein
+Bengtson, and Thomas B Moeslund.
+3d-zef: A 3d ze-
+brafish tracking benchmark dataset.
+In Proceedings of
+the IEEE/CVF conference on computer vision and pattern
+recognition, pages 2426–2436, 2020. 3
+[38] Laura J Pollock, Justin Kitzes, Sara Beery, Kaitlyn M
+Gaynor, Marta A Jarzyna, Oisin Mac Aodha, Bernd Meyer,
+David Rolnick, Graham W Taylor, Devis Tuia, et al. Har-
+nessing artificial intelligence to fill global shortfalls in biodi-
+versity knowledge. Nature Reviews Biodiversity, pages 1–17,
+2025. 1
+[39] Nikhila Ravi, Valentin Gabeur, Yuan-Ting Hu, Ronghang
+Hu, Chaitanya Ryali, Tengyu Ma, Haitham Khedr, Roman
+R¨adle, Chloe Rolland, Laura Gustafson, et al.
+SAM 2:
+Segment anything in images and videos.
+arXiv preprint
+arXiv:2408.00714, 2024. 5, 7
+[40] Faizaan Sakib and Tilo Burghardt.
+Visual recognition of
+great ape behaviours in the wild, 2020. 3
+[41] Frank
+Schindler,
+Volker
+Steinhage,
+Suzanne
+van
+Beeck Calkoen, and Marco Heurich.
+Action detection
+for wildlife monitoring with camera traps based on segmen-
+tation with filtering of tracklets (swift) and mask-guided
+action recognition (maroon).
+Applied Sciences, 14:514,
+2024. 4, 7
+[42] Daniel P Schofield, Gregory F Albery, Josh A Firth, Alexan-
+der Mielke, Misato Hayashi, Tetsuro Matsuzawa, Dora Biro,
+and Susana Carvalho.
+Automated face recognition using
+deep neural networks produces robust primate social net-
+works and sociality measures. Methods in Ecology and Evo-
+lution, 14(8):1937–1951, 2023. 3
+[43] Asheesh Sharma, Lucy Randewich, William Andrew, Sion
+Hannuna, Neill Campbell, Siobhan Mullan, Andrew W
+Dowsey, Melvyn Smith, Mark Hansen, and Tilo Burghardt.
+Universal bovine identification via depth data and deep met-
+ric learning. Computers and Electronics in Agriculture, 229:
+109657, 2025. 3
+[44] Lauren Shrack, Timm Haucke, Antoine Sala¨un, Arjun Sub-
+ramonian, and Sara Beery. Pairwise matching of interme-
+diate representations for fine-grained explainability. arXiv
+preprint arXiv:2503.22881, 2025. 3
+[45] Gunnar A. Sigurdsson, G¨ul Varol, Xiaolong Wang, Ivan
+Laptev, Ali Farhadi, and Abhinav Gupta.
+Hollywood in
+homes: Crowdsourcing data collection for activity under-
+standing. ArXiv e-prints, 2016. 3
+[46] Vukaˇsin Stanojevi´c and Branimir Todorovi´c. Boosttrack++:
+using tracklet information to detect more objects in multiple
+object tracking. 2024. 7
+[47] Samuel Stevens, Jiaman Wu, Matthew J Thompson, Eliza-
+beth G Campolongo, Chan Hee Song, David Edward Carlyn,
+Li Dong, Wasila M Dahdul, Charles Stewart, Tanya Berger-
+Wolf, et al. Bioclip: A vision foundation model for the tree
+of life. In Proceedings of the IEEE/CVF conference on com-
+puter vision and pattern recognition, pages 19412–19424,
+2024. 3
+[48] Devis Tuia, Benjamin Kellenberger, Sara Beery, Blair R
+Costelloe, Silvia Zuffi, Benjamin Risse, Alexander Mathis,
+Mackenzie
+W
+Mathis,
+Frank
+Van
+Langevelde,
+Tilo
+Burghardt, et al.
+Perspectives in machine learning for
+wildlife conservation. Nature communications, 13(1):792,
+2022. 1
+[49] Richard Vogg, Timo L¨uddecke, Jonathan Henrich, Sharmita
+Dey, Matthias Nuske, Valentin Hassler, Derek Murphy, Julia
+Fischer, Julia Ostner, Oliver Sch¨ulke, et al. Computer vision
+for primate behavior analysis in the wild. Nature Methods,
+pages 1–13, 2025. 3
+[50] Urs Waldmann, Alex Hoi Hang Chan, Hemal Naik, M´at´e
+Nagy, Iain D Couzin, Oliver Deussen, Bastian Goldluecke,
+and Fumihiro Kano. 3d-muppet: 3d multi-pigeon pose es-
+timation and tracking. International Journal of Computer
+Vision, 132(10):4235–4252, 2024. 3
+[51] Junfeng Wu, Yi Jiang, Qihao Liu, Zehuan Yuan, Xiang Bai,
+and Song Bai. General object foundation model for images
+and videos at scale. In Proceedings of the IEEE/CVF Con-
+ference on Computer Vision and Pattern Recognition, pages
+3783–3795, 2024. 7
+[52] Yuxiang Yang, Junjie Yang, Yufei Xu, Jing Zhang, Long
+Lan, and Dacheng Tao. Apt-36k: A large-scale benchmark
+for animal pose estimation and tracking. Advances in Neural
+Information Processing Systems, 35:17301–17313, 2022. 3
+[53] Libo Zhang, Junyuan Gao, Zhen Xiao, and Heng Fan. An-
+imaltrack: A benchmark for multi-animal tracking in the
+wild. International Journal of Computer Vision, 131(2):496–
+513, 2023. 3, 4
+[54] Yifu Zhang, Peize Sun, Yi Jiang, Dongdong Yu, Fucheng
+Weng, Zehuan Yuan, Ping Luo, Wenyu Liu, and Xinggang
+Wang. Bytetrack: Multi-object tracking by associating every
+detection box. In Proceedings of the European Conference
+on Computer Vision (ECCV), 2022. 7
+[55] Hang Zhao, Antonio Torralba, Lorenzo Torresani, and
+Zhicheng Yan.
+Hacs: Human action clips and segments
+dataset for recognition and temporal localization. In Pro-
+ceedings of the IEEE/CVF International Conference on
+Computer Vision, pages 8668–8678, 2019. 3
+[56] Silvia Zuffi, Ylva Mellbin, Ci Li, Markus Hoeschle, Hedvig
+Kjellstr¨om, Senya Polikovsky, Elin Hernlund, and Michael J
+Black. Varen: Very accurate and realistic equine network.
+In Proceedings of the IEEE/CVF Conference on Computer
+Vision and Pattern Recognition, pages 5374–5383, 2024. 3
+
+
+The SA-FARI Dataset:
+Segment Anything in Footage of Animals for Recognition and Identification
+Supplementary Material
+A. Additional Dataset Statistics
+Fig. S1 shows the distribution of species annotations per
+continent, and Fig. S2 shows the distribution of the number
+of videos per location.
+B. Metrics
+In this section we provide an overview of the segmentation
+and tracking metrics we use in § 4. For more details, we
+refer the reader to the SAM 3 [12] paper.
+IDF1. IDF1 measures the accuracy of maintaining ob-
+ject identities in multi-object tracking. It calculates the ra-
+tio of correctly matched detections (where both detection
+Supplementary Figure S1. Video and Species Category Distribution per SA-FARI Ecoregion. Video counts per species category and
+per continent.
+
+
+Supplementary Figure S2. Number of Videos per Camera Trap
+Location (Ranked). Vertical line marks the minimum number of
+locations that account for 90% of the videos. Note, train and test
+videos come from different locations.
+and identity are correct) to the average number of ground-
+truth and predicted detections, balancing precision and re-
+call while penalizing identity switches.
+HOTA. Higher Order Tracking Accuracy (HOTA)
+jointly evaluates detection and association in tracking. It de-
+composes performance into detection accuracy (DetA) and
+association accuracy (AssA), providing a balanced view of
+how well objects are detected and tracked over time [31].
+pHOTA. Phrase-based HOTA (pHOTA) adapts HOTA
+for open-vocabulary tracking. Each video–noun phrase pair
+is treated as a unique sample, enabling class-agnostic eval-
+uation. This is ideal for open-world settings, where tracked
+objects are specified by phrases rather than fixed categories.
+TETA. Track Every Thing Accuracy (TETA) builds
+upon the HOTA metric, while extending it to better deal
+with multiple categories and incomplete annotations.
+It
+consists of three parts: a localization score, an association
+score, and a classification score [29].
+cgF1.
+Classification-gated F1 (cgF1) is designed for
+open-vocabulary segmentation and tracking. It combines
+localization quality (positive micro F1, pmF1) and classifi-
+cation ability (image-level Matthews correlation coefficient,
+IL MCC), rewarding models that are both accurate in lo-
+calizing objects and calibrated in predicting their presence.
+This metric addresses the limitations of traditional AP in
+large label spaces.

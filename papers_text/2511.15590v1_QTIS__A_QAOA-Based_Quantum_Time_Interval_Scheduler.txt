@@ -1,0 +1,2475 @@
+QTIS: A QAOA-BASED QUANTUM TIME INTERVAL
+SCHEDULER
+José A. Tirado-Domínguez
+Department of Computer Architecture
+Universidad de Málaga
+Málaga, Spain
+jatirado@uma.es
+Eladio Gutiérrez
+Department of Computer Architecture
+Universidad de Málaga
+Málaga, Spain
+eladio@uma.es
+Oscar Plata
+Department of Computer Architecture
+Universidad de Málaga
+Málaga, Spain
+oplata@uma.es
+ABSTRACT
+Task scheduling with constrained time intervals and limited resources remains a fundamental chal-
+lenge across domains such as manufacturing, logistics, cloud computing, and healthcare. This study
+presents a novel variant of the Quantum Approximate Optimization Algorithm (QAOA) designed to
+address the task scheduling problem formulated as a Quadratic Unconstrained Binary Optimization
+(QUBO) model. The proposed method, referred to as Quantum Time Interval Scheduler (QTIS),
+integrates an ancilla-assisted quantum circuit to dynamically detect and penalize overlapping tasks,
+enhancing the enforcement of scheduling constraints. Two complementary implementations are ex-
+plored for overlap detection: a quantum approach based on RY rotations and CCNOT gates, and a
+classical alternative relying on preprocessed interval comparisons.
+QTIS decomposes the problem Hamiltonian, HP , into two components, each parameterized by a
+distinct angle. The first component encodes the objective function, while the second captures penalty
+terms associated with overlapping intervals, which are controlled by the auxiliary circuit.
+Subsequently, three minimization strategies are evaluated: standard QAOA, T-QAOA, and HT-
+QAOA, showing that employing separate parameters for the different components of the problem
+Hamiltonian leads to lower energy values and improved solution quality. Results confirm the effi-
+ciency of QTIS in scheduling tasks with fixed temporal windows while minimizing conflicts, demon-
+strating its potential to advance hybrid quantum–classical optimization in complex scheduling envi-
+ronments.
+Keywords Quantum Approximate Optimization Algorithm (QAOA) · Variational Quantum Algorithms (VQA) ·
+Hybrid Quantum–Classical Computing · Task Scheduling · Quadratic Unconstrained Binary Optimization (QUBO) ·
+Quantum Circuit Design · Constraint Enforcement · Quantum Annealing · Time-Interval Optimization
+1
+Introduction
+Task scheduling is a fundamental optimization problem
+with applications in multiple real-world domains such as
+industry [1, 2], logistics and transportation [3], computa-
+tion [4, 5], or healthcare [6, 7], among others.
+Task scheduling has traditionally been modeled with the
+classical Travelling Salesman Problem (TSP) [8, 9] or the
+Job Shop Problem (JSP) [10] with the objective of de-
+termining the optimal sequence and assignment of tasks
+to resources to satisfy predetermined objectives, such
+as minimizing cost, maximizing throughput, or ensuring
+timely completion [11].
+These problems belong to the class of NP-hard combina-
+torial optimization problems [12] and, as noted by Gra-
+ham et al. [13], finding a guaranteed optimal solution be-
+comes computationally intractable as the problem size in-
+creases.
+This inherent complexity necessitates the use
+arXiv:2511.15590v1  [quant-ph]  19 Nov 2025
+
+
+Quantum Time Interval Scheduler
+of approximation methods, such as heuristics [14, 15]
+and meta-heuristics [16–19], for solving real-world, large-
+scale instances in a reasonable time frame.
+Although classical algorithms can accelerate the search
+for solutions, optimization problems may also benefit
+from advanced computing paradigms, particularly quan-
+tum computing, which offers promising approaches for
+managing complex scenarios in high-concurrency envi-
+ronments [20, 21] .
+In this sense, Adiabatic Quantum Computing (AQC) [22,
+23] is a paradigm particularly suited to tackling combi-
+natorial optimization problems [24, 25]. In AQC, the op-
+timization problem is encoded into a Hamiltonian whose
+ground state corresponds to the optimal solution. The sys-
+tem is initially prepared in the ground state of a simple
+Hamiltonian and then evolved slowly enough—according
+to the adiabatic theorem—to the ground state of the prob-
+lem Hamiltonian. [26].
+In addition to adiabatic quantum computing,
+other
+paradigms of quantum computation, such as gate-based
+quantum computing, have proven effective in address-
+ing combinatorial optimization problems [27–29] . These
+universal quantum computing systems operate by execut-
+ing quantum circuits composed of gates that implement
+unitary operators on a set of qubits. The coherent and
+controlled manipulation of qubits enables the implemen-
+tation of quantum algorithms capable of surpassing clas-
+sical methods in certain optimization contexts [21, 30].
+Despite the theoretical promise of quantum advantage,
+the practical deployment of quantum algorithms for real-
+world applications is currently constrained by the limi-
+tations of available hardware in the Noise-Intermediate-
+Scale Quantum (NISQ) devices [31, 32].
+These sys-
+tems are highly sensitive to noise, still suffer from short
+decoherence times, and are limited in the number of
+qubits and the depth of circuits they can reliably exe-
+cute.
+Consequently, their inherent limitations prevent
+them from independently solving large-scale optimization
+problems, thereby motivating the development of hybrid
+classical–quantum approaches [33, 34].
+These hybrid approaches, that combine quantum algo-
+rithms with classical computational resources, exploit the
+strengths of both paradigms and have demonstrated clear
+advantages over purely classical approaches. In particu-
+lar, variational quantum algorithms (VQAs) have become
+leading candidates for optimization tasks in the NISQ
+era [35]. These hybrid methods rely on parameterized
+quantum circuits to generate candidate solutions, while a
+classical optimizer iteratively updates the parameters to
+minimize a predefined cost function. Through this feed-
+back loop, the quantum–classical system progressively
+steers the circuit toward an approximation of the prob-
+lem’s optimal solution.
+Two of the most widely studied variational algorithms
+are the Variational Quantum Eigensolver (VQE) [30]
+and the Quantum Approximate Optimization Algorithm
+(QAOA) [21, 36].
+The VQE algorithm is designed to determine the low-
+est eigenvalue and corresponding eigenstate of a system’s
+Hamiltonian. Originally developed for quantum chem-
+istry and materials science [37, 38]–where a molecule’s or
+material’s ground state governs its properties–, VQE has
+since been extended to continuous optimization, graph-
+theoretic problems, and various industrial applications.
+The method relies on the variational principle of quan-
+tum mechanics, which guarantees that the expectation
+value of a Hamiltonian for any trial state (ansatz)–C =
+⟨Ψ(s)|H|Ψ(s)⟩– provides an upper bound to the true
+ground-state energy.
+Quantum Approximate Optimization Algorithm (QAOA)
+[21] is a leading variational algorithm designed for com-
+binatorial optimization problems, such as MaxCut, TSP,
+VRP, and Job-Shop Scheduling. It approximates the op-
+timal solution by emulating adiabatic evolution through a
+discrete sequence of unitary operators constructed from a
+problem Hamiltonian HP and a mixer Hamiltonian HB,
+parameterized by angles γ and β. A classical optimizer
+iteratively updates these parameters to minimize the ex-
+pected energy, guiding the system toward the ground-state
+configuration of HP , which encodes the desired solu-
+tion. Various QAOA variants have been proposed to en-
+hance performance, scalability, and applicability, includ-
+ing Multi-angle QAOA [39], XQAOA [40], QAOA+ [41],
+Two-Step QAOA [42], and the Quantum Alternating Op-
+erator Ansatz [43].
+In this work, we propose a novel version of the QAOA
+algorithm designed to address a particular case of task
+scheduling characterized by strict time restrictions for
+both start times and durations.
+Formally, the problem is defined as follows:
+Given a set of tasks with predefined durations and start
+times, along with a limited set of resources capable of run-
+ning only one task at a time, the objective is to allocate the
+maximum number of tasks while avoiding conflicts.
+An example of the problem is illustrated in Fig. 1. A set
+of eight tasks (T1 . . . T9), each with different start times
+and durations, must be scheduled using three resources
+(R1, R2, R3). The feasibility of the schedule depends on
+the resource assignment: in Schedule A, all tasks are suc-
+cessfully executed, whereas in Schedule B, some tasks
+cannot be completed.
+This scheduling problem, involving fixed time intervals
+and limited resources, appears in many practical con-
+texts.
+Examples include industrial maintenance, just-
+in-time production, aircraft take-off and landing, pub-
+lic transport, computing clusters, cloud job allocation,
+and surgical procedure scheduling.
+In all cases, tasks
+must be assigned to resources within predefined time
+windows while respecting capacity constraints. Efficient
+scheduling is essential to optimize resource utilization
+2
+
+
+Quantum Time Interval Scheduler
+0
+2
+4
+6
+8
+10
+Time
+T1
+T2
+T3
+T4
+T5
+T6
+T7
+T8
+T1
+T2
+T3
+T4
+T5
+T6
+T7
+T8
+Tasks ordered by scheduled start time
+0
+2
+4
+6
+8
+10
+Time
+R1
+R2
+R3
+T1
+T2
+T3
+T4
+T5
+T6
+T7
+T8
+Schedule A
+0
+2
+4
+6
+8
+10
+Time
+R1
+R2
+R3
+T1
+T2
+T3
+T5
+T6
+T7
+T8
+Schedule B
+Figure 1: Task scheduling problem with start time and
+duration restrictions. Schedule A with optimal planning
+for the eight tasks, Schedule B with no allocated T4 task
+and minimize delays or downtime. The diverse range of
+these applications demonstrates the prevalence of time-
+constrained scheduling problems and motivates the explo-
+ration of quantum computing approaches to achieve more
+effective optimization.
+To address this scheduling problem, we formulate it as
+a Quadratic Unconstrained Binary Optimization (QUBO)
+problem, encoding time and resource constraints into a
+cost function whose feasible solutions represent approxi-
+mately optimal task allocations.
+Unlike traditional QAOA, our approach introduces an
+ancilla-assisted quantum circuit that explicitly handles
+task collisions and transfers them into the ansatz. In this
+case, the ansatz involves dividing the problem’s Hamil-
+tonian into two different Hamiltonians. The first is dedi-
+cated to coding the problem and assigning it to resources,
+and the second is in charge of handling the constraint that
+two tasks cannot be executed simultaneously on the same
+resource.
+The main contributions of this work are summarized bel-
+low:
+First, the task scheduling problem with strict temporal
+constraints is formulated as a Quadratic Unconstrained
+Binary Optimization (QUBO) model, allowing its repre-
+sentation within a quantum optimization framework. Sec-
+ond, a quantum circuit for time-collision detection is de-
+fined, incorporating two alternative schemes tailored to
+different scheduling contexts. Third, a novel variant of the
+standard Quantum Approximate Optimization Algorithm
+(QAOA), referred to as Quantum Time Interval Sched-
+uler QAOA (QTIS-QAOA), is proposed. This formulation
+introduces three Hamiltonians, Hp, Hc, and HB, where
+Hp encodes the optimization objective, Hc enforces the
+time-collision constraints, and HB represents the stan-
+dard mixer Hamiltonian. Furthermore, it is demonstrated
+that the ansatz circuit can be constructed using elements
+derived from an ancillary quantum subcircuit, effectively
+embedding constraint information within the variational
+form. It is also shown that employing a distinct parameter
+set for the Hc Hamiltonian, rather than sharing the same
+γi parameters applied to Hp, enhances the optimization
+performance of the QTIS-QAOA algorithm.
+Finally, a
+parameter initialization method for the ansatz circuit,HT-
+QAOA, is introduced, enabling higher solution accuracy
+without significantly increasing computational cost.
+The remainder of this paper is organized as follows: Sec-
+tion 2 provides a background on QAOA and related work.
+Section 3 presents the problem formulation and its trans-
+formation into a QUBO model. Section 4 describes the
+principles of the modified QAOA algorithm. Section 5
+illustrates the role of the auxiliary quantum circuit in en-
+forcing constraints. Section 6 discusses experimental re-
+sults and performance analysis. Finally, Section 7 con-
+cludes with key insights and directions for future research.
+2
+Background and related work
+2.1
+QAOA
+The Quantum Approximate Optimization Algorithm
+(QAOA) is an optimization algorithm inspired by the adi-
+abatic theorem [44]. It is grounded in the time-dependent
+Schrödinger equation, which governs the temporal evolu-
+tion of a quantum system’s state under a Hamiltonian such
+that:
+iℏ∂
+∂t |Ψ(t)⟩= ˆH(t) |Ψ(t)⟩
+(1)
+If H(t) is time independent, the solution of equation 1
+takes the form:
+|Ψ(t)⟩=
+X
+n
+cn(0)ei En(0)
+ℏ
+t |n(0)⟩
+(2)
+where En(0) and |n(0)⟩are the eigenvalues and eigenvec-
+tors of the initial Hamiltonian defined by Eq. 3.
+ˆH(0) |Ψ(0)⟩= En(0) |n(0)⟩
+(3)
+The adiabatic theorem states that, when the evolution of
+H(t) is sufficiently slow, if the system is initially in the
+ground state |Ψ(0)⟩, then at time T, for large enough T,
+the system will stay in the new ground state |Ψ(T)⟩, char-
+acterized by the eigenvalues and eigenvectors of the final
+Hamiltonian ˆH(T):
+3
+
+
+Quantum Time Interval Scheduler
+0
+H
+0
+H
+0
+H
+0
+H
+0
+H
+HP
+HB
+γ1
+β1
+HP
+HB
+γL
+βL
+Ψ(0)
+H Ψ
+Ψ
+Expectation Value
+( γ , β )
+Optimization 
+Algorithm
+Classical computer
+Figure 2: QAOA Algorithm
+ˆH(T) |Ψ(T)⟩= En(T) |n(T)⟩
+(4)
+This statement allows for the construction of an interpo-
+lating Hamiltonian of the form H(s) = (1−s)HB+sHP ,
+with s = t
+T , where HB is an initial base Hamiltonian and
+HP is a problem-dependent Hamiltonian. The adiabatic
+evolution of the system drives it toward a final ground
+state encoding the solution to the optimization problem.
+QAOA leverages the adiabatic theorem to approximate the
+solution of an optimization problem by defining two uni-
+tary operators based on the Hamiltonians HP and HB,
+parameterized by the angles γ and β:
+U(HP , γ) = e−iγHP
+(5)
+U(HB, β) = e−iβHB
+(6)
+The Hamiltonian of the problem HP is constructed from
+the optimization objective function, which is typically
+formulated as a Quadratic Unconstrained Binary Opti-
+mization (QUBO) problem and then mapped to the Ising
+model. In contrast, HB is a fixed mixing Hamiltonian,
+expressed as:
+HB =
+n
+X
+j=1
+σx
+j
+(7)
+The QAOA algorithm builds the ansatz by alternating
+applications of operators U(HP , γi) and U(HB, βi), re-
+peated L times, as shown in Fig. 2.
+Before applying the operators, the initial quantum state
+|Ψ(0)⟩= |+⟩is prepared by applying a Hadamard gate to
+each qubit in the register.
+Once the quantum circuit is constructed, a classical op-
+timization algorithm is employed to iteratively adjust the
+set of parameters {γi, βi} in order to minimize the expec-
+tation value:
+⟨γ, β| HP |γ, β⟩
+(8)
+where:
+|γ, β⟩=U(HB, βL)U(HP , γL) . . .
+U(HB, βL)U(HP , γ1) |s⟩
+(9)
+and the initial state |s⟩is defined as:
+|s⟩= |+1⟩. . . |+n⟩
+(10)
+2.1.1
+⃗γ and ⃗β initialization
+The proper initialization of the parameters ⃗γ and ⃗β is cru-
+cial for the rapid convergence of the classical optimiza-
+tion algorithm. An appropriate choice of these parame-
+ters can significantly reduce the associated computational
+complexity.
+Numerous studies [45–48] have proposed different strate-
+gies for the initial parameter selection. The simplest ap-
+proach consists of choosing ⃗γ randomly within the range
+[0, 2π], and ⃗β within [0, π].
+More sophisticated meth-
+ods rely on heuristic interpolation techniques to estimate
+the initial parameters for a circuit of greater depth based
+on the optimization results from a shallower circuit with
+depth L = 1 or 2 [45]. For specific cases such as Max-
+Cut, strategies based on neural networks have been pro-
+posed [46], which can approximate the final parameters
+with high accuracy, effectively eliminating the need for a
+classical optimization loop.
+4
+
+
+Quantum Time Interval Scheduler
+2.2
+Related work
+The Quantum Approximate Optimization Algorithm
+(QAOA) was originally proposed to solve the MaxCut
+problem, an NP-hard combinatorial optimization prob-
+lem. Given a graph G = (V, E), the goal of MaxCut is to
+partition the set of vertices V into two disjoint subsets S
+and S, such that V = S ∪S, in a way that maximizes the
+number of edges between elements in S and those in S.
+Beyond MaxCut, QAOA has been explored as a heuris-
+tic for other optimization problems classified as NP-Hard,
+such as the Travelling Salesman Problem (TSP) [49] or
+Graph partitioning [50] and colouring [51] among others.
+In the context of task scheduling, the application of the
+Quantum Approximate Optimization Algorithm to solve
+the Job Shop Scheduling Problem (JSSP) has proven to
+be highly effective in domains such as logistics [52] or
+manufacturing scenarios [28].
+The Job Shop Scheduling Problem (illustrated in Fig. 3)
+involves assigning a set of jobs J = {J1, J2, . . . , Jn}
+with different processing times to a set of machines M =
+{M1, . . . , Mk} with varying processing capacities, with
+the objective of minimizing the total processing time.
+Some variants of the JSSP include job dependencies or
+machines specialized in certain types of tasks [52].
+0
+2
+4
+6
+8
+10
+Time
+M1
+M2
+J1
+J2
+J3
+J4
+J5
+J6
+J7
+J8
+J9
+J10
+Total: 8 units
+Total: 9 units
+J1(1 units)
+J2(2 units)
+J3(2 units)
+J4(1 units)
+J5(1 units)
+J6(1 units)
+J7(2 units)
+J8(2 units)
+J9(2 units)
+J10(3 units)
+Figure 3: Example of Job Shop Scheduling Problem with
+10 jobs and 2 Machines. The goal of the problem is mini-
+mizing the total processing time, in this case 9 time units.
+In other areas, the task scheduling problem needs to take
+into account temporal constraints such as deadlines or
+time execution windows. In this context, Khalid et al. [53]
+propose the use of QAOA to address a task scheduling
+problem for 6G networks in the cloud radio access net-
+work.
+In their formulation, tasks are processed at the
+Remote Radio Heads, each with an associated execution
+deadline. Temporal constraints are also particularly crit-
+ical in deep space applications.
+As noted by Geda et
+al. [54], QAOA can be applied to schedule satellite imag-
+ing tasks, ensuring that areas of the Earth are imaged
+within the bounded time windows when the satellite is in
+orbit over them.
+3
+Problem formulation
+Our problem involves scheduling the execution of a series
+of tasks with a limited set of resources, considering the
+following rules:
+1. Each task has a fixed execution duration and a
+predefined time window, determined by a start
+time and an end time (tend = tstart+duration),
+which cannot be arbitrarily modified.
+2. The available execution resources are finite, and
+each resource can execute only one task at any
+given time.
+3. Some tasks may overlap in time, preventing them
+from being executed on the same resource simul-
+taneously.
+With these premises, the goal is to maximize the number
+of tasks that can be executed with the available set of re-
+sources.
+3.1
+QUBO
+To translate this problem into a QUBO formulation, we
+will define a set of binary variables xij where:
+xij =
+1
+if task i is scheduled in resource j
+0
+otherwise
+(11)
+With this definition, our goal is equivalent to minimizing
+the function (12) with a set of constraints.
+f(x) = −
+X
+i
+X
+j
+xij
+(12)
+The first constraint corresponds to the fact that tasks can
+only be scheduled once in one of the available resources.
+X
+j
+xij = 1
+∀i
+(13)
+The second constraint avoids scheduling two overlapped
+tasks on the same resource. That is,
+xijxkjcik = 0
+∀i, j, k > i
+(14)
+where the overlap coefficient cik can be defined as :
+cik =
+1
+if task i and k are overlapped
+0
+otherwise
+(15)
+With all these definitions, we can build the QUBO to min-
+imize as
+QUBO = −
+X
+i
+X
+j
+xij
++
+X
+i
+P(
+X
+j
+xij −1)2
++
+X
+j
+X
+k
+X
+i
+P(xij ∗xkj ∗cik)2
+(16)
+5
+
+
+Quantum Time Interval Scheduler
+The penalty factor P has to be a number larger than the
+maximum value of |f(x)|
+P = I · J + 1
+(17)
+where
+I
+=
+Number of tasks
+and
+J
+=
+Number of resources.
+4
+QTIS-QAOA
+In continuation of the formulation presented in Section 3,
+this section introduces QTIS (Quantum Time Interval
+Scheduler), a modified version of the standard QAOA
+algorithm designed to address the corresponding task
+scheduling problem.
+As outlined in the theoretical background, QAOA oper-
+ates by alternating two parameterized unitary operators,
+U(HP , γi) and U(HB, βi), derived from the problem
+Hamiltonian HP and the mixer Hamiltonian HB, respec-
+tively, over a circuit of depth L. At each layer, a distinct
+pair of parameters (γi, βi) is optimized through a classical
+routine to minimize the expected value of the cost Hamil-
+tonian.
+The problem Hamiltonian HP can be obtained by trans-
+forming the QUBO formulation of the scheduling prob-
+lem into its equivalent Ising representation, while HB re-
+mains fixed and corresponds to the definition provided in
+equation (7).
+The construction of the U(HP , γi) ansatz requires com-
+plete pre-computation of the corresponding Ising Hamil-
+tonian, which prevents the inclusion of elements that
+could otherwise be computed dynamically within the
+quantum circuit.
+To overcome this limitation, the proposed QTIS-QAOA
+introduces an extended formulation in which HP is parti-
+tioned into two components, Hp and Hc, as follows:
+HP = Hp + Hc
+(18)
+In this formulation, Hp is derived from the objective func-
+tion together with a subset of the penalty terms, while Hc
+encapsulates the remaining penalties. The application of
+these latter terms is controlled by ancillary qubits gen-
+erated through a complementary quantum circuit, as dis-
+cussed in the following sections.
+Under this decomposition, the operator U(HP , γi) is cor-
+respondingly divided into two operators U(Hp, γi) and
+U(Hc, ζi). Each parameterized with different angles γ
+and ζ, respectively. The resulting QTIS-QAOA ansatz is
+then composed of a sequence of L layers alternating the
+three operators U(Hp, γi), U(Hc, ζi), and U(HB, βi) as
+illustrated in Fig. 4.
+4.1
+Hp
+Hp and Hc can be obtained by dividing the QUBO func-
+tion (16) representing our problem into two parts. The
+first part, corresponding to the Hp Hamiltonian, includes
+the objective function (12) and the first set of penal-
+ties (13) related to the constraint that tasks can only be
+scheduled once in one of the available resources. That is,
+QUBOHp = −
+X
+i
+X
+j
+xij +
+X
+i
+P(
+X
+j
+xij −1)2 (19)
+The transformation of QUBOHp into the Ising model
+gives us the final expression of Hp, which takes the form:
+Hp =
+X
+n
+X
+m!=i
+Jnmsnsm +
+X
+n
+Jnnsn
+(20)
+The Hp Hamiltonian can then be used to define the oper-
+ator U(Hp, γi) as:
+U(Hp, γi) = e−iγiHp
+(21)
+This formulation of U(Hp, γi) allows us to realize the op-
+erator as an ansatz circuit, composed of a set of quantum
+gates Rzz and Rz which are parametrized by γi and the
+coefficients Jnm, Jnn.
+RZnZm(2γlJnm)⊗nm ⊗RZn(2γlJnn)⊗n
+(22)
+4.2
+Hc
+The Hamiltonian Hc is derived from the second set of con-
+straints (14), which correspond to the remaining penalty
+terms in the original QUBO formulation (16). These con-
+straints are designed to prevent tasks from conflicting by
+occupying the same resource simultaneously.
+QUBOHc =
+X
+j
+X
+k
+X
+i
+P(xij ∗xkj ∗cik)2
+(23)
+The Hc Hamiltonian can be computed, as shown in Ap-
+pendix A, by applying the Ising transformation1 to the
+previous QUBOHc equation. Consequently, the final form
+of Hc is given by:
+Hc =
+X
+j
+X
+k
+X
+i
+P
+4 (1 −sij −skj + sijskj)cik
+(24)
+Similarly to how we proceeded with Hp, the operator
+U(Hc, ζi) can be obtained as:
+U(Hc, ζi) = e−iζiHc
+(25)
+1Ising transformation: xij =
+(1−sij)
+2
+, xkj =
+(1−skj)
+2
+6
+
+
+Quantum Time Interval Scheduler
+0
+H
+0
+H
+0
+H
+0
+H
+0
+H
+Hp
+HB
+γ1
+β1
+HP
+HB
+γL
+βL
+Ψ(0)
+H Ψ
+Ψ
+Expectation Value
+( γ , ζ , β )
+Optimization 
+Algorithm
+Classical computer
+Hc
+ζ1
+ζL
+Hc
+0
+0
+Conﬂict
+Detection
+Cik
+Cik
+Figure 4: L layers QTIS-QAOA with the parametrized circuits associated to the Hamiltonians Hp, Hc, HB and the
+conflict detection circuit
+.
+The ansatz circuit for U(Hc, ζi) can be constructed with a
+set of Rzz and Rz gates, following the same method used
+for U(Hp, γi), as follows:
+RZijZkj(2ζi
+P
+4 cik)⊗ikj⊗
+RZij(−2ζi
+P
+4 cik)⊗ij⊗
+RZkj(−2ζi
+P
+4 cik)⊗kj
+(26)
+This approach typically requires the overlap coefficients
+cik to be precomputed before constructing the ansatz cir-
+cuit. However, instead of doing so, we aim to compute the
+coefficients as part of the quantum circuit itself.
+To achieve this, we can take into account that the overlap
+coefficients act as a control mechanism for the rotations
+applied by the Rzz and Rz gates. Specifically, if tasks i
+and k are in conflict, then cik = 1, and the corresponding
+penalty rotations are applied. Conversely, if there is no
+conflict (cik = 0), no rotation is applied.
+This behavior allows us to replace the Rzz and Rz gates
+with their controlled counterparts, CRzz and CRz respec-
+tively. These gates are controlled by a set of qubits that
+represent the coefficients cik, as shown in the following
+expression.
+CRcik
+ZijZkj(2ζi
+P
+4 )⊗ikj⊗
+CRcik
+Zij(−2ζi
+P
+4 )⊗ij⊗
+CRcik
+Zkj(−2ζi
+P
+4 )⊗kj
+(27)
+The circuit used to compute the control qubits is described
+in detail in the next section, where we present two differ-
+ent versions applicable to different scenarios.
+4.3
+HB ansatz
+The HB ansatz corresponding to the standard operator
+U(HB, βi) defined in equation 6 consists on a single set
+of RX gates applied to all the qubits representing the xij
+variables, that is:
+RXij(2βi)⊗ij
+(28)
+5
+Conflict Detection
+As we mentioned in the previous section, the overlapping
+coefficients cik will be included within the QTIS-QAOA
+ansatz as a set of ancillary qubits that controls the applica-
+tion of the constraint penalties encoded in the Hc Hamil-
+tonian.
+In this work, we propose two different strategies for en-
+coding the overlap information in the control qubits. The
+7
+
+
+Quantum Time Interval Scheduler
+first approach—Full Quantum—estimates task overlaps
+using a quantum circuit, which requires only minimal
+classical pre-processing to normalize the time intervals
+that define each task.
+In contrast, the second approach—Classical—relies on a
+classical algorithm to perform most of the computations
+before translating the results into the quantum circuit. Al-
+though this method incurs a higher classical computa-
+tional cost, it typically requires fewer qubits and delivers
+greater accuracy than the Quantum method in most sce-
+narios.
+5.1
+Full Quantum variant for conflict detection
+The quantum variant of the circuit is defined on the basis
+of the following method to determine whether two tasks
+overlap in time.
+Consider two tasks, T i and T k, associated with the time
+intervals [ti
+s, ti
+e] and [tk
+s, tk
+e], where ti
+s, tk
+s denote the start
+times and ti
+e, tk
+e denote the end times. The tasks are said
+to overlap if the end of task i is greater than the start of
+task k and the end of task k is greater than the start of task
+i, that is:
+ti
+e > tk
+s ∧tk
+e > ti
+s
+(29)
+Based on this condition, we can determine the overlap co-
+efficients cik as follows:
+cik =
+1
+ti
+e −tk
+s > 0 ∧tk
+e −ti
+s > 0
+0
+otherwise
+(30)
+Using this definition, we construct a quantum circuit with
+one qubit qt per task t, and an ancillary qubit qcik for each
+overlap coefficient cik. The state |qcik⟩= |1⟩indicates
+that tasks i and k overlap, while the state |0⟩represents
+the absence of overlap.
+The qubits qi,qk will be used to compute the probabilities
+of ti
+e −tk
+s > 0 and tk
+e −ti
+s > 0. For that, we begin by
+applying a Hadamard gate to each qi qubit to prepare them
+in the superposition state |+⟩.
+From this point, the differences ti
+e−tk
+s, tk
+e −ti
+s are mapped
+as rotations around the Y-axis applied to qubits i and k,
+respectively.
+|i⟩= RY (2(ti
+e −tk
+s)) |+⟩
+|k⟩= RY (2(tk
+e −ti
+s)) |+⟩
+(31)
+The operation defined in the previous equation can be de-
+composed into a sequence of gates, starting with the appli-
+cation of the rotations RY (−2ti
+s) and RY (−2tk
+s) to qubits
+i, k, respectively. This is followed by a SWAP gate be-
+tween the two qubits, and finally by the application of
+RY (2ti
+e), RY (2tk
+e) rotation to the same qubits. This se-
+quence is shown in Fig. 5
+Figure 5: Circuit for time difference calculations
+|ik⟩=
+
+RY (2ti
+e) ⊗RY (2tk
+e)
+
+· SWAP·
+
+RY (−2ti
+s) |+⟩i ⊗RY (−2tk
+s) |+⟩k
+
+(32)
+This computation requires that the interval times ti
+s, ti
+e ∀i
+be scaled in the range [0, π/2]. In Fig. 7 we can see how
+the physical interpretation of these operations is directly
+related to the probabilities that qi, qk be in state |0⟩, ti
+e −
+tk
+s < 0 and tk
+e −ti
+s < 0, or in state |1⟩, ti
+e −tk
+s > 0 and
+tk
+e −ti
+s > 0.
+Subsequently, the ancillary qubit qcik, representing the
+overlap between i and k, is computed using a Toffoli (CC-
+NOT) gate controlled by qi and qk, effectively implement-
+ing a logical AND between the two.
+|cik⟩= CCNOT(|i⟩⊗|k⟩)
+(33)
+5.2
+Reduction of circuit complexity
+The number of qubits required to compute the overlap co-
+efficients for the N tasks can be reduced to:
+Nqubits = N + N(N −1)
+2
+(34)
+This can be achieved by computing the coefficients in
+a sequential process.
+In each step, we calculate one
+of the coefficients ci,k and, after applying the CCNOT
+gate, reverse the operation RY (2ti
+e) ⊗RY (2tk
+e) by ap-
+plying RY rotations in the opposite direction to qubits
+i and k.
+In the next step, we apply the SWAP gate
+again to the pair of qubits involved in the computation
+of the next coefficient ci′k′ and perform the correspond-
+ing rotations RY (2ti′
+e ) ⊗RY (2tk′
+e ) before applying the
+CCNOT(|i′⟩⊗|k′⟩) gate. This iterative process contin-
+ues until all coefficients have been calculated.
+For practical purposes, we can define a custom gate for
+the transformation:
+D =[RY (−2ti
+e) ⊗RY (−2tk
+e)]⊗
+CCNOT(
+il
+⊗
+kl
+)⊗
+[RY (2ti
+e) ⊗RY (2tk
+e)]
+(35)
+With this structure, which we call the Damselfly gate, we
+can compute collision probabilities for all tasks by com-
+bining SWAP gates and Damselfly gates in a sequence of
+stages.
+8
+
+
+Quantum Time Interval Scheduler
+Figure 6: Quantum approach for the collision detection circuit with the damselfly gates between dashed lines boxes
+Figure 7: RY rotations applied to qubits i, k from the su-
+perposition state |+⟩
+Figure 6 shows an example circuit for three tasks, in
+which the overlap coefficients are computed in three se-
+quential gate stages, and where:
+• q[0], q[1], q[2] represent tasks 0, 1, and 2, respec-
+tively.
+• qc[0] represents the overlap between tasks 0 and
+1, c0,1.
+• qc[1] represents c0,2.
+• qc[2] represents c1,2.
+5.2.1
+Limitations
+The presented approach can exhibit limitations in certain
+cases due to the probabilistic nature of quantum measure-
+ment outcomes.
+The method is only suitable for interval sets where the
+differences ti
+e −tk
+s and tk
+e −ti
+s are sufficiently large to
+ensure that the coefficient cik can be measured with a clear
+probability corresponding to either the |1⟩or |0⟩state.
+If this is not the case, the calculation of the initial ro-
+tations, as well as those performed within the damselfly
+gates, would not be achievable through a simple scaling
+of the time intervals within the range [0, 2π]. Instead, they
+would need to be specifically calculated for each step. Ad-
+ditionally, in such scenarios, the damselfly gates would
+lose their antisymmetric property, increasing the amount
+of classical pre-processing required and raising the classi-
+cal computational cost.
+5.3
+Classical variant for conflict detection
+The classical variant of the circuit for computing the over-
+lap coefficients qubits is based on a different algorithm
+from the one used in the quantum variant. This approach
+is particularly suitable in scenarios where the quantum im-
+plementation cannot be applied due to the limitations dis-
+cussed in the previous section.
+In this case, the classical approach begins with a list of
+tasks that are pre-sorted by their start times. Given this
+ordered list, we can efficiently verify whether two tasks
+T i = [ti
+s, ti
+e] and T k = [tk
+s, tk
+e], where tk
+s ≥ti
+s, overlap by
+checking the following condition:
+tk
+s −ti
+e < 0
+(36)
+Using this method, we can define a quantum circuit that
+requires a total number of qubits equal to:
+nqubits = N(N −1)
+2
+,
+N = number of tasks
+(37)
+where each qubit qcik represents a pairwise interval com-
+parison.
+The computation of each overlap coefficient cik begins
+by applying a Hadamard gate to place the qubit in su-
+perposition, followed by an RY rotation with an angle of
+−π
+2 ·sign(tk
+s −ti
+e). This rotation encodes whether the time
+difference between the start of task k and the end of task
+i is positive or negative, enabling the qubit to probabilis-
+tically reflect the overlap condition.
+9
+
+
+Quantum Time Interval Scheduler
+def ClassicalConflictCircuit(task_intervals):
+differences = []
+for i in range(len(task_intervals)):
+interval1 = task_intervals[i]
+for k in range(i + 1, len(task_intervals)):
+interval2 = intervals[k]
+#t_s^k - t_e^i computation
+differences.append(interval2[0] - interval1[1])
+colisiones = np.copysign(1,differences)
+nQubits = len(colisiones)
+qRCollisions = QuantumRegister(nQubits, name="qC")
+cRCollisions = ClassicalRegister(nQubits, name="cC")
+qc = QuantumCircuit(qRCollisions, cRCollisions)
+# Quatum circuit generation
+for i in range(0, nQubits):
+qc.h(i)
+# Qubit in supperposition
+qc.ry(-colisiones[i]*np.pi/2, i) # Ry rotation
+return qc
+Figure 8: Qiskit code to generate classical conflict circuit variant
+RY
+
+−π
+2 · sign(tk
+s −ti
+e)
+⊗N(N−1)
+2
+⊗H⊗N(N−1)
+2
+(38)
+Figure 9: Classical approach for the collision detection
+circuit collision circuit for a set of three tasks.
+In Fig. 8 we can see the algorithm to build the classical
+variant of the conflict circuit implemented in Qiskit. The
+result for an example with three tasks is shown in Fig. 9.
+5.4
+QTIS ansatz implementation
+With all elements already defined, we can now construct
+the complete QTIS ansatz by taking the Kronecker prod-
+uct of the QTIS-QAOA circuit and one of the collision
+circuits, along with the connections between the ancillary
+qubits qcik and the controlled gates Rz and Rzz within
+the Hc layers of the QTIS-QAOA ansatz.
+Fig. 10 shows an example circuit for a three-task schedul-
+ing problem with a QAOA depth of L = 1, for both quan-
+tum and classical variants of the conflict circuit. In the di-
+agrams, we can also observe that measurement gates have
+been added to both the qcik qubits and to the qubits in-
+volved in the QTIS-QAOA circuit.
+6
+Simulations and results
+To validate the QTIS algorithm, we conducted a series of
+tests with a dual objective:
+1. Identify a suitable minimization strategy for the
+QTIS-QAOA ansatz that is capable of finding
+a valid task allocation among the available re-
+sources.
+2. Determine whether introducing a third parame-
+ter set, ⃗ζ, specifically for the Hc circuit (instead
+of sharing the ⃗γ parameters with the Hp cir-
+cuit), leads to an improvement in the minimiza-
+tion process.
+6.1
+Test sets definition
+To perform the tests, we define six sets of three tasks, each
+with a different degree of overlap. The tasks in each set,
+as shown in Table 1, are scheduled using two available
+resources.
+For each set of tasks, we perform batches of 10 sim-
+ulations using the three different minimization strate-
+gies defined in the next section:
+standard QAOA, T-
+QAOA[47], and HT-QAOA. For all strategies, we conduct
+two batches: one with ⃗ζ = ⃗γ and another with ⃗ζ ̸= ⃗γ, to
+evaluate which configuration best suits the problem de-
+fined by the test set.
+In all cases, the QTIS-QAOA ansatz is simulated with a
+depth of L = 10 using the Qiskit Aer simulator and the
+Qasm backend. The number of shots per simulation is
+fixed at 100,000.
+10
+
+
+Quantum Time Interval Scheduler
+qC0
+qC1
+qC2
+qC3
+qC4
+qC5
+q0
+q1
+q2
+q3
+q4
+q5
+3
+cC
+6
+c
+H
+H
+H
+H
+H
+H
+H
+H
+H
+0
+RY
+/10
+RY
+4 /5
+RY
+0
+1
+2
+3
+4
+5
+Hamiltonian
+0
+1
+2
+Damselfly([0.63, 0.94])
+0
+1
+CRZZ(0)
+0
+1
+2
+Damselfly([0.63, 1.57])
+0
+1
+CRZZ(0)
+0
+1
+CRZZ(0)
+0
+1
+2
+Damselfly([0.94, 1.57])
+0
+RX
+0
+1
+CRZZ(0)
+0
+1
+CRZZ(0)
+0
+RX
+0
+RX
+0
+RX
+0
+1
+CRZZ(0)
+0
+RX
+0
+RX
+0
+1
+2
+0
+1
+2
+3
+4
+5
+(a) Quantum collision variant
+qC0
+qC1
+qC2
+q0
+q1
+q2
+q3
+q4
+q5
+3
+cC
+6
+c
+H
+H
+H
+H
+H
+H
+H
+H
+H
+/2
+RY
+/2
+RY
+/2
+RY
+0
+1
+2
+3
+4
+5
+Hamiltonian
+0
+1
+CRZZ(0)
+0
+1
+CRZZ(0)
+0
+1
+CRZZ(0)
+0
+1
+CRZZ(0)
+0
+1
+CRZZ(0)
+0
+RX
+0
+RX
+0
+RX
+0
+RX
+0
+1
+CRZZ(0)
+0
+RX
+0
+RX
+0
+1
+2
+0
+1
+2
+3
+4
+5
+(b) Classical collission variant
+Figure 10: QTIS implementation with Quantum (a) and Classical (b) variants for the conflict detection circuit.
+Table 1: Interval sets for testing
+SET
+TASK INTERVALS
+OVERLAPPING
+1
+[1,3],[1.5,4],[5,6]
+task 1 and task 2
+2
+[1,3],[1.5,8],[2,6]
+all tasks are overlapped
+3
+[1,3],[1.5,4],[3.5,6]
+task 1 and task 2, task 2
+and task 3
+4
+[1,2],[3,4],[5,6]
+none tasks are over-
+lapped
+5
+[1,2],[3,5],[4,6]
+task 2 and task 3
+6
+[1,5],[2,3],[4,6]
+task 1 and task 2, task 1
+and task 3
+All these tests are initially performed using the classical
+variant for the conflict detection circuit.
+We will later
+compare the results obtained for the first interval set with
+those from the quantum variant of the conflict detection
+circuit.
+At the end of each simulation, we measure the normalized
+energy of the solution:
+Enorm = E(⃗γ, ⃗ζ, ⃗β, cik) −Emin
+Emax −Emin
+(39)
+where
+E(⃗γ, ⃗ζ, ⃗β, cik) =
+D
+⃗γ, ⃗ζ, ⃗β, cik|H|⃗γ, ⃗ζ, ⃗β, cik
+E
+(40)
+Using the normalized energy as a reference allows us to
+consistently compare the results across the different test
+sets.
+6.2
+Minimization strategies
+As mentioned above, the QTIS algorithm is a variant
+of the QAOA algorithm and therefore requires a mini-
+mization process to obtain optimal values for the param-
+eters ⃗γ, ⃗ζl, and ⃗βl. The minimization process, along with
+11
+
+
+Quantum Time Interval Scheduler
+the initial parameter selection, greatly influences both the
+quality of the result and the computational complexity of
+the algorithm’s execution. In this work, we evaluate three
+different strategies: standard minimization, T-QAOA, and
+HT-QAOA.
+6.2.1
+Standard minimization strategy
+The standard minimization strategy consists of evaluating
+the QTIS-QAOA circuit with the chosen depth of L = 10
+iteratively. In each iteration, the parameters ⃗γ, ⃗ζl and ⃗βl
+are adjusted using the COBYLA algorithm to minimize
+the normalized energy of the expectation value:
+D
+⃗γ, ⃗ζ, ⃗β
+ HP
+⃗γ, ⃗ζ, ⃗β
+E
+(41)
+where:
+⃗γ, ⃗ζ, ⃗β
+E
+=U(HB, βL)U(Hc, ζL)U(Hp, γL) . . .
+U(HB, β1)U(Hc, ζ1)U(Hp, γ1) |s⟩
+(42)
+|s⟩= |+1⟩. . . |+n⟩
+(43)
+The initial values of the parameters ⃗γ, ⃗ζl and ⃗βl in this
+case are randomly assigned using a uniform distribution
+function in the interval [0, π].
+6.2.2
+T-QAOA strategy
+The T-QAOA strategy aims to obtain the parameters ⃗γ, ⃗ζ
+and ⃗β for a given circuit depth L, using as a starting point
+the parameters previously calculated for depth L −1.
+In T-QAOA, we begin by applying a standard minimiza-
+tion, defined above, with a depth of L = 1, and in succes-
+sive stages, the standard minimization is reapplied while
+incrementally increasing the circuit depth L, so that at
+each stage L = l, the parameters ⃗γl, ⃗ζl, and ⃗βl are ini-
+tialized as follows:
+⃗γl
+1..l−1 = ⃗γl−1
+1..l−1
+⃗γl
+l = ⃗γl−1
+l−1
+(44)
+⃗ζl
+1..l−1 = ⃗ζl−1
+1..l−1
+⃗ζl
+l = ⃗ζl−1
+l−1
+(45)
+⃗βl
+1..l−1 = ⃗βl−1
+1..l−1
+⃗βl
+l = 0
+(46)
+6.2.3
+HT-QAOA strategy
+The third minimization strategy, which we introduce in
+this work, is referred to as HT-QAOA. This strategy is in-
+fluenced by the principles of quantum annealing and ho-
+motopy optimization described in [48].
+According to these principles, we can reach a target
+Hamiltonian starting from an auxiliary Hamiltonian by
+gradually varying a parameter α as follows:
+H = α · Hobj + (1 −α) · Hm
+(47)
+As α approaches 1, the influence of the auxiliary Hamil-
+tonian diminishes while the contribution of the target
+Hamiltonian increases.
+QAOA draws inspiration from this principles by alternat-
+ing between the problem Hamiltonian HP and the mixing
+Hamiltonian HB, each parameterized by ⃗γ and ⃗β, respec-
+tively. Through successive optimization stages, and as the
+circuit depth increases, it is commonly observed that the
+parameters ⃗β tends to approach zero, while ⃗γ converges
+toward π.
+Building on this idea, the proposed HT-QAOA strategy
+consists of two steps:
+1. Perform an initial standard minimization with
+circuit depth L = 1.
+2. Perform a second standard minimization with the
+full circuit depth L so that the parameters ⃗γ, ⃗ζ,
+and ⃗β are initialized using a linear interpolation
+from the parameters obtained in the first step.
+Specifically, γl and ζl are initialized within the
+ranges [γ1, π] and [ζ1, π], respectively, while βl
+is initialized within the range [β1, 0].
+6.3
+Results
+As previously described, in order to compare the three
+strategies, we conducted batches of ten simulations per
+algorithm for each set of tasks, considering both cases:
+⃗γ ̸= ⃗ζ and ⃗γ = ⃗ζ.
+The simulations were carried out in a virtualized environ-
+ment with the specifications indicated in table 2.
+Table 2: Simulation Environment Specifications
+Parameter
+Specification
+CPU
+8
+vCPUs
+—
+Intel(R)
+Xeon(R)
+Silver
+4314
+@2.40GHz
+RAM
+32 GB
+Operating System
+Ubuntu Linux (64-bit)
+Virtualization Platform
+VMWare ESXi 8.0
+The result of each simulation is the normalized energy,
+calculated using the corresponding Emin and Emax val-
+ues for each task set. Both, Emin and Emax are defined by
+12
+
+
+Quantum Time Interval Scheduler
+the Hamiltonian of the problem and its associated QUBO
+formulation, as described in equation (16). In this study,
+Emin is the same in all sets and has a value of -32. On the
+other hand, Emax is estimated by considering the QUBO
+in equation(16) under the assumption that all binary vari-
+ables xij (16) are set to 1. The values of Emin and Emax
+for all sets are shown in table 3.
+Table 3: Minimum and Maximum Energy Values for Each
+Task Set
+Set 1
+Set 2
+Set 3
+Set 4
+Set 5
+Set 6
+Emin
+-3
+-3
+-3
+-3
+-3
+-3
+Emax
+29
+57
+43
+15
+29
+43
+6.3.1
+Comparison between minimization strategies
+Table 4: Comparison between minimization strategies
+(Normalized Energy for ⃗γ ̸= ⃗ζ and ⃗γ = ⃗ζ)
+Set
+Standard
+T-QAOA
+HT-QAOA
+⃗γ ̸= ⃗ζ
+1
+0.04
+0.07
+0.10
+2
+0.19
+0.15
+0.17
+3
+0.16
+0.12
+0.14
+4
+0.00
+0.00
+0.00
+5
+0.04
+0.08
+0.07
+6
+0.19
+0.12
+0.14
+MEAN
+0.10
+0.09
+0.10
+⃗γ = ⃗ζ
+1
+0.10
+0.10
+0.11
+2
+0.22
+0.16
+0.20
+3
+0.21
+0.14
+0.15
+4
+0.00
+0.00
+0.00
+5
+0.13
+0.10
+0.11
+6
+0.21
+0.13
+0.18
+MEAN
+0.145
+0.105
+0.125
+Table 4 presents the mean normalized energy obtained for
+each simulation batch, as well as the overall mean en-
+ergy achieved by each minimization strategy across all
+task sets.
+According to the mean values for the normalized energy
+of each strategy, T-QAOA is the strategy that obtains the
+best result with the lowest mean energy. Followed by HT-
+QAOA and the standard minimization. This can be seen
+in Fig. 12, where a graph is shown that compares the ex-
+ecution batches of the three strategies for each set with
+γ ̸= ζ.
+In all cases, the strategy HT-QAOA sits between the stan-
+dard and T-QAOA, even when T-QAOA is worse than the
+2This is the value of the QUBO in equation (16) for three
+taks and two resources when no penalties are applied
+2
+4
+6
+8
+10
+L
+0.0
+0.1
+0.2
+0.3
+0.4
+Normalized Energy
+TQAOA (set 1)
+=
+Average energy 
+Average energy =
+Figure 11: Normalized energy obtained with the T-QAOA
+strategy using 10 steps, for ⃗γ ̸= ⃗ζ and ⃗γ = ⃗ζ, in set 1
+standard strategy. The mean execution times of each are
+indicated in table 5, where we can see that the execu-
+tion time of HT-QAOA is similar to the standard strategy,
+while T-QAOA is between 3 and 4 times slower than the
+other two in these examples.
+Table 5: Mean execution time for the different minimiza-
+tion strategies (in seconds)
+Set
+Standard
+T-QAOA
+HT-QAOA
+⃗γ ̸= ⃗ζ
+1
+52.42
+177.97
+49.10
+2
+42.12
+167.73
+43.31
+3
+46.71
+169.70
+44.49
+4
+44.00
+157.60
+49.53
+5
+59.08
+187.47
+49.74
+6
+46.27
+168.44
+47.58
+Mean
+48.44
+171.48
+47.29
+⃗γ = ⃗ζ
+1
+35.88
+115.53
+34.62
+2
+25.94
+111.93
+28.50
+3
+29.36
+117.18
+30.36
+4
+27.66
+106.84
+32.40
+5
+30.73
+112.48
+32.47
+6
+27.66
+112.14
+31.50
+Mean
+29.54
+112.68
+31.64
+With these data on execution time, to determine whether
+it is worth using the T-QAOA strategy in a more complex
+scenario, we could apply the standard strategy followed
+by HT-QAOA and if the energy of HT-QAOA is smaller
+we can try T-QAOA if we need a better result.
+6.3.2
+Comparison between γ ̸= ζ and γ = ζ
+The mean normalized energy measured along the different
+simulations with the three minimization strategies (indi-
+cated in table 4) leads us to think that using three different
+parameters set ⃗γ, ⃗ζ, ⃗β to characterized the Hamiltonians
+Hp, Hc and Hm with ⃗γ ̸= ⃗ζ is a better option than us-
+13
+
+
+Quantum Time Interval Scheduler
+2
+4
+6
+8
+10
+Execution number
+0.2
+0.4
+0.6
+0.8
+1.0
+1.2
+Normalized Energy
+1e
+1Comparison of minimization strategies (set 1)
+qaoa
+tqaoa
+htqaoa
+qaoa mean: 0.04
+tqaoa mean: 0.07
+htqaoa mean: 0.10
+2
+4
+6
+8
+10
+Execution number
+1.4
+1.6
+1.8
+2.0
+2.2
+2.4
+2.6
+Normalized Energy
+1e
+1Comparison of minimization strategies (set 2)
+qaoa
+tqaoa
+htqaoa
+qaoa mean: 0.19
+tqaoa mean: 0.15
+htqaoa mean: 0.17
+2
+4
+6
+8
+10
+Execution number
+1.0
+1.2
+1.4
+1.6
+1.8
+2.0
+Normalized Energy
+1e
+1Comparison of minimization strategies (set 3)
+qaoa
+tqaoa
+htqaoa
+qaoa mean: 0.16
+tqaoa mean: 0.12
+htqaoa mean: 0.14
+2
+4
+6
+8
+10
+Execution number
+0.0
+0.5
+1.0
+1.5
+2.0
+2.5
+3.0
+Normalized Energy
+1e
+3Comparison of minimization strategies (set 4)
+qaoa
+tqaoa
+htqaoa
+qaoa mean: 0.00
+tqaoa mean: 0.00
+htqaoa mean: 0.00
+2
+4
+6
+8
+10
+Execution number
+0.2
+0.4
+0.6
+0.8
+1.0
+Normalized Energy
+1e
+1Comparison of minimization strategies (set 5)
+qaoa
+tqaoa
+htqaoa
+qaoa mean: 0.04
+tqaoa mean: 0.08
+htqaoa mean: 0.07
+2
+4
+6
+8
+10
+Execution number
+0.8
+1.0
+1.2
+1.4
+1.6
+1.8
+2.0
+2.2
+2.4
+Normalized Energy
+1e
+1Comparison of minimization strategies (set 6)
+qaoa
+tqaoa
+htqaoa
+qaoa mean: 0.19
+tqaoa mean: 0.12
+htqaoa mean: 0.14
+Figure 12: Results for the three minimization strategies on the six interval sets.
+14
+
+
+Quantum Time Interval Scheduler
+ing only two different parameters (⃗γ = ⃗ζ) if we want to
+obtain the best results in the minimization process.
+In Fig. 11 we can see in detail the difference between us-
+ing two or three parameters in the T-QAOA strategy ap-
+plied to the task set 1. In each step, the mean normalized
+energy of the ten simulations that we have carried out with
+the set is larger if we use two parameters than if we use
+three.
+Finally, in Appendix 2, we present box plots for each task
+set that compare the normalized energy measurements ob-
+tained in the different simulations for each strategy, both
+for the case where ⃗γ ̸= ⃗ζ and where (⃗γ = ⃗ζ).
+These diagrams clearly show that the median value of the
+normalized energy is consistently lower when ⃗γ ̸= ⃗ζ,
+across all strategies and task sets.
+7
+Conclusions
+This article has addressed the task scheduling problem,
+which belongs to the class of NP-hard combinatorial op-
+timization problems. In most cases, these problems are
+modeled as a subclass of the Job Shop Scheduling Prob-
+lem (JSSP), whose objective is to execute all tasks in the
+shortest possible time using limited resources. However,
+this work has a slightly different objective: tasks are sub-
+ject to strict temporal constraints and must be executed at
+specific times. Therefore, the goal is not focused on mini-
+mizing the total execution time but rather on fitting all the
+tasks within the limited set of available resources.
+To tackle this challenge, the problem has been formu-
+lated as a QUBO model. A novel variant of the QAOA
+algorithm has been proposed, which has been named
+QTIS-QAOA. In order to construct the ansatz, three oper-
+ators have been incorporated: U(Hp, γi), U(Hc, ζi), and
+U(HB, βi), in contrast to the original QAOA, which re-
+lies on only two operators, U(HP , γi) and U(HB, βi).
+This extension is intended to allow the operator U(Hc, ζi)
+to take into account elements computed in a new section
+within the quantum circuit itself.
+The Hamiltonians Hp and Hc can be considered a decom-
+position of the general HP Hamiltonian obtained from the
+QUBO model of the problem.
+The operator U(Hc, ζi) encapsulates the section of the
+QUBO that includes penalties for assigning two tasks
+to the same resource at the same time. These penalties
+depend on collision coefficients, cik. In our approach,
+these cik coefficients are computed using a set of ancillary
+qubits, with two proposed quantum circuits for different
+scenarios. Subsequently, these qubits act as controls for
+the application of penalty terms in the U(Hc, ζi) operator.
+Computing the collision coefficient using a fully quantum
+approach may result in a loss of accuracy in certain cases.
+This is why a classical preprocessing alternative for de-
+termining the coefficients is also proposed in case these
+limitations are present.
+To evaluate the effectiveness of the proposals, multiple
+simulations have been carried out on six task sets, using
+three different minimization strategies: Standard QAOA
+and T-QAOA, and a novel one, HT-QAOA, which consti-
+tutes an additional contribution of this work. HT-QAOA
+initializes parameters ⃗γ, ⃗ζ, ⃗β by extrapolating from the re-
+sults of an initial simulation with circuit depth L = 1, fol-
+lowing principles from quantum annealing and homotopy
+optimization.
+Experimental results show that HT-QAOA achieves in-
+termediate performance between standard QAOA and T-
+QAOA. Nevertheless, it maintains an execution time com-
+parable to that of the standard version. This behavior sug-
+gests the potential to use low-depth for determining the
+most suitable optimization strategy for a given instance
+before scaling up.
+The results also indicate that using
+three distinct parameter sets—⃗γ, ⃗ζ, ⃗β—with ⃗γ ̸= ⃗ζ leads
+to better quality solutions compared to using ⃗γ = ⃗ζ, al-
+though at the cost of increased computational effort. Fu-
+ture work will investigate scalability to larger task graphs
+and alternative Hamiltonian decompositions to enhance
+performance and generalization.
+A
+Ising
+In this appendix we are going to calculate the Ising model
+for the Hc Hamiltonian.
+As we have seen, Hc are derived from the constraints
+xijxkjcik = 0
+∀i, j, k > i, which establish that tasks
+cannot be executed simultaneously on the same resource.
+The QUBO penalties corresponding to these constraints
+are in the formula:
+QUBOHc =
+X
+j
+X
+k
+X
+i
+P(xijxkjcik)2
+(48)
+To calculate the Ising model, we have to apply the QUBO
+to Ising transformation: xij = (1−sij)
+2
+, xkj = (1−skj)
+2
+If we focus on the quadratic term, we can see that:
+15
+
+
+Quantum Time Interval Scheduler
+(xijxkjcik)2 =(1 −sij
+2
+1 −skj
+2
+)2c2
+ik
+= 1
+42 (1 −sij −skj + sijskj)2cik
+= 1
+42 (1 −sij −skj + sijskj
+−sij + sijsij + sij ∗skj −sijsijskj
+−skj + skjsij + skjskj −sijskjskj
++ sijskj −sijsijskj −skjsijskj
++ sijskjsijskj)cik
+= 1
+42 (1 −sij −skj + sijskj
+−sij + 1 + sijskj −skj
+−skj + skjsij + 1 −sij
++ sijskj −skj −sij + 1)cik
+= 1
+42 (4 −4sij −4skj + 4sijskj)cik
+=1
+4(1 −sij −skj + sijskj)cik
+(49)
+So, if we substitute the previous results into QUBOHc ex-
+pression, we can obtain the final Ising model for the Hc
+Hamiltonian as:
+Hc =
+X
+j
+X
+k
+X
+i
+P
+4 (1 −sij −skj + sijskj)cik
+(50)
+B
+Box diagrams
+The box plots showing the distribution of normalized en-
+ergy values obtained over 10 simulations for each task
+set and each minimization strategy–under both configu-
+rations ⃗γ ̸= ⃗ζ and (⃗γ = ⃗ζ)–are presented in Figure 13.
+References
+[1] Amir Hosseini, Alena Otto, and Erwin Pesch.
+Scheduling in manufacturing with transportation:
+Classification and solution techniques.
+European
+journal of operational research, 315(3):821–843,
+2024. ISSN 0377-2217.
+[2] Atefeh Momenikorbekandi and Tatiana Kalganova.
+Intelligent scheduling methods for optimisation of
+job shop scheduling problems in the manufacturing
+sector: A systematic review. Electronics (Basel), 14
+(8):1663–, 2025. ISSN 2079-9292.
+[3] Xiaobo Liu, Yen-Lin Chen, Lip Yee Por, and
+Chin Soon Ku. A systematic literature review of ve-
+hicle routing problems with time windows. Sustain-
+ability, 15(15):12004–, 2023. ISSN 2071-1050.
+[4] Jessica González-San-Martín, Laura Cruz-Reyes,
+Claudia Gómez-Santillán, Héctor Fraire-Huacuja,
+Nelson
+Rangel-Valdez,
+Bernabé
+Dorronsoro,
+Marcela Quiroz-Castellanos, Patricia Melin, and
+Oscar Castillo.
+A comprehensive review of task
+scheduling problem in cloud computing: Recent ad-
+vances and comparative analysis. In New Horizons
+for Fuzzy Logic, Neural Networks and Metaheuris-
+tics, volume 1149 of Studies in Computational
+Intelligence, pages 299–313. Springer, Switzerland,
+2024. ISBN 3031556836.
+[5] Amin Avan, Akramul Azim, and Qusay H. Mah-
+moud.
+A state-of-the-art review of task schedul-
+ing for edge computing: A delay-sensitive applica-
+tion perspective. Electronics (Basel), 12(12):2599–,
+2023. ISSN 2079-9292.
+[6] Zahraa
+A.
+Abdalkareem,
+Amiza
+Amir,
+Mo-
+hammed Azmi Al-Betar, Phaklen Ekhan, and Ab-
+delaziz I. Hammouri. Healthcare scheduling in opti-
+mization context: a review. Health and technology,
+11(3):445–469, 2021. ISSN 2190-7188.
+[7] Zhuo Liu. Research on hospital human resource al-
+location and scheduling based on multi-objective op-
+timization algorithm. Applied mathematics and non-
+linear sciences, 10(1), 2025. ISSN 2444-8656.
+[8] George B. Dantzig, Delbert R. Fulkerson, and
+Selmer M. Johnson.
+Solution of a large-scale
+traveling-salesman problem. Journal of the Oper-
+ations Research Society of America, 2(4):393–410,
+1954. doi: 10.1287/opre.2.4.393.
+[9] Eugene L. Lawler, Jan Karel Lenstra, Alexander H.
+G. Rinnooy Kan, and David B. Shmoys. The Trav-
+eling Salesman Problem: A Guided Tour of Com-
+binatorial Optimization. Wiley, 1985. ISBN 978-
+0471904137.
+[10] Charles C. Holt, Franco Modigliani, John F. Muth,
+and Herbert A. Simon. A linear decision rule for pro-
+duction and employment scheduling. Management
+Science, 2(1):1–30, 1955. doi: 10.1287/mnsc.2.1.1.
+[11] Gregory Gutin and Abraham P. Punnen. The Trav-
+eling Salesman Problem and Its Variations. Combi-
+natorial Optimization ; 12. Springer US, New York,
+NY, 1st ed. 2007. edition, 2007. ISBN 0-306-48213-
+4.
+[12] M. R Garey, D. S Johnson, and Ravi Sethi. The com-
+plexity of flowshop and jobshop scheduling. Mathe-
+matics of operations research, 1(2):117–129, 1976.
+ISSN 0364-765X.
+[13] Ronald L. Graham, Eugene L. Lawler, Jan Karel
+Lenstra, and Alexander H. G. Rinnooy Kan. Op-
+timization and approximation in deterministic se-
+quencing and scheduling: a survey. Annals of Dis-
+crete Mathematics, 5:287–326, 1979. doi: 10.1016/
+S0167-5060(08)70356-X.
+[14] Shen Lin and Brian W. Kernighan.
+An effective
+heuristic algorithm for the traveling-salesman prob-
+16
+
+
+Quantum Time Interval Scheduler
+QAOA (  != )
+QAOA (  = )
+HTQAOA (  != )
+HTQAOA (  = )
+TQAOA (  != )
+TQAOA (  = )
+0.00
+0.02
+0.04
+0.06
+0.08
+0.10
+0.12
+0.14
+0.16
+Normalized Energy
+Set 1
+QAOA (  != )
+QAOA (  = )
+HTQAOA (  != )
+HTQAOA (  = )
+TQAOA (  != )
+TQAOA (  = )
+0.14
+0.16
+0.18
+0.20
+0.22
+0.24
+0.26
+Normalized Energy
+Set 2
+QAOA (  != )
+QAOA (  = )
+HTQAOA (  != )
+HTQAOA (  = )
+TQAOA (  != )
+TQAOA (  = )
+0.10
+0.12
+0.15
+0.18
+0.20
+0.23
+0.25
+Normalized Energy
+Set 3
+QAOA (  != )
+QAOA (  = )
+HTQAOA (  != )
+HTQAOA (  = )
+TQAOA (  != )
+TQAOA (  = )
+0.00
+0.00
+0.00
+0.00
+0.00
+0.00
+0.00
+Normalized Energy
+Set 4
+QAOA (  != )
+QAOA (  = )
+HTQAOA (  != )
+HTQAOA (  = )
+TQAOA (  != )
+TQAOA (  = )
+0.00
+0.03
+0.05
+0.08
+0.10
+0.13
+0.15
+0.18
+0.20
+Normalized Energy
+Set 5
+QAOA (  != )
+QAOA (  = )
+HTQAOA (  != )
+HTQAOA (  = )
+TQAOA (  != )
+TQAOA (  = )
+0.10
+0.15
+0.20
+0.25
+Normalized Energy
+Set 6
+Figure 13: Boxplot for Task Sets 1-6
+17
+
+
+Quantum Time Interval Scheduler
+lem.
+Operations Research, 21(2):498–516, 1973.
+doi: 10.1287/opre.21.2.498.
+[15] J. Adams, E. Balas, and D. Zawack.
+The shift-
+ing bottleneck procedure for job shop scheduling.
+Management Science, 34(3):391–401, 1988.
+doi:
+10.1287/mnsc.34.3.391.
+[16] Gregory Gutin and Abraham P. Punnen, editors. The
+Traveling Salesman Problem and Its Variations, vol-
+ume 12 of Combinatorial Optimization. Springer,
+2002.
+ISBN 978-0-306-47462-7.
+doi: 10.1007/
+b101971.
+[17] E. Nowicki and C. Smutnicki. A fast taboo search
+algorithm for the job shop problem. Management
+Science, 42(6):797–813, 1996. doi: 10.1287/mnsc.
+42.6.797.
+[18] Wenqiang Zhang, Xuan Bao, Xinchang Hao, and
+Mitsuo Gen.
+Metaheuristics for multi-objective
+scheduling problems in industry 4.0 and 5.0: a state-
+of-the-arts survey. Frontiers in Industrial Engineer-
+ing, 3:1540022, 2025.
+[19] Tilo Van Ekeris, Richard Meyes, and Tobias Meisen.
+Discovering heuristics and metaheuristics for job
+shop scheduling from scratch via deep reinforce-
+ment learning.
+In Proceedings of the Conference
+on Production Systems and Logistics : CPSL 2021,
+pages 709–718. Hannover: publish-Ing., 2021.
+[20] Ashley Montanaro.
+Quantum algorithms:
+an
+overview.
+npj quantum information, 2(1):15023–
+15023, 2016. ISSN 2056-6387.
+[21] Edward Farhi, Jeffrey Goldstone, and Sam Gut-
+mann. A quantum approximate optimization algo-
+rithm. arXiv.org, 2014. ISSN 2331-8422.
+[22] Tameem Albash and Daniel A. Lidar.
+Adiabatic
+quantum computation. Reviews of modern physics,
+90(1):015002–, 2018. ISSN 0034-6861.
+[23] E. J. Crosson and Daniel A. Lidar.
+Prospects for
+quantum enhancement with diabatic quantum an-
+nealing. Nature Reviews Physics, 3:466–489, 2021.
+doi: 10.1038/s42254-021-00313-6.
+[24] Costantino Carugno, Maurizio Ferrari Dacrema, and
+Paolo Cremonesi. Evaluating the job shop schedul-
+ing problem on a d-wave quantum annealer. Scien-
+tific reports, 12(1):6539–11, 2022. ISSN 2045-2322.
+[25] J. Ossorio-Castillo and F. Pena-Brage. Optimization
+of a refinery scheduling process with column gen-
+eration and a quantum annealer. Optimization and
+engineering, 23(3):1471–1488, 2022. ISSN 1389-
+4420.
+[26] Max Born and Vladimir Fock.
+Beweis des adi-
+abatensatzes.
+Zeitschrift für Physik, 51:165–180,
+1928. doi: 10.1007/BF01343193.
+[27] Francisco Chicano, Gabiel Luque, Zakaria Abdel-
+moiz Dahi, and Rodrigo Gil-Merino. Combinato-
+rial optimization with quantum computers.
+Engi-
+neering optimization, 57(1):208–233, 2025. ISSN
+0305-215X.
+[28] David Amaro, Matthias Rosenkranz, Nathan Fitz-
+patrick, Koji Hirano, and Mattia Fiorentini. A case
+study of variational quantum algorithms for a job
+shop scheduling problem. EPJ quantum technology,
+9(1), 2022. ISSN 2662-4400.
+[29] Mateusz Slysz,
+Łukasz Grodzki,
+Piotr Rydli-
+chowski, Dawid Siera, Krzysztof Kurowski, Grze-
+gorz Waligóra, and Jan W˛eglarz. Solving combina-
+torial optimization and machine learning problems
+on hybrid near-term quantum photonic computers.
+Future Generation Computer Systems, page 107934,
+2025.
+[30] Alberto Peruzzo, Jarrod McClean, Peter Shadbolt,
+Man-Hong Yung, Xiao-Qi Zhou, Peter J. Love, Alán
+Aspuru-Guzik, and Jeremy L. O’Brien.
+A varia-
+tional eigenvalue solver on a photonic quantum pro-
+cessor.
+Nature communications, 5(1):4213–4213,
+2014. ISSN 2041-1723.
+[31] John Preskill. Quantum computing in the nisq era
+and beyond.
+Quantum (Vienna, Austria), 2:79–,
+2018. ISSN 2521-327X.
+[32] Kishor Bharti, Alba Cervera-Lierta, Thi Ha Kyaw,
+Tobias Haug, Sumner Alperin-Lea, Abhinav Anand,
+Matthias Degroote, Hermanni Heimonen, Jakob S.
+Kottmann, Tim Menke, Wai-Keong Mok, Sukin
+Sim, Leong-Chuan Kwek, and Alán Aspuru-Guzik.
+Noisy intermediate-scale quantum algorithms. Re-
+views of modern physics, 94(1):1–, 2022.
+ISSN
+0034-6861.
+[33] Xiaozhen Ge, Re-Bing Wu, and Herschel Rab-
+itz.
+The optimization landscape of hybrid quan-
+tum–classical algorithms: From quantum control to
+nisq applications. Annual Reviews in Control, 54:
+314–323, 2022. ISSN 1367-5788. doi: https://doi.
+org/10.1016/j.arcontrol.2022.06.001.
+[34] Adam Callison and Nicholas Chancellor.
+Hy-
+brid quantum-classical algorithms in the noisy
+intermediate-scale quantum era and beyond. Physi-
+cal review. A, 106(1), 2022. ISSN 2469-9926.
+[35] Marco Cerezo, Patrick J. Coles, Ryan Babbush, Si-
+mon C. Benjamin, and et al. Variational quantum
+algorithms. Nature Reviews Physics, 3(9):625–644,
+2021. doi: 10.1038/s41567-021-00348-9.
+[36] Kostas Blekos, Dean Brand, Andrea Ceschini,
+Chiao-Hui Chou, Rui-Hao Li, Komal Pandya, and
+Alessandro Summer.
+A review on quantum ap-
+proximate optimization algorithm and its variants.
+Physics reports, 1068:1–66, 2024. ISSN 0370-1573.
+[37] Sam McArdle, Suguru Endo, Alán Aspuru-Guzik,
+Simon C. Benjamin, and Xiao Yuan. Quantum com-
+putational chemistry. Reviews of modern physics, 92
+(1):1–, 2020. ISSN 0034-6861.
+[38] Abhinav Kandala, Antonio Mezzacapo, Kristan
+Temme, Maika Takita, Markus Brink, Jerry M.
+18
+
+
+Quantum Time Interval Scheduler
+Chow, and Jay M. Gambetta.
+Hardware-efficient
+variational quantum eigensolver for small molecules
+and quantum magnets. Nature (London), 549(7671):
+242–246, 2017. ISSN 0028-0836.
+[39] Rebekah Herrman, Phillip C. Lotshaw, James Os-
+trowski, Travis S. Humble, and George Siopsis.
+Multi-angle quantum approximate optimization al-
+gorithm. Scientific Reports, 2021.
+[40] V. Vijendran, Aritra Das, Dax E. Koh, Syed M.
+Assad, and Ping Koy Lam.
+An expressive ansatz
+for low-depth quantum approximate optimisation.
+Quantum Science and Technology, 2023.
+[41] Sha-Sha Wang, Hai-Ling Liu, Yan-Qi Song, Fei
+Gao, Su-Juan Qin, and Qiao-Yan Wen.
+Quantum
+alternating operator ansatz for solving the minimum
+exact cover problem. Physica A: Statistical Mechan-
+ics and its Applications, 626:129089, 2023.
+[42] Yuichiro Minato.
+Two-step qaoa:
+Enhancing
+quantum optimization by decomposing k-hot con-
+straints in qubo formulations.
+arXiv preprint
+arXiv:2408.05383, 2024.
+[43] Stuart Hadfield, Zhihui Wang, Bryan O’Gorman,
+Eleanor G. Rieffel, Davide Venturelli, and Rupak
+Biswas. From the quantum approximate optimiza-
+tion algorithm to a quantum alternating operator
+ansatz. Algorithms, 12(2):34, 2019.
+[44] Edward Farhi, Jeffrey Goldstone, Sam Gutmann,
+and
+Michael
+Sipser.
+Quantum
+computation
+by adiabatic evolution.
+arXiv preprint quant-
+ph/0001106, 2000.
+URL https://arxiv.org/
+abs/quant-ph/0001106.
+[45] Xinwei Lee, Ningyi Xie, Dongsheng Cai, Yoshiyuki
+Saito, and Nobuyoshi Asai.
+A depth-progressive
+initialization strategy for quantum approximate op-
+timization algorithm. Mathematics (Basel), 11(9):
+2176–, 2023. ISSN 2227-7390.
+[46] Ohad Amosy, Tamuz Danzig, Ohad Lev, Ely Porat,
+Gal Chechik, and Adi Makmal. Iteration-free quan-
+tum approximate optimization algorithm using neu-
+ral networks. Quantum machine intelligence, 6(2),
+2024. ISSN 2524-4906.
+[47] Leo Zhou,
+Sheng-Tao Wang,
+Soonwon Choi,
+Hannes Pichler, and Mikhail D. Lukin.
+Quantum
+approximate optimization algorithm: Performance,
+mechanism, and implementation on near-term de-
+vices.
+Physical review. X, 10(2):021067–, 2020.
+ISSN 2160-3308.
+[48] Akash Kundu, Ludmila Botelho, and Adam Glos.
+Hamiltonian-oriented homotopy quantum approxi-
+mate optimization algorithm.
+Physical review. A,
+109(2), 2024. ISSN 2469-9926.
+[49] Wenyang
+Qian,
+Robert
+A.
+M.
+Basili,
+Mary
+Mehrnoosh
+Eshaghian-Wilner,
+Ashfaq
+Khokhar,
+Glenn Luecke,
+and James P. Vary.
+Comparative study of variations in quantum ap-
+proximate optimization algorithms for the traveling
+salesman problem.
+Entropy, 25(8), 2023.
+doi:
+10.3390/e25081238.
+Cited by:
+13; All Open
+Access, Gold Open Access, Green Open Access.
+[50] Uchenna Chukwu, Raouf Dridi, Jesse Berwald,
+Michael Booth, John Dawson, DeYung Le, Mark
+Wainger, and Steven P. Reinhardt.
+Constrained-
+optimization approach delivers superior classical
+performance for graph partitioning via quantum-
+ready method. In 2020 IEEE High Performance Ex-
+treme Computing Conference (HPEC), pages 1–6,
+2020. doi: 10.1109/HPEC43674.2020.9286230.
+[51] Sergey Bravyi, Alexander Kliesch, Robert Koenig,
+and Eugene Tang. Hybrid quantum-classical algo-
+rithms for approximate graph coloring. Quantum,
+6, 2022. doi: 10.22331/Q-2022-03-30-678. Cited
+by: 52; All Open Access, Gold Open Access, Green
+Open Access.
+[52] Archismita Dalal, Iraitz Montalban, Narendra N.
+Hegade,
+Alejandro
+Gomez
+Cadavid,
+Enrique
+Solano, Abhishek Awasthi, Davide Vodola, Caitlin
+Jones, Horst Weiss, and Gernot Füchsel.
+Digi-
+tized counterdiabatic quantum algorithms for logis-
+tics scheduling.
+Physical review applied, 22(6),
+2024. ISSN 2331-7019.
+[53] Uman Khalid, Junaid ur Rehman, Ahmad Farooq,
+Fakhar Zaman, and Hyundong Shin. Optimal task
+scheduling in 6g networks: A variational quantum
+computing approach.
+In Lecture Notes of the In-
+stitute for Computer Sciences, Social-Informatics
+and Telecommunications Engineering, LNICST, vol-
+ume 595 LNICST, pages 61–72, Cham, Switzer-
+land, 2024. Springer Science and Business Media
+Deutschland GmbH. ISBN 9783031673566. doi:
+10.1007/978-3-031-67357-3\_5.
+[54] MW Geda and Yuk Ming Tang.
+Adaptive hybrid
+quantum-classical computing framework for deep
+space exploration mission applications.
+Journal
+of Industrial Information Integration, page 100803,
+2025.
+19

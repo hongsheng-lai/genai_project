@@ -1,0 +1,1460 @@
+NAVIGATING QUANTUM MISSTEPS IN AGENT-BASED
+MODELING: A SCHELLING MODEL CASE STUDY
+C. Nico Barati
+Center for Secure and Intelligent Critical Systems
+Old Dominion University
+Norfolk, VA 23259
+cbaratin@odu.edu
+Arie Croitoru
+Department of Computational and Data Science
+George Mason University
+Fairfax, VA 22030
+acroitor@gmu.edu
+Ross Gore
+Center for Secure and Intelligent Critical Systems
+Old Dominion University
+Norfolk, VA 23259
+rgore@odu.edu
+Michael Jarret
+Quantum Science and Engineering Center
+Center for Social Complexity
+Department of Mathematical Sciences
+Department of Computer Science
+George Mason University
+Fairfax, VA 22030
+mjarretb@gmu.edu
+William Kennedy
+Center for Social Complexity
+Department of Computational and Data Science
+George Mason University
+Fairfax, VA 22030
+wkennedy@gmu.edu
+Andrew Maciejunes
+Spectrum Advanced Training Technology Laboratory
+Old Dominion University
+Norfolk, VA 23259
+amacieju@odu.edu
+Maxim A Malikov
+Department of Communication
+University of California Davis
+Davis, CA 95616
+mmalikov@ucdavis.edu
+Samuel S. Mendelson
+Quantum Science and Engineering Center
+Department of Mathematical Sciences
+Department of Computer Science
+George Mason University Fairfax, VA 22030
+samuel.mendelson@gmail.com
+November 20, 2025
+ABSTRACT
+Quantum computing promises transformative advances, but remains constrained by recurring miscon-
+ceptions and methodological pitfalls. This paper demonstrates a fundamental incompatibility between
+traditional agent-based modeling (ABM) implementations and quantum optimization frameworks
+like Quadratic Unconstrained Binary Optimization (QUBO). Using Schelling’s segregation model
+as a case study, we show that the standard practice of directly translating ABM state observations
+into QUBO formulations not only fails to deliver quantum advantage, but actively undermines com-
+arXiv:2511.15642v1  [quant-ph]  19 Nov 2025
+
+
+A PREPRINT - NOVEMBER 20, 2025
+putational efficiency. The fundamental issue is architectural. Traditional ABM implementations
+entail observing the state of the system at each iteration, systematically destroying the quantum
+superposition required for computational advantage. Through analysis of Schelling’s segregation
+dynamics on lollipop networks, we demonstrate how abandoning the QUBO reduction paradigm
+and instead reconceptualizing the research question, from "simulate agent dynamics iteratively until
+convergence" to "compute minimum of agent moves required for global satisfaction", enables a
+faster classical solution. This structural reconceptualization yields an algorithm that exploits network
+symmetries obscured in traditional ABM simulations and QUBO formulations. It establishes a new
+lower bound which quantum approaches must outperform to achieve advantage. Our work emphasizes
+that progress in quantum agent-based modeling does not require forcing classical ABM implemen-
+tations into quantum frameworks. Instead, it should focus on clarifying when quantum advantage
+is structurally possible, developing best-in-class classical baselines through problem analysis, and
+fundamentally reformulating research questions rather than preserving classical iterative state change
+observation paradigms.
+Keywords Agent-based models · Segregation models · Quantum algorithms · Model equilibrium · Network topology ·
+Lollipop networks
+1
+Introduction
+Quantum computing has witnessed rapid growth over the past decade, accompanied by significant investment and
+widespread claims of impending technological revolution. However, this acceleration has also revealed a recurring
+pattern of conceptual and methodological missteps. Many studies: (1) proclaim quantum advantage without establishing
+clear classical baselines, (2) conflate heuristic and adiabatic models, or (3) apply quantum tools to problems whose
+underlying structure cannot meaningfully benefit from quantum effects. As a result, there is a hype problem in which
+the theoretical potential is conflated with practical demonstration and where terminological imprecision leads to
+misinterpretation of results [1, 2, 3]. This misrepresentation, often unintentional, may destroy the credibility of quantum
+technologies as it becomes increasingly apparent that they cannot meet inaccurate and unfair expectations [4, 5, 6].
+These tendencies are visible in efforts to adapt agent-based modeling (ABM) to quantum computing [7, 8]. ABMs, which
+simulate complex systems through the local interactions of autonomous agents, are richly expressive but computationally
+demanding. The promise of quantum acceleration has attracted substantial interest. However, researchers assume that
+their existing frameworks can be adapted to quantum computing simply by retooling them [9, 10, 11]. This overlooks
+the deeper structural differences between classical bottom-up modeling implementations and quantum paradigms.
+Resulting research performed in this manner reflects superficial adaptations that obscure true opportunities for quantum
+innovation. These attempts to quantize ABMs typically yield slower, less interpretable, and potentially inaccurate
+implementations. In this paper, we analyze the missteps ABM researchers take when attempting to apply quantum
+algorithms in this manner. Then, we provide guidance for improving the quality of quantum algorithm research.
+To demonstrate how this guidance can be applied in practice, we present a case study of our attempts to develop an
+effective quantum algorithm related to Thomas Schelling’s model of segregation [12]. Schelling’s model of residential
+segregation remains one of the most well-known and influential ABMs. It demonstrates how even mild individual
+preferences can lead to highly segregated patterns. In the model, agents of two types, representing different demographic
+groups, occupy cells on a grid or a network, and relocate when their local neighborhood fails to meet their preferred
+proportion of similar agents. Figure 1A shows the initial state of the model. Figure 1B shows an example of the final
+segregated state in which the agents are satisfied. Despite its simplicity, Schelling’s model continues to inspire new
+research questions and real-world applications [13, 14, 15, 16, 17, 18].
+Here, we focus on developing an efficient algorithm to compute the minimum number of agent moves required to
+achieve global satisfaction across various network topologies in Schelling’s model. This metric is important because it
+defines susceptibility to segregation for a model instance (e.g. network geometry, number of agents of each type, same
+type preference, etc). We began by constructing a Quadratic Unconstrained Binary Optimization (QUBO) formulation
+of Schelling’s model to compute the number of agent moves required for global satisfaction. The effort fell victim to
+pitfalls. These included: (1) problem misalignment, (2) excessive encoding overhead, (3) loss of interpretability, and (4)
+the realization that there does not exist a quantum computer to run our solution with a non-trivial number of agents (e.g.
+1,000 agents) [19].
+We abandoned this approach and reformulated our research question. Instead of focusing on "simulating agent dynamics
+iteratively until convergence" we focused on any method to "compute the minimum number of agent moves for moves
+for global satisfaction". We identified a specific network topology, the lollipop network, whose structure can yield
+model instances with an extremely larger number of agent moves required to achieve global satisfaction.
+2
+
+
+A PREPRINT - NOVEMBER 20, 2025
+Figure 1: (A) Initial state of Schelling’s segregation model. (B) Final state of Schelling model with satisfied agents.
+By focusing on the structure of the network, we developed a very efficient classical algorithm to compute the required
+agent moves for global satisfaction. This solution sets a new lower complexity bound for this problem [20].
+Considering the overhead incurred by quantum state preparation and measurement, it is unlikely that any quantum
+approach will outperform this classical method with respect to wall-clock time in the foreseeable future.
+It is important to note that we did not directly address the question of whether an interesting quantum algorithm might
+exist for computing the required agent moves for global satisfaction. However, our experience still illustrates how
+rigorous structural analysis and precise problem formulation, conducted prior to quantum algorithm design, can yield
+significant classical breakthroughs, while establishing concrete benchmarks for evaluating future claims of quantum
+advantage. Through this case study, we argue that genuine progress in improving the efficiency of ABM demands
+structural reconceptualization of research questions to favor formulations where quantum phenomena, or even existing
+classical algorithms, may offer real advantage.
+2
+Quantum Missteps
+Most quantum missteps stem from a lack of clarity, consistency, or rigor in how key concepts and terminology are used.
+Quantum computing exploits strange properties of the universe that we know to be true, but nonetheless don’t quite
+understand. In the words of Richard Feynman,
+[Quantum theory] describes nature as absurd from the point of view of common sense. And yet it
+fully agrees with experiment. [21].
+A consequence of this observation is that applying classical intuitions and methodologies when developing quantum
+algorithms is not merely ineffective, it may be anti-productive.1 Indeed, quantum contextuality, a phenomenon that
+directly violates classical intuition, has been identified as a computational resource in certain quantum computing models
+[22]. Contextuality, alongside other foundational principles of quantum mechanics, underscores a critical departure
+from classical reasoning. In quantum computation, counterfactual outcomes—those that could have occurred but did
+not—carry as much, if not more, significance as observed outcomes. This feature of quantum theory fundamentally
+undermines the classical software development paradigm of iterative trial-and-error refinement. One cannot learn by
+observing the behavior of code that was never executed, yet quantum advantage may hinge precisely on such unexecuted
+computational paths.
+To exploit the power of quantum computers, one must think not only about how to map an existing problem and
+algorithm onto a quantum machine, but also whether it is even possible in the first place for such a mapping to achieve
+quantum advantage and through what phenomena. This requires an examination of the landscape of ongoing research,
+1We distinguish anti-productive from counterproductive: the former actively undermines progress, while the latter simply fails to
+advance it.
+3
+
+
+A PREPRINT - NOVEMBER 20, 2025
+where it becomes clear that careful attention to these details is essential for both scientific progress and credible
+communication.
+2.1
+The Current Landscape
+One of the most fundamental issues in current quantum computing research is a strong divergence in the research
+community. Now that quantum computers have entered and are beginning to emerge from the Noisy-Intermediate-
+Scale-Quantum regime [19], many long-settled debates are being rehashed without the depth required to produce useful
+results. In Scott Aaronson’s words
+In quantum computing [. . . ] there’s right now a race for practice to catch up to where theory has been
+since the mid-1990s [23] 2.
+Comparing quantum computers to classical competitors requires substantially more than “good” results. Instead, it
+is necessary to determine that the machines are genuinely exploiting quantum theory in obtaining those results. By
+analogy, it is instructive to consider whether a complete replacement of a central processing unit (CPU) with a graphics
+processing unit (GPU) would be sensible. The clear answer is no, and by the same reasoning, one should not expect
+to simply replace a CPU with a quantum processing unit (QPU). Instead, as was the case during the emergence of
+modern GPUs, standard information processing tasks must be re-envisioned to take advantage of the new computational
+resource.
+Various strategies have been proposed for applying quantum computers to existing research problems, yet none have
+demonstrated clear utility in addressing the practical challenges of significant scale or complexity. Many computational
+tasks remain better suited for CPUs than for GPUs, with the latter excelling in particular domains but not universally.
+Similarly, while numerous theoretical results predict quantum speedups for specific problems, it is unclear whether such
+advantages can be realized with near-term hardware. Nevertheless, the prospect of achieving demonstrable quantum
+advantage continues to motivate substantial research investment, with the potential for transformative impact across
+multiple domains [24].
+2.2
+Misuse of Foundational Terms
+Existing engineering efforts to exploit quantum technology primarily rely on variational and heuristic strategies, most
+of which are related to quantum annealing [25]:
+• AQC (Adiabatic Quantum Computing) denotes the algorithmic model based on the adiabatic theorem,
+which requires sufficiently slow evolution to preserve the ground state throughout computation.
+• QA (Quantum Annealing) denotes the heuristic approach implemented on physical devices such as D-Wave
+systems, which may not satisfy strict adiabatic conditions.
+• QAC is an ambiguous acronym denoting "Quantum Adiabatic Computation" [26, 27], "Quantitative Adiabatic
+Condition" [28], "Quantum Annealing Computing" [29], "Quantum-Computing Aided Composition" [30],
+and potentially other terms.
+The distinctions between these terms reflect fundamental differences in computational models and expected performance
+characteristics [31, 32]. When researchers conflate them, they may inadvertently make theoretical claims about adiabatic
+guarantees while actually implementing heuristic annealing approaches, leading to incorrect performance expectations
+and flawed experimental designs.
+The historical record further compounds this confusion. Many papers incorrectly describe the relationship between
+quantum annealing and adiabatic quantum computing, often portraying quantum annealing as a “specialized variant”
+of AQC. This reverses the actual historical and theoretical relationship. Quantum annealing (QA) was introduced in
+the early 1990s by Finnila et al. [33] and again by Kadowaki and Nishimori [34] as a quantum analogue of simulated
+annealing, focusing on optimization through thermal and quantum fluctuations. Preceding each of these is a 1989 paper
+introducing the idea of QA without coining the term "Quantum Annealing" [35]. While it is true that the adiabatic
+theorem, exploited by AQC was first proposed in 1928 by Max Born and Vladimir Fock [36], this method of quantum
+computing was not adopted until much later. In 2000, Farhi et al. [37] proposed Adiabatic Quantum Computing (AQC)
+as a model for universal quantum computation through adiabatic evolution. Properly understood, AQC represents
+2We have taken this quote out of context, but believe it still summarizes the current state of research. Scott’s original intent was to
+note that experimental hardware cannot yet achieve what theory knows is possible. Nonetheless, we anticipate he would agree with
+our current use as another side of the same coin.
+4
+
+
+A PREPRINT - NOVEMBER 20, 2025
+the ideal, closed-system, adiabatic case of the broader quantum annealing framework. When foundational terms are
+misused, subsequent research builds on faulty conceptual foundations, potentially wasting years of effort on approaches
+that cannot deliver their promised advantages.
+2.3
+Claims of Computational Advantage
+Beyond terminological precision lies a more critical issue: the quantum-industrial complex. We use this term to
+describe the tendency toward overstated claims about computational advantage, often driven by funding pressures and
+commercial incentives. A pervasive misstep involves suggesting that quantum approaches offer "advantages" without
+sufficient empirical evidence [4, 38]. This manifests itself through overstated algorithmic speedup claims, selective
+benchmark reporting, inadequate disclosure of experimental limitations, and commercial promotion of unverified
+capabilities. All of these undermine research credibility and impede sustained progress.
+A fundamental misunderstanding within the quantum-industrial complex concerns the role of theory in algorithm
+development. Current quantum computers are analogous to early mainframes: just as punch cards required theoretical
+context to be useful, quantum algorithm development demands foundational, theory-based intuition. For instance,
+the proven polynomial equivalence between adiabatic quantum computing (AQC) and the circuit model remains
+underappreciated among engineers. Similarly, quantum state tomography, the classical reconstruction of a full quantum
+register, scales exponentially with system size. As a consequence, it is computationally prohibitive for large systems.
+These examples illustrate that theoretical foundations are not academic luxuries, but essential prerequisites for realizing
+quantum potential.
+The quantum annealing community exemplifies these challenges in establishing fair benchmarks [39, 40, 41]. D-
+Wave systems have demonstrated impressive speedups in controlled contexts, yet these advantages often vanish when
+compared against optimized classical algorithms rather than naive implementations [4], or when runtime complexity
+is carefully analyzed [42, 43]. Meaningful progress requires comparing quantum solutions against state-of-the-art
+classical counterparts to advance both fields simultaneously.
+While quantum algorithm theory typically provides rigorous asymptotic results, concerns arise more frequently in applied
+and applications-oriented research. A significant oversight is the tendency to understate or omit practical obstacles that
+could invalidate reported theoretical advantages. Optimistic extrapolations from small-scale demonstrations to future
+performance often proceed without acknowledging substantial engineering barriers separating proof-of-concept from
+practical advantage. This optimism, while motivating, risks misleading funding agencies, collaborators, and the broader
+scientific community about current capabilities and near-term prospects. Such miscommunication fosters skepticism
+among stakeholders and jeopardizes support for future research.
+3
+How Quantum Missteps Manifest
+The missteps outlined in the previous subsections share a common thread. They arise from researchers’ tendencies to
+approach quantum computing problems by directly translating familiar algorithms and problem formulations without
+reconsidering the fundamental structure of the computational task.
+3.1
+Agent-Based Modeling and Quadratic Unconstrained Binary Optimization (QUBO)
+This pattern is evident in agent-based modeling, where the allure of quantum speedup has led many researchers to
+reduce complex social systems to standard optimization frameworks like QUBO without questioning whether such
+reductions preserve the meaningful structure of the original problem [7, 8, 9, 10, 11].
+The QUBO reduction represents one of the most pervasive examples of this misguided approach. Many quantum
+computing practitioners have adopted the belief that any optimization problem must be transformed into a QUBO
+formulation to be suitable for quantum solving [7, 11, 44]. Unfortunately, these systems can only handle unconstrained
+optimization problems, and there are no real-world problems without constraints. The standard approach of converting
+constrained problems to QUBO using penalty methods creates terrible landscapes where, for large problems, one may
+be lucky to find any feasible solution [9].
+3.2
+A Concrete Example of What Not To Do
+Consider the typical approach to quantum agent-based modeling. Researchers begin with a classical ABM, such as
+Schelling’s model, then identify computational bottlenecks (like convergence time or equilibrium detection). Then,
+they transplant the same structure of the classical implementation into a quantum algorithm, assuming it will solve the
+5
+
+
+A PREPRINT - NOVEMBER 20, 2025
+underlying problem more quickly. This approach invariably leads to a QUBO reduction which encodes the research
+question in a traditional agent-based model implementation [7, 8, 9].
+We know this because we did it. Several authors of this paper initially tried to design a quantum algorithm to compute
+the number of agent moves required for global satisfaction in Schelling’s model via QUBO reduction. In fact, due to
+the many links between Schelling’s and Ising models in the literature, it is natural to attempt to apply QUBO to the
+Schelling model [45, 46, 47, 48].
+Our workflow began by simulating the traditional implementation of Schelling’s segregation model, where agents of
+two types occupy positions on a grid and their satisfaction depends on neighboring agents. Each agent on the grid
+was assigned a variable representing its type, red or blue, which was encoded as a binary value: 0 for red and 1 for
+blue. Every grid position was mapped to a binary variable, so the entire grid was represented as a vector encoding
+the global state of all agents. The process then constructed a Hamiltonian energy function, assigning higher energy
+(penalizing) arrangements to agents with neighbors of the opposite type, and lower energy (rewarding) arrangements to
+agents surrounded by similar types.
+This Hamiltonian fully captured Schelling model’s classical social preference rules in mathematical form. Additional
+terms were incorporated to enforce that only valid agent assignments appeared in final solutions, ensuring the QUBO
+returned physically meaningful and socially optimal arrangements. This energy function was transformed into a
+quantum objective, and the Quantum Approximate Optimization Algorithm (QAOA) was applied to find low-energy
+configurations. QAOA alternated quantum circuit layers representing the problem’s cost structure and mixing, with
+parameters optimized by a classical optimizer, leading to a quantum state where measurement yields grid arrangements
+that best reflect the Schelling model’s social preferences. Our source code of this original attempt at a quantum approach
+is available here [49].
+This approach is fraught with issues. It destroys the structure that makes the Schelling problem interesting. It cannot
+be executed on any resources we have access to for more than 20 agents. Finally, as shown in Table 1, it does not
+provide speedup. Ignoring the time required to execute our Qiskit simulation, the problem encoding itself requires more
+time than executing the classical algorithm. This is an example of exactly what not to do when developing a quantum
+algorithm for an agent-based model. We discuss each of these issues in further depth in Section 4.3.
+Table 1: Performance Comparison: Classical Schelling vs. Quantum QUBO Implementation Problem Encoding
+Grid
+Agents
+Qubits
+Classical
+Quantum Encoding
+Classical Speedup
+Size
+Required
+Time (ms)
+Overhead (ms)
+Over Problem Encoding
+3×3
+7
+18
+1.41
+64.15
+45.82x
+4×4
+12
+32
+2.46
+1,631.81
+663.34x
+3.3
+Understanding Quantum Advantage Through the Welded Tree Problem
+Our failure with using QUBO as a means to create a traditional ABM implementation reflects a fundamental misalign-
+ment between classical ABM approaches and quantum computational paradigms. In particular, most classical ABM
+approaches implement Markov processes. A time-homogeneous Markov chain on a finite space S is a family of random
+variables X0, X1, X2, . . . such that for all t ∈N and u ∈S
+Pr (Xt+1 = u | Xt, Xt−1, . . . , X0) = Pr (Xt = u | Xt)
+for all u ∈S and t ∈N.
+In other words, the state Xt “screens off” information held in all states Xt′<t. While we can always refer to a long
+history, only the most recent state helps us understand the actual behavior of the system. In a Markov process, all
+behavior is determined by (1) the current state of the system and (2) the transition rules of the system. Formally, we
+can define a transition operator U : S →S such that if πt(x) represents Pr{Xt+1 = x}, then πt+1 = Uπt. As we
+normally deal with finite systems, we can formalize this as a matrix. However, it need not be implemented as such for
+the mathematical machinery to still apply. This point is crucial to understanding how a quantum computer achieves
+computational advantage.
+To clarify these concepts, we examine the welded tree problem [50, 51], a Markov process that can, in principle, arise
+within an agent-based modeling context. This problem is especially significant because it demonstrates a well-known
+exponential separation between classical and quantum computational performance. Notably, the welded tree is a specific
+instance of a more general class of problems we consider in the context of the Schelling model; thus, the existence of
+exponential quantum speedup is guaranteed for certain agent-based models.
+6
+
+
+A PREPRINT - NOVEMBER 20, 2025
+The welded tree problem illustrates both the mechanisms underlying genuine quantum speedup and the reasons why
+standard agent-based modeling algorithms are typically unable to capitalize on these speedups. While exponential
+improvements do exist, as the welded tree shows, realizing them in ABMs requires an input-output perspective that we
+describe in later sections.
+3.3.1
+The Welded Tree Problem Query Model
+In the welded tree problem, two complete binary trees of height n are connected at their leaves through a random
+bijection, creating a single connected graph with two special vertices: ENTRANCE (the root of the first tree) and EXIT
+(the root of the second tree). The random connections at the leaves form a tangled middle region with potentially
+extensive cycles. Figure 2 illustrates this structure.
+Figure 2: An example of the welded tree problem. Two binary trees are welded together at their leaves through random
+connections, creating a complex middle region. Adapted from [51].
+The computational challenge is specified by its query model( Algorithm 1).
+Algorithm 1 Find the EXIT
+1: Input:
+1. An oracle O which, on input a vertex label v ∈V , returns the list of adjacent vertices in adjacency list form:
+O(v) = {u ∈V | (v, u) ∈E}.
+2. An oracle M such that M(v ≡EXIT) = 1 and M(v ̸≡EXIT) = 0. EXIT.
+2: Output: The label v of the target vertex EXIT.
+3: Goal: Given oracle access to O and the label of ENTRANCE, return the label of EXIT.
+Crucially, the problem is not simply to find EXIT, but to find EXIT within this specific query model. This distinction is
+important and can be understood with a simple analogy. Imagine searching through a complex, 3-dimensional maze
+where you are only allowed to look around one room at a time3, with no map or knowledge of the overall layout a
+priori. You can ask for the exits from your current location (which other rooms you can directly reach), you can check
+whether a particular room is the final goal, and you can bring some stickers with you to mark rooms and doors as you
+see fit. However, you are not given any clues about the “right” direction to take, and rooms can rotate so that you are
+left with no sense of global direction.
+This restriction is what is described in the query model. It is what makes the problem difficult for classical algorithms.
+Because binary trees branch towards their leaves, most randomly chosen moves bring you closer to the weld. Even
+knowing a weld exists doesn’t help. This is because the randomness of the connection means that you cannot distinguish
+advantageous from disadvantageous moves and the weld admits long cycles, so marking your history just prevents you
+from backtracking along a long path. Effectively, each new room could be just another branch or part of a long, tangled
+loop. As a result, no classical algorithm can solve this problem efficiently. Instead, they fall back on a running time
+3Any finite graph can be embedded in a 3-dimensional space, so this reflects a completely general finite structure.
+7
+
+
+A PREPRINT - NOVEMBER 20, 2025
+closer to that of exhaustive search and leading to an exponential number of queries with respect to the height of the
+trees.
+3.4
+Markov Diagrams
+There are many algorithms one could use to solve this problem, some Markovian, some not. If you rely heavily on
+your stickers (in the analogy) then you might not implement a Markov process. Nonetheless, one might naturally get
+frustrated and think, “well, if nothing really matters, let’s just try a random walk.” This would be the most basic Markov
+process and, in this case, the welded-tree itself would represent its Markov diagram. In particular, we can define the
+transition operator U : RV →RV such that
+Uv =
+1
+deg v
+X
+u∼v
+u
+or equivalently
+Pr(Xi+1 = u | Xi = v) =
+
+
+
+1
+deg v ,
+u ∼v,
+0,
+otherwise.
+If we were to directly implement this simple random walk as a Markov process, then the state space would be the space
+of vertices in Figure 2. The non-zero ordered pairs (u, v) of the above equation correspond with the edges of Figure 2.
+Thus, up to the fact that the state EXIT is absorbing and, hence, has uni-directional edges, Figure 2 is also the Markov
+diagram of the corresponding process.
+Although the Markov diagram and the original graph correspond, this need not always be the case. It is only necessarily
+the case when we are implementing a simple random walk on the graph as above. For ABMs, we can think at the level
+of the abstract Markov process (or at the level of the allowed state transitions). This allows complicated scenarios like
+welded trees to arise in less concrete settings.
+Consider the following example: a collection of N = 2n agents each maintain a binary state of their location. We
+represent the collective system state as an n-bit string s ∈{0, 1}n, where each bit corresponds to one agent’s state. The
+system begins at state s = 0n (the ENTRANCE).
+At each time step, the system evolves by selecting one agent uniformly at random and flipping their bit. This yields a
+simple random walk on the n-dimensional hypercube graph, where vertices are binary strings and edges connect states
+differing in exactly one bit. The process terminates when the system reaches state s = 11 . . . 1 (the EXIT). Figure 3
+elucidates the system as a hypercube. Importantly, within the hypercube, the hitting time for this walk is Ω(2n).
+Figure 3: n-dimensional hypercube graph, where vertices are binary strings and edges connect states differing in exactly
+one bit.
+As a concrete instantiation, imagine agents arranged in a physical space divided into two sides of a room like in the
+game dodgeball. Each agent independently and randomly decides whether to switch sides at each time step. Although
+the agents move in physical space and make individual decisions, the Markov process describing the aggregate system
+state lives on the hypercube graph structure.
+The Markov process has states corresponding to the n-bit strings, with transition probabilities:
+Pr(st+1 = s′ | st = s) =
+ 1
+n,
+if s′ differs from s in exactly one bit,
+0,
+otherwise.
+8
+
+
+A PREPRINT - NOVEMBER 20, 2025
+This defines a Markov chain on the hypercube with 2n states. The Markov diagram is precisely the n-dimensional
+hypercube graph shown in Figure 3. Essentially, the Markov and agent-based processes occupy different, abstract
+spaces. Although agent behavior generally induces dependencies between these spaces, they are fundamentally different
+and related only by the underlying mathematics.
+Classical and quantum algorithms can exploit the structure of the abstract Markov state space. The concern is what
+computational operations are permitted and what information must be observed at each step. This is especially
+important when thinking about traditional ABM implementations.
+Consider the following two approaches to analyzing the dodgeball system to determine the number of steps until the
+system reaches the exit state.
+Approach 1: Traditional Agent-Based Model. The standard agent-based modeling workflow maintains a complete
+assignment of agents to states. That is, for a set of agents A and a set of states S those agents can occupy, we keep a
+full specification of a function f : A →S. A complete truth-table matrix for this function always requires at least as
+many bits as |A| · SIZE_OF(S). Until termination, we loop over the following steps:
+1. The complete system state f[A] is observed.
+2. An agent is selected and its state is updated A →A′.
+3. The new complete system state f[A′] is observed.
+This approach requires O(T) observations of the complete system state, where T is the number of time steps until
+the exit state is reached. This workflow requires tracking which specific agent has which specific bit value. While the
+Markov state is simply the n-bit string (e.g., “0101”), the traditional ABM must additionally maintain the agent-to-bit
+mapping: “Agent 1 has bit 0, Agent 2 has bit 1, Agent 3 has bit 0, Agent 4 has bit 1,” This information is necessary
+because the implementation selects a specific agent to update at each step and observe the result.
+Approach 2: Direct Computation Without Iterative Observation. An alternative approach asks a different question:
+“What is the expected number of steps T until the system reaches the exit state?” This question does not require
+simulating the system step-by-step with observation at each iteration. It admits solutions that compute the answer
+directly from structural properties of the hypercube and the transition probabilities.
+A classical analyst might recognize that the structure of the problem is a random walk on a hypercube. They would apply
+known results from Markov chain theory to compute T in closed form. A quantum algorithm might use a quantum walk
+to compute spectral properties of the transition operator without ever observing intermediate states. Both approaches
+work at the level of the abstract Markov state space, but neither requires the iterative observation that characterizes
+traditional ABM implementation. The difference between these two approaches leads to important consequences in
+applying quantum algorithms to ABMs.
+A quantum algorithm based on a quantum walk can solve the welded tree problem in polynomial time [50]. The
+quantum walk explores the graph in superposition, effectively traversing all paths from ENTRANCE to EXIT simultane-
+ously. Because both endpoints possess unique symmetry properties within the graph structure, quantum interference
+constructively reinforces their amplitudes, while destructively canceling paths that lead elsewhere. The walk effectively
+collapses the exponential structure into a simple path, as illustrated in Figure 4.
+What makes the quantum algorithm powerful is not that it retains more information than traditional ABM implementation.
+Instead, a quantum walk succeeds by not retaining this information. If one measures the quantum state mid-computation
+to observe it, the superposition collapses and the quantum advantage vanishes. The quantum algorithm must traverse
+the entire graph without observing intermediate states to preserve the interference patterns that enable polynomial-time
+solutions. This is critically important. The algorithm discards path information that a traditional ABM implementation
+would retain.
+Knowing the structure of Figure 4 in advance offers a significant opportunity for algorithmic efficiency, as later sections
+will demonstrate. Unused structural information in a simulation is a missed chance to develop more efficient algorithms.
+Quantum algorithms are inherently sensitive to such structure and, as the welded tree example shows, often exploit it
+automatically. While this is a tremendous asset when the structure is unknown, failing to leverage known structure is a
+misstep—on both classical and quantum fronts.
+3.5
+Implications for Agent-Based Modeling
+The previous examples reveal a fundamental incompatibility between quantum advantage and traditional ABM
+implementations. The power of quantum algorithms emerges from maintaining superposition across computational
+9
+
+
+A PREPRINT - NOVEMBER 20, 2025
+Figure 4: Quantum walks effectively reduce the complex to a simple path with 2n + 2 vertices—one per level. The
+quantum superposition exploits symmetry to propagate efficiently without explicitly tracking individual paths. Adapted
+from [50].
+steps. This is precisely what ABM implementations systematically destroy through their iterative observation of
+intermediate states along the way to the solution.
+To make this contrast explicit, consider the traditional ABM implementation in Algorithm 2.
+Algorithm 2 Traditional Simulate-Agent-Based Model Algorithm
+function SIMULATE(si, τ)
+while τ(si) = FALSE do
+Do some user I/O with si
+si+1 = Usi
+i ←i + 1
+return
+The user interaction at line 2 introduces intermediary state observation, collapsing the quantum superposition, and
+precluding advantage. To correct for this and align with the desired I/O abstraction, we adopt a more precise formulation
+based on a Markovian model of state propagation. In this framework getting the next state is formalized as Algorithm 3.
+Algorithm 3 Get Next State
+function GET_NEXT_STATE(si ∈S, U)
+Take as input An initial state si ∈S and an oracle U : S →S specifying state updates.
+return The state Usi = si+1.
+Unless a single application of U is computationally costly, the runtime of Algorithm 2 is dominated by how many times
+Algorithm 3 is invoked, not by the internal complexity of applying U itself. In effect, quantum behavior can only occur
+within Algorithm 2. Therefore, the algorithm achieves no intrinsic speedup. It merely replaces each classical state
+update with an equivalent quantum operation, yielding the same number of calls. As a result, if the time-per-call is not
+the dominant behavior and the number of calls is, then any advantage one buys from a quantum computer is extremely
+limited. This is formalized by the following well-known no-go theorems:
+Theorem 1 (Output-size lower bound [52]). Any algorithm that must reveal (print, transmit, or otherwise measure) T
+intermediate states incurs Ω(T) time just to produce that output, independent of the internal computational model.
+This yields the following statement precisely about quantum algorithms.
+Theorem 2 (Measurement budget and coherence [53]). If a workflow requires a measurement of the full system state
+after each of T updates, a quantum implementation cannot preserve coherence across those T updates. Any possible
+quantum speedup must therefore come from reducing the number of required observations or from reformulating the
+question to avoid them.
+10
+
+
+A PREPRINT - NOVEMBER 20, 2025
+Theorem 2 establishes that if updating the system state of an ABM is computationally inexpensive, taking constant
+time per step (O(1)), then no quantum approach can provide any relevant speedup. This is because the repeated
+measurements needed to track the system’s state at each step collapse the quantum superposition, destroying the
+conditions required for quantum advantage. Even in cases where each state update is more computationally costly,
+taking time proportional to the full simulation length (O(T)), the maximum possible quantum speedup is limited by the
+simulation length.
+The root cause is architectural. ABMs are traditionally implemented to observe the full system state at every time
+step. This enables bottom-up rules to be applied to the agents based on their specific state at a given time step. This
+design principle is at the core of canonical agent-based modeling [54, 55, 56]. However, it is precisely this repeated
+observation that precludes quantum advantage. The welded tree and dodgeball problems succeed because they ask a
+question that requires only the final answer (EXIT) rather than the complete trajectory from (ENTRANCE) to (EXIT)
+[51]. In contrast, the majority of ABMs are built around trajectory observation as the means to calculate the output. As
+we articulate below, many questions do not require a complete trajectory to answer.
+This does not imply that quantum approaches to agent-based modeling are impossible. Rather, it demands that
+researchers fundamentally re-conceptualize what questions to ask about agent systems and what forms of answers
+quantum (and even classical) algorithms can meaningfully provide. Aside from edge cases, quantum advantage will
+not emerge from simulating classical ABM dynamics faster, but from formulating entirely new questions about agent
+systems.4 These questions do not require observing complete system states at intermediate time steps. Instead, they
+require reformulating their research question into a problem whose structure aligns with quantum computational
+paradigms. As we show in the next section, this reformulation alone often reveals new and better classical approaches
+that can be near-optimal for specific tasks.
+4
+Using A Structural Reconceptualization Approach To Avoid Quantum Missteps
+Through discussions between the quantum- and ABM-trained co-authors, we recognized that our initial QUBO
+formulation for “running an agent-based Schelling’s model using a quantum reduction to determine the number of
+moves required to achieve global satisfaction” introduced the issues we have previously described.
+Fully appreciating the issues with our approach, our quantum-trained co-authors helped us rethink the problem’s structure
+and formulation. Rather than focusing on recasting the traditional Schelling’s model into the QUBO framework, we
+began asking a more targeted question: “How many agent moves are required for global satisfaction in the Schelling
+model?” Although this question may seem similar at first glance, it is fundamentally distinct. Crucially, it admits a
+well-defined input/output formalization that aligns better with both theoretical analysis and quantum implementation
+Algorithm 4 Number of Agent Moves to Global Satisfaction in Schelling’s Model
+1: Input:
+• A lattice or network of N agents, each assigned a binary type σi ∈{A, B}.
+• A neighborhood function N(i) specifying which agents are considered neighbors of agent i.
+• A tolerance parameter τ ∈[0, 1] defining local satisfaction:
+i is satisfied ⇐⇒#{j ∈N(i) : σj = σi}
+|N(i)|
+≥τ.
+• An update rule U : S →S that selects an unsatisfied agent and moves it to a vacant site (or swaps agents) to
+increase local satisfaction.
+• An initial configuration s0 ∈S.
+2: Output: An approximation of the expected integer T such that, after T updates, all agents are satisfied:
+∀i, i is satisfied in sT .
+Equivalently, output the total number of agent moves required on average to reach global satisfaction.
+3: Goal: Determine T given the initial configuration s0 and the update rule U.
+4It is possible, for instance, that agents might be required to solve problems before making decisions. If one were to introduce
+this sub-task, then a quantum computer might be able to help the agent actually decide something previously undecidable and confer
+an advantage even in the traditional setting. Nonetheless, this feels contrived.
+11
+
+
+A PREPRINT - NOVEMBER 20, 2025
+These questions may seem closely linked. To some they may initially even appear identical. However, they are
+fundamentally different in their computational structure. The first question (running an iterative ABM simulation)
+requires observing the system state at every time step, making it subject to the limitations described by Theorem 2.
+The second question (computing the number of moves required) asks only for a single numerical output and does not
+mandate any particular solution method. While one approach is to explicitly simulate the model step-by-step until
+satisfaction is achieved, many alternatives exist. A mathematician might derive a closed-form expression based on
+the network topology and initial configuration. A computer scientist might recognize the problem as equivalent to a
+known graph-theoretic optimization and apply specialized algorithms. A physicist might identify conserved quantities
+or symmetries that constrain the answer. An empirical researcher might train a machine learning model on thousands
+of configurations to predict T without simulation. The critical distinction is that this reformulated question does not
+require intermediate state observations. Only the final answer matters. This structural change opens the possibility of
+quantum approaches, avoiding the measurement-induced collapse that dooms traditional ABM implementations.
+4.1
+Dimensions of Convergence for the Schelling Model
+A large body of research on Schelling’s segregation model focuses on the impact of individual satisfaction thresholds,
+population density, and group proportions [57, 58]. Satisfaction thresholds define when agents are satisfied in their local
+environment and have received significant analytical and experimental study. For example, studies have systematically
+quantified how varying tolerance levels shape patterns of aggregation, with even minor shifts in the threshold leading to
+dramatic global transitions [59].
+The influence of population density has also been rigorously analyzed, with research revealing how occupancy ratios
+affect local clustering and global segregation outcomes where agents are satisfied. Researchers have used extensive
+large-scale simulations to uncover scaling laws relating density to measures of aggregation and demonstrated that some
+aggregation effects observed in small systems do not generalize to larger, denser settings [59, 60]. Group proportions,
+the relative sizes of subpopulations in the model, are another well-explored axis. Analytical and simulation results
+show that varying these proportions shifts both the stability and nature of segregated configurations. Several studies
+review how asymmetric group sizes and neighborhood composition affect final states and dynamics of segregation
+where agents are satisfied [57].
+Despite this focus, the role of the underlying network structure, beyond the standard regular lattice or fully connected
+paradigms, remains less examined, particularly regarding its computational complexity and impact on model evolution.
+While some recent works have touched on network topology effects, including experiments with complex and dense
+networks, these typically treat structure as a background rather than a fundamental driver of computational complexity
+[61]. Some researchers have compared various network structures and noted that topologies, like scale-free networks,
+can alter convergence and equilibrium, but comprehensive analytical work is lacking [62]. Recent research is beginning
+to interrogate the relationship between network topology and the computational demands on phase spaces navigated by
+the evolving model, pointing to an open need for more systematic exploration and theory-building in this direction [57].
+4.2
+Lollipop Networks
+A lollipop network Lm
+n consists of two distinct components: a complete graph (clique) of m vertices connected to a path
+of n −m vertices [63, 64]. This seemingly simple structure creates a topology with extreme computational properties
+that make it an ideal test case for understanding the limits of both classical and quantum approaches to agent-based
+modeling. Its properties also make it a good case study for other similar, but more realistic social networks, such as the
+caveman graph [65]. What makes it so compelling is that it exhibits both properties of density and sparsity in the same
+graph.
+In the context of the Schelling’s segregation model, lollipop networks create a particularly challenging computational
+landscape for determining agent satisfaction dynamics. An example of satisfied agents on a L6
+3 lollipop network is
+shown in Figure 5. The clique portion of the network creates a region where agents have many potential neighbors
+and can quickly find satisfactory local configurations. However, the path portion severely constrains agent movement
+options. It creates a bottleneck that can dramatically slow convergence to global satisfaction. Agents positioned on the
+path have limited neighborhood options and may need to test every location in the linear structure to find an alternative
+satisfactory positions when they are dissatisfied. This creates a scenario where determining the number of moves
+required for global satisfaction becomes computationally intensive via a traditional ABM implementation [66].
+The pathological nature of these networks - along with the quantifiable “how many steps” question - makes them
+an ideal test bed for understanding the pitfalls of QUBO-like algorithms and the strengths of alternative classical
+approaches for computing the number of moves required for agent satisfaction in a segregation model. By focusing on
+the network topology, we developed deeper insights into the structure of the problem. This enabled us to find a new
+12
+
+
+A PREPRINT - NOVEMBER 20, 2025
+Figure 5: An example of a L6
+3 lollipop network consisting of 4 red and 3 blue agents. White circles denote empty spaces
+in the network
+classical solution that is significantly more efficient than running the Schelling’s agent-based model to compute the
+number of moves required for global satisfaction.
+This parallels (to a much less significant extent) the high-profile debate between IBM and Google over “quantum
+supremacy.” Both companies are currently trying to produce quantum devices capable of achieving quantum advantage,
+or the ability to outperform any conceivable classical computation for a specific computational task. In 2019, Google
+produced results that demonstrated that they had indeed achieved quantum advantage, albeit on a somewhat contrived
+and impractical task [67]. In response, IBM showed that careful re-examination and novel classical algorithmic
+techniques could push back the apparent quantum advantage to a later date [68]. Similarly, our work demonstrates
+that rethinking the formulation of the problem, rather than doggedly pursuing quantum acceleration via reducing a
+traditional ABM implementation, can yield efficient classical solutions that challenge preconceptions about where
+quantum speedup is genuinely attainable. Additionally, understanding of these nuances is necessary for designing
+efficient quantum algorithms for ABM in the future.
+Our algorithm provides a concrete performance benchmark that any future quantum approach must surpass on this task.
+In the next subsection, we describe our new classical approach and compare it to using the traditional Schelling’s ABM
+implementation to compute the number of moves needed for agent satisfaction in a lollipop network.
+4.3
+A Count-First Algorithm for Determining Moves to Global Satisfaction in the Schelling Model on Lollipop
+Networks
+The count-first algorithm exploits structural symmetries in lollipop networks. It divides the network into its three
+components: (1) the clique, (2) the path, and (3) the bridge (their intersection). One should note that the theorems and
+proofs contained in the following sections are not up to the typical standards of mathematical rigor, but we have favored
+accessibility in exchange for rigor and assume a mathematically-minded reader would have no problem adapting them.
+4.3.1
+Clique Satisfaction via Global Counts
+Before discussing the lollipop itself, it is worth discussing the behavior of a Schelling’s model process on the clique,
+because it reveals the underlying utility of exploiting structure. Assume that the clique is initialized with |V | vertices, a
+agents of type A and b agents of type B. Note that for any agent of type x ∈{a, b}, we have that its local satisfaction
+is given by SQ(x) =
+x
+b+a. Crucially, this quotient is entirely independent of |V |. Additionally, we also know (based
+on this symmetry) that the expected number of steps one can take is precisely 0 or ∞. Thus, in this case, we are only
+required to decide whether the Schelling process is initially satisfied or never satisfied, which is a traditional decision
+problem.
+We make the following obvious claim:
+Theorem 3. In a clique with a agents of type A and b agents of type B, every A-agent’s other-type fraction is
+b/(a + b −1) (and vice versa for B). Permutations within the clique cannot change this ratio.
+Proof. Although we claim this is obvious, one need only note that, in a clique, all agents are adjacent and repositioning
+an agent does not change this. Any function that is concerned only with adjacency is therefore permutation invariant.
+13
+
+
+A PREPRINT - NOVEMBER 20, 2025
+As a consequence, the following algorithm can simulate the number of steps to satisfaction on the clique in time O(1).
+That is, after exploiting symmetry, the count-first approach reduces to Algorithm 5.
+Algorithm 5 SIMULATE_CLIQUE(a, b, v, τ)
+1: function SIMULATE_CLIQUE(a, b, V, τ)
+2:
+if max (a, b) ≤τ (a + b −1) then return 0.
+3:
+return ∞.
+Due to Theorem 3, no computational work needs to be done to answer the question of whether the clique is satisfied.
+All one needs to do is simply ask whether the system is initially satisfied, which requires O(1) elementary operations.
+Similarly, a count-first approach on the clique would call SIMULATE_CLIQUE and learn immediately that no internal
+dynamics changing local satisfaction are possible.
+Now, consider the traditional ABM approach. Suppose that we label the total running time of IS_UNHAPPY. Each
+Algorithm 6 SIMULATE_CLIQUE_TRADITIONAL(a, b, v, τ, RUNTIME)
+1: function SIMULATE(a, b, v, τ, RUNTIME)
+2:
+Initialize a random array X ∈V a+b such that Xi ̸= Xj for any pair (i, j).
+3:
+for T ∈0, 1, . . . , RUNTIME −1 do
+4:
+if TOTAL_UNHAPPY(X)==0 then
+5:
+return T
+6:
+i ←GET_UNHAPPY_INDEX(X)
+7:
+Sample v ∼Uniform(V \ X)
+8:
+Xi ←v
+9:
+return ∞
+10:
+11: function IS_UNHAPPY(x ∈V )
+12:
+NEIGHBORS ←0
+13:
+for y ∈N(x) do
+14:
+NEIGHBORS++
+15:
+DIFFERENT ←0
+16:
+if TYPE(x) ̸= TYPE(y) then
+17:
+DIFFERENT++
+18:
+return DIFFERENT > τ · NEIGHBORS
+19:
+20: function TOTAL_UNHAPPY(X ∈V a+b)
+21:
+TOTAL ←0
+22:
+for x ∈X do
+23:
+TOTAL+=IS_UNHAPPY(x)
+24:
+return TOTAL
+25:
+26: function GET_UNHAPPY_INDEX(X ∈V a+b)
+27:
+while TRUE do
+28:
+Sample i ∼Uniform(0, 1, . . . , a + b −1)
+29:
+if IS_UNHAPPY(xi) then
+30:
+return i
+time we call IS_UNHAPPY we make a total of |N(x)| calls to the relevant FOR loop and, hence, the running time of
+IS_UNHAPPY is Θ(|N(x)|). Now, when computing TOTAL_UNHAPPY we require a + b calls to IS_UNHAPPY, such
+that its total running time becomes Θ ((a + b)|N(x)|). Since the FOR loop in SIMULATE is called T + 1 times, we
+find that the total running time is Θ ((a + b)|N(x)|(T + 1)).
+Now, if we consider explicitly the case of the clique, we have that N(x) = a + b −1 always and, if initially the
+system is satisfied, T = 0. Hence, the total running time is guaranteed to be Θ
+ (a + b)2
+. That is, the traditional
+method is polynomially slower than the count-first method which exploits symmetry. In the case that the system is
+not satisfied, we are forced to execute RUNTIME iterations of the FOR loop and end up with an algorithm that scales
+with Θ
+ (a + b)2RUNTIME
+
+. Note that, depending upon one’s choice of RUNTIME this can be substantially worse
+14
+
+
+A PREPRINT - NOVEMBER 20, 2025
+than Θ
+ (a + b)2
+. Additionally, if we do not initially exploit the fact that we only need to decide between 0 and
+∞, we are left attempting to empirically approximate the expected running time. A single infinite run produces an
+unbounded empirical running time, whereas observing a completion time of zero may simply reflect good fortune.
+Consequently, even in satisfiable cases (ignoring structural considerations), approximating the hitting time requires
+multiple repetitions.
+A QUBO formulation:
+Now, we note the impact that this has on QUBO. In particular, QUBO encodes optimization
+problems and we have, above, been asked to compute a decision problem. The traditional way to rewrite our decision
+problem as an optimization problem is to ask, for some choice of T, "is the expected number of steps prior to satisfaction
+less than or equal to T?" Let us assume that we do exploit the structural consideration that it either is/is not ever
+satisfied, such that we can choose T = 0. One can see that an optimum of T = 0 confirms satisfaction is achieved at
+that step. However, although we have a success criterion, we lack a direct encoding for a quantum computer. Further
+reformulation is needed.
+The natural approach would be for a QUBO formulation to explicitly calculate how frustrated the existing system
+is using a Hamiltonian. The Hamiltonian is an operator H : R →R where R is some register R. For the sake of
+this manuscript, we allow R = (0, 1, −1)V to be a trinary string representing occupation by agents of various colors.
+Although we will not focus on the mechanics of how the Hamiltonian implements the cost function in this paper, for a
+graph G = (V, E) we can define the cost function
+RTHCOSTR = 1
+4
+X
+v0∈V
+X
+v1∈V
+ R(v1)2R(v0)2 −R(v1)R(v0)
+
+= −
+X
+{v0,v1}∈E
+R(v0)R(v1) (R(v0) −R(v1))2 .
+Above, one should note that HCOST has the impact of performing the map
+[HCOSTR](vi) =
+1
+if vi is unhappy
+0
+otherwise.
+Above, Hcost is linear. This can be made more obvious by taking the binary mapping 0 7→00, 1 7→01, and −1 7→11.
+Thus, summing the values in the vector HCOST yields the total unhappiness.5 Importantly, implementing this cost
+function already introduces a pitfall. In particular, naively implementing a clique on a register of size |V | requires
+the ability to simultaneously manage all pair-wise registers! Although this is possible for very small cliques, as we
+will see shortly, we do not even have enough interacting qubits yet to create a system that would even come close to
+being able to implement this cost function at the scale achievable by a desktop computer.
+If this is not bad enough, then we also must consider the Hamiltonian that drives dynamics. This might often be missed,
+but these dynamics should, indeed, match the dynamics of the corresponding model. For the typical Schelling model,
+dynamics themselves are given by Hdriv : R →R and we can assume that, based on our discussion above, we are
+okay with any single agent re-assignment. This is actually non-trivial and extremely important. If we naively allow
+transitions that are classically forbidden under the corresponding Markov model, we might not simulate the appropriate
+process. For instance, suppose that agents A are happy no matter what, but agents B need to be adjacent to at least
+one other B to be satisfied. It is possible to initialize the system, but not the clique, such that the initial configuration
+determines whether or not satisfaction is even possible. A faithful reproduction of this behavior has to take into account
+the allowed transitions only.
+Now, we know that we ru = Hcostr represents the unhappy agents and we could have similarly defined some Hfree such
+that rf = Hfreer represents the free vertices. Since this computer is quantum and preparing ru is our only naive means
+of identifying whether an agent is unhappy, we need to control on ru (or its complement) before setting whether a
+vertex is free or unoccupied, another difficult operation with current technology.
+A natural complaint, at this point, would be that the quantum algorithm could also behave in a counts-first sort of way.
+Although one could, in-principle, encode a less naive version of the algorithm, we would inevitably arrive at the same
+place. That is, we have always had that
+Theorem 4. There does not exist a quantum algorithm capable of deciding whether a Schelling process on a clique will
+reach satisfaction faster than algorithm 5.
+Proof. This is just an immediate consequence of Theorem 2 and the fact that Algorithm 5 decides this question in O(1)
+elementary operations.
+5This is also equivalent to the expected value of the occupied subgraph Laplacian under vector R, which yields a nicer expression
+that is more obviously a linear operator. The additional elegance and clarity do not help our exposition here and the current form is
+more explicit for the uninitiated.
+15
+
+
+A PREPRINT - NOVEMBER 20, 2025
+4.3.2
+Path Satisfaction via Sequential Scanning
+The analysis of agents on the lollipop network’s path segment also leverages structural properties, but in a distinct
+manner. Instead of repeatedly querying all agents, we use cached values and local updates to improve efficiency
+compared to the traditional Schelling approach. Traditionally, TOTAL_UNHAPPY requires querying every agent once
+per evaluation, which holds true for the count-first method as well. The key difference lies in the frequency of these
+queries.
+For an n-vertex path encoded as the word (A, B, 0)V , a single TOTAL_UNHAPPY query inspects each occupied agent
+and its neighbors once, incurring Ω(a+b) queries. While this cost is similar in both traditional and count-first approaches
+per query, the count-first algorithm reduces the total number of such queries required by employing Algorithm 7.
+Algorithm 7 SIMULATE_PATH(a, b, v, τ)
+1: Input: a, b, V, τ
+2: function SIMULATE(a, b, V, τ)
+3:
+Initialize a random array X ∈V a+b such that Xi ̸= Xj for any pair (i, j).
+4:
+UNHAPPY_COUNT ←TOTAL_UNHAPPY(V )
+5:
+T ←0
+6:
+while UNHAPPY_COUNT > 0 do
+7:
+TAKE_STEP(X, V, UNHAPPY_COUNT)
+8:
+T++
+9:
+return T.
+10:
+11: function TAKE_STEP(X, V, UNHAPPY_COUNT)
+12:
+i ←GET_UNHAPPY_INDEX(X)
+13:
+Sample v ∼Uniform(V \ X)
+14:
+Calculate how many agents adjacent to Xi and v are unhappy and let the result be PRIOR
+15:
+Xi ←v
+16:
+Calculate how many agents adjacent to Xi and v are now unhappy and let the result be AFTER
+17:
+UNHAPPY_COUNT ←AFTER −PRIOR
+18:
+return
+Note that lines 9 and 11 each require precisely 6 calls to IS_UNHAPPY and each call to it is O(N(v)) = O(1). Hence,
+in this case, IS_UNHAPPY is itself an O(1) operation. The benefit is that by only updating the UNHAPPY_COUNT,
+instead of re-calling TOTAL_UNHAPPY in line 12, we trade an Ω(a + b) operation for an O(1) operation. As a
+consequence, if we assume that we have constant-time access to the adjacency list of each vertex, this algorithm
+completes in time O(|V | + T) instead of O(|V | · T). That is, simply caching the happiness count trades multiplicative
+scaling for additive scaling. Whenever the expected value of T scales with |V | (T ∼|V |x), which it will for all but
+extremely low densities of agents, we have an O(V max{1,x}) algorithm instead of an Ω(V x+1) algorithm. That is, the
+count-first approach always outperforms the standard approach by a factor of V x+1−max{1,x} = V min{1,x}.
+4.3.3
+Formal Presentation of the Count-First Algorithm
+The count-first algorithm (Algorithm 8) exploits structural symmetries in lollipop networks. It divides the network into
+its three components: (1) the clique, (2) the path, and (3) the bridge. Rather than checking each agent’s neighborhood
+individually (as in traditional ABMs), the algorithm caches values as in Algorithm 5 and Algorithm 7. The algorithm
+proceeds as follows, where we ignore the nuances of bridge behavior which requires only small updates to bridge
+behavior when the bridge itself is called. 6
+4.3.4
+Computational Complexity of the Count-First Algorithm
+We analyze the computational complexity of the count-first algorithm by looking at the per-iteration cost of evaluating
+satisfaction and selecting moves required to reach global satisfaction.
+In a traditional ABM on a lollipop graph, each iteration requires checking the satisfaction of every agent by examining
+its neighborhood. Note that, unlike the pure path simulation, clique behavior demands that each member of the clique
+has k occupants. Then, each recalculation of unhappiness requires k(k −1) operations for the clique and an additional
+6The interested reader can find one way to handle these nuances in the specific implementation in [69]. We do not anticipate that
+ignoring this behavior would meaningfully impact the expected value of T, due to the all-to-all movement scheme.
+16
+
+
+A PREPRINT - NOVEMBER 20, 2025
+Algorithm 8 Count-First Schelling’s Model Satisfaction on Lollipop Networks
+1: Input: Lollipop graph G with clique size CS, path length PL
+2: Input: Number of agents n, satisfaction threshold τ = p/q
+3: Output: Number of moves required to reach global satisfaction
+4: function COUNTFIRSTSCHELLING(a, b, n, m, τ)
+5:
+Let V be the vertices of a path graph of length m
+▷n is implicitly the clique size
+6:
+PLACE_AGENTS(a, b, n, V )
+7:
+Calculate initial unhappiness of the path and let the result be PATH_UNHAPPY
+8:
+while TOTAL_UNHAPPY > 0 do
+9:
+Choose a random number r ∼Bernoulli
+
+PATH_UNHAPPY
+TOTAL_UNHAPPY
+
+.
+10:
+if r then
+11:
+if p < n −Ca −Cb then
+12:
+CONTINUE
+13:
+Draw X ←A with probability
+CA·Is_X_Unhappy(A)
+CLIQUE_UNHAPPY(CA,CB) and X ←B otherwise.
+14:
+CX–
+15:
+ADD_TO_PATH(X)
+16:
+else
+17:
+Draw X ∼Bernoulli
+
+n−CA−CB
+n+m−a−b
+
+18:
+if X then
+19:
+SIMULATE_PATH(X, V, PATH_UNHAPPY)
+20:
+else
+21:
+i ←GET_UNHAPPY_INDEX(V )
+22:
+t ←TYPE(Vi)
+23:
+Ct++
+24:
+Vi ←0
+25:
+T++
+26:
+return T
+27:
+28: function CLIQUE_UNHAPPY(CA, CB)
+29:
+return CA · IS_X_UNHAPPY(A, CA, CB) + CB · IS_X_UNHAPPY(B, CA, CB)
+30:
+31: function IS_X_UNHAPPY(X ∈{A, B}, CA, CB)
+32:
+return CX < τ(CA + CB)
+33:
+34: function TOTAL_UNHAPPY(CA, CB, PATH_UNHAPPY)
+35:
+return CLIQUE_UNHAPPY(CA, CB) + PATH_UNHAPPY
+a + b −k operations for the path. Thus, the total number of operations for the traditional approach to calculate
+TOTAL_UNHAPPY is k(k −1)(a + b −k). Note that if (a + b) ≥m + ϵ|V | the pigeonhole principle guarantees that
+at least k ≥ϵ|V | agents occupy the clique at any given time. If we fix any ϵ > 0 independent of problem size, we find
+that combining these expressions,
+k(k −1)(a + b −k) ≥k(k −1)(a + b −m)
+≥k(k −1)(ϵ|V |)
+≥(ϵ|V |)3 −(ϵ|V |)2
+= ϵ3|V |3
+
+1 −
+1
+ϵ|V |
+
+.
+For large enough |V |, this is clearly Ω(ϵ|V |3).
+In contrast, we have already seen that internal clique dynamics are O(1) and, in fact, the count-first algorithm skips
+them altogether in Line 13. Thus, we only have path-to-path, path-to-clique, and clique-to-path dynamics. We have
+already seen that path-to-path dynamics and path-to-clique dynamics are at worst O(|V |). Thus, we have the following
+Theorem.
+Theorem 5. Count-First Schelling Satisfaction completes with at most O(T) calls to GET_UNHAPPY_INDEX.
+17
+
+
+A PREPRINT - NOVEMBER 20, 2025
+Final notes on count-first scaling and possible quantum advantages
+The complexity of identifying unhappy agents
+depends significantly on implementation details. We store unhappy indices as a bitstring, where a vertex is unhappy if
+and only if its corresponding bit is set to 1. Under the assumption that each unhappy count appears O(1) times during
+the algorithm’s execution, identifying unhappy bits requires O(|V | log |V |) time per run. Our empirical scaling matches
+this bound, suggesting that agent identification constitutes the primary computational bottleneck.
+This analysis leaves room for potential quantum speedup via quantum search. A quantum algorithm for unsorted
+search over m unhappy agents requires time at least Ω
+p
+|V |/m
+
+. However, the overall running time remains
+Ω(|V |), yielding a maximum improvement of only O(log |V |)—a polylogarithmic factor typically considered below
+the threshold of practical interest and often omitted from formal complexity analysis.
+4.4
+Experimental Validation of Count-First vs. Traditional ABM Runtime
+To validate our theoretical complexity analysis, we empirically measured the runtime scaling of both the traditional
+ABM and count-first implementations on lollipop networks of varying sizes.
+4.4.1
+Experimental Setup
+We implemented the traditional ABM in the Mesa agent-based modeling framework [70], optimized to support runs of
+up to 10,000 agents on arbitrary network topologies. The count-first algorithm was implemented in C++ following the
+pseudocode presented in Section 4.3.3.
+The comparison between traditional and count-first implementations used the following parameters: 80% agent density,
+50% threshold similarity, and a 50%-50% split of agent types. The lollipop network was configured with 10% of nodes
+in the clique and 90% in the path. For each network size, we ran 500 trials and averaged the total runtime to reach
+global satisfaction. An overview of the wall clock time required for each approach is shown in Figure 6.
+Figure 6: (A) Log-log plot of the individual data points of the runtime it takes to compute the number of moves for
+agents in the Schelling model to reach global satisfaction. (B) The same plot with the x and y axes presented on a linear
+scale. The approach shown in red is our count-first algorithm. The approach shown in blue is the traditional ABM
+implementation.
+4.4.2
+Regression Analysis
+To determine the empirical scaling exponents for each approach, we tested six standard regression models against the
+experimental data (Tables 2 and 3). For the traditional ABM, the power regression model provided the best fit.
+The power regression achieves R2 ≈1.000, indicating an excellent fit to O(n3.01), which matches the expected
+scaling described in Section 4.3.4. To verify this scaling holds across parameter variations, we tested different agent
+densities and similarity thresholds (Figure 7). The power law exponent remained consistent (ranging from 2.94 to 3.08),
+confirming that cubic scaling is robust to parameter changes.
+For the count-first algorithm, we applied the same fitting procedure (Table 3):
+18
+
+
+A PREPRINT - NOVEMBER 20, 2025
+Table 2: Regression Model Comparisons for Traditional Agent-Based Model
+Model
+Model Equation
+RMSE
+R2
+Power
+4.29e-10·n3.01
+0.037
+1.000
+Quadratic
+4.47e-06·n2
+21.98
+0.981
+Linearithmic
+4.25e-03·n·log(n)
+59.65
+0.859
+Linear
+0.038·n
+66.83
+0.823
+Logarithmic
+13.60·log(n)
+147.0
+0.146
+Constant
+74.71
+159.0
+0.000
+Figure 7: Power regression approximations for traditional ABM under parameter variations. (A) Effect of agent density
+on scaling. (B) Effect of similarity threshold on scaling. The exponent remains consistent across variations, confirming
+robust cubic scaling behavior.
+The count-first algorithm’s runtime achieves linear or near-linear scaling. The RMSE and textbfR2 show very similar
+results for power (5.18e-04·n1.05), linearithmic (7.39e-05·n·log(n)), and linear (1.03e-03·n) scaling. This represents a
+dramatic reduction compared to the traditional ABM’s cubic scaling.
+4.4.3
+Scaling Exponent Analysis
+Recall from the previous subsection that both approaches showed the best fit with a power model. Here we quantify the
+uncertainty in scaling exponents for that model for each approach by three distinct fitting methods to both datasets. This
+allows us to understand the range of possibilities for the scaling exponent under different assumptions (see Table 4).
+The fitting methods—(1) log-log linear regression, (2) nonlinear least squares, and (3) local scaling exponent via
+finite differences—provide complementary perspectives on scaling behavior. Log-log regression (Method 1) is robust
+when the underlying relationship is linear in log-log space. Nonlinear least squares (Method 2) fits in the original
+scale, allowing larger runtimes to dominate. Local exponent analysis (Method 3) detects point-wise scaling, revealing
+non-uniformities [71].
+Across all methods, the count-first algorithm exhibits subquadratic scaling with exponents ranging from 1.05 to 1.347.
+In contrast, the traditional ABM implementation shows near-cubic scaling with exponents from 1.914 to 2.813. This
+two-to-three-fold difference in scaling penalties is substantial and compounds with network size.
+These empirical results validate the theoretical speedup predicted by our complexity analysis. The traditional ABM
+could not complete sufficient number of runs beyond 10,000 agents within practical time and memory constraints.
+Meanwhile, the count-first algorithm continued producing results in .2 seconds (200ms) for 200,000 agents. Even at
+1,000,000 agents the algorithm still computes the results in 1 second. This disparity underscores how the count-first
+algorithm’s reduction in complexity scales to problem sizes that have previously been out of scope for the agent-based
+modeling community.
+The counts-first algorithm exhibits slight deviations from perfect linearity, which we attribute to inefficiencies in the
+data structures used for agent position storage. Standard data structures introduce negligible overhead for moderately
+19
+
+
+A PREPRINT - NOVEMBER 20, 2025
+Table 3: Regression Model Comparisons for Count-First Algorithm
+Model
+Model Equation
+RMSE
+R2
+Power
+5.18e-04·n1.05
+19.64
+0.996
+Quadratic
+1.25e-09·n2
+139.7
+0.784
+Linearithmic
+7.39e-05·n·log(n)
+20.06
+0.996
+Linear
+1.03e-03·n
+21.77
+0.995
+Logarithmic
+39.67·log(n)
+267.9
+0.207
+Constant
+491.28
+300.8
+0.000
+Table 4: Scaling Exponents for Count-First and Traditional ABM Implementations Across Various Fitting Methods
+Fitting Method
+Count-First Exponent
+Traditional ABM Exponent
+Polyfit (log-log regression)
+1.347
+1.914
+Nonlinear LS
+1.05
+2.813
+Local Exponent
+1.09
+2.178
+sized agent populations; however, at extreme scales, this overhead may become more pronounced, potentially yielding
+sublinear behavior. Whether such deviations can be mitigated through alternative algorithmic approaches remains an
+open question that we leave for future work.
+5
+Discussion
+Recent efforts to bring quantum computing techniques into agent-based modeling have been intellectually stimulating,
+but have yet to resolve the core semantic mismatch between classical agent-based models and quantum primitives.
+QUBO formulations for network optimization, and variational quantum circuits have all attracted attention for their
+potential to simulate complex social dynamics [72, 73, 74, 75]. Yet, none of these approaches fully account for the
+methodological gap: traditional ABM is implemented by iteratively updating agent states based on localized interactions,
+whereas quantum algorithms depend on coherent, global amplitude evolution, which is fundamentally disrupted by any
+iterative, stepwise observation [76, 51].
+At first glance, this seems to argue for abandoning agent-based modeling in favor of more “quantum-friendly” approaches.
+However, this is not the case, and to do would be misguided. Agent-centric models analyze the particularities of
+individual preferences and local dynamics. Our count-first algorithm is an agent-centric model. It computes, for a given
+network and agent configuration, whether a globally satisfied solution is reachable, and if so, the precise number of
+moves required. While iteratively computing the state of a model is not aligned with quantum solutions, agent-centric
+modeling still can be.
+The fundamental challenge lies in how quantum advantage actually arises. When quantum algorithms do succeed, they
+succeed because they exploit hidden structure. This structure reflects patterns or symmetries in a problem that remain
+invisible to classical algorithms. However, once a researcher can identify and describe these hidden structures explicitly,
+classical algorithms can often exploit it too [77, 78]. Consider the lollipop network we study here. Its structure, a
+dense clique connected to a sparse path, is not hidden. It is precisely defined. Our count-first algorithm exploits this
+explicit structure to achieve efficiency. This means any quantum approach to the same problem faces the same structural
+insight, eliminating the very advantage quantum methods might otherwise claim. A key takeaway is that: for a quantum
+algorithm to achieve advantage here, it must exploit aspects of the problem that are either not classically available or
+not classically exploitable.
+This connects to a deeper architectural point about quantum versus classical information processing. Classical systems,
+including traditional ABM simulations, track probability. At each step, how likely is the system to occupy each possible
+state? Quantum systems, by contrast, evolve amplitudes. Amplitudes are mathematical quantities that can interfere
+constructively and destructively, enabling, for instance, quantum walks to sidestep barriers that trap classical probability-
+based walks. Yet achieving this requires the quantum system to remain isolated from measurement. The moment a
+researcher asks "what state is the system in right now?" the quantum amplitudes collapse to classical probabilities and
+the game ends. Our count-first algorithm sidesteps this problem by abandoning simulating the intermediate states of
+the system. Instead, it computes directly from structural properties whether satisfaction is achievable, and if so, the
+exact count of moves required. This is structural analysis. Although a quantum algorithm might inherently exploit this
+20
+
+
+A PREPRINT - NOVEMBER 20, 2025
+structure without any analysis, to demonstrate the quantum advantage, we must show that a classical algorithm cannot
+exploit the very same structure under the very same access constraints.
+Methodologically, these findings suggest a need for recalibrating how researchers approach agent-based modeling in the
+era of quantum computation. The process of recalibrating might yield substantially more powerful ABMs even without
+quantum computers. Attempting to force agent-based modeling problem-solving into quantum frameworks through
+stepwise state observation is not the answer for increased efficiency. Instead, we need to recognize when classical or
+quantum algorithms demand a structural rethinking of the research question. Our count-first algorithm is fundamentally
+bottom-up. However, it achieves computational tractability by leveraging analytically tractable features of the system,
+moving beyond naive and direct simulation. The value of ABM lies precisely in its granularity and flexibility. The
+lesson from our research is that efficiency sometimes requires reframing the problem at the structural level. Doing so
+does not always lose flexibility; it sometimes allows us to answer previously intractable questions.
+6
+Conclusion
+This work challenges the prevailing approach to quantum agent-based modeling. Rather than forcing agent-based
+modeling problems into quantum frameworks, we must ask fundamentally different questions that align with quantum
+computational capabilities. Our journey illustrates this principle through concrete missteps and successes. Our initial
+reduction of Schelling’s model to QUBO formulation exemplifies the wrong direction. The direct translation obscured
+what makes agent-based systems interesting while failing to leverage quantum advantage. In contrast, our count-first
+algorithm demonstrates the right approach. It is a structural reconceptualization that exploits the explicit problem
+architecture to compute minimum moves to global satisfaction on lollipop networks, establishing a concrete lower
+bound a quantum algorithm must breach for advantage. Any quantum method must overcome this baseline, plus the
+substantial overhead of merely running the problem on a quantum device. Given the current and near-term state of
+quantum hardware, this is unlikely.
+However, this conclusion should not discourage quantum approaches to agent-based systems. Rather, it clarifies what
+quantum advantage requires. Quantum advantage requires problems whose computational structure aligns naturally
+with quantum primitives: the ability to exploit interference, superposition, and entanglement. In general, it cannot be
+achieved by reducing traditional ABM implementations to well-known quantum problems. By embracing structural
+reconceptualization as a methodology, researchers can identify ABM questions where quantum approaches might
+genuinely outperform classical solutions. At the same time, researchers adopting this approach will advance classical
+understanding through structural insights, and even if quantum computers never come to fruition, their efforts will still
+have advanced science.
+Author Contributions
+The following author contributions are categorized in Table 5 according to the CRediT (Contributor Roles Taxonomy)
+[79]. The author order in this paper is strictly alphabetical and does not imply relative levels of contribution.
+Author
+Conceptualization
+Formal Analysis
+Investigation
+Methodology
+Resources
+Software
+Visualization
+Writing – Original
+Draft
+Writing – Review &
+Editing
+Funding Acquisition
+Project Administration
+Supervision
+Validation
+C. Nico Barati
+X
+Arie Croitoru
+X
+X
+X
+X
+Ross Gore
+X
+X
+X
+X
+X
+X
+Michael Jarret
+X
+X
+X
+X
+X
+X
+X
+William Kennedy
+X
+X
+X
+X
+Andrew Maciejunes
+X
+X
+X
+X
+Maxim Malikov
+X
+X
+X
+X
+X
+X
+X
+X
+Samuel Mendelson
+X
+Table 5: Author contributions per CRediT taxonomy (X indicates contribution).
+References
+[1] The Quantum Insider. Quantum myth busters: Experts debunk common nisq-era myths. The Quantum Insider,
+January 2025.
+[2] Quantum Zeitgeist. Quantum hype vs. reality: What can we really expect? Quantum Zeitgeist, January 2025.
+21
+
+
+A PREPRINT - NOVEMBER 20, 2025
+[3] Philip Ball. Don’t believe the hype — quantum tech can’t yet solve real-world problems. Nature, April 2025.
+[4] Scott Aaronson. Google, d-wave, and the case of the factor-108 speedup for what?
+Shtetl-Optimized Blog,
+December 2016.
+[5] PostQuantum. Quantum winter warning: Why overhype and the qci saga could trigger a funding crisis. PostQuan-
+tum.com, September 2025.
+[6] Davide Castelvecchi. Experts weigh in on microsoft’s topological qubit claim. APS Physics, March 2025.
+[7] Carnegie Mellon University. Solving quadratic unconstrained binary optimization models on quantum computers.
+INFORMS TutORials, 2025.
+[8] Prashanti Priya Angara, Danylo Lykov, Ulrike Stege, Yuri Alexeev, and Hausi Müller. A penalty-free approach to
+constrained combinatorial optimization with qaoa. arXiv preprint arXiv:2503.10077, April 2024.
+[9] Anonymous Industry Expert. Quantum optimization reality check, 2024. Private communication discussing
+limitations of QUBO formulations in practical optimization.
+[10] MathWorks. Constraints in qubo problems. MATLAB Documentation, 2024.
+[11] Meerzhan Kanatbekova, Vincenzo De Maio, and Ivona Brandic. Qubit-efficient qubo formulation for constrained
+optimization problems. arXiv preprint arXiv:2509.08080, April 2023.
+[12] Thomas C Schelling. Dynamic models of segregation. Journal of mathematical sociology, 1(2):143–186, 1971.
+[13] William AV Clark and Mark Fossett. Understanding the social context of the schelling segregation model.
+Proceedings of the National Academy of Sciences, 105(11):4109–4114, 2008.
+[14] Daniel Silver, Ullrich Byrne, and Patrick Adler. Venues and segregation: A revised Schelling model. PLoS ONE,
+16(1):e0242611, 2021.
+[15] David Abella, Maxi San Miguel, and José J. Ramasco. Aging effects in Schelling segregation model. Scientific
+Reports, 12:19376, 2022.
+[16] Daniele Gambetta, Giovanni Mauro, and Luca Pappalardo. Mobility constraints in segregation models. Scientific
+Reports, 13:12087, 2023.
+[17] Chathika Gunaratne, Bistra Dilkina, and Ivan Garibay. Generating mixed patterns of residential segregation: An
+evolutionary approach. Journal of Artificial Societies and Social Simulation, 26(2):7, 2023.
+[18] Bo Xu, William A. V. Clark, and Myungje Pak. Homophily, selection, and choice in segregation models.
+Proceedings of the National Academy of Sciences, 121(7):e2313752121, 2024.
+[19] John Preskill. Quantum computing in the nisq era and beyond. Quantum, 2:79, 2018.
+[20] Luca Kreisel, Niclas Boehmer, Vincent Froese, and Rolf Niedermeier. Equilibria in schelling games: Computa-
+tional hardness and robustness. In Proceedings of the 21st International Conference on Autonomous Agents and
+Multiagent Systems (AAMAS), pages 761–769. IFAAMAS, 2022.
+[21] Richard P. Feynman. QED: The Strange Theory of Light and Matter. Princeton University Press, Princeton, NJ,
+1985. "The theory of quantum electrodynamics describes Nature as absurd from the point of view of common
+sense. And it agrees fully with experiment.".
+[22] Mark Howard, Joel J. Wallman, Victor Veitch, and Joseph Emerson. Contextuality supplies the ’magic’ for
+quantum computation. Nature, 510(7505):351–355, 2014. Shows contextuality is necessary (and precisely the
+resource) for universal quantum computation via magic-state distillation.
+[23] Scott Aaronson. Shtetl-optimized blog. https://scottaaronson.blog/?p=8329#:~:text=different%
+20ways,1990s, 2023. Accessed: 2025-10-14.
+[24] XPRIZE Foundation. Xprize quantum applications overview. https://www.xprize.org/prizes/qc-apps,
+2025. Accessed: 2025-10-12.
+[25] Alexander M. Dalzell, Sam McArdle, Mario Berta, Przemyslaw Bienias, Chi-Fang Chen, András Gilyén, Connor T.
+Hann, Michael J. Kastoryano, Emil T. Khabiboulline, Aleksander Kubica, Grant Salton, Samson Wang, and
+Fernando G. S. L. Brandão. Quantum Algorithms: A Survey of Applications and End-to-end Complexities.
+Cambridge University Press, April 2025.
+[26] Tien D Kieu. Hypercomputation with quantum adiabatic processes. Theoretical Computer Science, 317(1-3):93–
+104, 2004.
+[27] Dorit Aharonov, Wim van Dam, Julia Kempe, Zeph Landau, Seth Lloyd, and Oded Regev. Adiabatic quantum
+computation is equivalent to standard quantum computation. In Proceedings, 2008.
+22
+
+
+A PREPRINT - NOVEMBER 20, 2025
+[28] Dafa Li and Man-Hong Yung. Why the quantitative condition fails to reveal quantum adiabaticity. New Journal of
+Physics, 16(5):053023, 2014.
+[29] M. Halem and J. LeMoigne. A quantum annealing computer team addresses climate change predictability.
+Technical report, National Aeronautics and Space Administration, 2016.
+[30] Omar Costa Hamido. Qac: Quantum-computing aided composition. arXiv e-prints, pages arXiv–2202, 2022.
+[31] Quantum Zeitgeist. Quantum annealing vs. gate-based quantum computing: Key differences. Quantum Zeitgeist,
+November 2024.
+[32] PostQuantum. Adiabatic quantum (aqc) and cyber (2024 update). PostQuantum.com, September 2025.
+[33] Aleta Berk Finnila, Maria A Gomez, C Sebenik, Catherine Stenson, and Jimmie D Doll. Quantum annealing: A
+new method for minimizing multidimensional functions. Chemical physics letters, 219(5-6):343–348, 1994.
+[34] Tadashi Kadowaki and Hidetoshi Nishimori. Quantum annealing in the transverse ising model. Physical Review
+E, 58(5):5355, 1998.
+[35] Bruno Apolloni, C Carvalho, and Diego De Falco. Quantum stochastic optimization. Stochastic Processes and
+their Applications, 33(2):233–244, 1989.
+[36] Max Born and Vladimir Fock. Beweis des adiabatensatzes. Zeitschrift für Physik, 51(3):165–180, 1928.
+[37] Edward Farhi, Jeffrey Goldstone, Sam Gutmann, and Michael Sipser. Quantum computation by adiabatic evolution.
+arXiv preprint quant-ph/0001106, 2000.
+[38] PostQuantum. D-wave claims quantum supremacy with quantum annealing. PostQuantum.com, September 2025.
+[39] Shuxian Jiang, Keith A Britt, Alexander J McCaskey, Travis S Humble, and Sabre Kais. Quantum annealing for
+prime factorization. Scientific reports, 8(1):17667, 2018.
+[40] Masaaki Maezawa, Go Fujii, Mutsuo Hidaka, Kentaro Imafuku, Katsuya Kikuchi, Hanpei Koike, Kazumasa
+Makise, Shuichi Nagasawa, Hiroshi Nakagawa, Masahiro Ukibe, et al. Toward practical-scale quantum annealing
+machine for prime factoring. Journal of the Physical Society of Japan, 88(6):061012, 2019.
+[41] WangChun Peng, BaoNan Wang, Feng Hu, YunJiang Wang, XianJin Fang, XingYuan Chen, and Chao Wang.
+Factoring larger integers with fewer qubits via quantum annealing with optimized parameters. SCIENCE CHINA
+Physics, Mechanics & Astronomy, 62(6):60311, 2019.
+[42] Scott Aaronson. Quantum computing since Democritus. Cambridge University Press, 2013.
+[43] Troels F Rønnow, Zhihui Wang, Joshua Job, Sergio Boixo, Sergei V Isakov, David Wecker, John M Martinis,
+Daniel A Lidar, and Matthias Troyer. Defining and detecting quantum speedup. science, 345(6195):420–424,
+2014.
+[44] Xu Chen, Li Wang, and Ming Zhang. A framework for automatically setting multiple penalty weights in qubo.
+ACM Computing Surveys, August 2025.
+[45] Dietrich Stauffer and Sorin Solomon. Social applications of two-dimensional ising models. American Journal of
+Physics, 76(4):470–473, 2008.
+[46] Carlos E Laciana and Santiago L Rovere. Ising-like agent-based technology diffusion model: adoption patterns vs.
+seeding strategies. Physica A: Statistical Mechanics and its Applications, 390(6):1139–1149, 2011.
+[47] Laetitia Gauvin et al. The ising model celebrates a century of interdisciplinary contributions. Nature Reviews
+Physics, 6:435–452, 2024.
+[48] Dietrich Stauffer and Sorin Solomon. Ising, schelling and self-organising segregation. The European Physical
+Journal B, 57:473–479, 2007.
+[49] Andrew Maciejunes and Ross Gore. schelling-qubo: A reduction of the schelling model of segregation to qubo.
+https://github.com/rossgore/schelling-qubo, 2025. GitHub repository, accessed October 2025.
+[50] Andrew M Childs, Richard Cleve, Enrico Deotto, Edward Farhi, Sam Gutmann, and Daniel A Spielman. Expo-
+nential algorithmic speedup by a quantum walk. In Proceedings of the thirty-fifth annual ACM symposium on
+Theory of computing, pages 59–68, 2003.
+[51] Andrew M. Childs, Matthew Coudron, and Amin Shiraz Gilani. Quantum algorithms and the power of forgetting.
+In 14th Innovations in Theoretical Computer Science Conference (ITCS 2023), volume 251 of Leibniz International
+Proceedings in Informatics, pages 37:1–37:22. Schloss Dagstuhl – Leibniz-Zentrum für Informatik, 2023.
+[52] Michael Sipser. Introduction to the theory of computation. ACM Sigact News, 27(1):27–29, 1996.
+[53] Phillip Kaye, Raymond Laflamme, and Michele Mosca. An Introduction to Quantum Computing. Oxford
+University Press, Inc., USA, 2007.
+23
+
+
+A PREPRINT - NOVEMBER 20, 2025
+[54] Uri Wilensky and William Rand. An Introduction to Agent-Based Modeling: Modeling Natural, Social, and
+Engineered Complex Systems with NetLogo. MIT Press, Cambridge, MA, 2015.
+[55] Joshua M. Epstein and Robert Axtell. Growing Artificial Societies: Social Science from the Bottom Up. Complex
+Adaptive Systems. MIT Press, Cambridge, MA, 1996.
+[56] Charles M. Macal and Michael J. North. Tutorial on agent-based modelling and simulation. Journal of Simulation,
+4(3):151–162, 2010.
+[57] Sage Anastasi and Giulio Dalla Riva. Schelling segregation dynamics in densely-connected social network graphs.
+arXiv preprint arXiv:2504.16307, 2025.
+[58] Aishwarya Agarwal, Edith Elkind, Jiarui Gan, Ayumi Igarashi, Warut Suksompong, and Alexandros A Voudouris.
+Schelling games on graphs. Artificial Intelligence, 301:103576, 2021.
+[59] Abhinav Singh, Dmitri Vainchtein, and Howard Weiss. Schelling’s segregation model: Parameters, scaling, and
+aggregation. Demographic Research, 21:341–366, 2009.
+[60] Alexander Tsiatas. Population density and diversity: an update to schelling’s model. University of California San
+Diego, 2009.
+[61] Ana Domic and Thomas Valente. Dynamics on complex networks and segregation patterns. Complexity Science,
+16(7):234–251, 2011.
+[62] Amaud Banos. Network effects in schelling’s model of segregation: new evidence from agent-based simulation.
+Environment and Planning B: Planning and Design, 39(2):393–405, 2012.
+[63] Wolfram MathWorld. Lollipop graph, 2007. Accessed October 2025.
+[64] Wikipedia. Lollipop graph, 2015. Accessed October 2025.
+[65] Duncan J Watts. Networks, dynamics, and the small-world phenomenon. American Journal of Sociology,
+105(2):493–527, 1999.
+[66] Christopher Hojny and Marc E. Pfetsch. Worst-case analysis of clique mips. Optimization Online, 2021.
+[67] Frank Arute, Kunal Arya, Ryan Babbush, Dave Bacon, Joseph C Bardin, Rami Barends, Rupak Biswas, Sergio
+Boixo, Fernando GSL Brandao, David A Buell, et al. Quantum supremacy using a programmable superconducting
+processor. Nature, 574(7779):505–510, 2019.
+[68] Edwin Pednault, John A Gunnels, Giacomo Nannicini, Lior Horesh, and Robert Wisnieff. Leveraging secondary
+storage to simulate deep 54-qubit sycamore circuits. arXiv preprint arXiv:1910.09534, 2019. Available at:
+https://arxiv.org/abs/1910.09534.
+[69] Michael Jarret. Schelling — High-Performance Experiments, 2025.
+[70] Jackie Kazil, David Masad, and Andrew Crooks. Utilizing python for agent-based modeling: The mesa framework.
+In Robert Thomson, Halil Bisgin, Christopher Dancy, Ayaz Hyder, and Muhammad Hussain, editors, Social,
+Cultural, and Behavioral Modeling, pages 308–317, Cham, 2020. Springer International Publishing.
+[71] Y. Pushak and H. H. Hoos. Advanced statistical analysis of empirical performance scaling. In Proceedings of the
+Genetic and Evolutionary Computation Conference (GECCO), pages 1333–1341, 2020.
+[72] Anshuman Kumar, Vaibhav Sood, and Sumeet Khatri. Hybrid quantum-classical multi-agent pathfinding. Pro-
+ceedings of the International Conference on Automated Planning and Scheduling, 35:301–309, 2025.
+[73] Juraj Kluˇcka, Claude Klöckl, Yannick Baum, and Martin Leib. Quantum annealing for realistic traffic flow
+optimization. arXiv preprint arXiv:2510.06053, 2024.
+[74] Qizi Zhang and Jerome Busemeyer. A quantum walk model for idea propagation in social network and group
+decision making. Entropy, 23(5):584, 2021.
+[75] Shunto Izumi, Yuki Koreeda, and Etsuo Segawa. Discrete-time quantum walk on complex networks for community
+detection. Physical Review Research, 2(2):023378, 2020.
+[76] Yuri Ozhigov. Quantum computer can not speed up iterated applications of a black box. In NASA International
+Conference on Quantum Computing and Quantum Communications, pages 152–159. Springer, 1998.
+[77] Jacob Bringewatt and Michael Jarret. Effective gaps are not effective: Quasipolynomial classical simulation of
+obstructed stoquastic hamiltonians. Phys. Rev. Lett., 125:170504, Oct 2020.
+[78] András Gilyén, Matthew B. Hastings, and Umesh Vazirani. (sub)exponential advantage of adiabatic quantum
+computation with no sign problem. In Proceedings of the 53rd Annual ACM SIGACT Symposium on Theory of
+Computing, STOC 2021, page 1357–1369, New York, NY, USA, 2021. Association for Computing Machinery.
+[79] CASRAI CRediT. Contributor roles taxonomy. URL: https://credit.niso.org, 2022.
+24

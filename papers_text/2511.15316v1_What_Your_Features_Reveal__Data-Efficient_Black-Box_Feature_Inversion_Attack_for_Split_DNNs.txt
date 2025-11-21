@@ -1,0 +1,1424 @@
+What Your Features Reveal: Data-Efficient Black-Box Feature Inversion Attack
+for Split DNNs
+Zhihan Ren, Lijun He†, Jiaxi Liang, Xinzhu Fu, Haixia Bi, Fan Li
+Xi’an Jiaotong University
+Xi’an, 710049, China
+{renzh,liangjiaxi,xinzhufu}@stu.xjtu.edu.cn, {lijunhe,haixia.bi,lifan}@mail.xjtu.edu.cn
+Abstract
+Split DNNs enable edge devices by offloading intensive
+computation to a cloud server, but this paradigm exposes
+privacy vulnerabilities, as the intermediate features can be
+exploited to reconstruct the private inputs via Feature In-
+version Attack (FIA). Existing FIA methods often produce
+limited reconstruction quality, making it difficult to assess
+the true extent of privacy leakage. To reveal the privacy
+risk of the leaked features, we introduce FIA-Flow, a black-
+box FIA framework that achieves high-fidelity image re-
+construction from intermediate features. To exploit the se-
+mantic information within intermediate features, we de-
+sign a Latent Feature Space Alignment Module (LFSAM)
+to bridge the semantic gap between the intermediate fea-
+ture space and the latent space. Furthermore, to rectify dis-
+tributional mismatch, we develop Deterministic Inversion
+Flow Matching (DIFM), which projects off-manifold fea-
+tures onto the target manifold with one-step inference. This
+decoupled design simplifies learning and enables effective
+training with few image–feature pairs. To quantify privacy
+leakage from a human perspective, we also propose two
+metrics based on a large vision-language model. Experi-
+ments show that FIA-Flow achieves more faithful and se-
+mantically aligned feature inversion across various models
+(AlexNet, ResNet, Swin Transformer, DINO, and YOLO11)
+and layers, revealing a more severe privacy threat in Split
+DNNs than previously recognized.
+1. Introduction
+Deep neural networks (DNNs) have demonstrated remark-
+able performance in various applications, including au-
+tonomous driving [3, 37], smart security [27, 28, 36], and
+smart mobile devices [8, 21, 39, 42]. Although performance
+gains are largely driven by increasing model scale and
+architectural complexity [14], the resulting computational
+demands render on-device implementation impractical for
+Edge Device
+Cloud Server
+Private 
+Inputs
+Head 
+Submodel
+Tail 
+Submodel
+Predicted Class
+[Sweatshirt]
+①Black-Box Attack
+w/o Head Submodel
+Attack Result 
+FIA Model
+Head 
+Submodel
+③Sample-Specific Optimization
+①
+White-Box 
+Attack
+w Head 
+Submodel
+②Multi-Step Inversion
+(a) Pipeline of Split DNNs
+(b) Pipeline of the existing FIA method
+(c) Pipeline of Proposed FIA-Flow
+Loss
+Loss
+FIA-Flow
+②One-Step Inversion
+Attack Result 
+③General Model Training
+Intermediate 
+Features
+Figure 1. (a) The pipeline of Split DNNs, which exposes inter-
+mediate features and creates an attack surface. (b) Existing FIA
+methods achieve inversion via white-box, sample-specific itera-
+tive feature matching for each input. (c) In contrast, FIA-Flow is
+trained once on a proxy dataset, learning to perform fast one-step
+inversion for any unseen input.
+resource-constrained edge devices. To offload the majority
+of computation to cloud servers, Split DNNs have been pro-
+posed [13, 45], which divide a DNN into a lightweight head
+submodel on edge devices and a computationally intensive
+tail submodel on cloud servers, as shown in Fig. 1(a). The
+effectiveness of split computing critically depends on iden-
+tifying optimal partition points that balance edge computa-
+tion, cloud processing, and communication overhead across
+different model architectures and edge device capabilities.
+Beyond computational efficiency, split computing is of-
+ten regarded as a privacy-preserving technique, as raw input
+arXiv:2511.15316v1  [cs.CV]  19 Nov 2025
+
+
+Table 1. Key characteristics and capabilities of various FIA meth-
+ods. † and ‡ denote the different settings of DMB.
+Method
+Black-Box
+Attack
+Efficient
+Inference
+Model Applicability
+(Training Numbers)
+M&V [32]
+✘
+✘
+Sample-Specific
+DIP [5]
+✘
+✘
+Sample-Specific
+SG-DIP [24]
+✘
+✘
+Sample-Specific
+DRAG [20]
+✘
+✘
+Sample-Specific
+AR [40]
+✘
+✔
+General (1.28M)
+DIA [2]
+✔
+✘
+General (40, 000)
+DMB† [53]
+✔
+✘
+General (4, 096)
+DMB‡ [53]
+✘
+✘
+Sample-Specific
+FIA-Flow
+✔
+✔
+General (< 4, 096)
+data remains on the client’s local device [1, 13, 15, 34, 44].
+However, with the enhanced capabilities of image gen-
+eration [16, 17], this assumption requires serious recon-
+sideration. While classic model inversion attacks (MIA)
+[12, 22, 23, 30, 50, 55] exploit final model outputs to recon-
+struct training data, split computing exposes intermediate
+feature representations during transmission, creating a more
+direct and vulnerable attack surface. The potential adver-
+saries include malicious attackers intercepting transmitted
+features and curious cloud servers analyzing user features
+beyond their intended computational scope.
+This gives rise to the feature inversion attack (FIA),
+which aims to reconstruct the original input images from
+intermediate features. Despite growing research interest in
+this threat model, existing FIA methods face three limi-
+tations (shown in Fig. 1(b) and Table 1): (i) White-box
+assumptions: Most existing approaches assume white-box
+access to model architectures and weights [5, 20, 24, 32,
+40], limiting their generalization to diverse real-world split
+computing deployments.
+(ii) Heavy data dependence:
+Learning-based methods [2, 53] typically require extensive
+training datasets with paired features and ground-truth im-
+ages, which are difficult to obtain in realistic scenarios. (iii)
+High computational cost: Optimization-based approaches
+[5, 20, 24, 32, 53] require thousands of iterative optimiza-
+tion steps per sample, making real-time attacks infeasible
+and easily detectable due to excessive query patterns.
+To address these limitations, we propose FIA-Flow, a
+black-box FIA framework built on an alignment-refinement
+paradigm that simultaneously achieves one-step inference
+and data-efficient training, as shown in Fig. 1(c). Specifi-
+cally, the alignment stage employs a Latent Feature Space
+Alignment Module (LFSAM) that bridges the semantic gap
+between task-specific intermediate features and generative
+latent spaces. LFSAM progressively fuses multi-channel
+information and adapts to diverse network layers and ar-
+chitectures, mapping the intermediate feature into a struc-
+turally aligned latent representation. Furthermore, the re-
+finement stage develops the Deterministic Inversion Flow
+Matching (DIFM), inspired by flow-matching (FM) [26].
+Unlike conventional generative models [29, 56], DIFM
+learns a deterministic vector field to project these coarsely
+aligned features onto the natural data manifold, correcting
+distributional mismatch and recovering fine-grained visual
+details. Crucially, FIA-Flow operates in a black-box set-
+ting, requiring only query access to intermediate features,
+and can be trained effectively with a small collection (fewer
+than 4, 096 image-feature pairs, i.e., < 0.32% of ImageNet-
+1K), making it highly practical for real-world split comput-
+ing scenarios. The main contributions are as follows:
+• Black-box FIA framework: We propose FIA-Flow, a
+black-box FIA framework that can eliminate iterative op-
+timization without requiring access to the victim model,
+thereby revealing the risks present in split computing.
+• Data-efficient alignment-refinement strategy: We de-
+couple the FIA task into a two-stage paradigm combining
+LFSAM for cross-space feature mapping and DIFM for
+distributional correction with few samples.
+• One-Step Inference via DIFM: We develop DIFM that
+learns a deterministic vector field to enable high-fidelity
+reconstruction in a single forward pass, eliminating the
+iterative optimization of optimization-based methods and
+multi-step sampling of diffusion-based FIA models.
+2. Method
+2.1. Overview and Problem Formulation
+Let M : X →F denote the head submodel of the victim
+Split DNN system, where X ⊆RH×W ×C is the space of
+private input images. For a given input x ∈X, the model
+M produces an intermediate feature f = M(x) at a spe-
+cific split layer, where f ∈F ⊆RDf and Df is the fea-
+ture dimension. The primary objective of FIA is to learn
+an inversion mapping G : F →X that can reconstruct the
+original input x′ from its corresponding feature f, such that
+the reconstructed image x′ = G(f) ≈x is perceptually and
+semantically indistinguishable from the original input x.
+Our attack operates under a black-box assumption,
+where the architecture and parameters of M are unknown.
+We can only query to obtain a set of image-feature pairs
+D = {(xi, fi)}N
+i=1 for training. To achieve this, FIA-Flow
+adopts an alignment-refinement strategy, as shown in Fig. 2.
+We decouple the complex inversion mapping G into a two-
+stage process: a structural alignment stage and a semantic
+refinement stage, which can be formulated as:
+x′ = G(f) = Dec(Grefine(Galign(f)))
+(1)
+Dec : Z →X denotes the decoder of Variational Autoen-
+coder (VAE) [18]. The alignment stage Galign : F →Z
+establishes structural correspondence by aligning the task-
+relevant feature spaces and latent space of the VAE. How-
+
+
+Proxy Inputs
+Attack Result 
+VAE
+Decoder
+Intermediate
+Features
+𝑥
+𝑓
+𝑥′
+FIA-Flow
+VAE
+Decoder
+𝑧𝑥
+𝑧𝑠
+Ƹ𝑧𝑥
+VAE Latent Space
+Task-Relevant Feature Space
+VAE
+Encoder
+Coarse 
+Structural Alignment
+𝑧𝑠
+Ƹ𝑧𝑥
+𝑧𝑥
+𝑓
+Proxy Image-Feature 
+Pairs For Training
+Trainable Module
+Frozen Module
+High-Fidelity 
+Reconstruction
+LFSAM
+Deterministic 
+Inversion FM
+Intra-Space 
+Semantic Refinement
+Cross-Space 
+Feature Alignment
+Figure 2. The pipeline of FIA-Flow. The method reconstructs a private image x from the corresponding intermediate features f. It first
+maps f to a latent code zs by the Latent Feature Space Alignment Module, then uses the Deterministic Inversion Flow Matching module
+to refine it into ˆzx. Finally, the attack image x′ is obtained by a pre-trained VAE decoder from ˆzx.
+ever, this alignment primarily yields an off-manifold repre-
+sentation, which lacks the semantic richness. Therefore, the
+refinement stage Grefine : Z →Z performs intra-space se-
+mantic enhancement, correcting the distributional mismatch
+to ensure high-fidelity inversion.
+2.2. Latent Feature Space Alignment Module
+Motivation and Objective
+A fundamental challenge in
+FIA arises from the space gap between F and the latent
+space Z. Since F is task-specific and optimized for classi-
+fication rather than synthesis, its structure is inherently in-
+compatible with the manifold of Z [51]. Therefore, a direct
+mapping from feature f to image x is ill-posed. To bridge
+this gap, we propose the LFSAM to transform a given inter-
+mediate feature f into a latent tensor zs = Galign(f), which
+is designed to be both dimensionally compatible and struc-
+turally aligned with the latent space of VAE. The VAE is
+selected for its continuity and structured latent space, of-
+fering an ideal manifold for stable and coherent refinement
+[6]. Meanwhile, the low-dimensional latent space reduces
+the complexity of the hypothesis class, making alignment
+learning easier to generalize under few-sample conditions
+[48]. This enables FIA-Flow to effectively learn and ex-
+trapolate robustly to unseen features.
+Cross-Space Feature Alignment
+LFSAM comprises a
+learned upsampling module, a backbone, and a Feature
+Aggregation Network (FAN) to synthesize a comprehen-
+sive latent representation. To accommodate features with
+varying resolutions across different network layers, we
+employ a PixelShuffle-based spatialization layer PS
+:
+R(r2Cin×Hin×Win) →R(Cin×rHin×rWin).
+Unlike stan-
+dard interpolation, this operation provides a learned trans-
+formation that unfolds channel-encoded spatial information
+into an explicit geometric grid.
+The backbone B(·) processes f through a hierar-
+chical encoder, which extracts a set of feature maps
+{e1, e2, . . . , eL}.
+Its corresponding decoder reconstructs
+the output progressively from the deepest feature level. Cru-
+cially, at each stage, the decoder integrates features from the
+corresponding encoder stage via skip connections, a process
+formulated as di+1 = D(concat(di, ei)). To capture global
+context and long-range spatial dependencies, we embed
+self-attention mechanisms within the backbone layers, pro-
+ducing Fd = B(f). Meanwhile, FAN projects each ei into
+a shared space via 1 × 1 convolutions ϕi then concatenates
+and fuses them: Ffan = Convfuse(concatL
+i=1(ϕi(ei))). The
+final aligned feature is:
+zs = Convout(Fd + Ffan),
+(2)
+which serves as a structural alignment feature for the subse-
+quent refinement stage.
+2.3. Deterministic Inversion Flow Matching
+Motivation and Objective
+With the space-aligned latent
+feature zs obtained from LFSAM, we aim to generate a
+photorealistic inversion image x′ that closely resembles the
+private input x. A naive approach involves directly decod-
+ing the aligned feature zs using a pre-trained VAE decoder
+x′ = Dec(zs). However, experimental results demonstrate
+that this straightforward method produces suboptimal re-
+sults with severe blurriness and semantic inconsistencies.
+
+
+The core issue is a distributional mismatch between the
+aligned features and the natural data manifold. Although
+LFSAM ensures that zs conforms to the dimensional re-
+quirements of the VAE latent space, it fails to guarantee that
+zs follows the same distribution as the authentic latent fea-
+ture generated by the VAE encoder from natural images.
+Since zs originates from a task-specific feature transforma-
+tion, it likely resides in off-manifold regions of the latent
+space Z. The VAE decoder is trained exclusively on on-
+manifold samples, cannot interpret out-of-distribution in-
+puts, resulting in degraded reconstruction quality. There-
+fore, we propose the DIFM to enhance semantic expressive-
+ness based on the previous structural alignment.
+Intra-Space Feature Enhancement
+To overcome the
+limitations of direct decoding, we reframe zs as a high-
+quality starting point for a generative process rather than
+a final latent feature. We employ the DIFM to learn a deter-
+ministic vector field vθ(z, t) that transforms the distribution
+of our structurally-aligned features p0 = p(zs) to the target
+data distribution p1 = p(zx), where zx = Enc(x). This ap-
+proach adapts the standard FM framework by replacing the
+conventional Gaussian prior p′
+0 = N(0, I) with our mean-
+ingful initializations p(zs).
+Specifically, we define a linear interpolation path be-
+tween the starting point zs and its corresponding target zx
+as zt = t · zx + (1 −t) · zs for t ∈[0, 1]. DIFM is trained
+to approximate this target field ut = dzt/dt = zx −zs.
+Once trained, this learned vector field defines the trajec-
+tory of each point via the probability flow ordinary differen-
+tial equation (ODE), dˆzt/dt = vθ(ˆzt, t), and the continuity
+equation describes its distributional evolution:
+∂tpt(z) + ∇z · (pt(z)vθ(z, t)) = 0.
+(3)
+This equation formalizes the desired behavior of vθ(z, t),
+ensuring it guides the population of points from the initial
+distribution p0 to the target data distribution p1. Since LF-
+SAM already produces zs close to zx, the learned vector
+field is simple, allowing us to replace an expensive ODE
+solver with a single forward Euler step from t = 0 to t = 1:
+ˆzx = ˆz1 = zs + vθ(zs, t = 0).
+(4)
+The final inversion image x′ is decoded by the VAE:
+x′ = Dec(ˆzx). By conditioning the generative process on
+a meaningful initialization, our strategy effectively trans-
+forms a complex generation task into a residual correction
+problem. This simplifies the learning dynamics of the vec-
+tor field, reducing the data requirements, thereby enabling
+high-fidelity inversion even with limited training samples.
+2.4. Training Strategy
+We adopt a two-stage training paradigm for the FIA task.
+This decoupled approach is designed first to establish a
+space alignment and then to optimize the generative model.
+Stage 1: Training the LFSAM. In the first stage, we train
+the LFSAM to learn a mapping from the task-relevant in-
+put features f to the VAE latent space. Our objective is to
+ensure that the LFSAM produces structured features zs that
+closely approximate the ground truth (GT) VAE latent fea-
+ture zx of the corresponding images x. We employ a pre-
+trained, frozen VAE encoder to obtain target latent codes
+zx = Enc(x). To ensure feature space alignment, we mini-
+mize the L2 distance between the zs and zx:
+Lfea = E(x,f)∼D
+
+∥zs −zx∥2
+2
+
+.
+(5)
+To enforce perceptual coherence, we apply an image-
+domain reconstruction loss. We decode the generated latent
+zs, and minimize the L1 distance to the GT image x:
+Limg = E(x,f)∼D [∥Dec(zs) −x∥1] .
+(6)
+The total loss for Stage 1 is the sum of these two losses:
+Ls1 = Lfea + Limg.
+(7)
+Stage 1 ensures that the LFSAM learns a meaningful
+projection into the VAE latent space, providing a solid foun-
+dation for the subsequent stage.
+Stage 2: Training the DIFM. In the second stage, we
+freeze the LFSAM and train the DIFM, which takes the pre-
+computed features zs as a starting point and learns to gener-
+ate the final image x′. The training objective for this stage
+is a combination of two losses:
+1. Flow Matching Loss (Lfm): This is a regression loss
+that minimizes the L2 distance between the model’s pre-
+dicted vector field vθ(zt, t) and the target vector field ut:
+Lfm = Et∼U[0,1],(x,f)∼D
+
+∥vθ(zt, t) −ut∥2
+2
+
+.
+(8)
+2. Reconstruction Loss (Lrec): To ensure that the final
+output x′ is perceptually and semantically faithful to
+the original image x, we apply a reconstruction loss di-
+rectly in the image space. This loss is a combination of
+Learned Perceptual Image Patch Similarity (LPIPS) [52]
+loss and a pixel-wise L1 loss:
+Lrec = E(x,f)∼D [ LLPIPS(x′, x) + LL1(x′, x)] .
+(9)
+The final loss for Stage 2 is the sum of these two losses:
+Ls2 = Lfm + Lrec.
+(10)
+3. Experiments
+3.1. Datasets and Metrics
+Our experiments were conducted on a subset of ImageNet-
+1K [4]. Specifically, we randomly sample only 4,096 im-
+ages (< 0.32%) from the training set for training and 1,000
+images from the validation set for testing.
+
+
+[System]: You are “Image-Description-
+Expert,”
+an
+image
+analysis
+specialist.
+Task: Describe in detail all content in the
+image…
+[Prompt]: Please describe in detail all the
+content contained in this image.
+[Response]: {… "detailed_description": 
+“The image depicts a group of individuals 
+participating in a running event or exercise 
+session. The scene is set outdoors, …” …} 
+[Inversion 
+Image]: 
+[System]: You are “Image-Description-
+Expert,”
+an
+image
+analysis
+specialist.
+Task: Describe in detail all content in the
+image…
+[Prompt]: Please describe in detail all the
+content contained in this image.
+[Response]: {… "detailed_description": 
+“The image depicts a group of people 
+participating in an outdoor event, likely 
+related to sports or a community…” …}
+[Original
+Image]: 
+[System]: You are "Image-Leak-Inspector" a multimodal forensics and privacy analysis expert. You will receive
+detailed descriptions of two images: 1. Original image description (id=original); 2. Suspected eavesdropping image
+description (id=suspect). …Identify common objects (categories or specific instances) mentioned in both descriptions …
+[Prompt]: Please compare the descriptions of the following two images, determine if they are consistent, and if there
+are privacy leakage issues:. Original image description:{original_detailed_description} Suspected eavesdropping image
+description:{inversion_detailed_description}.
+[Response]: {… "result": "consistent" …}
+LVLM-PL = BERTScore( {original_detailed_description}, {inversion_detailed_description} ) = 0.920
+LVLM-C = 1
+Figure 3. An illustration of LVLM-C and LVLM-PL evaluation. ①The LVLM is prompted to describe the original image. ②The LVLM is
+then prompted to describe the inversion image. ③The LVLM compares these two descriptions to ascertain if the same object is identified. A
+consistent result yields the LVLM-C value of 1. ④LVLM-PL is obtained by computing the BERTScore [54] between the two descriptions.
+We employ a comprehensive set of Image Quality As-
+sessment (IQA) metrics. For full-reference IQA, we use
+the Peak Signal-to-Noise Ratio (PSNR), Structural Simi-
+larity Index Measure (SSIM), and LPIPS [52].
+For no-
+reference IQA, we utilize the Natural Image Quality Eval-
+uator (NIQE) [33] and MANIQA [49].
+Furthermore, to
+measure the eavesdropping information accuracy, we as-
+sess the inversion image top-1 classification accuracy (Acc)
+with the GT label of the original image, using ResNet-50
+[7]. To assess private information leakage, we propose two
+novel metrics evaluated by Large Vision-Language Mod-
+els (LVLMs): LVLM-Consistency (LVLM-C) and LVLM-
+Privacy-Leakage (LVLM-PL). As shown in Fig.
+3, the
+LVLM acts as an Image Description Expert, generating tex-
+tual descriptions for both the original and inversion im-
+ages. These descriptions are compared by an Image Leak
+Inspector to determine whether they depict the same pri-
+mary object (LVLM-C) and to compute their semantic sim-
+ilarity via BERTScore [54] (LVLM-PL). Higher LVLM-C
+and LVLM-PL values indicate that the attacker can extract
+more detailed private information from the inversion im-
+age. In our implementation, we utilize gpt-4o-mini as the
+LVLM. See supplementary materials for the detailed calcu-
+lation process and an ablation study with other LVLM.
+3.2. Implementation Details
+We selected features.10 (F-10) of AlexNet [19], layer1.2
+(L1-2) and layer4.2 (L4-2) of ResNet-50 [7],
+fea-
+tures.3.0.mlp.2 (F3-2) of Swin Transformer (Swin-B) [31],
+model.8 (M-8) of YOLO11n [11], and blocks.11 (B-11) of
+DINOv2-B [35] as the victim layers and models for FIA.
+The DIFM is initialized with the pre-trained weights of Sta-
+ble Diffusion 2.1 [41]. To adapt it for the FIA task, we
+freeze the U-Net in the DIFM and integrate a Low-Rank
+Adaptation (LoRA) [10] model with a rank of r = 4. For
+both stages, we set the batch size to 8 and the learning rate
+to 0.0001, with each stage trained for 64, 000 iterations. All
+experiments were conducted on NVIDIA A100 GPUs.
+3.3. Main results
+We compare the proposed FIA-Flow with state-of-the-art
+FIA methods, including M&V [32], Deep Image Prior
+(DIP) [5], Adversarially Robust (AR) [40], Self-Guided
+DIP (SG-DIP) [24]. Additionally, we compared against a
+baseline FIA-Align that solely employs LFSAM for feature
+space alignment, followed by VAE decoding.
+Quantitative Results
+Table 2 shows the results of differ-
+ent FIA methods for various victim models and layers. For
+AlexNet, FIA-Flow achieves an Acc of 28.8%, showing a
+significant advantage over other methods. For ResNet-50,
+when dealing with information-rich shallow features (L1-
+2), FIA-Flow can achieve an outstanding Acc of 71.3%.
+This performance remains robust even when dealing with
+deep features from the L4-2 layer, which typically suffer
+from substantial information loss. While other methods ex-
+perience a dramatic degradation in image quality, leading to
+significant drops in both Acc and LVLM-based evaluations,
+FIA-Flow maintains an Acc of 36.8% and an LVLM-PL of
+0.902. Furthermore, experiments on the Swin Transformer
+
+
+Table 2. The performance comparison among different FIA methods. Bold indicates the best result of all methods.
+Model
+Layer
+Method
+PSNR ↑SSIM ↑LPIPS ↓Acc ↑LVLM-C ↑LVLM-PL ↑NIQE ↓MANIQA ↑
+AlexNet
+F-10
+M&V
+13.55
+0.500
+0.730
+0.0
+1.2
+0.860
+5.853
+0.4303
+DIP
+15.45
+0.422
+0.585
+16.1
+10.6
+0.880
+5.988
+0.2763
+AR
+18.65
+0.508
+0.574
+4.1
+4.8
+0.880
+5.874
+0.3258
+SG-DIP
+11.07
+0.257
+0.778
+1.2
+3.6
+0.865
+5.603
+0.2950
+FIA-Align
+20.46
+0.607
+0.620
+5.7
+9.3
+0.883
+10.927
+0.2959
+FIA-Flow
+20.64
+0.603
+0.405
+28.8
+16.6
+0.900
+6.243
+0.4956
+ResNet-50
+L1-2
+M&V
+13.83
+0.603
+0.593
+13.4
+17.5
+0.903
+5.392
+0.4938
+DIP
+25.73
+0.706
+0.236
+61.0
+39.9
+0.905
+5.504
+0.4565
+SG-DIP
+27.90
+0.754
+0.193
+65.2
+65.3
+0.922
+5.301
+0.4928
+FIA-Align
+29.86
+0.810
+0.157
+64.3
+70.0
+0.923
+5.136
+0.5622
+FIA-Flow
+30.01
+0.814
+0.100
+71.3
+70.1
+0.929
+4.408
+0.6131
+L4-2
+M&V
+13.55
+0.504
+0.851
+0.0
+3.0
+0.860
+7.577
+0.4359
+DIP
+13.60
+0.453
+0.711
+27.3
+9.4
+0.881
+7.152
+0.2592
+SG-DIP
+11.59
+0.309
+0.777
+8.1
+5.0
+0.872
+5.603
+0.3189
+FIA-Align
+20.36
+0.603
+0.643
+4.4
+6.3
+0.878
+11.309
+0.2969
+FIA-Flow
+20.31
+0.584
+0.397
+36.8
+18.0
+0.902
+5.098
+0.5628
+Swin-B
+F3-2
+M&V
+14.34
+0.628
+0.541
+38.1
+38.4
+0.913
+6.105
+0.4465
+DIP
+21.03
+0.735
+0.313
+61.7
+54.5
+0.920
+5.486
+0.4492
+SG-DIP
+25.15
+0.872
+0.191
+68.5
+62.3
+0.913
+5.520
+0.5362
+FIA-Align
+26.64
+0.771
+0.260
+53.6
+51.5
+0.919
+6.236
+0.4725
+FIA-Flow
+27.29
+0.780
+0.159
+70.6
+63.2
+0.925
+4.840
+0.5777
+YOLO11n
+M-8
+M&V
+7.59
+0.239
+0.890
+0.3
+1.2
+0.863
+6.715
+0.4702
+DIP
+14.09
+0.521
+0.572
+14.6
+18.2
+0.897
+6.796
+0.4168
+SG-DIP
+14.04
+0.518
+0.582
+12.1
+18.1
+0.899
+6.696
+0.4124
+FIA-Align
+20.56
+0.612
+0.627
+4.1
+7.1
+0.880
+11.056
+0.2958
+FIA-Flow
+20.90
+0.608
+0.437
+23.6
+23.9
+0.899
+6.528
+0.4968
+DINOv2-B
+B-11
+M&V
+13.53
+0.477
+0.868
+0.1
+0.7
+0.855
+13.533
+0.3324
+DIP
+13.45
+0.493
+0.833
+1.3
+4.9
+0.868
+8.497
+0.3316
+SG-DIP
+12.42
+0.345
+0.741
+17.7
+28.3
+0.905
+5.838
+0.3662
+FIA-Align
+19.92
+0.619
+0.609
+9.2
+16.7
+0.890
+10.340
+0.2709
+FIA-Flow
+20.13
+0.621
+0.411
+42.8
+30.4
+0.909
+6.304
+0.5079
+model (Swin-B), object detection model (YOLO11n), and
+foundation model (DINOv2-B) confirm the superiority of
+FIA-Flow, highlighting its broad applicability and effective-
+ness across diverse model architectures.
+Benefiting from the alignment-refinement strategy, FIA-
+Flow not only achieves a higher inversion quality on
+IQA metrics but also exhibits substantially better semantic
+preservation, as validated by Acc and LVLM-based metrics.
+This proves that FIA-Flow constitutes a more effective and
+practical privacy threat.
+Qualitative Results
+As shown in Fig. 4, our FIA-Flow
+outperforms other methods on both ResNet-50, Swin-B,
+YOLO11n, and DINOv2. While other methods fail or pro-
+duce blurry results, FIA-Flow can invert images with excep-
+tional clarity, accurately capturing fine details like the face,
+wireless router, and lighthouse. This visually confirms its
+state-of-the-art performance and robustness across diverse
+architectures. More visual results are available in the Sup-
+plementary Materials.
+Robustness Evaluation Under Defenses
+To verify the
+robustness of FIA-Flow under different defense mecha-
+nisms, we evaluate all methods against two representative
+defenses: Noise+NoPeek [46] and DISCO [43], as shown
+in Table 3 and Fig. 5. Under the Noise+NoPeek defense,
+where Laplacian noise is injected into intermediate features
+and a NoPeek strategy [47] is employed to restrict infor-
+mation leakage, FIA-Flow still outperforms other methods.
+Similarly, under the DISCO defense, which suppresses in-
+termediate features, FIA-Flow remains effective, recover-
+ing the original image with minimal samples. This demon-
+strates that FIA-Flow can effectively bypass defense mech-
+anisms and extract sensitive information, even in a black-
+box setting, without access to the defense’s implementation
+details and model parameters.
+Generalization Evaluation Across Diverse Datasets
+We evaluate on the MS COCO-2017 dataset [25] to demon-
+strate the generalization capability of FIA-Flow (See Ta-
+ble 4). To quantify privacy leakage beyond standard IQA,
+we introduce the Object Reconstruction Rate (ORR),
+which measures the consistency between the outputs of
+
+
+ResNet-50 
+L4-2
+Swin-B 
+F3-2
+YOLO11n
+M-8
+DINOv2
+B-11
+GT
+M&V
+DIP
+SG-DIP
+FIA-Align
+FIA-Flow
+Feature
+Figure 4. Visualization comparison of different FIA methods on various models.
+Original Feature
+DIP
+Original Feature
+DIP
+Defended Feature
+SG-DIP
+Defended Feature
+SG-DIP
+GT
+FIA-Align
+GT
+FIA-Align
+M&V
+FIA-Flow
+M&V
+FIA-Flow
+Figure 5. Visualization comparison on different defense mecha-
+nisms. Top row: visualizations under the Noise+NoPeek defense
+[46]. Bottom row: visualizations under the DISCO defense [43].
+a pre-trained detector (Faster R-CNN [38]) on the orig-
+inal and inverted images.
+Trained only on ImageNet
+and without fine-tuning on COCO, FIA-Flow achieves
+state-of-the-art performance compared to methods that re-
+Table 3. Robustness comparison under different defense mecha-
+nisms of Split DNNs on the L1–2 layer of ResNet-50.
+Defense Methods PSNR↑Acc↑LVLM-C↑LVLM-PL↑
+Noise
++
+NoPeek
+[46]
+M&V
+13.56
+0.0
+2.1
+0.861
+DIP
+21.87
+26.9
+41.5
+0.921
+SG-DIP
+21.69
+53.3
+49.1
+0.919
+FIA-Align 26.05
+38.3
+45.8
+0.911
+FIA-Flow
+27.70
+62.2
+55.0
+0.922
+DISCO
+[43]
+M&V
+13.57
+0.1
+1.0
+0.860
+DIP
+27.10
+35.9
+39.6
+0.914
+SG-DIP
+26.02
+43.7
+39.8
+0.910
+FIA-Align 26.49
+37.4
+38.7
+0.913
+FIA-Flow
+26.75
+59.0
+44.8
+0.916
+quire sample-specific optimization on target features. This
+cross-dataset generalization is mainly attributed to the
+alignment–refinement design of FIA-Flow, which learns a
+dataset-agnostic mapping from task features to the VAE la-
+tent space. High ORR obtained by FIA-Flow indicates that
+the inverted images retain task-relevant semantics for down-
+stream models, revealing a stronger privacy risk than IQA
+metrics alone capture. The definition of ORR and the com-
+plete results are shown in the Supplementary Materials.
+3.4. Ablation Studies
+We report the main ablation results on attack-layer robust-
+ness, data efficiency, and the diffusion sampling methods
+and steps in the main paper. Additional ablations and com-
+plete results are shown in the Supplementary Materials.
+
+
+Table 4. The performance comparison with different FIA methods
+on the COCO dataset. Bold indicates the best result of all methods.
+Method
+LPIPS ↓MANIQA ↑ORR0.5 ↑ORR0.75 ↑
+M&V
+0.700
+0.5191
+3.30
+2.20
+DIP
+0.332
+0.4464
+44.94
+33.40
+SG-DIP
+0.284
+0.4834
+50.41
+39.75
+FIA-Align
+0.195
+0.5981
+56.02
+45.84
+FIA-Flow
+0.115
+0.6626
+69.00
+59.33
+Figure 6. (a) Left: Performance comparison on the L4-2 layer with
+different training numbers of FIA-Flow. (b) Right: Performance
+comparison at different layers.
+Results on Different Training Numbers
+To test data
+efficiency, we trained on the ResNet-50 L4-2 layer us-
+ing datasets ranging from 4,096 (0.32%) down to just 128
+(0.01%) samples, shown in Table 5 and Fig. 6(a). Using
+only 128 samples (0.01%), FIA-Flow not only achieves a
+high Acc of 27.7% but also outperforms other methods. The
+data efficiency can be attributed to LFSAM, which enforces
+structural alignment with the latent space through feature
+rearrangement that matches its dimensionality and hierar-
+chical aggregation that reduces the mapping complexity and
+sample requirements.
+Results on Different Layers
+We evaluate FIA-Flow at
+various depths of ResNet-50, shown in Table 6 and Fig.
+6(b). While performance degrades in deeper layers, FIA-
+Flow consistently outperforms other methods across all vic-
+tim layers. Notably, its performance on the deep L3-2 layer
+(69.8% Acc) exceeds SG-DIP’s 65.2% on the shallow L1-
+2 layer. Despite the loss of spatial detail in deeper layers,
+FIA-Flow effectively uses high-level semantic information
+for accurate reconstruction. This capability underscores a
+serious privacy concern: FIA-Flow can recover visually de-
+tailed and semantically meaningful images from abstract
+representations.
+Results on Different Sampling Methods and Steps
+The
+performance gap between diffusion probabilistic model
+(DDPM) [9] and DIFM reflects not only efficiency but
+also methodological suitability for FIA. The iterative “add-
+noise, then-denoise” paradigm of DDPM is an indirect and
+Table 5. The performance comparison of FIA-Flow with different
+training numbers on L4-2 of ResNet-50.
+Number
+PSNR ↑Acc ↑LVLM-C ↑LVLM-PL ↑
+4,096(0.32%)
+20.31
+36.8
+18.0
+0.902
+1024(0.08%)
+20.04
+27.7
+14.5
+0.898
+256(0.02%)
+19.45
+31.1
+12.8
+0.900
+128(0.01%)
+19.01
+27.7
+12.5
+0.898
+Table 6. The performance comparison of FIA-Flow across differ-
+ent victim layers of ResNet-50.
+Layer
+PSNR ↑
+Acc ↑
+LVLM-C ↑
+LVLM-PL ↑
+L1-2
+30.01
+71.3
+70.1
+0.929
+L2-2
+29.65
+71.0
+69.8
+0.928
+L3-2
+26.29
+69.8
+63.4
+0.913
+L4-2
+20.31
+36.8
+18.0
+0.902
+Table 7. The performance comparison of FIA-Flow with different
+sampling methods and steps on L4-2 of ResNet-50.
+Methods Steps PSNR↑Acc↑LVLM-C↑LVLM-PL↑
+DDPM
+10
+20.09
+4.1
+5.8
+0.878
+50
+19.97
+4.9
+4.2
+0.876
+200
+19.95
+4.5
+4.8
+0.877
+DIFM
+1
+20.31
+36.8
+18.0
+0.902
+5
+19.61
+38.2
+37.3
+0.914
+10
+19.21
+36.9
+38.3
+0.914
+stochastic process designed for diverse sampling, making
+it difficult for the high-fidelity reconstruction of a spe-
+cific input. In contrast, FIA-Flow adopts a deterministic
+alignment-refinement paradigm, enabling efficient, high-
+fidelity inversion. As shown in Table 7, one-step DIFM
+is highly effective. Increasing sampling steps slightly de-
+creases PSNR but improves Acc and LVLM-based scores,
+suggesting increased privacy exposure.
+4. Conclusion
+In this work, we introduce FIA-Flow, a data-efficient black-
+box FIA framework for high-fidelity feature inversion in
+Split DNNs.
+Benefiting from the alignment-refinement
+strategy, FIA-Flow significantly outperforms state-of-the-
+art methods, especially in recovering details across diverse
+architectures and layers. FIA-Flow’s effectiveness and data
+efficiency demonstrate that Split DNNs face a more se-
+vere and practical privacy threat than previously recognized.
+These findings underscore the urgent need for designing ro-
+bust and efficient defense mechanisms that can mitigate pri-
+vacy risks while preserving model utility and inference per-
+formance.
+
+
+References
+[1] Nilesh Ahuja, Parual Datta, Bhavya Kanzariya, V Srinivasa
+Somayazulu, and Omesh Tickoo. Neural rate estimator and
+unsupervised learning for efficient distributed image analyt-
+ics in split-DNN models. In IEEE Conf. Comput. Vis. Pattern
+Recog., pages 2022–2030, 2023. 2
+[2] Dake Chen, Shiduo Li, Yuke Zhang, Chenghao Li, Souvik
+Kundu, and Peter A Beerel. DIA: Diffusion based inverse
+network attack on collaborative inference.
+In IEEE Conf.
+Comput. Vis. Pattern Recog. Worksh., pages 124–130, 2024.
+2
+[3] Li Chen, Penghao Wu, Kashyap Chitta, Bernhard Jaeger, An-
+dreas Geiger, and Hongyang Li.
+End-to-end autonomous
+driving: Challenges and frontiers. IEEE Trans. Pattern Anal.
+Mach. Intell., 2024. 1
+[4] Jia Deng, Wei Dong, Richard Socher, Li-Jia Li, Kai Li,
+and Li Fei-Fei. ImageNet: A large-scale hierarchical image
+database. In IEEE Conf. Comput. Vis. Pattern Recog., pages
+248–255, 2009. 4
+[5] Ulyanov Dmitry, Andrea Vedaldi, and Lempitsky Victor.
+Deep image prior. Int. J. Comput. Vis., 128(7):1867–1888,
+2020. 2, 5
+[6] Carl Doersch. Tutorial on variational autoencoders. arXiv
+preprint arXiv:1606.05908, 2016. 3
+[7] Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun.
+Deep residual learning for image recognition. In IEEE Conf.
+Comput. Vis. Pattern Recog., pages 770–778, 2016. 5
+[8] Lijun He, Zhihan Ren, Wanyue Zhang, Fan Li, and Shao-
+hui Mei. Unsupervised pansharpening based on double-cycle
+consistency. IEEE Transactions on Geoscience and Remote
+Sensing, 62:1–15, 2024. 1
+[9] Jonathan Ho, Ajay Jain, and Pieter Abbeel. Denoising dif-
+fusion probabilistic models. In Adv. Neural Inform. Process.
+Syst., pages 6840–6851, 2020. 8
+[10] Edward J. Hu, Yelong Shen, Phillip Wallis, Zeyuan Allen-
+Zhu, Yuanzhi Li, Shean Wang, Lu Wang, and Weizhu Chen.
+LoRA: Low-Rank Adaptation of Large Language Models. In
+Int. Conf. Learn. Represent., 2022. 5
+[11] Glenn Jocher and Jing Qiu. Ultralytics yolo11, 2024. 5
+[12] Mostafa Kahla, Si Chen, Hoang Anh Just, and Ruoxi Jia.
+Label-only model inversion attacks via boundary repulsion.
+In IEEE Conf. Comput. Vis. Pattern Recog., pages 15045–
+15053, 2022. 2
+[13] Yiping Kang, Johann Hauswald, Cao Gao, Austin Rovinski,
+Trevor Mudge, Jason Mars, and Lingjia Tang.
+Neurosur-
+geon: Collaborative intelligence between the cloud and mo-
+bile edge. ACM SIGARCH Computer Architecture News, 45
+(1):615–629, 2017. 1, 2
+[14] Jared Kaplan, Sam McCandlish, Tom Henighan, Tom B
+Brown, Benjamin Chess, Rewon Child, Scott Gray, Alec
+Radford, Jeffrey Wu, and Dario Amodei. Scaling laws for
+neural language models. arXiv preprint arXiv:2001.08361,
+2020. 1
+[15] Jyotirmoy Karjee, Praveen Naik, Kartik Anand, and Vana-
+mala N Bhargav. Split computing: Dnn inference partition
+with load balancing in iot-edge platform for beyond 5g. Mea-
+surement: Sensors, 23:100409, 2022. 2
+[16] Tero Karras, Samuli Laine, and Timo Aila. A style-based
+generator architecture for generative adversarial networks. In
+IEEE Conf. Comput. Vis. Pattern Recog., pages 4401–4410,
+2019. 2
+[17] Tero Karras, Samuli Laine, Miika Aittala, Janne Hellsten,
+Jaakko Lehtinen, and Timo Aila. Analyzing and improving
+the image quality of stylegan. In IEEE Conf. Comput. Vis.
+Pattern Recog., pages 8110–8119, 2020. 2
+[18] Diederik P Kingma and Max Welling. Auto-Encoding Vari-
+ational Bayes. arXiv preprint arXiv:1312.6114, 2013. 2
+[19] Alex Krizhevsky, Ilya Sutskever, and Geoffrey E Hinton.
+Imagenet classification with deep convolutional neural net-
+works. Communications of the ACM, 60(6):84–90, 2017. 5
+[20] Wa-Kin Lei, Jun-Cheng Chen, and Shang-Tse Chen. DRAG:
+Data reconstruction attack using guided diffusion.
+arXiv
+preprint arXiv:2509.11724, 2025. 2
+[21] Dawei Li, Xiaolong Wang, and Deguang Kong. Deeprebirth:
+Accelerating deep neural network execution on mobile de-
+vices. In AAAI, 2018. 1
+[22] Haoyang Li, Li Bai, Qingqing Ye, Haibo Hu, Yaxin Xiao,
+Huadi Zheng, and Jianliang Xu. A sample-level evaluation
+and generative framework for model inversion attacks. In
+AAAI, pages 18287–18295, 2025. 2
+[23] Ziang Li, Hongguang Zhang, Juan Wang, Meihui Chen,
+Hongxin Hu, Wenzhe Yi, Xiaoyang Xu, Mengda Yang, and
+Chenjun Ma. From head to tail: Efficient black-box model
+inversion attack via long-tailed learning. In IEEE Conf. Com-
+put. Vis. Pattern Recog., pages 29288–29298, 2025. 2
+[24] Shijun Liang, Evan Bell, Qing Qu, Rongrong Wang, and
+Saiprasad Ravishankar. Analysis of deep image prior and ex-
+ploiting self-guidance for image reconstruction. IEEE Trans-
+actions on Computational Imaging, 2025. 2, 5
+[25] Tsung-Yi Lin, Michael Maire, Serge Belongie, James Hays,
+Pietro Perona, Deva Ramanan, Piotr Doll´ar, and C Lawrence
+Zitnick. Microsoft coco: Common objects in context. In Eur.
+Conf. Comput. Vis., pages 740–755. Springer, 2014. 6
+[26] Yaron Lipman, Ricky TQ Chen, Heli Ben-Hamu, Maximil-
+ian Nickel, and Matt Le. Flow matching for generative mod-
+eling. arXiv preprint arXiv:2210.02747, 2022. 2
+[27] Hao Liu, Lijun He, Miao Zhang, and Fan Li. Vadiffusion:
+Compressed domain information guided conditional diffu-
+sion for video anomaly detection. IEEE Trans. Circuit Syst.
+Video Technol., 34(9):8398–8411, 2024. 1
+[28] Hao Liu, Lijun He, Jiaxi Liang, Zhihan Ren, and Fan Li.
+Dependency structure augmented contextual scoping frame-
+work for multimodal aspect-based sentiment analysis. arXiv
+preprint arXiv:2504.11331, 2025. 1
+[29] Xingchao Liu, Chengyue Gong, and Qiang Liu.
+Flow
+straight and fast: Learning to generate and transfer data with
+rectified flow. arXiv preprint arXiv:2209.03003, 2022. 2
+[30] Yufan Liu, Wanqian Zhang, Dayan Wu, Zheng Lin, Jingzi
+Gu, and Weiping Wang.
+Prediction exposes your face:
+Black-box model inversion via prediction alignment. In Eur.
+Conf. Comput. Vis., pages 288–306. Springer, 2024. 2
+[31] Ze Liu, Yutong Lin, Yue Cao, Han Hu, Yixuan Wei, Zheng
+Zhang, Stephen Lin, and Baining Guo. Swin transformer:
+Hierarchical vision transformer using shifted windows. In
+Int. Conf. Comput. Vis., pages 10012–10022, 2021. 5
+
+
+[32] Aravindh Mahendran and Andrea Vedaldi. Understanding
+deep image representations by inverting them. In IEEE Conf.
+Comput. Vis. Pattern Recog., pages 5188–5196, 2015. 2, 5
+[33] Anish Mittal, Rajiv Soundararajan, and Alan C Bovik. Mak-
+ing a “completely blind” image quality analyzer. IEEE Sign.
+Process. Letters, 20(3):209–212, 2012. 5
+[34] Waleed Hassan Mubark, Jagannath Guptha Kasula, and
+Md Yusuf Sarwar Uddin.
+Asap: Asynchronous split in-
+ference for accelerated dnn execution.
+In Proceedings of
+the 25th International Conference on Distributed Computing
+and Networking, pages 32–44, 2024. 2
+[35] Maxime Oquab, Timoth´ee Darcet, Th´eo Moutakanni, Huy
+Vo, Marc Szafraniec, Vasil Khalidov, Pierre Fernandez,
+Daniel Haziza, Francisco Massa, Alaaeldin El-Nouby, et al.
+DINOv2: Learning robust visual features without supervi-
+sion. arXiv preprint arXiv:2304.07193, 2023. 5
+[36] Guansong Pang, Chunhua Shen, Longbing Cao, and Anton
+Van Den Hengel. Deep learning for anomaly detection: A
+review. ACM Computing Surveys (CSUR), 54(2):1–38, 2021.
+1
+[37] Tianwen Qian, Jingjing Chen, Linhai Zhuo, Yang Jiao, and
+Yu-Gang Jiang. NuScenes-QA: A Multi-Modal Visual Ques-
+tion Answering Benchmark for Autonomous Driving Sce-
+nario. In AAAI, pages 4542–4550, 2024. 1
+[38] Shaoqing Ren, Kaiming He, Ross Girshick, and Jian Sun.
+Faster R-CNN: Towards real-time object detection with re-
+gion proposal networks. IEEE Trans. Pattern Anal. Mach.
+Intell., 39(6):1137–1149, 2016. 7
+[39] Zhihan Ren, Lijun He, and Jichuan Lu. Context aware edge-
+enhanced gan for remote sensing image super-resolution.
+IEEE Journal of Selected Topics in Applied Earth Observa-
+tions and Remote Sensing, 17:1363–1376, 2023. 1
+[40] Renan A Rojas-Gomez, Raymond A Yeh, Minh N Do, and
+Anh Nguyen. Inverting adversarially robust networks for im-
+age synthesis. In ACCV, pages 2221–2238, 2022. 2, 5
+[41] Robin Rombach, Andreas Blattmann, Dominik Lorenz,
+Patrick Esser, and Bj¨orn Ommer. High-resolution image syn-
+thesis with latent diffusion models. In IEEE Conf. Comput.
+Vis. Pattern Recog., pages 10684–10695, 2022. 5
+[42] Muhammad Shiraz, Abdullah Gani, Rashid Hafeez Khokhar,
+and Rajkumar Buyya. A review on distributed application
+processing frameworks in smart mobile devices for mobile
+cloud computing. IEEE Communications Surveys & Tutori-
+als, 15(3):1294–1313, 2012. 1
+[43] Abhishek Singh, Ayush Chopra, Ethan Garza, Emily Zhang,
+Praneeth Vepakomma, Vivek Sharma, and Ramesh Raskar.
+Disco: Dynamic and invariant sensitive channel obfuscation
+for deep neural networks. In IEEE Conf. Comput. Vis. Pat-
+tern Recog., pages 12125–12135, 2021. 6, 7
+[44] Surat Teerapittayanon, Bradley McDanel, and Hsiang-Tsung
+Kung.
+Branchynet: Fast inference via early exiting from
+deep neural networks. In Int. Conf. Pattern Recog., pages
+2464–2469. IEEE, 2016. 2
+[45] Surat Teerapittayanon, Bradley McDanel, and Hsiang-Tsung
+Kung. Distributed deep neural networks over the cloud, the
+edge and end devices. In 2017 IEEE 37th international con-
+ference on distributed computing systems (ICDCS), pages
+328–339. IEEE, 2017. 1
+[46] Tom Titcombe, Adam J Hall, Pavlos Papadopoulos, and
+Daniele Romanini.
+Practical defences against model in-
+version attacks for split neural networks.
+arXiv preprint
+arXiv:2104.05743, 2021. 6, 7
+[47] Praneeth Vepakomma, Abhishek Singh, Otkrist Gupta, and
+Ramesh Raskar. Nopeek: Information leakage reduction to
+share activations in distributed deep learning. In 2020 Inter-
+national Conference on Data Mining Workshops (ICDMW),
+pages 933–942. IEEE, 2020. 6
+[48] Ruofeng Yang, Bo Jiang, Cheng Chen, Ruinan Jin, Baoxi-
+ang Wang, and Shuai Li. Few-shot diffusion models escape
+the curse of dimensionality. In Adv. Neural Inform. Process.
+Syst., pages 68528–68558. Curran Associates, Inc., 2024. 3
+[49] Sidi Yang, Tianhe Wu, Shuwei Shi, Shanshan Lao, Yuan
+Gong, Mingdeng Cao, Jiahao Wang, and Yujiu Yang.
+MANIQA: Multi-dimension attention network for no-
+reference image quality assessment. In IEEE Conf. Comput.
+Vis. Pattern Recog., pages 1191–1200, 2022. 5
+[50] Zipeng Ye, Wenjian Luo, Muhammad Luqman Naseem, Xi-
+angkai Yang, Yuhui Shi, and Yan Jia. C2fmi: Corse-to-fine
+black-box model inversion attack. IEEE Transactions on De-
+pendable and Secure Computing, 21(3):1437–1450, 2023. 2
+[51] Jason Yosinski, Jeff Clune, Yoshua Bengio, and Hod Lipson.
+How transferable are features in deep neural networks? Adv.
+Neural Inform. Process. Syst., 27, 2014. 3
+[52] Richard Zhang, Phillip Isola, Alexei A Efros, Eli Shechtman,
+and Oliver Wang. The unreasonable effectiveness of deep
+features as a perceptual metric. In IEEE Conf. Comput. Vis.
+Pattern Recog., pages 586–595, 2018. 4, 5
+[53] Sai Qian Zhang, Ziyun Li, Chuan Guo, Saeed Mahlouji-
+far, Deeksha Dangwal, Edward Suh, Barbara De Salvo, and
+Chiao Liu. Unlocking visual secrets: Inverting features with
+diffusion priors for image reconstruction.
+arXiv preprint
+arXiv:2412.10448, 2024. 2
+[54] Tianyi Zhang, Varsha Kishore, Felix Wu, Kilian Q Wein-
+berger, and Yoav Artzi. BERTScore: Evaluating text gen-
+eration with bert. arXiv preprint arXiv:1904.09675, 2019.
+5
+[55] Zhanke Zhou, Jianing Zhu, Fengfei Yu, Xuan Li, Xiong
+Peng, Tongliang Liu, and Bo Han. Model inversion attacks:
+A survey of approaches and countermeasures. arXiv preprint
+arXiv:2411.10023, 2024. 2
+[56] Yixuan Zhu, Wenliang Zhao, Ao Li, Yansong Tang, Jie
+Zhou, and Jiwen Lu.
+Flowie: Efficient image enhance-
+ment via rectified flow. In IEEE Conf. Comput. Vis. Pattern
+Recog., pages 13–22, 2024. 2

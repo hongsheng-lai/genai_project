@@ -1,0 +1,3561 @@
+1
+MF-GCN: A Multi-Frequency Graph Convolutional Network for Tri-Modal Depression
+Detection Using Eye-Tracking, Facial, and Acoustic Features
+Sejuti Rahmana,∗∗, Swakshar Debc, MD. Sameer Iqbal Chowdhuryb, MD. Jubair Ahmed Sourovb, Mohammad Shamsuddinb
+aDepartment of Computer Science, New Uzbekistan University, Tashkent, Uzbekistan
+bDepartment of Robotics and Mechatronics Engineering, University of Dhaka, Bangladesh
+cDepartment of Electrical and Computer Engineering, University of Virginia, USA
+ABSTRACT
+Eye tracking data quantifies the attentional bias towards negative stimuli that is frequently observed
+in depressed groups. Audio and video data capture the affective flattening and psychomotor retardation
+characteristic of depression. Statistical validation confirmed their significant discriminative power in
+distinguishing depressed from non depressed groups. We address a critical limitation of existing
+graph-based models that focus on low-frequency information and propose a Multi-Frequency Graph
+Convolutional Network (MF-GCN). This framework consists of a novel Multi-Frequency Filter Bank
+Module (MFFBM), which can leverage both low and high frequency signals. Extensive evaluation against
+traditional machine learning algorithms and deep learning frameworks demonstrates that MF-GCN
+consistently outperforms baselines. In binary (depressed and non depressed) classification, the model
+achieved a sensitivity of 0.96 and F2 score of 0.94. For the 3 class (no depression, mild to moderate
+depression and severe depression) classification task, the proposed method achieved a sensitivity of
+0.79 and specificity of 0.87 and siginificantly suprassed other models. To validate generalizability,
+the model was also evaluated on the Chinese Multimodal Depression Corpus (CMDC) dataset and
+achieved a sensitivity of 0.95 and F2 score of 0.96. These results confirm that our trimodal, multi
+frequency framework effectively captures cross modal interaction for accurate depression
+detection.
+1. Introduction
+Depression, a major mental health disorder, refers to persis-
+tent feelings of sadness, hopelessness, and loss of interest or
+pleasure in activities, typically lasting for at least two weeks
+[1]. This condition represents one of the most common men-
+tal health challenges experienced by individuals worldwide, af-
+fecting approximately 5% of adults globally according to the
+World Health Organization [2]. However, comprehensive re-
+views spanning multiple countries reveal considerable regional
+and demographic variations, with depressive symptoms affect-
+ing between 4.4% and 20% of the general population [3].
+∗∗Corresponding author.
+e-mail: s.rahman@newuu.uz (Sejuti Rahman), swd9tc@virginia.edu
+(Swakshar Deb), sameer.iqbal2171@gmail.com (MD. Sameer Iqbal
+Chowdhury), sourovjubair@du.ac.bd (MD. Jubair Ahmed Sourov),
+mdshams013@gmail.com (Mohammad Shamsuddin)
+The impact of depression extends far beyond individual suf-
+fering, with significant consequences for personal well-being
+and social functioning.
+At the individual level, those with
+depression often exhibit decreased productivity, compromised
+overall health, and increased susceptibility to various physical
+illnesses [4]. Additionally, individuals with depression may be-
+come vulnerable to developing other mental health disorders
+and physical health complications [5]. The consequences ripple
+outward to create a substantial public health concern, impact-
+ing not only affected individuals, but also their families, work-
+places, and communities [6]. In its most severe manifestations,
+depression may lead to self-harm and suicide [7]. Despite these
+serious implications, depression is frequently underestimated
+as a health concern [8]. This underestimation underscores the
+critical importance of prompt intervention and support for those
+affected and their broader communities.
+Depression manifests in various forms, each with its own
+unique characteristics and challenges. Major Depressive Dis-
+arXiv:2511.15675v1  [cs.CV]  19 Nov 2025
+
+
+2
+order (MDD) is perhaps the most widely recognized type, char-
+acterized by persistent feelings of sadness, hopelessness, and
+loss of interest in activities that once brought joy [1].
+MDD significantly impairs daily functioning, and disrupts
+sleep, appetite, and energy levels. Without treatment, episodes
+can last for months and often recur throughout life. Persistent
+Depressive Disorder (dysthymia), a chronic but typically less
+severe form of depression, involves persistent symptoms such
+as a consistently low mood, low self-esteem, poor concentra-
+tion, and hopelessness, lasting at least two years in adults[9].
+Apart from MDD and Dysthymia, clinical depressive disor-
+ders also include Bipolar Disorder, formerly known as manic-
+depressive illness, which is characterized by alternating pe-
+riods of depression and mania or hypomania, with depres-
+sive episodes resembling those of MDD, but interspersed with
+manic or hypomanic episodes marked by elevated mood, in-
+creased energy, and sometimes reckless behavior [10]. Sea-
+sonal Affective Disorder (SAD) is a type of depression fol-
+lowing a seasonal pattern, typically occurring in fall and win-
+ter, with symptoms such as low energy, oversleeping, and so-
+cial withdrawal, highlighting the interplay between biological
+rhythms and environmental factors [11]. Postpartum Depres-
+sion, which affects women within the first year after childbirth,
+involves symptoms such as intense sadness, fatigue, and bond-
+ing difficulties driven by hormonal changes and the stress of
+caring for a newborn [12]. Psychotic Depression, a severe form
+of depression accompanied by psychotic symptoms like delu-
+sions or hallucinations, often with themes of guilt or punish-
+ment, requires a combination of antidepressant and antipsy-
+chotic treatments due to its complexity and severity [13].
+Understanding the various types of depression is crucial for
+effective diagnosis and treatment. Although they share some
+common features, each type has unique characteristics, risk fac-
+tors, and recommended treatment approaches. It is important to
+acknowledge that individuals may not always fit neatly into one
+category, and some may exhibit symptoms that overlap with
+multiple types of depression [14]. Moreover, cultural factors,
+personal experiences, and individual differences can shape how
+depression manifests and is experienced.
+Given this intricate landscape of depressive disorders, our
+study sought to address their shared and divergent features by
+focusing on a key starting point: MDD. In our work, we placed
+particular emphasis on it, given its prominence as the most
+common form of depression and its frequent overlap with the
+symptomatology of other depressive disorders. By prioritizing
+the accurate diagnosis of MDD, we established a foundational
+framework that can streamline the identification of this con-
+dition and, with additional effort, facilitate the recognition of
+other types of depression in future investigations. As research
+in this field continues to evolve, our understanding of these dis-
+orders and their optimal treatments continue to improve, offer-
+ing hope for those affected by these challenging conditions.
+Currently, the clinical detection of depression often relies
+on standardized tools, such as the Diagnostic and Statistical
+Manual of Mental Disorders, Fifth Edition (DSM-5) [15] and
+the Patient Health Questionnaire-9 (PHQ-9) [16]. The DSM-
+5, developed by the American Psychiatric Association, pro-
+vides diagnostic criteria based on comprehensive assessment
+of symptoms, duration, and functional impairment—requiring
+at least five of nine specified symptoms (including depressed
+mood or loss of interest) persisting for two weeks to diagnose
+MDD. The PHQ-9 is a brief, self-administered screening tool
+that quantifies depression severity through a nine-item ques-
+tionnaire aligned with DSM-5 criteria, yielding scores from 0
+to 27 where higher scores indicate greater symptom severity.
+However, these methods are not without limitations: the
+DSM-5’s heavy reliance on expert judgment introduces signif-
+icant subjectivity, as diagnostic decisions depend on clinician
+interpretation of symptom severity, functional impairment, and
+complex differential diagnoses, making assessments vulnera-
+ble to inter-rater variability and practitioner experience levels.
+Additionally, the PHQ-9, though practical, faces several chal-
+lenges including subjective bias where patients may underre-
+port or overreport symptoms due to social desirability or de-
+nial.There is also temporal limitations as it captures only a two-
+week snapshot potentially missing longer-term patterns, lan-
+guage and literacy barriers that affect comprehension across di-
+verse populations, and somatic symptom overlap where items
+about fatigue, sleep, and appetite may be elevated due to med-
+ical conditions unrelated to depression. The PHQ-9 may also
+miss nuanced presentations of depression or overestimate sever-
+ity in patients with overlapping conditions, such as anxiety or
+chronic illness. Despite these challenges, both tools remain fun-
+damental in guiding diagnosis and informing treatment, under-
+scoring the need for continued refinement in clinical practice.
+In response to these challenges, recent advances in depres-
+sion diagnosis methodologies have emerged as alternatives to
+traditional clinical assessments, with the aim of mitigating the
+human bias inherent in psychological evaluations. Researchers
+are increasingly interested in aiding depression diagnosis uti-
+lizing data from various sources. Detection of depression using
+data-driven methods uses large datasets and machine learning
+(ML) to identify patterns of depression symptoms. Data-driven
+methods are superior to traditional diagnostic methods in terms
+of objectivity, scalability, and early identification. Data sources
+typically include voice and speech from call recordings, bio-
+metric data from wearable sensors (e.g., heart rate, fMRI), be-
+havioral data, and clinical records. ML models are trained on
+labeled datasets to find patterns to identify depressive symp-
+toms early and objectively. Lin et al. [17] demonstrated the
+effectiveness of saliency-based diagnostic methods, achieving
+an accuracy rate of 90.01%. However, relying solely on single
+metrics such as saliency may not provide a complete diagnostic
+picture.
+Multimodal approaches for automatic depression detection
+have shown considerable promise in recent years, leveraging
+complementary information provided by different data sources
+to improve accuracy and robustness. These methods typically
+combine auditory and visual modalities, capitalizing on the ob-
+served differences in speech patterns and facial expressions be-
+tween depressed and healthy individuals [18]. By fusing the
+features from multiple modalities, these approaches can cap-
+ture a more comprehensive representation of depressive symp-
+toms. For example, Niu et al. proposed a novel spatiotemporal
+
+
+3
+attention network that integrates spatial and temporal informa-
+tion from audio and video data, emphasizing the most relevant
+frames for depression detection [19]. Their multimodal atten-
+tion feature fusion strategy demonstrated superior performance
+compared to unimodal methods on standard benchmarks. Sim-
+ilarly, Yang et al. [20] developed a multimodal deep learn-
+ing framework that jointly learns features from audio, video,
+and text modalities, achieving state-of-the-art results on the
+AVEC2013 and AVEC2014 depression datasets.
+Other re-
+searchers have explored the fusion of physiological signals with
+audio-visual data. For example, Katyal et al. [21] combined
+EEG signals with facial video features and showed that the ad-
+dition of neurophysiological information can improve the accu-
+racy of depression detection. Moreover, Dibeklioglu et al. [22]
+integrated facial, head, and vocal prosody features into a mul-
+timodal framework, demonstrating improved performance over
+single-modality approaches. The success of these multimodal
+methods can be attributed to their ability to capture diverse as-
+pects of depressive behavior, from subtle changes in vocal in-
+tonation to microexpressions and body language. As sensing
+technologies continue to advance, integrating additional modal-
+ities such as smartphone usage patterns or social media activity
+may further enhance the capabilities of automatic depression
+detection systems [23].
+While existing multimodal approaches have demonstrated
+the value of combining different data sources, the selection
+of specific modalities should be guided by their clinical rel-
+evance to MDD symptomatology.
+In examining the diverse
+modalities through which depression manifests, our investiga-
+tion identified eye tracking, facial expression, and audio as par-
+ticularly salient for detecting MDD because of their robust cor-
+relations with MDD symptomatology. Eye tracking research
+demonstrates that individuals with MDD exhibit distinct pat-
+terns, such as prolonged fixation on negative stimuli and re-
+duced attention to positive cues, signaling underlying atten-
+tional biases, and emotional dysregulation [24]. Analysis of
+facial expressions revealed that patients with MDD often show
+reduced expressivity, marked by fewer smiles and heightened
+displays of sadness or affective flattening, reflecting emotional
+withdrawal and blunted affect [25]. Similarly, audio analysis
+uncovered vocal markers of MDD, including slower speech,
+extended pauses, and diminished pitch variation, which corre-
+spond to psychomotor slowing and persistent low mood [26].
+Given these compelling associations with core MDD features,
+we selected these three modalities for our research, leveraging
+their potential to enhance diagnostic accuracy and provide a
+multimodal approach to understanding this disorder.
+To effectively integrate information from these diverse
+modalities and capture their complex inter-relationships, we
+employ graph-based computational methods.
+Recent graph-
+based methods [27] that model relationships between differ-
+ent data modalities have shown promise in capturing com-
+plex interactions between behavioral markers. However, many
+existing approaches focus primarily on low-frequency infor-
+mation, potentially overlooking critical diagnostic patterns in
+high-frequency features. Our work addresses this limitation by
+developing MF-GCN (Multi-Frequency Graph Convolutional
+Network), a novel graph-based framework that integrates our
+Multi-Frequency Filter-Bank Module (MFFBM). Unlike con-
+ventional graph convolutional networks that rely on fixed low-
+frequency filtering, MFFBM enables learning from both low-
+and high-frequency spectral information, allowing for more
+comprehensive analysis of multi-modal depression data.
+The contributions of this study are manifold:
+• We developed a gold standard depression dataset com-
+prising 103 participants across diverse age groups (17-56
+years) with ground truth PHQ-9 values provided by multi-
+ple psychiatrists. Unlike existing datasets (such as DAIC-
+WOZ [28] and AVEC [29, 30] that only collect audio
+and video signals, our dataset uniquely incorporates eye-
+tracking data that capture patients’ gaze patterns, which
+we demonstrate as indicative of depression severity. This
+trimodal approach (audio, video, and eye tracking) creates
+a more comprehensive resource for depression detection
+research, enabling a more robust multimodal analysis.
+• While Lin et al. [17] pioneered saliency-based depression
+detection as a unimodal approach, our work is the first
+to systematically evaluate its effectiveness in multimodal
+frameworks.
+We demonstrate that integrating saliency
+maps with audio and facial video data enables signifi-
+cant performance improvements (a 19% increase in F2-
+score compared to unimodal approach) by capturing com-
+plementary information across modalities and enhancing
+the detection of subtle depression indicators that single-
+modality approaches might miss.
+• We propose MF-GCN (Multi-Frequency Graph Convolu-
+tional Network) with our novel Multi-Frequency Filter-
+Bank Module (MFFBM) to address a critical limitation
+in existing graph-based depression detection models that
+focus primarily on low-frequency information. Through
+empirical validation, we demonstrate that high-frequency
+features contain critical diagnostic information that cur-
+rent approaches overlook. We provide theoretical analysis
+with mathematical proof that MFFBM enables learning ar-
+bitrary spectral filters, transcending the fixed filtering ca-
+pabilities of conventional graph convolutional networks.
+Comprehensive evaluation against seven traditional ma-
+chine learning methods and three state-of-the-art multi-
+modal deep learning approaches demonstrates that MF-
+GCN achieves 96% sensitivity and 0.94 F2-score in bi-
+nary depression classification, consistently outperforming
+all baselines across both binary and three-class classifica-
+tion tasks.
+2. Related works
+We sifted through and studied relevant scholarly works on
+computational approaches used to detect depression. We orga-
+nized our review by grouping the various works by the modal-
+ities they explore: eye tracking, facial expression, audio, and
+those that employ multimodal approaches to incorporate them.
+
+
+4
+2.1. Depression detection from eye tracking modality
+Visual attention patterns and eye movements can provide sig-
+nificant insight into mental health conditions, particularly de-
+pression.
+Research has shown that emotional states signifi-
+cantly influence how individuals view and process visual infor-
+mation, particularly when they are engaged in emotional con-
+tent. Early studies focused on basic eye movement features and
+manual analysis. For example, Li et al. conducted one of the
+first systematic studies using eye-tracking data for depression
+detection, analyzing fixations, saccades, and pupil size from 34
+participants [31]. Their method achieved 81% accuracy, but
+was limited by the small dataset size. Zeng et al. [32] ex-
+panded this work by studying eye movement patterns during
+free-viewing tasks with 36 participants, reaching an accuracy
+of 76.04%, although still constrained by limited data. Pan et al.
+demonstrated that combining reaction time and eye movement
+data significantly improved results [33]. Using a larger dataset
+of 630 participants, they extracted features based on subjects’
+responses to positive and negative image attributes. Although
+the method achieved 72.22% accuracy, the larger dataset un-
+veiled challenges in maintaining high accuracy across a more
+diverse population.
+Lin et al. [17] addressed these limitations by introducing a
+novel approach combining eye movement data with image se-
+mantic understanding. Their study of 181 participants (106 de-
+pressed, 75 non-depressed) utilized the Open Affective Stan-
+dardized Image Set (OASIS) ([34]) image library, presenting
+paired positive and negative emotional images while recording
+eye movements. By combining visual saliency with semantic
+image analysis, they achieved an improved accuracy of 90.06%,
+demonstrating that understanding where subjects look and what
+they are looking at provides better insight into depressive states.
+However, they dealt with only the first three fixation points,
+which may not always be conclusive, given how the nature of
+the static images shown to the subjects can vary. Opting for
+more fixation points by allowing the image to be shown longer
+could have helped to create better fixation and saliency maps.
+Another notable approach by Zhu et al.
+[35] proposed a
+Content-Based Ensemble Method (CBEM) that utilized raw
+eye tracking metrics and EEG data. Their method analyzed
+87 direct eye-movement features, including fixations, saccades,
+pupil size, and dwell time, without focusing on visual attention
+patterns. Using an ensemble classification approach that di-
+vided data based on emotion types, they achieved 82.5% accu-
+racy with eye tracking data and 92.73% accuracy with EEG data
+on a smaller dataset of 36 participants. Although this method
+did not analyze the semantic content of viewed images, its use
+of multiple bio-signals and ensemble learning demonstrated the
+potential of combining different physiological measurements
+for depression detection. However, their limited dataset size
+and lack of detailed feature descriptions make it difficult to fully
+assess the generalizability of the method.
+These computer vision-based approaches have revealed con-
+sistent patterns:
+depressed individuals tend to focus more
+intensely on specific regions (particularly faces in images),
+whereas healthy individuals exhibit broader scanning patterns
+that include environmental elements. However, eye movement
+patterns can be influenced by various factors unrelated to de-
+pression such as fatigue, medication, and individual viewing
+habits. Additionally, the requirement for specialized eye track-
+ing equipment can limit the widespread application of these
+methods in clinical settings. While our approach doesn’t elimi-
+nate these fundamental challenges of eye-tracking, our research
+addresses these limitations by incorporating additional modal-
+ities—facial expression and audio analysis—to provide com-
+plementary information when eye-tracking data alone might be
+insufficient or compromised.
+2.2. Depression detection from audio modality
+Acoustic features can provide valuable insights into the clin-
+ical identification and diagnosis of mental states as well as de-
+pression. Studies have shown that emotional states can pro-
+foundly influence the function and structure of the vocal sys-
+tem, as reflected by the rhythm and prosody of the voice [36].
+Early research utilized feature selection and statistical methods
+to detect depression. Moore et al. [37] collected speech data
+from depressed patients and controls, applied a feature selection
+strategy related to prosody and vocal tract, and identified glot-
+tal features as consistent depression indicators. Later, machine
+learning enabled the extraction of more complex and dominant
+speech features. Ma et al. introduced DeepAudioNet to extract
+features related to depression from vocal channel using Convo-
+lutional Neural Network (CNN) and Long ShortTerm Memory
+(LSTM) [38]. Higuchi et al. collected daily phone call data
+for monitoring mental health changes and depressive states de-
+tection from 1,814 adults. The study found that the speech en-
+ergy levels of depressive participants were significantly lower
+than those of healthy participants [39]. Wang et al. utilized
+voice acoustic features to train an Artificial Neural Network
+(ANN) for depression score prediction [40]. Abbas et al. stud-
+ied the effects of antidepressant therapy on 18 MDD subjects
+using visual and auditory data. Smartphone tasks capture fa-
+cial expressions, vocal patterns, and head movements, revealing
+significant changes in speech activity with treatment initiation
+[41]. The work by Huang et al. [42] proposed multiple adapta-
+tion strategies that enhance pre-trained models based on a di-
+lated CNN framework, improving depression detection from
+audio recordings, both free speech and directed speech, in con-
+trolled and natural environments. Experiments on two depres-
+sion datasets demonstrated that adapting CNN feature represen-
+tations to environmental changes and increasing data quantity
+and quality during pre-training significantly boost performance.
+Bilal et al. [43] collected information by smartphone applica-
+tion and developed a predictive model utilizing voice acoustic
+features such as pitch, speed, and timing to predict perinatal
+depression.
+Detecting depression in audio data is a promising but chal-
+lenging area of research. Symptoms such as monotone speech,
+slower speech rate, or reduced pitch variability may not always
+be present or overlap with other conditions (e.g., fatigue and
+stress). Speech patterns and emotional expressions vary across
+cultures and languages, making it difficult to generalize models
+trained on one population to another.
+
+
+5
+2.3. Depression detection from visual modality
+Researchers have explored the intricate relationship between
+emotion and the identification of depression, with significant in-
+sights drawn from studies like the one by Joormann and Gotlib
+[44]. This study established that depression is associated with
+deficits in cognitive control, particularly in the domain of emo-
+tion regulation, where individuals exhibit pronounced difficulty
+in inhibiting the processing of negative information. This cog-
+nitive bias manifests as a persistent tendency to dwell on nega-
+tive thoughts and emotions, influencing observable behaviors
+and expressions.
+Machine learning capitalizes on this con-
+nection by analyzing patterns in diverse data sources, such as
+voice, text, and physiological signals, to detect subtle indica-
+tors of depression. For instance, the negative bias highlighted
+by Joormann and Gotlib may surface in the use of pessimistic
+language or altered vocal tones in speech, as well as in phys-
+iological responses tied to emotional dysregulation. Machine
+learning facilitates early detection, personalized treatment, and
+enhanced diagnostic accuracy using training algorithms to rec-
+ognize these patterns.
+Furthermore, extensive research has
+leveraged vast amounts of user-generated social media data,
+where linguistic and behavioral cues reflective of cognitive and
+emotional challenges can be monitored, offering a scalable ap-
+proach for depression detection and intervention. For example,
+Reece et al. [45] analyzed Instagram photos, finding that de-
+pressed users tend to post images that are bluer, grayer, and
+darker, achieving an accuracy of 70% in detecting depression.
+Facial emotion recognition (FER) has emerged as a robust
+modality for detecting depression, leveraging the visible emo-
+tional cues tied to cognitive biases. Du et al. [46] introduced
+an attention mechanism to extract discriminating visual infor-
+mation from facial features, enhancing the detection of subtle
+emotional shifts. Similarly, Hu et al. [47] collected facial ex-
+pressions from 62 participants while viewing visual stimuli and
+achieved a reliable classification between healthy and depressed
+subjects. Islam et al. [48] developed FacePsy, an open-source
+mobile system that uses a phone’s camera to analyze facial
+micro-features—such as Action Units (AUs), eye movements,
+and head gestures—during daily use, reporting an AUROC of
+81% in detecting depressive episodes among 25 participants.
+Expanding this scope, Yang et al. [49] employed a deep learn-
+ing framework to analyze dynamic facial expressions in video
+sequences, capturing temporal patterns, such as reduced smile
+duration and eye contact, which improved detection sensitivity.
+Zhou et al. [50] proposed a Deep Convolutional Neural Net-
+work (DCNN) with a Global Average Pooling layer, focusing
+on salient facial regions like the eyes and forehead to assess
+depression severity, achieving high accuracy in controlled set-
+tings.
+Additional advancements in FER further refine its diagnos-
+tic potential. Guo et al. [51] introduced a multi-task learning
+model that simultaneously detects depression and estimates its
+severity using facial landmarks and expression dynamics, out-
+performing single-task approaches in real-world datasets. Zhu
+et al. [52] developed an automated system integrating 3D fa-
+cial modeling with FER, revealing that subtle depth changes in
+facial expressions—such as flattened affect—correlate strongly
+with depressive states. These studies highlight FER’s ability to
+capture both static and dynamic emotional markers, offering a
+comprehensive view of depression’s behavioral footprint. He
+et al. [53] applied a residual learning framework to enhance
+FER, demonstrating that deep architectures excel at identifying
+nuanced emotional patterns linked to mental health conditions,
+while Jan et al. [54] combined CNNs with temporal feature
+analysis to track expression changes over time, adding a longi-
+tudinal dimension to depression detection.
+FER’s integration into a multimodal approach significantly
+enhances depression detection by combining independent and
+overlapping features across data types. Standalone, FER pro-
+vides unique insights through micro-expressions and gaze pat-
+terns that reflect emotional suppression or negativity specific to
+depression. When paired with modalities such as speech or text,
+it overlaps with features such as slow speech tempo or negative
+word choice, reinforcing diagnostic confidence. This synergy
+leverages FER’s strengths—its non-invasive, real-time applica-
+bility—while compensating for limitations in other modalities,
+such as context dependency in text analysis. By synthesizing
+these diverse signals, a multimodal framework achieves greater
+robustness and reliability, paving the way for scalable, person-
+alized mental health solutions.
+2.4. Multi-modal approach
+Applying multiple data modalities and their fusion in ma-
+chine learning and deep learning applications has yielded more
+optimal outcomes across many fields. These systems can cap-
+ture a broader range of behavioral cues and improve the ro-
+bustness of depression detection. Work by Stasak et al. [55]
+improved the classification between mild and major depression
+by integrating emotional and acoustic features and discovered
+that combining emotional scores extracted from linguistic stress
+and vowel articulation, obtained from speech, can enhance the
+accuracy of depression recognition using voice analysis alone.
+Yin et al. [56] proposed a multi-modal approach using a layered
+recurring neural network to combine visual, auditory, and tex-
+tual data for detecting depression symptoms. Further efforts by
+Niu et al. [19] improved this approach by implementing a novel
+spatiotemporal attention network on audio and visual data for
+better performance.
+Recent research has extensively explored multi-modal ap-
+proaches for depression detection, leveraging diverse physio-
+logical data sources such as heart rate variability, electroen-
+cephalography (EEG), and cortisol levels to improve diagnostic
+accuracy and provide more comprehensive insights into mental
+health conditions. Katyal et al. [21] combined EEG signals
+with facial video features for improved performance.
+Zhou et al. [57] proposed a Multi Fine-Grained Fusion Net-
+work (MFFNet) that effectively captures behavioral changes at
+different scales by fusing speech and text features from inter-
+views. Their model employs a Multi-Scale Fastformer to cap-
+ture correlations between temporal features, and uses a Gated
+Fusion Module to dynamically weight and combine features
+from different modalities. Their experiments on two depres-
+sion interview datasets showed superior performance compared
+
+
+6
+to unimodal approaches.
+[18] explored the feature-level fu-
+sion of EEG data under different audio stimuli (neutral, nega-
+tive, and positive), demonstrating that multimodal EEG feature
+fusion could achieve higher classification accuracy (86.98%)
+compared to single modality approaches. They used linear and
+nonlinear EEG signal features and employed genetic algorithms
+for feature selection.
+In their works, Alghowinem et al. [58] developed a multi-
+modal approach combining paralinguistic features, head pose,
+and eye-gaze behaviors.
+Their fusion analysis showed that
+feature-level fusion performed best with up to 88% accuracy,
+demonstrating these behavioral indicators’ complementary na-
+ture for depression detection.
+In another work, Chen et al.
+[59] proposed MS2-GNN, a novel graph neural network frame-
+work that explores modal-shared and modal-specific character-
+istics among various psychophysiological modalities while in-
+vestigating potential relationships between subjects. Their ap-
+proach handles heterogeneity and homogeneity among modal-
+ities while maintaining inter-class separability and intra-class
+compactness.
+Zhou et al. [60] introduced AVTF-TBN, an innovative frame-
+work combining audio, video, and text features through a three-
+branch network architecture. Their approach utilizes special-
+ized branches for each modality and implements a multimodal
+fusion module based on attention mechanisms, achieving supe-
+rior performance in real-world scenarios. Tao et al. [61] devel-
+oped DepMSTAT, which integrates spatio-temporal attention
+mechanisms with multimodal fusion strategies. Their frame-
+work effectively captures the temporal dynamics of facial ex-
+pressions and speech patterns while maintaining the semantic
+consistency of textual information through a sophisticated fu-
+sion network.
+2.5. Available Datasets
+Effective depression recognition requires sufficient data to
+train discriminative models, but data collection is challeng-
+ing due to the sensitive nature of depression.
+Various re-
+search groups have created their own databases to study depres-
+sion assessment tools. Here we introduce the commonly used
+datasets on depression detection. The Distress Analysis Inter-
+view Corpus/Wizard-of-Oz (DAIC-WOZ) dataset [28] contains
+voice and text samples from interviews with 189 healthy and
+control subjects, along with their PHQ-8 [62] depression ques-
+tionnaires to support the diagnosis of psychological disorders
+such as post-traumatic stress disorder, depression, and anxiety.
+This dataset is widely used in research for text-based, voice-
+based, and multimodal depression detection studies.
+The E-DAIC (Extended Distress Analysis Interview Corpus)
+is an extension of the original DAIC-WOZ dataset that includes
+audio, video, and textual data collected from clinical interviews
+conducted with participants, some of whom have been diag-
+nosed with depression or other mental health conditions. This
+dataset comprises more than 73 hours of interview data from
+275 subjects.
+The AVEC2013 dataset is a collection from the audiovisual
+depressive corpus. It contains 340 video recordings of 292 in-
+dividuals interacting with a computer system. The participants
+in this study ranged from 18 to 63 years old, with an average
+age of 31.5 years [29].
+The AVEC2014 dataset is an updated version of AVEC2013
+containing more data samples [30].While the AVEC2013 fo-
+cuses primarily on emotion recognition, the AVEC2014 in-
+cludes audio, video, and textual transcriptions of interviews,
+along with depression severity labels based on PHQ-8.
+The Multi-modal Open Dataset for Mental-disorder Analy-
+sis (MODMA) includes EEG and speech data from clinically
+depressed patients and matched controls, annotated by profes-
+sional psychiatrists [63]. It features 128-electrode EEG signals
+from 53 participants, 3-electrode EEG signals from 55 partici-
+pants, and audio recordings from 52 participants captured dur-
+ing interviews, reading tasks, and picture descriptions.
+These datasets have facilitated the ongoing research to de-
+velop automated tools for depression detection. Unfortunately,
+they lack diversity in age, culture, ethnicity, and accent, which
+are critical in modeling real-world emotional or depressive ex-
+pressions.
+Participants are mostly young adults and native
+English speakers, limiting demographic diversity (e.g., age,
+ethnicity, cultural background).
+Additionally, none of these
+datasets contains eye-tracking data, whose usefulness has been
+proven in diagnosing cognitive disorders. So we have created
+our own dataset by collecting audio, video, and eye tracking
+modalities from native citizens. The detailed data collection
+setup and inclusion criteria have been explained in the Study
+Design section.
+3. Tripartite Data Approach
+3.1. Eye Tracking
+Eye tracking captures gaze patterns by measuring the precise
+locations where individuals fixate their visual attention. Using
+infrared cameras, eye trackers detect and record pupil position,
+enabling analysis of fixation patterns, saccadic movements, and
+pupil dilation. These eye movement metrics provide objective
+measures of attentional processes that are largely involuntary
+and resistant to conscious manipulation [64].
+For depression detection, eye tracking is particularly valuable
+because individuals with MDD exhibit distinct gaze patterns
+that reflect underlying attentional biases and emotional dysreg-
+ulation. As established in our literature review, depressed indi-
+viduals demonstrate prolonged fixation on negative stimuli and
+reduced attention to positive cues, making eye tracking a clini-
+cally relevant modality for MDD assessment. The technology’s
+non-invasive nature, relatively low cost, and ability to capture
+subconscious attentional processes without requiring verbal re-
+sponses make it well-suited for objective depression screening
+[65].
+3.2. Facial Expression from Video Data
+Facial expressions provide observable manifestations of
+emotional states through coordinated movements of facial mus-
+cles.
+These nonverbal signals convey affective information
+that can be quantified and analyzed to assess emotional func-
+tioning. In the context of depression, facial expression anal-
+ysis is particularly relevant because MDD is characterized by
+
+
+7
+Table 1: Descriptive Statistics for Emotions in Depression
+No Depression
+Mild to Moderate Depression
+Severe Depression
+Emotion
+Mean
+Std.
+Mean
+Std.
+Mean
+Std.
+angry***
+0.031
+0.032
+0.055
+0.031
+0.089
+0.057
+disgust
+0.000
+0.001
+0.001
+0.001
+0.003
+0.009
+fear**
+0.039
+0.028
+0.060
+0.034
+0.095
+0.070
+happy
+0.080
+0.078
+0.117
+0.113
+0.065
+0.108
+sad***
+0.055
+0.055
+0.110
+0.054
+0.157
+0.077
+surprise***
+0.018
+0.018
+0.008
+0.005
+0.040
+0.031
+neutral***
+0.777
+0.135
+0.651
+0.118
+0.551
+0.178
+* p-value < 0.05; ** p-value < 0.01; *** p-value < 0.001
+distinct patterns of reduced expressivity, including decreased
+smiling, heightened displays of sadness, and affective flatten-
+ing—observable markers that reflect the emotional withdrawal
+and blunted affect central to the disorder [25].
+Modern computer vision approaches,
+particularly deep
+learning-based Facial Emotion Recognition (FER) systems, en-
+able automated extraction and quantification of emotional ex-
+pressions from video data.
+These systems employ convolu-
+tional neural networks trained on large datasets of facial im-
+ages to detect and classify emotions across multiple categories
+(e.g., happiness, sadness, anger, fear, disgust, surprise, and neu-
+tral). By analyzing frame-by-frame facial configurations and
+their temporal dynamics, FER systems provide objective mea-
+sures of emotional expression patterns that complement self-
+report assessments. Unlike subjective clinical observations, au-
+tomated facial analysis offers consistent, quantifiable metrics
+of affective display, making it a valuable tool for depression as-
+sessment [66].
+For the extraction of emotional information from the sub-
+ject‘s facial expressions, we employ FER [67], an open-source
+Python library that utilizes a pre-trained face expression recog-
+nition model.
+The FER model processes individual video
+frames, predicting the emotional state of detected faces across
+seven categories: anger, disgust, fear, happiness, neutrality, sad-
+ness, and surprise. Our approach mirrors the audio feature ex-
+traction process; we first extract emotion scores for each frame
+within a subject’s interview with the PHQ-9 administrators,
+then aggregate these frame-level features to the video level by
+computing the mean score for each emotion category [68]. This
+process yields seven visual features to complement the eight au-
+dio features previously extracted. It’s important to note that our
+analysis is confined to frames where a single face is detected,
+ensuring the clarity and reliability of our emotional assessments
+[69].
+From the video recordings of the subjects’ interactions, the
+features extracted are summarized in Table 1.
+Anger: Our results indicate a significant increase in anger
+expression as depression severity increases. This aligns with
+findings by [70], who noted that individuals with depression of-
+ten exhibit more anger, potentially due to feelings of frustration
+and helplessness associated with their condition.
+Disgust: While our data shows a slight increase in disgust
+expression with depression severity, the difference is not statis-
+tically significant. This is consistent with [71], who found that
+disgust recognition, rather than expression, was more notably
+affected in depressed individuals.
+Fear: We observed a significant increase in fear expression
+correlated with depression severity. This supports the findings
+from [72], that depressed individuals tend to show heightened
+sensitivity to negative emotions, including fear.
+Happiness: Interestingly, our data shows a non-linear rela-
+tionship between happiness expression and depression severity,
+with the mild to moderate group showing the highest mean.
+This complex relationship is echoed in [25], suggesting that
+some depressed individuals may engage in “smiling depres-
+sion” as a coping mechanism.
+Sadness: As expected, sadness expression significantly in-
+creases with depression severity. This is widely supported in
+literature, including [73], who noted persistent sad mood as a
+hallmark of depression.
+Surprise: Our data shows a significant non-linear relation-
+ship between surprise expression and depression severity. This
+complex pattern might be related to findings by [74], who noted
+altered emotional processing in depression, affecting recogni-
+tion and expression of emotions like surprise.
+Neutral: We observed a significant decrease in neutral ex-
+pression as depression severity increases. This aligns with [75],
+who found that depressed individuals often have difficulties in
+maintaining neutral expressions, tending towards negative emo-
+tional displays.
+These findings collectively support the notion that facial ex-
+pressions can serve as valuable indicators of depression sever-
+ity, aligning with broader research on emotional expression in
+mental health contexts [76].
+3.3. Acoustic Features from Audio Data
+Table 2: Statistical Analysis of Top Five Features from PCA component 1
+Feature
+No Dep.
+Mild-Mod.
+Severe
+Mean
+Std
+Mean
+Std
+Mean
+Std
+mel 38∗
+0.15
+0.14
+0.36
+0.25
+0.36
+0.23
+mel 39∗∗
+0.12
+0.11
+0.34
+0.23
+0.33
+0.20
+mel 42∗∗∗
+0.08
+0.10
+0.32
+0.25
+0.32
+0.22
+mel 43∗∗
+0.09
+0.10
+0.31
+0.24
+0.30
+0.21
+mel 52∗∗
+0.04
+0.04
+0.14
+0.13
+0.13
+0.09
+Significance: ∗p < 0.05, ∗∗p < 0.01, ∗∗∗p < 0.001.
+
+
+8
+Although facial expressions are often considered a primary
+conduit to understanding human emotions, vocal expressions
+also serve as a significant indicator of emotional states. Be-
+yond the denotative content of spoken language, paralinguistic
+features, such as intensity (loudness), pitch, and speech irregu-
+larities, including vocal tremors, convey a rich tapestry of emo-
+tional nuances. Additionally, the temporal aspects of speech,
+including sentence length and rhythm, juxtaposed with non-
+lexical vocalizations like sighs, provide deeper insight into the
+speaker’s emotional psyche [77].
+Despite the richness of this data, the ability of individuals
+to consciously discern and interpret these subtle acoustic mark-
+ers is typically suboptimal. The expertise required for accu-
+rate emotional assessment from speech is often reserved for
+trained audio analysts. Within this context, advancements in ar-
+tificial intelligence, specifically deep learning algorithms, have
+shown promise in bridging this gap. These algorithms excel
+at extracting complex patterns from extensive datasets—in this
+instance, audio samples correlated with emotional states, en-
+abling the prediction of emotions with considerable accuracy
+[27]. These sophisticated models can identify distinctive pat-
+terns corresponding to various emotional expressions by metic-
+ulously examining large-scale acoustic data. The implications
+of this technological feat are vast, offering transformative po-
+tential across disciplines, from enhancing human-computer in-
+teraction to supporting mental health professionals in diagnos-
+tic procedures. The progression in deep learning applied to
+emotional recognition is discussed in detail in [78], whose study
+provides evidence for the significant predictive power of these
+algorithms.
+The audio recordings from the patients, which were con-
+verted into the .wav format, were cleaned of any background
+noise using Ultimate Voice Remover (UVR) 5.6.0 [79], an ad-
+vanced open-source tool designed for vocal isolation and re-
+moval from audio tracks. Afterward, each of the audio files
+was subjected to speech diarization. This utilized the PyAnnote
+library [80] for speaker diarization, employing the pre-trained
+“pyannote/speaker-diarization-3.1” model.
+For the extraction of acoustic features from the audio record-
+ings, we utilize OpenSmile, an open-source audio processing
+toolkit, in conjunction with the extended Geneva Minimalis-
+tic Acoustic Parameter Set (eGeMAPS) [81]. Our selection of
+acoustic characteristics is informed by previous studies on the
+vocal patterns of individuals with depression [82, 83, 84, 85,
+86, 87, 88, 89]. We extract eight low-level acoustic descriptors
+(LLDs), including Loudness, Fundamental Frequency (F0), and
+Spectral Flux, among others.
+Table 3 gives a summary of the acoustic features extracted
+from the audio recordings of the interviews with the subjects.
+We further explain the features and the trends noticed in these
+features:
+Loudness and Fundamental Frequency (F0): Our analy-
+sis reveals that both loudness and fundamental frequency (F0)
+are significantly higher in the depression group compared to the
+non-depression group (p < 0.05). This finding aligns with pre-
+vious research by [90], who observed changes in speech am-
+plitude and pitch associated with depression severity. The in-
+crease in loudness may seem counterintuitive, as depression is
+often associated with reduced energy. However, [91] suggests
+that this could be related to the effort required to maintain nor-
+mal speech patterns under depressive conditions. The elevation
+in F0 might reflect increased tension in the vocal folds, a phys-
+iological response potentially linked to the stress and anxiety
+often tag along with depression [92].
+Harmonics-to-Noise Ratio (HNR): Our results indicate a
+significant increase in HNR with depression severity (p <
+0.001). This finding is particularly interesting as it contrasts
+with some previous studies. For instance, [93] reported a de-
+crease in HNR among depressed individuals.
+Our observa-
+tion of increased HNR might suggest a compensatory mech-
+anism in depressed speech, where individuals unconsciously
+strive for clearer articulation to counteract perceived commu-
+nicative deficits. This discrepancy highlights the complex na-
+ture of vocal changes in depression and warrants further investi-
+gation into potential subtype-specific effects or methodological
+differences across studies.
+Jitter and Shimmer: Contrary to some previous findings,
+our data shows a significant decrease in both jitter and shim-
+mer with increasing depression severity (p < 0.01 for both).
+This stands in contrast to studies like [92] and [94], which re-
+ported increases in these perturbation measures. Jitter, which
+quantifies cycle-to-cycle variations in fundamental frequency,
+and shimmer, which measures amplitude variations, are typ-
+ically associated with perceived voice roughness. Our unex-
+pected finding of decreased jitter and shimmer might indicate a
+form of vocal control or tension in depressed speech, possibly
+reflecting the flattened affect often observed in clinical depres-
+sion. These results emphasize the need for nuanced interpreta-
+tion of acoustic features in the context of depression.
+Second Formant (F2): Our analysis reveals a significant in-
+crease in F2 frequency with depression severity (p < 0.01).
+This aligns with findings from [95], who noted alterations in
+formant frequencies in depressed speech. F2 is particularly as-
+sociated with the front-back position of the tongue and the de-
+gree of lip rounding. An increase in F2 could suggest a ten-
+dency towards more frontal articulation in depressed speech,
+possibly reflecting changes in muscle tension or reduced artic-
+ulatory effort. This shift in F2 may contribute to the perception
+of “flatter” or less animated speech often described in depressed
+individuals.
+Hammarberg Index: We observe a significant increase in
+the Hammarberg Index with depression severity (p < 0.001).
+This index, which measures the difference in energy between
+lower (0-2 kHz) and higher (2-5 kHz) frequency bands, has
+been less commonly reported in depression studies. However,
+our findings are consistent with the work of [88], who utilized
+this measure in their analysis of depressed speech.
+The in-
+crease in Hammarberg Index suggests a shift in spectral energy
+distribution, potentially reflecting changes in vocal tract ten-
+sion or alterations in phonation patterns associated with depres-
+sive states. This could contribute to the perceived “strained” or
+“tense” quality sometimes noted in the speech of depressed in-
+dividuals.
+Spectral Flux: Our results show a significant increase in
+
+
+9
+Table 3: Descriptive Statistics for Audio Features in Depression
+No Depression
+Mild to Moderate Depression
+Severe Depression
+Audio Feature
+Mean
+Std.
+Mean
+Std.
+Mean
+Std.
+Loudness*
+0.981
+0.207
+1.205
+0.364
+1.192
+0.341
+F0***
+28.480
+3.070
+31.593
+4.060
+34.571
+3.806
+HNR***
+3.630
+1.243
+4.300
+1.904
+5.986
+1.815
+Jitter**
+0.045
+0.013
+0.0466
+0.012
+0.039
+0.010
+Shimmer***
+1.388
+0.100
+1.353
+0.110
+1.263
+0.111
+F2**
+1519.730
+81.623
+1548.213
+85.155
+1590.002
+89.143
+Hammarberg Index***
+0.077
+0.021
+0.094
+0.018
+0.100
+0.014
+Spectral Flux*
+0.728
+0.231
+0.925
+0.329
+0.877
+0.282
+* p-value < 0.05; ** p-value < 0.01; *** p-value < 0.001
+Spectral Flux with depression severity (p < 0.05). This mea-
+sure, which quantifies the frame-to-frame spectral change in the
+speech signal, aligns with findings reported in the comprehen-
+sive review by [26]. The increase in Spectral Flux might in-
+dicate greater instability or variability in the spectral charac-
+teristics of depressed speech. This could be related to subtle
+irregularities in vocal fold vibration or changes in articulatory
+precision, both of which might be influenced by the psychomo-
+tor changes associated with depression. The elevated Spectral
+Flux might contribute to the perception of depressed speech as
+less “smooth” or more “effortful” compared to non-depressed
+speech.
+3.4. Deep Learning-Based Feature Representations
+3, we extract complementary spectral representations that
+enable our deep learning model to automatically learn hierar-
+chical patterns related to depression. While the hand-crafted
+features (F0, jitter, shimmer, HNR, etc.) provide interpretable,
+clinically meaningful measures with established statistical sig-
+nificance, modern neural architectures benefit from access-
+ing richer, less-compressed representations of the audio sig-
+nal [96, 97]. Rather than discarding the insights from tradi-
+tional features, we leverage spectral representations that implic-
+itly encode similar acoustic properties while preserving addi-
+tional information that may be relevant for depression detection
+[38, 98]. Specifically, we compute three complementary feature
+sets: chroma, Mel spectrograms, and MFCCs, with each cap-
+turing different aspects of the speech signal that relate to the
+acoustic parameters discussed above.
+Chroma feature represents the distribution of spectral en-
+ergy across the 12 pitch classes (C, C#, D, ..., B), effectively
+combining the harmonic content and providing octave-invariant
+information that relates strongly to pitch (F0) and indirectly to
+vocal tract characteristics (F2) and loudness fluctuations. A
+chromagram C(t, k) at time t and pitch class k is formally com-
+puted by summing the Short-Time Fourier Transform (STFT)
+magnitude |X(t, f)| over all frequencies f mapped to chroma
+bin k:
+C(t, k) =
+X
+f∈Fk
+|X(t, f)|
+where Fk denotes frequencies assigned to chroma bin k [99,
+100]. By capturing the pitch class distribution, chroma features
+provide a complementary view of the fundamental frequency
+variations (F0) observed in Table 3, while maintaining robust-
+ness to octave shifts that may occur due to speaker variability.
+Mel spectrograms project the power spectrum onto the Mel
+scale, approximating human auditory sensitivity. Formally, the
+Mel spectrogram M(t, m) at time t and Mel band m is:
+M(t, m) =
+X
+f∈Mel(m)
+|X(t, f)|2
+This captures spectral envelope information strongly related
+to loudness (by total energy), spectral flux (temporal change
+of M(t, :)), and can reflect shimmer and HNR through local
+variance and periodicity in the bands [101, 102]. The time-
+frequency resolution of Mel spectrograms preserves the tempo-
+ral dynamics of the acoustic features analyzed earlier, enabling
+the neural network to learn patterns in loudness fluctuations,
+spectral changes, and harmonic structures that correlate with
+depression severity.
+MFCCs (Mel Frequency Cepstral Coefficients) compact the
+Mel spectrogram by taking the discrete cosine transform (DCT)
+of the log Mel power. The n-th MFCC at time t is:
+MFCCn(t) =
+X
+m
+log M(t, m) cos
+πn
+M (m + 0.5)
+
+MFCCs therefore encode spectral envelope and are correlated
+with timbral aspects (shaped by vocal tract resonances like F2),
+as well as summarising periodic changes relevant to F0 and
+HNR [103, 104, 105]. The lower-order MFCCs capture the
+broad spectral shape influenced by formant frequencies (includ-
+ing F2), while higher-order coefficients encode finer spectral
+details related to voice quality measures such as jitter and shim-
+mer.
+By merging pitch class (chroma), perceptual spectrum (Mel),
+and envelope/timbre (MFCCs), these features allow a deep
+learning model to internalize traditional acoustic parameters,
+including F0, loudness, jitter, shimmer, and spectral flux, holis-
+tically and efficiently.
+Rather than relying on single-valued
+summaries, these representations preserve the temporal evolu-
+tion and spectral richness of the speech signal, blending rich
+acoustic information into three learnable domains well-suited
+for end-to-end modeling [106, 107]. This approach enables the
+network to automatically discover complex relationships be-
+tween acoustic patterns and depression severity that may not be
+captured by traditional hand-crafted features alone, while still
+
+
+10
+maintaining implicit connections to the clinically interpretable
+measures presented in Table 3.
+3.4.1. Choosing Deep Learning Features Over Hand-Crafted
+Acoustic Features
+While traditional acoustic features such as Loudness, F0,
+HNR, jitter, shimmer, F2, Hammarberg Index and Spectral Flux
+have demonstrated statistical significance in distinguishing de-
+pression severity (as shown in Table 3), modern deep learning
+approaches benefit substantially from utilizing low-level spec-
+tral representations rather than these hand-crafted features. We
+discuss out rationale for employing Mel spectrograms and re-
+lated representations in our neural network architecture down
+below:
+Representation Learning and Feature Hierarchies: Deep
+neural networks possess the inherent capability to automatically
+learn hierarchical feature representations directly from raw or
+minimally processed audio data [96].
+Hand-crafted features
+like jitter and shimmer were originally designed for classical
+machine learning approaches (e.g., Support Vector Machines,
+Random Forests) that lack this automatic feature learning capa-
+bility [108]. When we provide pre-computed acoustic features
+to a neural network, we are essentially performing feature en-
+gineering twice: once through manual acoustic analysis, and
+again through the network’s learned representations. This re-
+dundancy can limit the model’s ability to discover novel pat-
+terns in the data [109].
+Information Preservation: Hand-crafted acoustic features
+represent highly compressed summaries of the underlying au-
+dio signal. For instance, the Hammarberg Index reduces the
+entire spectral distribution to a single scalar value representing
+energy differences between frequency bands. While this com-
+pression provides interpretability, it inherently discards poten-
+tially relevant information that a neural network might leverage
+for classification [97]. In contrast, Mel spectrograms preserve
+the temporal-spectral structure of speech, retaining rich infor-
+mation about formant trajectories, prosodic patterns, and fine-
+grained spectral variations that may correlate with depression
+[98].
+Mel-Frequency Spectrograms:
+Mel spectrograms have
+emerged as the de facto standard for speech-based deep learning
+applications, including emotion recognition and clinical speech
+analysis [110, 38]. These representations apply a perceptually-
+motivated frequency scale that mimics human auditory per-
+ception while maintaining sufficient temporal and spectral res-
+olution for neural networks to extract discriminative patterns
+[111].
+Studies specifically focused on depression detection
+have demonstrated that convolutional neural networks (CNNs)
+operating on Mel spectrograms achieve superior performance
+compared to models trained on traditional acoustic features
+[38, 112]. Mel-Frequency Cepstral Coefficients (MFCCs), de-
+rived from Mel spectrograms through discrete cosine trans-
+formation, provide a compact representation that captures the
+spectral envelope while reducing dimensionality [113]. While
+MFCCs have been widely employed in speech recognition sys-
+tems [114], recent depression detection studies suggest that full
+Mel spectrograms often outperform MFCCs when sufficient
+training data is available, as the additional information reten-
+tion justifies the increased dimensionality [115].
+Raw Waveform Processing:
+End-to-end deep learning
+models that operate directly on raw audio waveforms represent
+the most extreme form of automatic feature learning [116, 117].
+These approaches eliminate all manual feature engineering, al-
+lowing the network complete freedom to learn task-specific rep-
+resentations from scratch.
+While computationally intensive,
+raw waveform models have shown promise in various audio
+classification tasks [118], though they typically require substan-
+tially larger datasets than spectrogram-based approaches.
+3.5. Ground Truth Labeling
+The process of ground truth labeling serves as a crucial step
+in developing an AI tool that helps to provide a reliable method-
+ology. This section delves into the methodologies employed in
+our Ground Truth Labelling process, emphasizing the screen-
+ing and diagnosis phases, the tools used, and the significance
+of an accurate assessment. Screening Phase: Our ground truth
+labelling process begins with a meticulous screening phase con-
+ducted by a seasoned clinical physiatrist. They verbally interact
+with the subjects, at length, to determine the presence of possi-
+ble mental disorders, with a particular focus on MDD. Partici-
+pants who are suspected of having even the faintest possibility
+of depressive disorders is passed onto the next phase. Diag-
+nosis Phase: Following the screening phase, the selected indi-
+viduals proceed to the Diagnosis phase to further refine the la-
+belling process. Here, two professional psychiatrists undertake
+a detailed examination, employing the commonly used PHQ-9
+[119] as the primary tool to provide the final ground truth score.
+4. Study Design
+The study design is a case-control study that was conducted
+between December 2023 and May 2024. The study was ap-
+proved by the Bangladesh Medical Research Council. Written
+informed consent was obtained from all subjects.
+4.1. Study Population
+The MDD subjects were recruited from the National Institute
+of Mental Health and Hospital (NIMH) in Dhaka, Bangladesh.
+Licensed psychiatrists of the institutions clinically diagnosed
+the subjects. According to the PHQ-9 assessment, the control
+group showed no sign of a depressive disorder. The exclusion
+criteria for all study participants were as follows: Individuals
+unable to remain seated for a prolonged verbal interaction were
+considered unfit for our data collection method, which required
+them to stay seated in a chair for approximately 5-10 minutes
+during the interaction. In total, we recruited 103 participants for
+analysis. The cohort’s median (range) age is 25 (17-52) years,
+with a standard deviation of 8.9 years. The majority of the co-
+hort is males (54.3%, N=105). The primary inclusion criteria
+are based on the PHQ-9 scale. The interpretation of the PHQ-9
+score is as follows: 1-4: minimal depression, 5-9 mild depres-
+sion, 10-14: moderate depression, 15-19 moderately severe de-
+pression, 20-27 severe depression. For simplicity, we rescaled
+the PHQ-9 scale to 3 classes, where a score less than 5: mild
+
+
+11
+Participant Demographic Summary
+Gender
+Number
+Percent (%)
+Male
+57
+54.29
+Female
+48
+45.71
+PHQ-9 scale Diagnosis
+Mild
+28
+27.19
+Moderate
+36
+34.95
+Severe
+39
+37.86
+Subject Age Group
+≤20
+20
+19.04
+21-39
+71
+69.52
+≥40
+12
+11.43
+Mean Age (years)
+28.16
+Median Age (years)
+25
+Age Standard Deviation
+8.92
+Table 4: Demographic characteristics and PHQ-9 score distribution (N=105)
+0
+5
+10
+15
+20
+25
+PHQ-9 Score
+0
+2
+4
+6
+8
+10
+Frequency
+Distribution of PHQ-9 Evaluation Scores
+Mild (0-4)
+Moderate to Severe (5-15)
+Severe (16+)
+Fig. 1: Histogram illustrating the distribution of Patient Health Questionnaire-
+9 (PHQ-9) scores among subjects
+depression, 5-15: moderate depression, and greater than 15: se-
+vere depression. Participants are classified into three groups ac-
+cording to the severity of their depression: mild (PHQ-9 score
+≤4), moderate (5≥PHQ-9 score ≤15) and severe (PHQ-9 score
+≥15). The 103 participants can be divided into three age groups.
+The violin plot in Figure 2 illustrates the distribution of PHQ-
+9 scores for male and female subjects, highlighting significant
+differences in depressive symptom prevalence and severity be-
+tween genders.
+Males exhibit a distribution skewed toward
+lower scores, with a median of 6.0 placing most in the “mild de-
+pression” range or the lower end of ”moderate to severe depres-
+sion.” The violin shape for males shows a wide base at lower
+scores, indicating a concentration of mild cases and fewer indi-
+viduals with higher scores. In contrast, females have a median
+score of 17.0 with most falling into the “severe depression” cat-
+egory. Their violin shape is more symmetrical and fuller in
+the upper ranges, suggesting a more even distribution of mod-
+erate to severe symptoms. This indicates a higher prevalence
+and severity of depression among females in the study. Addi-
+M
+F
+Gender
+0
+5
+10
+15
+20
+25
+PHQ-9 evaluation (On a scale of 0 - 27)
+Median: 6.0
+Median: 17.0
+Distribution of PHQ-9 Evaluation Scores by Gender
+Fig. 2: Violinplot illustrating the distribution of Patient Health Questionnaire-9
+(PHQ-9) scores between male and female subjects.
+tionally, the consistent width of the female violin across score
+ranges points to greater variability in symptom severity, further
+emphasizing the disparity between genders. Overall, the plot
+reveals that females experience higher and more varied levels
+of depressive symptoms compared to males.
+4.2. Data Collection Setup
+The tripartite nature of the data requires that the three modal-
+ities be collected on-site within a reasonably short span of time,
+to ensure data alignment and quality [120]. Figure 3 illustrates
+a high-level workflow of the data collection from both our col-
+lection sites: The National Institute of Mental Health (NIMH)
+and the University of Dhaka (DU).
+National Institute of
+Mental Health and
+Hospital (NIMH)
+University of Dhaka
+Psychiatrist to determine the
+presence of depressive disorders
+Exclude from
+data collection
+Too
+unstable to
+interact with
+PHQ-9
+Assessment
+Audio Data
+Video Data
+Eye Tracking
+Session
+Data Cleaning
+and Filtering
+Data
+Annotation
+Absent or Probable or Definite
+Presence of Depressive Disorder 
+Subject Pool
+No Depression
+Mild to Moderate Depression
+Severe Depression
+Directed
+conversation with
+patients
+Eye Tracking Data
+Raw
+Tripartite
+Data
+Fig. 3: Illustration of the overall workflow for the data collection conducted at
+the two collection sites: The National Institute of Mental Health (NIMH) and
+the University of Dhaka (DU). The data are collected, cleaned for anomalies
+and missing data, annotated, and separated into the three classes.
+After the initial screening by a licensed psychiatrist, all par-
+ticipants who were deemed composed enough to sit through the
+data collection session were moved to the next session. With
+
+
+12
+each of the selected participants, we held practice trials before
+the main study to ensure the participants were familiar with the
+experimental procedures and that the data were collected cor-
+rectly.
+Existing studies show that those suffering from MDD are
+more likely to focus on negative emotions than positive emo-
+tions and have a greater negative attention bias for negative
+stimuli [121]. Building on this work, we developed a set of 48
+images with facial expressions: 12 happy faces, 12 sad faces,
+and 24 neutral faces.
+These images were selected from the
+OASIS image library. All images were processed with Adobe
+Photoshop software with consistent size, gradation, and resolu-
+tion (i.e., image size 354 × 472 pixels; 8 × 6 cm). The stim-
+ulus consisted of pairs of images that included an emotional
+and a neutral facial expression. Three types of images were
+shown to the subjects: images that had a neutral face along-
+side a happy face, images with a neutral face and a sad face,
+and images with a sad face and a happy face. The order of the
+images is randomized, but the order in which the images were
+shown was kept the same during the eye tracking session; this
+helped to retain a degree of homogeneity in the expected eye
+movement of participants. Figure 4 shows how the images were
+formed, aligning images of different emotions adjacently. Fig-
+ure 5 shows the setup of the eye tracker with the monitor used
+for each of the participants. The positions of the two images
+within each of the “combined” images were counterbalanced.
+Each image with visual stimuli was shown for 3 seconds, fol-
+lowed by an entirely black image (all pixel values set at 0) for
+2 seconds. This was done to allow the gaze of the subjects to
+‘reset’ such that they could view the succeeding images with
+visual stimuli without carrying any form of bias from the pre-
+ceding image. The duration of the task was 100 seconds. Eye-
+tracking information was collected using a GazePoint GP3 HD
+Eye Tracker 1 with a sampling frequency of 150 Hz. The ex-
+perimental stimuli were shown on a 15.6-inch Light Emitting
+Diode (LED) screen laptop. Each trial began with a brief cali-
+bration session specified by the eye tracker manufacturer. Af-
+terward, the images were shown as described for the durations
+above while the subject viewed them, and the eye tracking cam-
+era collected the data. Inside the eye tracker software, all the
+measurements were made in milliseconds.A webcam is affixed
+atop the monitor to record the facial expressions of participants
+during eye-tracking sessions, as seen in Figure 5. Participants
+are videotaped upon consenting to data collection and position-
+ing before the display. While administering the PHQ-9, partici-
+pants respond to the questionnaire, exhibiting an array of facial
+expressions. These are captured by the webcam and encoded
+into video data.
+Figure 5 illustrates the overall experimental setup.
+Following the eye-tracking step, participants engaged in a
+directed yet casual conversation with our data collectors. By
+defining a set of generalized questions, the data collectors at-
+tempted to converse with the participants and to delve deeper
+into the answers that they provided without forcing a conversa-
+tion. During this time,we recorded their verbal responses, while
+1https://www.gazept.com
+Fig. 4: The three combinations of images shown to the subjects: (top-left) Sad-
+Neutral, (top-right) Neutral-Happy, (bottom) and Happy-Sad.
+Webcam
+Microphone
+Fig. 5: Illustration of the overall experimental setup. As the PHQ-9 ques-
+tionnaire assessment is administered by the data collection team, the webcam
+mounted on the monitor records the facial expressions of the subject, while
+the microphone records the audio from the verbal interaction. After the verbal
+assessment, the eye tracker, placed below the monitor, is used to track the sub-
+ject’s gaze patterns as they view the selected images.
+(a)
+(c)
+(b)
+Fig. 6: Saliency heatmaps generated from eye tracking session data showing
+attention patterns across depression severity levels. (a) No Depression group,
+(b) Mild to Moderate Depression group, and (c) Severe Depression group. The
+heatmaps reveal distinct visual attention patterns, with colour intensity indicat-
+ing fixation density (yellow = highest attention, blue = lowest attention).”
+they conversed, with an audio recorder. This approach facili-
+tates a more comprehensive dataset from which many vocal fea-
+tures can be extracted, enhancing the subsequent analysis by the
+deep learning model. The extended interaction allows the algo-
+rithm to discern a broader range of acoustic patterns, thereby
+improving the accuracy and reliability of emotion recognition.
+The video recording captures facial expressions, body lan-
+guage, and non-verbal cues, while the audio recording serves to
+capture the loudness, pitch, and other subtle variations in their
+voices. Following the conversation, the participants completed
+the PHQ-9 questionnaire in the presence of a licensed psychia-
+trist.
+
+
+13
+5. Proposed Methodology
+5.1. Preliminaries and Motivation
+In depression classification, several methods has been pro-
+posed based on a single modality (unimodal) features, while
+ignoring the other modalities (e.g., visual maps, facial expres-
+sion, etc.). Since, multimodal data can provide supplimentary
+information about the task, these unimodal methods lack the
+necessary expressive power. Hence, in this work, we focused
+on fully harnessing the power of multimodal data for depres-
+sion detection.
+Majority of existing multimodal approaches
+consist of two two-stage process. The first stage encompasses
+feature extraction, where we extract modality-specific features
+(unimodal features) from our dataset using existing feature ex-
+tractor modules [122, 123]. For our dataset, the extracted uni-
+modal features are (see figure 7(Left)) visual Saliency, facial
+expression, and acoustic features. These features are initially
+learned through independent unimodal frameworks that capture
+the modality-specific features. For the unimodal module, we
+followed a visual saliency-based framework similar to Rahman
+et. al. [64] that extracts the gaze pattern related features. The
+visual and acoustic features are extracted in accordance with
+Min et. al.[123]. After extracting these modality specific fea-
+tures there are some works [123] that concatenated these fea-
+tures and applied traditional machine learning algorithms, such
+as decision trees, random forests, SVM on top of this. The for-
+mulation of the method can be sumarized as:
+ˆY = fUni
+
+UAudio ⊕UGaze ⊕UVideo
+
+(1)
+where, ˆY is the predicted outcome, Ui is the extracted unimodal
+features for the modality i, ⊕represents the concatenation op-
+eration and fUni is the traditional machine learning algorithms
+(e.g., SVM, KNN etc).
+Concretely, in the cross-modality learning, they consider
+each modality as a node, vi ∈V, where V is the set of
+nodes (i.e., in our case ||V||= 3) equipped with a feature vector,
+h(vi) ∈Rd (d is the dimension of the feature), that are learned
+through a respective unimodal architecture.
+Since all these
+modalities are interrelated in a complementary aspect, conse-
+quently, they construct a complete graph or dense graph (i.e.,
+all modalities are connected with each other through edges),
+G(V, E), where, E is the edge set. The formulation can be ex-
+pressed as:
+ˆY = fCross
+
+G(V, E), UAudio, UGaze, UVideo
+
+(2)
+where, fCross can be GCN, Transformer based architectures or
+any other methods can levearages the cross modality interac-
+tion. Inline with these methods shown in 2, we also utilize the
+graph structure of underlying multimodal data. Although these
+methods exploits the interaction between different modalities
+by aggregating information from neighboring nodes, however,
+these architectures has a significant limitation: it predominantly
+relies on low-frequency information, potentially overlooking
+the nuanced high-frequency signals that can carry critical con-
+text for capturing the depression level (See. Lemma 2). This
+focus on low-frequency content may lead to suboptimal repre-
+sentation, as high-frequency signals can be indicative of unique
+or anomalous characteristics that can influence the task. Give
+an example. To address this limitation, we included a novel
+graph convolutional module namely “Multi-Frequency Filter-
+Bank Module” (MFFBM) that can easily be integrated with the
+existing graph convolutional methods [124] or existing Trans-
+former architectures [125][126], without requiring any extra
+learnable parameters. Moreover, this MFFBM module does not
+include any extra computational burden such as eigendecompo-
+sition, higher order power of adjacency matrix. Furthermore,
+our MFFBM module significantly enhances traditional graph-
+based frameworks by leveraging both low- and high-frequency
+information to create a more comprehensive representation for
+depression classification.
+5.2. Overall Architecture
+Our proposed depression detection framework is composed
+of two stages: (1) Unimodal Feature Extraction, and (2) Mul-
+timodal Feature Extraction via Graph Convolutional Network
+(GCN). As illustrated in Figure 7, the pipeline begins with pro-
+cessing raw input data from three modalities: audio, video, and
+visual saliency. Each modality is passed through its correspond-
+ing feature extractor module that transforms the raw signals into
+fixed-length embedding vectors of dimension (n, 64), where n
+is the number of subjects. These embeddings encode local tem-
+poral or spatial patterns through convolution, pooling, and Bi-
+LSTM layers, followed by fully connected layers.In the second
+stage, the learned unimodal embeddings are used to construct a
+fully connected graph, where each modality acts as a node. We
+model inter-modal relationships using a novel multi-frequency
+GCN block that combines low-pass and high-pass graph filters,
+designed to capture both commonalities and distinctions across
+modalities. The resulting cross-modal features are aggregated
+via global average pooling and concatenated with the original
+unimodal features to form a comprehensive representation. Fi-
+nally, this fused representation is passed through a classification
+head to categorize subjects into three depression severity levels.
+5.3. Unimodal Feature Extractor
+1)Audio Module: The audio module uses the Librosa Python
+library to extract features from audio files. Librosa specialises
+in music and audio analysis.
+We extract three features us-
+ing our audio module - chroma feature, mel spectrograms and
+Mel-frequency cepstral coefficients(MFCCs). Chroma features
+can effectively capture pitch variations, intonation patterns, and
+timbre from different audio files. A Mel spectrogram is a distri-
+bution of frequencies in an audio signal in the Mel scale. This is
+useful for speech processing as it mimics human perception of
+different frequencies. MFCCs represent the short-term power
+spectrum of sound, which helps neural networks or machine
+learning models process human speech effectively. We utilised
+chroma feature, Mel spectrograms, and MFCCs as input fea-
+tures, as these representations offer a mathematically robust and
+perceptually meaningful basis for deep learning on speech sig-
+nals. Each feature aggregates and encodes acoustic information
+relevant to attributes such as loudness, F0, HNR, jitter, shim-
+mer, F2, Hammaberg Index, and spectral flux, though not al-
+ways via one-to-one mapping.
+
+
+14
+2)Video Module: Our video module incorporates Face Emo-
+tion Recognizer (FER) which is a open source python li-
+brary to analyze a video frame by frame, detect emotions
+and categorizing them into seven categories - ’angry’, ’dis-
+gust’,’fear’,’happy’, ’sad’ and ’neutral’ on a scale of 0 to 1. We
+used FER’s default OpenCV Haarcascade classifier to classify
+the emotions in each video file.
+3)Visual Saliency Module: For our visual saliency module,
+we created fixation maps from eye tracking data.
+Also we
+used five saliency models to generate saliency maps for the
+images we showed to the persons while collecting our data.
+The five saliency models were SalFBNet, MSI-Net, TranSal-
+Net, Saliency Attentive Model (SAM-ResNet) and Saliency At-
+tentive Model (SAM-VGG). We compared the fixation maps
+with five different saliency maps for each person to get 8 met-
+rics from this. The metrics were AUC Borji, AUC Judd, CC,
+KLDiv, NSS, Similarity, AUC Shuffled, and Info Gain [127].
+For each modality i, the embeddings have a shape of (n, mi,
+fi) where n represents the number of subjects, mi represents
+the maximum number of samples for modality i, fi represents
+the feature size of modality i. To transform the variable length
+outputs from each module to a uniform size, these embeddings
+were processed through a convolution layer to extract local se-
+quential patterns. It was followed by a max pooling layer to get
+the most salient information. Then, two Bi-LSTM layers were
+used to capture bidirectional dependencies and two dense lay-
+ers to get feature vectors of size (n,64) for each modality. These
+unimodal features are later used in equation 6 which we discuss
+in 5.4
+To prepare the unimodal features for our graph based multi-
+modal feature extractor where each modality will be considered
+as a node, we reshaped the feature vectors to get multi dimen-
+sional representation of the unimodal features. This enabled
+us to perform channel wise concatenation which preserved the
+characteristics of each modality. It will help us to learn cross
+modal information.
+5.4. Multimodal Feature Extractor
+Unlike previous studies [123, 128, 129] that treated each
+audio, video, and gaze modalities as separate entities, these
+modalities are intrinsically linked through cross-modal rela-
+tionships, with features that mutually enhance and complement
+one another.
+In this work, we exploit this interdependence
+with Graph Convolutional Neural Network (GNN) as our cross
+modality learning module. To construct the graph, we assume
+each modality as a node. Since we are dealing with three dis-
+tinct modalities, we have 3 separate nodes and each of these
+nodes are connected with the rest of the nodes through edges
+(i.e., a dense graph). We denote this graph as G(V, E), where
+V is the vertex set (|V| = 3) and E is the edge set. We assume
+undirected edges. In GCN models, the convolution operation
+on the graph is defined as the multiplication of filters and sig-
+nals in the Fourier domain. Specifically, GCN model learns new
+node representations by calculating the weighted sum of feature
+vectors of central nodes and the neighboring nodes. Mathemati-
+cally, the simplest spectral GCN layer (Kipf and Welling, 2016)
+can be formulated as:
+hℓ+1 = f(hℓ, A) = σ
+ ˜AhℓΘℓ
+where hℓis the matrix of activations in the ℓ-th layer, and
+Θℓis a layer-specific trainable weight matrix.
+In addition,
+˜
+A = D−1
+2 AD−1
+2 is the normalized adjacency matrix with self
+loops, and σ(·) is an activation function, such as the ReLU(·) =
+max(0, ·). In addition, D is the diagonal degree matrix, with
+the i-th diagonal element defined as di = P
+i̸= j Ai j. In the GCN
+layer in our proposed framework, instead of using a single filter
+Θ to extract features from the input feature vector X, we stack
+multiple of these graph convolutional filters with the adjacency
+matrix ˜
+A. This is computed as:
+hℓ+1
+low = f(A, X) =
+k
+X
+i
+ϕiReLU
+
+( ˜
+A ⊙Mℓ)hℓΘℓ
+i
+
+(3)
+where, P
+i ϕi = 1 and each ϕi can be a learnable parameter or for
+simplicity we may manually set it [0,1] and treat it as a hyper-
+parameter. In this work we choice the second option and treat it
+as a hyperparameter. We will explore the possibility of learning
+them in our future study. It is worth noting that Eqn 3 primar-
+ily act as a low pass operation is and designed to be a function
+of
+˜
+A, K(ℓ+1)
+low
+= D−1
+2 (A + IN)D−1
+2 , where D ∈RN×N is the
+diagonal degree matrix, A is the graph adjacency matrix with-
+out self-loop, IN is the identity matrix and M(ℓ) is the attentin
+mask at ℓ-th layer. Intuitively, the eqn 3 represents a low-pass
+linear filter by aggregating the node’s self-information with its
+neighborhood information. Since different frequency compo-
+nents contributes differently in the signal that efffect the overall
+depression score. Thus, it is reasonable to construct GNNs be-
+yond only low-pass filters, that can extract various spectrum of
+information through multi-channel filter banks. For this pur-
+pose, we designed a simple yet effective high-pass GNN as:
+h(ℓ+1)
+high = a( ˜
+A ⊙M(ℓ))hℓΘℓ−(1 −a)hℓΘℓ
+(4)
+where, we designed the high pass filter as, K(ℓ+1)
+high = −a ˜
+A+(1−
+a)IN. From eqn 4, our high-pass GNN computes the differ-
+ence between the self-information and neighborhood informa-
+tion. It highlights the features of a node that are distinct from
+its neighbors. Finally, to construct the multi-frequency filter
+banks, we combine these low and high frequency information,
+h(ℓ+1)
+low
+and h(ℓ+1)
+high , resulting in the following equation for our pro-
+posed GCN block:
+h(ℓ+1) = ϕh(ℓ+1)
+low
++ (1 −ϕ)h(ℓ+1)
+high
+(5)
+where, ϕj is the balancing factor since it controls the frequency
+spectrum of the overall filter. ϕ j set as a hyperparameter and
+h(ℓ+1) is the overall feature representation with multi-channel
+filterbank at ℓ+ 1 layer. By stacking multiple GCN blocks we
+can learn higher-order node features from neighboring nodes.
+In addition, GCN propagates information on a graph structure
+and gradually aggregates the information of neighboring nodes,
+which allows us to effectively capture the complex dependen-
+cies in the graph structure. Finally, we employ a simple chan-
+nelwise global average pooling (GA) to generate graphlevel
+
+
+15
+Bi-LSTM
+Bi-LSTM
+Bi-LSTM
+Bi-LSTM
+ϕ × ℎlow+ (1-ϕ) × ℎhigh   
+Convolution
+Layer
+Max Pool
+Layer
+Dense
+Dense
+Dense
+GCN
+Frame 1
+Frame 2
+Frame n
+Classifier
+Splliting
+Into
+Frames
+Video Module
+Reshape
+to 3D
+No Depression
+Softmax
+Dense Layers
+128     64    32    16
+Saliecny
+Model 1
+Saliecny
+Model N
+Saliecny
+Model 2
+Visual Saliency Module
+Convolution
+Layer
+Convolution
+Layer
+Max Pool
+Layer
+Max Pool
+Layer
+Audio Module
+MFCC
+Chroma
+Mel
+Spectrogram
+Fourier Transform
+Audio
+Features
+Video
+Features
+Visual
+Saliency
+Features
+1xmax180
+1xmax128 1x(ma/2)x128
+1x(ma/2)x1024
+1x512
+Dense
+1x256
+1x64
+1x1x64
+1xmvx7
+1xmvx64
+1x(mv/2)x64
+1x(mv/2)x1024
+1x512
+1x256
+1x1x64
+Reshape
+to 3D
+1xmsx40
+1xmsx64
+1x(ms/2)x64
+1x(ms/2)x768
+1x512
+Dense
+1x256
+1x64
+1x1x64
+1x3x64
+1x192
+Reshape
+to 3D
+Dense
+1x64
+1x3x64
+1x3x64
+ℎhigh
+ℎlow
+Bi-LSTM
+Bi-LSTM
+Mean
+1x64
+1x256
+Severe
+Depression
+Mild to
+Moderate
+Depression
+ℎlow
+Concatenation symbol
+MFFBM
+Fig. 7: Our proposed multimodal depression detection framework. It starts with the unimodal feature extraction stage. Three parallel branches process au-
+dio(highlighted in blue), video (orange) and visual saliency (red) data. Each branch utilizes convolutional and Bi-LSTM layers to produce a 64 64-dimensional
+embedding vector. In the multimodal feature extraction stage (green), a Graph Convolutional Network(GCN) with our Multi frequency filter bank module (MFFBM)
+models the intermodal relationships. Finally, the resulting cross-modal features are combined with the initial unimodal features and passed to the classification head
+(yellow) to predict the depressed class
+feature representations and concatenate this with modality spe-
+cific features (i.e., extracted through unimodal feature extrac-
+tor). This can be expresed as:
+Z = h(L+1) ⊕UA ⊕UV ⊕UG
+(6)
+Finally, to enhance the final representation we integrate the
+cross modality based features, h(L+1), with the unimodal fea-
+tures, UA, UV, UG, through a channel-wise concatenation op-
+eration, as shown in equation 6.
+The final representation of our multimodal feature extractor
+from equation 6 was passed through multiple dense layers fol-
+lowed by a softmax layer to classify subjects into one of three
+depression levels (e.g., No Depression, Mild to moderate de-
+pression, Severe depression).
+5.5. Theoretical Analysis of MFFB
+Lemma 1. The spectral behavior of a graph convolution kernel
+C can be described by its frequency response in the spectral
+domain, given by:
+F (λ) = diag−1 
+UCUT
+,
+where F (λ) represents the frequency response, U is the matrix
+of eigenvectors of the normalized graph Laplacian L, and C is
+the graph convolution operator.
+This definition follows the spectral interpretation introduced
+in [130].
+Lemma 2. The frequency profile of the graph convolution layer
+utilized in GCN[124] is defined by:
+F (λ) = 1 −
+p
+p + 1λ
+where λ is the eigenvalues of the normalized graph Laplacian
+and the given graph is an undirected regular graph whose node
+degree is p.
+The filter response linearly decreases until the third quarter
+of the spectrum (cut-off frequency) where it reaches zero. From
+this point, it increases linearly until the spectrum’s end. We
+don’t include the proof here due to space constraints, but read-
+ers can find a detailed proof of Lemma 2 in Balcilar et al. [130].
+Theorem 1. Our Proposed parametrization GCN in Eqn 5 can
+equivalently express arbitrary graph filter with continuous fre-
+quency response function.
+Proof. As shown in 5, our multifrequency GCN architecture
+has two components. Initially, we capture low frequency sig-
+nals (h(ℓ+1)
+low ) similar to GCN [124]. Subsequently, we identify
+high frequency components (h(ℓ+1)
+high ) by computing the differ-
+ence between the original input features and the extracted low
+frequency representation. These complementary signal compo-
+nents are then integrated using the weighting parameter βi. For
+a GCN with L layers, Equation 5 can be reformulated as:
+h(L) =
+h
+ϕ
+
+h(1)
+high + h(2)
+high + . . . + h(ℓ)
+high + . . . +
+h(L)
+high
+
++ (1 −ϕ)
+
+h(1)
+low + . . . + h(ℓ)
+low + . . . + h(L)
+low
+i
+
+
+16
+For simplicity we consider the second layer representation for
+our Eqn 5 as h(2) = ϕih(2)
+high + (1 −ϕi)h(2)
+low]. We can express the
+low frequency components as: hlow(2) = ˜
+Ah(1)Θ2, which can be
+further decomposed to:
+h(2)
+low = ˜
+A
+h
+ϕ
+ ˜
+Ah(0)Θ(1)
++ (1 −ϕ)
+ ˜
+Ah(0)Θ(1)
+−h(0)Θ(1)i
+Θ2
+=
+h
+Θ
+ ˜
+A2h(0)Θ(1)
++ (1 −ϕ)
+ ˜
+A2h(0)Θ(1) −˜
+Ah(0)i
+Θ(2)
+= ˜
+A2h(0)Θ(1)Θ(2) −(1 −ϕ)
+ ˜
+Ah(0)Θ(1)Θ(2)
+=
+ ˜
+A2 −(1 −β) ˜
+A
+
+h(0)Θ(1)Θ(2)
+where, K1 = ( ˜
+A2−(1−ϕ) ˜
+A) is the corresponding convolutional
+kernel and h(0) is the input feature matrix. We can also express
+this convolutional kernel with the help of graph filter response
+function F (·) as: K1 = Udiag(F1(λ))UT [130]. Hence, we
+analysis the frequency profile of the h(2)
+low of the convolutional
+kernel K1 as: F1(λ) = diag−1(UTK1U). Replacing the normal-
+ized graph adjacecncy matrix ˜
+A with the graph Laplacian L in
+the convolutional kernel K1 as K1 = (I−L)2 −(1−ϕi)(I−L).
+We express the graph laplacian L with the help of Eigende-
+composition as L = Udiag(˘)UT, where ˘ is the eigenvalues
+of the graph laplacian and U is the corresponding eigenvec-
+tors. Similarly, we can write I −L with Eigendecomposition
+as: I −L = UUT −Udiag(λ)UT = UIUT −Udiag(λ)UT =
+UTdiag(I−λ).UT. Using the rule of power we rewrite (I−L)2
+using the same eigenvalues of L as Udiag(λ −I)2UT. Adding
+(I−L)2 and (I−L) together we express C1 with respect to the
+filter response as: C1 = Udiag
+
+(λ −1)2 −(1 −ϕ)(1 −λ)
+
+UT =
+Udiag
+
+λ2 −(1+ϕ)λ−(1−ϕ)
+
+UT, where F1(λ) = λ2 −(1+ϕ)λ−
+(1 −ϕi) is the filter response for the first part, h(2)
+low, of the our
+equation 5.
+Now we expand the second part of our Eqn 5:
+h(2)
+high = ˜
+A
+h
+ϕ
+ ˜
+Ah(0)Θ(1)
++ (1 −ϕ)
+ ˜
+Ah(0)Θ(1)i
+Θ(2) −
+h
+ϕ
+ ˜
+Ah(0)Θ(1)
++
+(1 −ϕ)
+ ˜
+Ah(0)Θ(1)i
+Θ(2)
+= ˜
+A2h(0)Θ(1)Θ(2) −ϕ
+ ˜
+Ah(0)Θ(1)Θ(2)
+−(1 −ϕ)
+
+h(0)Θ(1)Θ(2)
+=
+ ˜
+A2 −ϕ ˜
+A + (1 −ϕ)I
+
+h(0)Θ(1)Θ(2)
+where, K2 = ( ˜
+A2 −ϕ ˜
+A + (1 −ϕ)I) is the corresponding
+convolutional kernel for h(2)
+high. As previously shown we can
+express the filter response of the convolutional kernel K2 as
+F2(λ) = λ2 −λ + 2ϕ. Finally, we combine the filter response of
+part 1 and part 2 to get the overall frequency profile for our pro-
+posed GCN described in Eqn 5 as: F (λ) = 2λ2 −ϕλ + (1 + ϕ)
+for the second layer, which is a quardadic bandpass filter and
+the cut off frequency, λ =
+ϕ±
+p
+ϕ2 −8(1 + ϕ)
+4
+is controlled using
+the parameter ϕ. Thus, our MFFBM in Eqn 5 could express fil-
+ters with diverse frequency properties, e.g., low/band/high-pass
+filters.
+6. Evaluation Metrics
+In this section, we describe the evaluation metrics used to
+assess the performance of our model. We focus on a compre-
+hensive set of metrics that capture different aspects of model
+performance, ensuring a balanced evaluation.
+Precision (PRE.): Precision, also known as Positive Predic-
+tive Value, indicates the proportion of true positive predictions
+among all predictions of the positive class. It is defined as:
+Precision =
+True Positives
+True Positives + False Positives
+Precision is important in contexts where the cost of false pos-
+itives is high, such as in spam detection. A high precision sug-
+gests that the model has a low rate of false positives.
+Recall (REC.): Recall, also known as Sensitivity or True Pos-
+itive Rate, measures the proportion of true positive predictions
+among all actual positive instances. It is calculated as:
+Recall =
+True Positives
+True Positives + False Negatives
+Recall is crucial in situations where failing to identify posi-
+tive instances can have severe consequences, such as in medical
+testing or fraud detection. A high recall indicates that the model
+has a low rate of false negatives.
+Specificity (SPEC.): Specificity, also known as True Negative
+Rate (TNR), calculates the ratio of true negative predictions
+among all actual negative instances. It is calculated as:
+Specificity =
+True Negatives
+True Negatives + False Positives
+Specificity is particularly important in scenarios where false
+positive predictions are costly or harmful such as in diagnostics
+screening where a false alarm can lead to unnecessary treat-
+ments or distress. A high specificity means that the model can
+successfully classify negative classes with minimum number of
+false positives.
+F2 score:The F2 score is a metric used to evaluate the perfor-
+mance of a classification model, particularly in scenarios where
+the focus is on maximizing recall (identifying as many posi-
+tive cases as possible) while still considering precision. It is
+a variation of the F1 score, which balances precision and re-
+call equally. The F2 score, however, gives more weight to re-
+call, making it useful in situations where false negatives (missed
+positive cases) are more costly than false positives (incorrectly
+identified positives).
+F2 Score = (1 + 22) · Precision · Recall
+22 · Precision + Recall
+= 5 · Precision · Recall
+4 · Precision + Recall
+AUC (Area Under the ROC Curve): The AUC measures the
+area under the Receiver Operating Characteristic (ROC) curve,
+which plots the True Positive Rate (Recall) against the False
+Positive Rate at various thresholds. The AUC represents the
+model’s ability to discriminate between positive and negative
+classes. An AUC of 0.5 indicates a model with no discrimina-
+tory power (random guessing), while an AUC of 1.0 represents
+
+
+17
+perfect discrimination. AUC is useful for evaluating a model’s
+performance across different classification thresholds
+Due to the class imbalance in our dataset, we have chosen
+these metrics to evaluate our model’s performance. Further-
+more, for the task of depression detection, minimizing false
+negatives is a higher priority than minimizing false positives.
+Therefore, F2 score was chosen over F1 score to prioritize re-
+call in our evalution.
+7. Methods For Comparison
+To evaluate the performance of our proposed method, we
+conducted a comparative analysis against several established
+machine learning algorithms and deep learning methods. The
+deep learning methods specified here are used for multimodal
+data and depression detection. Our comparison focuses on the
+following algorithms and deep learning methods: Decision Tree
+(DT), Random Forest (RF), Support Vector Machine (SVM),
+eXtreme Gradient Boosting (XGBoost), k-Nearest Neighbors
+(KNN), Naive Bayes (NB) , Logistic Regression (LR), In-
+tra and Inter-modal Fusion for Depression Detection(IIFDD),
+Self-Attention Transformer(TF(S)) and Cross-Attention Trans-
+former(TF(C)) . Each algorithm and method has unique char-
+acteristics that influence its performance, interpretability, and
+computational requirements.
+Below, we provide a brief de-
+scription of each algorithm and method and the rationale for
+its inclusion in our study.
+Decision Tree (DT): Decision Trees are a basic yet powerful
+type of algorithm that models data by recursively splitting it
+based on features that maximize information gain. They are in-
+tuitive and interpretable, making them suitable for exploratory
+data analysis. However, Decision Trees can be prone to overfit-
+ting, especially with deep trees.[131]
+Random Forest (RF): Random Forest is an ensemble method
+that combines multiple Decision Trees through bagging (boot-
+strap aggregating). It introduces randomness by randomly se-
+lecting subsets of features for each tree, reducing overfitting
+and improving generalization. Random Forest is often more ro-
+bust and accurate than individual Decision Trees, making it a
+common benchmark in machine learning studies.[132]
+Support Vector Machine (SVM): SVM is a supervised learn-
+ing algorithm that aims to find the optimal hyperplane that
+separates different classes. It works well in high-dimensional
+spaces and is effective for both linear and non-linear classifi-
+cation (with kernel methods). SVMs are robust to overfitting,
+especially with appropriate regularization, and are commonly
+used for their strong theoretical foundations.[133]
+eXtreme Gradient Boosting (XGBoost): XGBoost is a gradi-
+ent boosting algorithm that builds models in a sequential man-
+ner, where each subsequent model aims to correct errors from
+the previous one. It is known for its efficiency, scalability, and
+ability to handle complex datasets with high dimensionality.
+XGBoost often achieves high accuracy and is favored in com-
+petitive machine learning challenges.[134]
+k-Nearest Neighbors (KNN): KNN is a non-parametric
+method that classifies samples based on the labels of their near-
+est neighbors in the feature space.
+The simplicity of KNN
+makes it a useful baseline for comparison. However, it can be
+sensitive to noisy data and requires careful tuning of the ’k’ pa-
+rameter for optimal performance [135].
+Gaussian Naive Bayes (NB): This is a probabilistic classifier
+designed for continuous features. It models by fitting a Gaus-
+sian distribution to the data for each class. It is computationally
+simple and perform well when its underlying assumptions are
+met. Its main limitation it he normality assumption which may
+not accurately represent the true distribution of the data [136].
+Logistic Regression (LR): Logistic regression is a statistical
+model that classifies data by modeling the probability of an out-
+come using the sigmoid function. Although it is inherently a bi-
+nary classifier, it can be used for multiclass classification tasks
+through strategies such as ”One vs Rest”(OvR). Due to its com-
+putational efficiency and straightforward nature, it is often used
+as a baseline for classification problems. However, it assumes
+that input variables have a linear relationship with the log odds
+of the outcome [137].
+Intra and Inter-modal Fusion for Depression Detec-
+tion(IIFDD): IIFDD is a transformer based deep learning
+method that uses inter and intra modal fusion to classify de-
+pressed patients using multi modal data - audio, video, and text
+[125].
+Self-Attention
+Transformer
+(TF(S)):
+This
+model
+uses
+modality-specific encoders and self-attention module to encode
+features. The concatenated features are then passed to statis-
+tical pooling layer to get mean and standard deviation vectors.
+Then fully connected layers are used to do the final classifica-
+tion [126].
+Cross-Attention Transformer (TF(C)): This model is similar
+to the Self-Attention Transformer. But the only difference is
+that it uses cross multi-head attention instead of self-attention
+[126].
+By comparing these algorithms against our proposed method,
+we aim to demonstrate its effectiveness and robustness. The
+comparative analysis provides insights into each method’s
+strengths and weaknesses and helps identify scenarios where
+our proposed method offers significant advantages.
+8. Overall Result
+Experimental Setup: We optimize the proposed multimodal
+framework via the Adam [138] optimizer, with the learning rate
+of 0.001, training epoch of 500 accompanying an early stopping
+of 50 patience and minibatch size of 16. The proposed model
+is implemented based on Tensorflow 2.0 [139], and the model
+is trained by using a single GPU (NVIDIA RTX 3090 with 24
+GB memory). All the hyperparameters in Eqn 5 are empirically
+set using a grid search [140]. To evaluate our model, we used
+10-fold cross-validation. We ensured that in each fold, train
+and test sets have mutually exclusive sets so that any data leak-
+age doesn’t happen. 10-fold cross-validation helps us to give a
+more comprehensive view of our model’s generalizability than
+the single train-test split method. We formulate the depression
+detection problem as a “Multiclass Classification Task”. Due
+to the limited number of collected samples currently we divide
+the entire dataset into only three classes, namely Class 1, Class
+
+
+18
+Model
+Ensemble
+Audio
+Video
+Gaze
+Spec
+Sens
+F2
+Pre
+Spec
+Sens
+F2
+Pre
+Spec
+Sens
+F2
+Pre
+Spec
+Sens
+F2
+Pre
+DT[131]
+0.70
+0.71
+0.72
+0.74
+0.78
+0.76
+0.77
+0.84
+0.65
+0.65
+0.66
+0.72
+0.70
+0.59
+0.61
+0.73
+RF[132]
+0.80
+0.79
+0.80
+0.83
+0.70
+0.81
+0.80
+0.76
+0.70
+0.73
+0.73
+0.75
+0.58
+0.70
+0.70
+0.69
+XGB[134]
+0.75
+0.79
+0.79
+0.79
+0.68
+0.66
+0.66
+0.65
+0.68
+0.67
+0.68
+0.72
+0.50
+0.68
+0.67
+0.62
+LR[137]
+0.80
+0.81
+0.81
+0.83
+0.70
+0.78
+0.77
+0.75
+0.70
+0.80
+0.79
+0.77
+0.50
+0.84
+0.81
+0.70
+KNN[135]
+0.78
+0.85
+0.84
+0.82
+0.70
+0.79
+0.78
+0.76
+0.65
+0.74
+0.73
+0.71
+0.63
+0.62
+0.63
+0.67
+GNB[136]
+0.83
+0.66
+0.69
+0.83
+0.63
+0.62
+0.63
+0.68
+0.75
+0.78
+0.78
+0.80
+0.65
+0.60
+0.61
+0.64
+SVM[133]
+0.85
+0.79
+0.80
+0.86
+0.68
+0.81
+0.80
+0.75
+0.68
+0.84
+0.83
+0.77
+0.50
+0.77
+0.75
+0.67
+TF(S)[126]
+0.83
+0.89
+0.89
+0.87
+0.65
+0.98
+0.93
+0.78
+0.73
+0.91
+0.89
+0.81
+0.60
+0.86
+0.81
+0.67
+TF(C)[126]
+0.80
+0.93
+0.91
+0.85
+0.63
+1.00
+0.94
+0.77
+0.68
+0.94
+0.91
+0.80
+0.38
+0.96
+0.88
+0.67
+IIFDD[125]
+0.85
+0.93
+0.92
+0.90
+0.65
+0.98
+0.93
+0.78
+0.85
+0.89
+0.89
+0.88
+0.55
+0.90
+0.86
+0.74
+MF-GCN
+0.83
+0.96
+0.94
+0.88
+0.73
+0.81
+0.81
+0.80
+0.88
+0.80
+0.81
+0.88
+0.68
+0.78
+0.78
+0.80
+Table 5: Comparison of Model Performance Across Modalities For Binary Classification (Subject-wise split using 10-Fold Cross-Validation)
+Model
+Ensemble
+Audio
+Video
+Gaze
+Spec
+Sens
+F2
+Pre
+Spec
+Sens
+F2
+Pre
+Spec
+Sens
+F2
+Pre
+Spec
+Sens
+F2
+Pre
+DT[131]
+0.70
+0.53
+0.53
+0.54
+0.77
+0.63
+0.64
+0.69
+0.70
+0.52
+0.52
+0.52
+0.72
+0.52
+0.53
+0.55
+RF[132]
+0.77
+0.67
+0.67
+0.69
+0.77
+0.63
+0.64
+0.69
+0.75
+0.63
+0.63
+0.64
+0.76
+0.58
+0.59
+0.64
+XGB[134]
+0.73
+0.61
+0.61
+0.59
+0.77
+0.65
+0.65
+0.67
+0.72
+0.58
+0.58
+0.59
+0.69
+0.45
+0.46
+0.48
+LR[137]
+0.80
+0.71
+0.72
+0.74
+0.80
+0.68
+0.69
+0.72
+0.77
+0.66
+0.67
+0.70
+0.73
+0.57
+0.58
+0.63
+KNN[135]
+0.81
+0.73
+0.73
+0.75
+0.79
+0.67
+0.68
+0.71
+0.75
+0.60
+0.61
+0.66
+0.76
+0.58
+0.59
+0.64
+GNB[136]
+0.75
+0.64
+0.64
+0.64
+0.76
+0.64
+0.64
+0.63
+0.76
+0.56
+0.57
+0.60
+0.68
+0.44
+0.45
+0.49
+SVM[133]
+0.79
+0.69
+0.70
+0.74
+0.80
+0.68
+0.69
+0.71
+0.75
+0.63
+0.63
+0.61
+0.74
+0.57
+0.58
+0.63
+TF(S)[126]
+0.83
+0.75
+0.74
+0.69
+0.80
+0.70
+0.70
+0.69
+0.77
+0.70
+0.70
+0.68
+0.69
+0.58
+0.58
+0.56
+TF(C)[126]
+0.82
+0.77
+0.76
+0.71
+0.81
+0.73
+0.73
+0.74
+0.80
+0.74
+0.73
+0.70
+0.66
+0.54
+0.52
+0.44
+IIFDD[125]
+0.84
+0.77
+0.77
+0.79
+0.81
+0.71
+0.72
+0.78
+0.80
+0.71
+0.72
+0.74
+0.75
+0.62
+0.62
+0.62
+MF-GCN
+0.87
+0.79
+0.79
+0.81
+0.82
+0.73
+0.74
+0.79
+0.85
+0.74
+0.74
+0.74
+0.75
+0.60
+0.60
+0.59
+Table 6: Comparison of Model Performance Across Modalities For 3 class classification (Subject-wise split using 10-Fold Cross-Validation)
+Model Abbreviations: DT = Decision Tree, RF = Random Forest, XGB = XGBoost, LR = Logistic Regression, KNN = k-Nearest Neighbors, GNB = Gaussian
+Naive Bayes, SVM = Support Vector Machine, GCN = Graph Convolutional Network, TF(C) = Cross-Attention Transformer, TF(S) = Self-Attention Transformer
+Metric Abbreviations: Sens = Sensitivity, Spec = Specificity, F2 = F2-Score, Pre = Precision
+2 and Class 3, where each class has there respective PHQ-92
+score range. Concretely, the no depression cases (i.e., PHQ-9:
+0-4) fall in the Class 1, the mild and moderate depression cases
+(i.e., PHQ-9: 5-14) are in Class 2, and severe depression pa-
+tients (i.e., PHQ-9: 15-27) are in Class 3. This classification
+range is further discussed and verified by the professional doc-
+tors in our team. As the evaluation metrics we are using are
+primarily used for binary classification, we used the weighted
+average method to calculate them for multi-class classification.
+The quantitative results of the proposed framework and ten
+competing methods in the task of depression classification are
+reported in Table 5 to Table 6. In each table, we use the term
+feature ensemble to concatenate the uni modal features i.e.,
+video, audio, and gaze. This feature concatenation or ensemble
+does not consider the dependence among different modalities
+and treat features from each modality independently. In con-
+2PHQ-9 score ranges between 0 to 27, the larger the score the higher is the
+depression level.
+trast, our proposed method (MF-GCN, bottom row of every
+table) exploit the correlation among various modalities (e.g.,
+video, audio and gaze) through our cross-modality learning
+module with the help of graph convolution layer and make
+predictions based on both the unimodal features and cross-
+modality features. This helps our proposed multimodal method
+to significantly outperform the seven machine learning algo-
+rithms that solely rely on the ensemble features or concatenated
+features from different modalitie,s and also beats the deep learn-
+ing methods that uses cross modality.
+Our cross-modality learning methods (i.e.,
+MF-GCN,
+IIFDD, TF(S) and TF(C)) generally achieve better perfor-
+mance in terms of five metrics, compared with seven traditional
+machine learning methods.
+In Table 5, binary classification results using 10 fold cross
+validation were reported.
+For single modality features, our
+model might not perform best across all metrics but gives con-
+sistent performance. For video features, our model achieves the
+highest specificity and precision. For Gaze features, we excel
+
+
+19
+Model
+Ensemble
+Audio
+Text
+Video
+Recall
+F2
+Pre
+Recall
+F2
+Pre
+Recall
+F2
+Pre
+Recall
+F2
+Pre
+DT[131]
+0.90
+0.90
+0.91
+0.89
+0.90
+0.97
+0.59
+0.62
+0.80
+0.85
+0.85
+0.87
+RF[132]
+0.90
+0.91
+0.95
+0.92
+0.93
+0.97
+0.69
+0.72
+0.84
+0.85
+0.86
+0.90
+XGB[134]
+0.85
+0.84
+0.80
+0.85
+0.87
+0.96
+0.66
+0.68
+0.80
+0.85
+0.84
+0.80
+LR[137]
+0.95
+0.96
+1.00
+0.92
+0.93
+0.97
+0.77
+0.78
+0.80
+0.85
+0.85
+0.87
+KNN[135]
+0.95
+0.96
+1.00
+0.92
+0.93
+0.97
+0.77
+0.77
+0.78
+0.85
+0.85
+0.87
+GNB[136]
+0.90
+0.92
+1.00
+0.89
+0.90
+0.97
+0.65
+0.66
+0.72
+0.85
+0.85
+0.87
+SVM[133]
+0.95
+0.96
+1.00
+0.92
+0.93
+0.97
+0.73
+0.75
+0.84
+0.85
+0.85
+0.87
+TF(S)[126]
+0.90
+0.92
+1.00
+0.92
+0.93
+0.97
+0.80
+0.83
+0.95
+0.90
+0.90
+0.90
+TF(C)[126]
+0.95
+0.96
+1.00
+0.96
+0.96
+0.97
+0.77
+0.79
+0.91
+0.85
+0.85
+0.87
+IIFDD[125]
+0.95
+0.95
+0.95
+0.96
+0.96
+0.97
+0.72
+0.76
+0.97
+0.80
+0.83
+1.00
+MF-GCN
+0.95
+0.96
+1.00
+0.92
+0.93
+0.97
+0.77
+0.81
+1.00
+0.85
+0.86
+0.90
+Table 7: Comparison of Model Performance Across Modalities For Binary classification (Using CMDC Dataset)
+at precision. However, for ensemble features, we can see that
+our model outperforms all other methods in Sensitivity and F2
+Score with a score of 0.96 and 0.94 respectively. This highlights
+our model’s ability to correctly identify positive cases with min-
+imum false positives. For binary classification, the second best
+model can be considered IIFDD as it achieves the second best
+Sensitivity and F2-Score.
+Multiclass classification results using 10 fold cross validation
+were reported in Table 6. The results from this table resonate
+with our findings from the Table 5. However, in this case, our
+model outperforms every method across all modalities except
+at gaze features, where IIFDD performs better in sensitivity and
+F2 Score. When all modalities are considered, we can see that
+we gain significant performance improvement over any other
+methods. We achieve a Sensitivity score of 0.79 and Specificity
+score of 0.87, where the second best model IIFDD achieves
+respectively 0.77 and 0.84.
+These results demonstrate that our proposed multimodal
+methods can learn diagnostic oriented salient cross-modality
+features more effectively, and also highlight the importance of
+these cross- modality features in depression detection. This is
+the key reason behind the performance boost for all five met-
+rics for our method compared with traditional machine learning
+methods that rely solely on ensemble features and other deep
+learning methods.
+Our proposed multimodal framework outperforms the fea-
+ture ensemble based existing baselines but it also generally out-
+perform over all the unimodal features, especially in case of
+multiclass classification. This can be attributed to the MFFBM
+module. The module captures both inter class boundaries and
+distinctive high frequency patterns. This is reciprocated in Fig-
+ure 8 where we can see that class 1 which is more challenging
+to predict as it has overlapping features, our model still per-
+form the best. For the more simpler task of binary classification,
+the performance gap between our model and others is less pro-
+nounced but our model still achieved highest sensitivity which
+is the most critical metric in clinical context. Also, we observe
+that the feature ensemble based approach generally outperforms
+their single-modality counterparts (i.e., individual video, audio
+or gaze). For instance, both DT and XGBoost methods that
+ensemble unimodal features (e.g., video, gaze and audio) are
+superior to the unimodal DT and XGBoost (see coloum namely
+Video, Audio, Gaze of Table 6) which only use modality spe-
+cific data. This implies that taking advantage of multimodal
+data (as we do in this work) helps promote the diagnosis per-
+formance.
+To find out, our model does not exhibit bias to the data we
+collected, we evaluated the performance of every method using
+the CMDC[141] dataset.
+CMDC: The CMDC dataset contains semi-structured inter-
+views with MDD patients from China and provides audio, vi-
+sual and textual features derived from those interviews. During
+the interviews, they were asked 12 questions. The questionnaire
+responses are transcribed and included in the dataset. 78 sam-
+ples (26 depressed and 52 healthy) are presented in this dataset,
+where every subject was audio recorded, and only 45 (19 de-
+pressed and 26 healthy) were both audio and video recorded.
+We used 5 fold cross validation to evaluate this model.
+The number of samples in the CMDC dataset is quite small
+and depressed samples are much less than the healthy ones.
+To address this, we employ a data augmentation process[125].
+Given that each sample’s data consists of a sequence of 12 re-
+sponses, we generate new training samples by randomly shuf-
+fling the order of these responses. This process is first applied
+12 times to all samples which is followed by a second appli-
+cation only on depressed samples. Depressed samples are also
+augmented 12 times.
+CMDC dataset results are given in Table 7.
+Our model
+demonstrates superior and consistent performance across all
+modalities.
+It achieves the highest performance along with
+other models with a Recall of 0.95, F2-Score of 0.96 and Pre-
+cision of 1.00. For single modalities, our model shows com-
+petitive performance with the highest results in text with Recall
+and F2 of 0.77 and 0.81, respectively while maintaining solid
+performance in audio and video.
+The lower performance when using only textual features can
+be attributed to the loss of non verbal information when audio
+was transcribed to text. Unlike the involuntary and non verbal
+cues that acoustic or visual features have, words are consciously
+articulated and may be semantically guarded or ambiguous.
+
+
+20
+Therefore, these results imply the superiority of our proposed
+multimodal framework to help to boost the overall performance
+of depression identification.
+9. ROC Curve Analysis
+ROC Curve plot was updated. This plot is based on multi-
+class classification
+In this section, we analyze the Receiver Operating Charac-
+teristic (ROC) curves for our proposed method (MF-GCN)
+in comparison with the second best method IIFDD, from the
+Table 6. Although ROC curves are typically designed for bi-
+nary classification tasks, beyond the binary classification in this
+work we are performing multiclass depression classification,
+hence we extended their application to a multiclass setting by
+adopting a “one-vs-all” approach. This method involves creat-
+ing a binary ROC curve for each class (see Figure 8, treating it
+as a positive class while grouping all other classes as the nega-
+tive class. To generate ROC curves for our multiclass task, we
+calculated the true positive rate (TPR) and false positive rate
+(FPR) for varying threshold levels across each class. Using the
+“one-vs-all” strategy, we treated each class individually against
+all other classes, effectively transforming the multiclass prob-
+lem into multiple binary classification tasks. With these TPR
+and FPR values, we plotted the ROC curve for each class and
+calculated the area under the curve (AUC). The AUC values
+were then used to assess and compare the performance of the
+two methods—our proposed method (MF-GCN) and IIFDD.
+The AUC values derived from the ROC curves provide a quan-
+titative measure of each algorithm’s ability to distinguish be-
+tween classes. Higher AUC values indicate better discrimina-
+tion power, with a value of 1 signifying perfect classification
+and a value of 0.5 representing a random guess.
+Regarding the ROC curves for our proposed method and
+IIFDD in Figure 8(a) & (b), a key observation is our model’s
+exceptional performance for Class 0 which is the minority
+class. Our model achieved a remarkable AUC of 0.943 against
+IIFDD’s 0.9. This indicated our model can effectively capture
+discriminative features even from a small sample. The most
+challenging case was class 1 for both models. We got an AUC
+score of 0.81 while IIFDD scored only 0.74. Although class
+1 is the majority class, the relatively lower AUC scores indi-
+cate that this class has overlap of features from both class 0 &
+class 2 and the discriminative features of class 1 is not that pro-
+nounced. However, our model still showed high performance in
+this challenging case while IIFDD struggled. We can see simi-
+lar significant margin for class 2 as well where our method and
+IIFDD got AUC of 0.9 and 0.83 respectively. We can conclude
+from this curve that our method has a robust generalization ca-
+pability and provides stability which can be seen by the superior
+AUC scores in each class regardless of the class imbalance.
+10. Ablation Study
+Updated the ablation study figure 9 and writing accordingly
+In this ablation study, we aim to evaluate the impact of the
+cross modality learning module on the performance of our
+model.
+The cross modality learning module is designed to
+capture interactions between distinct modalities, leveraging the
+complementary information they provide. To validate its effec-
+tiveness, we conducted a comprehensive ablation study, com-
+paring the performance of our model with and without this
+module (see Figure 9, Ours cross modality features and Ours
+w/o cross modality features respectively).
+Additionally, we
+included the performance metrics for the second best model
+IIFDD from the Table 6 to provide a comparative benchmark.
+In detail, from 9, we first removed the cross modality learn-
+ing module from our proposed architecture, namely ours w/o
+cross modality features which is similar to only using a deep
+neural netweork, allowing us to observe the performance when
+the model relies solely on modality-specific concatenated fea-
+tures. We then computed the performance metrics, including
+accuracy, precision, recall, specificity and F2 score, to evalu-
+ate the impact of this removal. We ran the same performance
+metrics on IIFDD, which served as a baseline. This allowed
+us to compare the effectiveness of the reduced model against a
+standard benchmark. Finally, we reintroduced the cross modal-
+ity learning module to our proposed architecture (see Figure
+9, Ours with cross modality features) and calculated the same
+performance metrics to assess any improvements. The results
+were plotted in a box plot, which provides a comprehensive
+visualization of the data distribution across different setup. A
+box plot effectively illustrates the distribution, median, inter-
+quartile range and potential outliers, offering a concise sum-
+mary of the central tendency and variability of each metric for
+each model.
+The ablation study results indicated a significant increase
+in all performance metrics consistently when the cross modal-
+ity learning module was included. The increased performance
+with the cross modality learning module can be attributed to its
+ability to capture cross-modal interactions and leverage com-
+plementary information between distinct modalities. This en-
+hanced capability allows the model to learn a richer represen-
+tation of the data, leading to more accurate and reliable pre-
+dictions. If IIFDD is taken into account which also has cross-
+modality features, we can see that it has a lower median across
+all metrics. However, it scores higher than our model without
+cross-modality. Also, we can see a higher variability for IIFDD
+than our method with cross- modality features across all met-
+rics. This suggests that our method with cross modality features
+has a better generalization capability than IIFDD. In conclu-
+sion, this ablation study effectively demonstrates the impact of
+the cross modality learning module, empirically validating its
+effectiveness. By systematically comparing the model’s perfor-
+mance with and without this module, we have established that
+including cross modality interactions contributes to a substan-
+tial improvement across key performance.
+11. Conclusion
+This work presents a significant advancement in depres-
+sion detection through the introduction of a comprehensive tri-
+modal dataset and novel analytical framework. Our gold stan-
+dard dataset of 103 participants, combining audio, video, and
+
+
+21
+(a) ROC Curve analysis of our proposed multimodal model
+(b) ROC Curve analysis of IIFDD
+Fig. 8: Comparison of ROC curves between (a) our proposed multimodal approach and (b) second best competing method i.e., IIFDD, and related area values of
+individual classes, the higher the area the better the result
+Fig. 9: Analyze the effect of our cross modality features with the help of five
+evaluation metrics
+eye-tracking data with psychiatrist-validated PHQ-9 scores, ad-
+dresses critical gaps in existing depression detection practices.
+Our theoretical and empirical contributions demonstrate that
+high-frequency spectral information, previously overlooked in
+graph-based approaches, contains essential diagnostic features
+for depression detection. The proposed framework achieves
+90% accuracy in depression classification, substantially outper-
+forming existing methods. Furthermore, our systematic eval-
+uation of saliency-based approaches in multimodal contexts
+yields significant improvement in F1-score compared to uni-
+modal methods, highlighting the complementary nature of dif-
+ferent modalities in capturing subtle depression indicators.
+The theoretical analysis validating that our module enables
+arbitrary spectral filter learning represents a fundamental ad-
+vancement over conventional graph convolutional networks’
+fixed filtering limitations. This spectral filtering capability, val-
+idated across multiple machine learning algorithms and deep
+learning models, demonstrates statistically significant improve-
+ments in depression detection across all severity levels.
+These contributions collectively establish a new foundation
+for multimodal depression detection research, providing both
+the data resources and analytical tools necessary for more accu-
+rate and comprehensive mental health assessment.
+References
+[1] American Psychiatric Association. Diagnostic and statistical manual of
+mental disorders (DSM-5®) (American Psychiatric Pub, 2013).
+[2] World Health Organization. Depression (2021). URL https://www.
+who.int/news-room/fact-sheets/detail/depression.
+[3] Ferrari, A. J. et al. Burden of depressive disorders by country, sex, age,
+and year: findings from the global burden of disease study 2010. PLoS
+medicine 10, e1001547 (2013).
+[4] Evans, J. & Repper, J. The impact of mental illness on employment:
+consumers’ perspectives. Social Work in Mental Health 4, 17–44 (2005).
+[5] Moussavi, S. et al. Depression, chronic diseases, and decrements in
+health: results from the world health surveys. The Lancet 370, 851–858
+(2007).
+[6] Kessler, R. C., Greenberg, P. E., Mickelson, K. D., Meneades, L. M. &
+Wang, P. S. The effects of chronic medical conditions on work loss and
+work cutback. Journal of occupational and environmental medicine 54,
+471–478 (2012).
+[7] Hawton, K., Casa˜nas i Comabella, C., Haw, C. & Saunders, K. Risk
+factors for suicide in individuals with depression: a systematic review.
+Journal of affective disorders 147, 17–28 (2013).
+[8] Simon, G. E. Outpatient management of depression in primary care: A
+critical review of major guidelines. Journal of psychosomatic research
+52, 303–313 (2002).
+[9] Klein, D. N. Chronic depression: diagnosis and classification. Current
+Directions in Psychological Science 19, 96–100 (2010).
+[10] Goodwin, F. K. & Jamison, K. R. Manic-depressive illness: bipolar
+disorders and recurrent depression 1 (2007).
+[11] Rosenthal, N. E. et al.
+Seasonal affective disorder: a description of
+the syndrome and preliminary findings with light therapy. Archives of
+general psychiatry 41, 72–80 (1984).
+[12] O’Brien, D. et al. Postpartum depression. American Journal of Nursing
+117, 44–51 (2017).
+[13] Rothschild, A. J. Challenges in the treatment of major depressive disor-
+der with psychotic features. Schizophrenia bulletin 39, 787–796 (2013).
+[14] Benazzi, F. Various forms of depression. Dialogues in Clinical Neu-
+roscience 8, 151–161 (2006).
+URL https://doi.org/10.31887/
+DCNS.2006.8.2/fbenazzi. PMID: 16889102, https://doi.org/
+10.31887/DCNS.2006.8.2/fbenazzi.
+[15] EDITION, F.
+Diagnostic and statistical manual of mental disorders.
+American Psychiatric Association, Washington, DC 205–224 (1980).
+[16] Kroenke, K., Spitzer, R. L., Williams, J. B. & L¨owe, B. The patient
+health questionnaire somatic, anxiety, and depressive symptom scales: a
+systematic review. General hospital psychiatry 32, 345–359 (2010).
+[17] Lin, Y., Ma, H., Pan, Z. & Wang, R. Depression detection by combining
+eye movement with image semantics. IEEE International Conference
+on Image Processing (ICIP) 269–273 (2021).
+[18] Cai, H. et al. Feature-level fusion approaches based on multimodal eeg
+data for depression recognition. Information Fusion 59, 127–138 (2020).
+[19] Niu, M., Tao, J., Liu, B., Huang, J. & Lian, Z. Multimodal spatiotempo-
+
+
+22
+ral representation for automatic depression level detection. IEEE Trans-
+actions on Affective Computing 14, 294–307 (2023).
+[20] Yang, L. et al. Multimodal measurement of depression using deep learn-
+ing models. In Proceedings of the 7th Annual Workshop on Audio/Visual
+Emotion Challenge, 53–59 (2017).
+[21] Katyal, Y., Alur, S. V., Dwivedi, S. & R, M. Eeg signal and video analy-
+sis based depression indication. In 2014 IEEE International Conference
+on Advanced Communications, Control and Computing Technologies,
+1353–1360 (2014).
+[22] Dibeklioglu, H., Hammal, Z. & Cohn, J. F. Dynamic multimodal mea-
+surement of depression severity using deep autoencoding. IEEE journal
+of biomedical and health informatics 22, 525–536 (2018).
+[23] Mohr, D. C., Zhang, M. & Schueller, S. M. Personal sensing: under-
+standing mental health using ubiquitous sensors and machine learning.
+Annual review of clinical psychology 13, 23–47 (2017).
+[24] Armstrong, T. & Olatunji, B. O. Eye tracking of attention in the affective
+disorders: A meta-analytic review and synthesis. Clinical Psychology
+Review 32, 704–723 (2010).
+[25] Girard, J. M. et al. Nonverbal social withdrawal in depression: Evidence
+from manual and automatic analysis. Image and vision computing 32,
+641–647 (2014).
+[26] Cummins, N. et al. A review of depression and suicide risk assessment
+using speech analysis. Speech Communication 71, 10–49 (2015).
+[27] Xia, Y. et al. A depression detection model based on multimodal graph
+neural network. Multimedia Tools and Applications 83, 63379–63395
+(2024).
+[28] Gratch, J. et al. The distress analysis interview corpus of human and
+computer interviews. In LREC, 3123–3128 (Reykjavik, 2014).
+[29] Valstar, M. et al. Avec 2013: the continuous audio/visual emotion and
+depression recognition challenge. In Proceedings of the 3rd ACM inter-
+national workshop on Audio/visual emotion challenge, 3–10 (2013).
+[30] Valstar, M. et al.
+Avec 2014: 3d dimensional affect and depression
+recognition challenge. In Proceedings of the 4th international workshop
+on audio/visual emotion challenge, 3–10 (2014).
+[31] Li, X., Cao, T., Sun, S., Hu, B. & Ratcliffe, M. Classification study on
+eye movement data: Towards a new approach in depression detection. In
+2016 IEEE Congress on Evolutionary Computation (CEC), 1227–1232
+(IEEE, 2016).
+[32] Zeng, S., Niu, J., Zhu, J. & Li, X. A study on depression detection
+using eye tracking. In Human Centered Computing: 4th International
+Conference, HCC 2018, M´erida, Mexico, December, 5–7, 2018, Revised
+Selected Papers 4, 516–523 (Springer, 2018).
+[33] Pan, Z., Ma, H., Zhang, L. & Wang, Y. Depression detection based on
+reaction time and eye movement. In 2019 IEEE International Confer-
+ence on Image Processing (ICIP), 2184–2188 (IEEE, 2019).
+[34] Kurdi, B., Lozano, S. & Banaji, M. R. Introducing the open affective
+standardized image set (oasis). Behavior research methods 49, 457–470
+(2017).
+[35] Zhu, J. et al. Toward depression recognition using eeg and eye track-
+ing: An ensemble classification model cbem. In 2019 IEEE Interna-
+tional Conference on Bioinformatics and Biomedicine (BIBM), 782–786
+(2019).
+[36] Shin, J. & Bae, S. M.
+Use of voice features from smartphones for
+monitoring depressive disorders: Scoping review.
+Digital health 10,
+20552076241261920 (2024).
+[37] Moore II, E., Clements, M. A., Peifer, J. W. & Weisser, L.
+Critical
+analysis of the impact of glottal features in the classification of clinical
+depression in speech. IEEE transactions on biomedical engineering 55,
+96–107 (2007).
+[38] Ma, X., Yang, H., Chen, Q., Huang, D. & Wang, Y.
+Depaudionet:
+An efficient deep model for audio based depression classification. In
+Proceedings of the 6th international workshop on audio/visual emotion
+challenge, 35–42 (2016).
+[39] Higuchi, M. et al. Effectiveness of a voice-based mental health eval-
+uation system for mobile devices: prospective study. JMIR formative
+research 4, e16455 (2020).
+[40] Wang, Y. et al. Fast and accurate assessment of depression based on
+voice acoustic features: a cross-sectional and longitudinal study. Fron-
+tiers in Psychiatry 14, 1195276 (2023).
+[41] Abbas, A. et al. Remote digital measurement of facial and vocal markers
+of major depressive disorder severity and treatment response: a pilot
+study. Frontiers in digital health 3, 610006 (2021).
+[42] Huang, Z. et al. Domain adaptation for enhancing speech-based depres-
+sion detection in natural environmental conditions using dilated cnns. In
+INTERSPEECH, 4561–4565 (2020).
+[43] Bilal, A. M. et al.
+Predicting perinatal health outcomes using
+smartphone-based digital phenotyping and machine learning in a
+prospective swedish cohort (mom2b): study protocol. BMJ open 12,
+e059033 (2022).
+[44] Joormann, J. & Gotlib, I. H. Emotion regulation in depression: Relation
+to cognitive inhibition. Cognition and Emotion 24, 281–298 (2010).
+[45] Reece, A. G. & Danforth, C. M. Instagram photos reveal predictive
+markers of depression. EPJ Data Science 6, 15 (2017).
+[46] Du, Z., Li, W., Huang, D. & Wang, Y. Encoding visual behaviors with
+attentive temporal convolution for depression prediction. In 2019 14th
+IEEE international conference on automatic face & gesture recognition
+(FG 2019), 1–7 (IEEE, 2019).
+[47] Hu, B., Tao, Y. & Yang, M.
+Detecting depression based on facial
+cues elicited by emotional stimuli in video. Computers in Biology and
+Medicine 165, 107457 (2023).
+[48] Islam, R. & Bae, S. W. Facepsy: An open-source affective mobile sens-
+ing system - analyzing facial behavior and head gesture for depression
+detection in naturalistic settings. ArXiv abs/2406.17181 (2024).
+[49] Yang, L., Jiang, D., Han, W. & Sahli, H. Facial expression sequence
+analysis for depression detection using deep learning. IEEE Transac-
+tions on Affective Computing 10, 426–437 (2019).
+[50] Zhou, X., Liu, Z., Ding, Z. & Wang, G. Deep convolutional neural net-
+work for depression severity recognition from facial images. Frontiers
+in Psychiatry 11, 334 (2020).
+[51] Guo, W., Li, J., Wang, S. & Zhang, Y. Multi-task learning for depression
+detection and severity estimation via facial expressions. IEEE Journal
+of Biomedical and Health Informatics 26, 2103–2114 (2022).
+[52] Zhu, Y., Shang, Y., Shao, Z. & Guo, G. Automated depression diagnosis
+based on 3d facial expression recognition. Pattern Recognition 83, 219–
+229 (2018).
+[53] He, K., Zhang, X., Ren, S. & Sun, J. Deep residual learning for image
+recognition. Proceedings of the IEEE Conference on Computer Vision
+and Pattern Recognition (CVPR) 770–778 (2016).
+[54] Jan, A., Meng, H., Gaus, Y. & Zhang, F. Automatic depression detection
+using deep learning on facial expression video. IEEE Transactions on
+Cognitive and Developmental Systems 10, 875–883 (2018).
+[55] Stasak, B., Epps, J. & Goecke, R. An investigation of linguistic stress
+and articulatory vowel characteristics for automatic depression classifi-
+cation. Computer Speech & Language 53, 140–155 (2019).
+[56] Yin, S., Liang, C., Ding, H. & Wang, S. A multi-modal hierarchical
+recurrent neural network for depression detection. In Proceedings of
+the 9th International on Audio/Visual Emotion Challenge and Workshop,
+65–71 (2019).
+[57] Zhou, L. et al. Multi fine-grained fusion network for depression detec-
+tion. ACM Transactions on Multimedia Computing, Communications,
+and Applications 20, 257 (2024).
+[58] Alghowinem, S. et al. Multimodal depression detection: Fusion analysis
+of paralinguistic, head pose and eye gaze behaviors. IEEE Transactions
+on Affective Computing 9, 478–490 (2018).
+[59] Chen, T., Hong, R., Guo, Y., Hao, S. & Hu, B. Ms2-gnn: Exploring
+gnn-based multimodal fusion network for depression detection. IEEE
+Transactions on Cybernetics 53, 7749–7759 (2023).
+[60] Zhang, Z. et al. Multimodal sensing for depression risk detection: Inte-
+grating audio, video, and text data. Sensors 24, 3714 (2024).
+[61] Tao, Y., Yang, M., Li, H., Wu, Y. & Hu, B.
+Depmstat:
+Multi-
+modal spatio-temporal attentional transformer for depression detection.
+IEEE Transactions on Knowledge and Data Engineering 36, 2956–2966
+(2024).
+[62] Kroenke, K. et al.
+The phq-8 as a measure of current depression
+in the general population.
+Journal of Affective Disorders 114, 163–
+173 (2009).
+URL https://www.sciencedirect.com/science/
+article/pii/S0165032708002826.
+[63] Cai, H. et al. A multi-modal open dataset for mental-disorder analysis.
+Scientific Data 9, 178 (2022).
+[64] Rahman, S., Rahman, S., Shahid, O., Abdullah, M. T. & Sourov, J. A.
+Classifying eye-tracking data using saliency maps. In 2020 25th Inter-
+national Conference on Pattern Recognition (ICPR), 9288–9295 (IEEE,
+2021).
+[65] Ahonniska-Assa, J. et al. Assessing cognitive functioning in females
+
+
+23
+with rett syndrome by eye-tracking methodology. European Journal of
+Paediatric Neurology 22, 39–45 (2018).
+[66] Pampouchidou, A. et al. Automatic assessment of depression based on
+visual cues: A systematic review. IEEE Transactions on Affective Com-
+puting 10, 445–470 (2017).
+[67] Shenk, J. Fer (2023). URL https://github.com/justinshenk/
+fer.
+[68] Koldyk, A., Nwogu, I. & Ren, L. Detecting depression from facial ac-
+tions and vocal prosody. In 2018 13th IEEE International Conference on
+Automatic Face & Gesture Recognition (FG 2018), 65–72 (IEEE, 2018).
+[69] Li, Y., Zeng, J., Shan, S. & Chen, X.
+Deep learning for depression
+recognition with audiovisual cues: A review. Information Fusion 80,
+56–86 (2022).
+[70] Carvalho, A. F., Berk, M., Castelo, M. S. & Magalh˜aes, P. V. Anger, anx-
+iety, and depression in patients with psychiatric outpatient clinic. Psy-
+chiatry research 209, 430–436 (2013).
+[71] Zwick, J. C. & Wolkenstein, L. Differences in facial emotion recog-
+nition between patients with schizoaffective disorder and patients with
+major depressive disorder. European archives of psychiatry and clinical
+neuroscience 267, 767–777 (2017).
+[72] Dalili, M. N., Penton-Voak, I. S., Harmer, C. J. & Munaf`o, M. R. Meta-
+analysis of emotion recognition deficits in major depressive disorder.
+Psychological medicine 45, 1135–1144 (2015).
+[73] Rottenberg, J. Mood and emotion in major depression. Current Direc-
+tions in Psychological Science 14, 167–170 (2005).
+[74] Lepp¨anen, J. M. Emotional information processing in mood disorders:
+a review of behavioral and neuroimaging findings. Current opinion in
+psychiatry 17, 49–55 (2004).
+[75] Reed, L. I., Sayette, M. A. & Cohn, J. F. Inhibition of negative affect in
+depression. Journal of Abnormal Psychology 116, 43 (2007).
+[76] Cohn, J. F. et al. Detecting depression from facial actions and vocal
+prosody.
+2009 3rd International Conference on Affective Computing
+and Intelligent Interaction and Workshops 1–7 (2009).
+[77] Almaghrabi, S. A., Clark, S. R. & Baumert, M. Bio-acoustic features
+of depression: A review. Biomedical Signal Processing and Control 85,
+105020 (2023).
+[78] El Ayadi, M., Kamel, M. S. & Karray, F. Survey on speech emotion
+recognition: Features, classification schemes, and databases. Pattern
+recognition 44, 572–587 (2011).
+[79] Anjok07. Ultimate vocal remover gui (2023). URL https://github.
+com/Anjok07/ultimatevocalremovergui.
+[80] Bredin, H. et al.
+pyannote.audio:
+neural building blocks for
+speaker diarization (2020). URL https://github.com/pyannote/
+pyannote-audio.
+[81] Eyben, F. et al. The geneva minimalistic acoustic parameter set (gemaps)
+for voice research and affective computing. IEEE transactions on affec-
+tive computing 7, 190–202 (2015).
+[82] Al Hanai, T., Ghassemi, M. M. & Glass, J. R. Detecting depression with
+audio/text sequence modeling of interviews. In Interspeech, 1716–1720
+(2018).
+[83] Ellgring, H. & Scherer, K. R. Vocal indicators of mood change in de-
+pression. Journal of Nonverbal Behavior 20, 83–110 (1996).
+[84] Fuller, B. F., Horii, Y. & Conner, D. A. Vocal signs of depression. Jour-
+nal of Voice 6, 20–29 (1992).
+[85] Jia, M., Wang, S., Chen, X. & Zhang, H. Detecting depression from
+speech: A multi-classifier system with ensemble pruning on feature-
+level fusion.
+In 2019 IEEE International Conference on Multimedia
+and Expo (ICME), 1166–1171 (IEEE, 2019).
+[86] Solomon, N. P., Dietrich, M. & Scherer, R. C. Vocal acoustic analysis as
+a biometric indicator of information processing: Implications for neuro-
+logical and psychiatric disorders. Journal of Psycholinguistic Research
+44, 151–167 (2015).
+[87] Tamarit, L., Goudbeek, M. & Scherer, K. A study of disfluencies in de-
+pressive adolescents. In Proceedings of the 4th International Conference
+on Speech Prosody (2008).
+[88] Vicsi, K., Sztah´o, D. & Kiss, G. Depression detection by speech analy-
+sis. In 2012 IEEE 3rd International Conference on Cognitive Infocom-
+munications (CogInfoCom), 217–222 (IEEE, 2012).
+[89] Wang, J. et al. Detecting depression through voice analysis: A potential
+for home-based screening. Translational Psychiatry 9, 1–10 (2019).
+[90] Mundt, J. C., Vogel, A. P., Feltner, D. E. & Lenderking, W. R. Voice
+acoustic measures of depression severity and treatment response col-
+lected via interactive voice response (ivr) technology. Journal of Neu-
+rolinguistics 25, 41–54 (2012).
+[91] C¸ iftc¸i, E., ¨Ozg¨ur, A. & Erd˘gan, T. Analysis of the depression of el-
+derly persons from voice signals using acoustic features. In 2018 26th
+Signal Processing and Communications Applications Conference (SIU),
+1–4 (IEEE, 2018).
+[92] Cannizzaro, M., Harel, B., Reilly, N., Chappell, P. & Snyder, P. J. Voice
+acoustical measurement of the severity of major depression. Brain and
+cognition 56, 30–35 (2004).
+[93] Alghowinem, S. et al. A comparative study of different classifiers for
+detecting depression from spontaneous speech. In 2013 IEEE Interna-
+tional Conference on Acoustics, Speech and Signal Processing, 8022–
+8026 (IEEE, 2013).
+[94]
+¨Ozkanca, Y. et al. Evaluation of voice disorder in patients with major
+depression. Journal of Voice 33, 811–e1 (2019).
+[95] Scherer, S., Morency, L.-P., Gratch, J. & Pestian, J. Self-reported symp-
+toms of depression and ptsd are associated with reduced vowel space in
+screening interviews. In Sixteenth Annual Conference of the Interna-
+tional Speech Communication Association (2015).
+[96] Purwins, H. et al. Deep learning for audio signal processing. IEEE
+Journal of Selected Topics in Signal Processing 13, 206–219 (2019).
+[97] Trigeorgis, G. et al. Adieu features? end-to-end speech emotion recog-
+nition using a deep convolutional recurrent network.
+In 2016 IEEE
+international conference on acoustics, speech and signal processing
+(ICASSP), 5200–5204 (IEEE, 2016).
+[98] Zhao, J., Mao, X. & Chen, L. Speech emotion recognition using deep
+1d & 2d cnn lstm networks. Biomedical Signal Processing and Control
+47, 312–323 (2019).
+[99] M¨uller, M., Kurth, F. & Clausen, M. Chroma-based statistical audio fea-
+tures for audio matching. In IEEE Workshop on Applications of Signal
+Processing to Audio and Acoustics, 283–286 (2005).
+[100] Mueller, M., Grosche, P., Jiang, N. & Konz, V. Analyzing chroma fea-
+ture types for automated chord recognition. In AES 42nd International
+Conference: Semantic Audio (2011).
+[101] Shao, N. et al. Cleanmel: Mel-spectrogram enhancement for improving
+both speech quality and automatic speech recognition. arXiv preprint
+arXiv:2502.20040 (2018).
+[102] Kumar, R.
+Audio features — the genai guidebook.
+Online (2023).
+Https://ravinkumar.com/GenAiGuidebook/audio/audio˙feature˙extraction.html.
+[103] Telmem, M., Laaidi, N. & Satori, H.
+The impact of mfcc, spectro-
+gram, and mel-spectrogram on deep learning models for amazigh speech
+recognition system. Int. J. Speech Technol. 28, 299–312 (2025). URL
+https://doi.org/10.1007/s10772-025-10183-3.
+[104] Srivastava, S. & Jain, S. Speech recognition using mfcc and dtw. In 2013
+International Conference on Advances in Computing, Communications
+and Informatics (ICACCI), 1906–1910 (IEEE, 2013).
+[105] Logan, B. Mel frequency cepstral coefficients for music modeling. In
+International Symposium on Music Information Retrieval (2000).
+[106] Korzeniowski, F. & Widmer, G. Feature learning for chord recognition:
+The deep chroma extractor. In 17th International Society for Music In-
+formation Retrieval Conference (ISMIR) (2016).
+[107] M¨uller,
+M.
+Short-time
+fourier
+transform
+and
+chroma
+features.
+Lab
+Course
+notes,
+AudioLabs
+Er-
+langen
+(2018).
+Available:
+https://www.audiolabs-
+erlangen.de/content/05˙fau/professor/00˙mueller/02˙teaching/2018s˙apl/LabCours
+[108] Schuller, B. & Batliner, A. Computational paralinguistics: emotion, af-
+fect and personality in speech and language processing. In Proceedings
+of the International Conference on Multimodal Interaction (2013).
+[109] Rajpurkar, P., Hannun, A. Y., Haghpanahi, M., Bourn, C. & Ng, A. Y.
+Cardiologist-level arrhythmia detection with convolutional neural net-
+works. arXiv preprint arXiv:1707.01836 (2017).
+[110] Gideon, J., Khorram, S., Aldeneh, Z., Dimitriadis, D. & Provost, E. M.
+Progressive neural networks for transfer learning in emotion recognition.
+In Interspeech, 1098–1102 (2017).
+[111] Hershey, S. et al. Cnn architectures for large-scale audio classification.
+In 2017 IEEE International Conference on Acoustics, Speech and Signal
+Processing (ICASSP), 131–135 (IEEE, 2017).
+[112] He, L. & Cao, C. Depression recognition using deep convolutional neu-
+ral network. In 2018 IEEE International Conference on Bioinformatics
+and Biomedicine (BIBM), 1–6 (IEEE, 2018).
+[113] Ganchev, T., Fakotakis, N. & Kokkinakis, G. Comparative evaluation of
+various mfcc implementations on the speaker verification task. Proceed-
+
+
+24
+ings of the SPECOM 1, 191–194 (2005).
+[114] Rabiner, L. & Juang, B.-H. Fundamentals of speech recognition (Pren-
+tice Hall, 1993).
+[115] Rejaibi, E., Komaty, A., Meriaudeau, F., Agrebi, S. & Othmani, A.
+Mfcc-based recurrent neural network for automatic clinical depression
+recognition and assessment from speech. Biomedical Signal Processing
+and Control 71, 103107 (2022).
+[116] Oord, A. v. d. et al. Wavenet: A generative model for raw audio. arXiv
+preprint arXiv:1609.03499 (2016).
+[117] Dai, W., Dai, C., Qu, S., Li, J. & Das, S. Very deep convolutional neural
+networks for raw waveforms. 2017 IEEE International Conference on
+Acoustics, Speech and Signal Processing (ICASSP) 421–425 (2017).
+[118] Tokozume, Y., Ushiku, Y. & Harada, T. Learning from between-class
+examples for deep sound recognition. arXiv preprint arXiv:1711.10282
+(2017).
+[119] Martin, A., Rief, W., Klaiberg, A. & Braehler, E. Validity of the brief pa-
+tient health questionnaire mood scale (phq-9) in the general population.
+General hospital psychiatry 28, 71–77 (2006).
+[120] Wei, H., Chopada, P. & Kehtarnavaz, N. C-MHAD: Continuous Multi-
+modal Human Action Dataset of Simultaneous Video and Inertial Sens-
+ing. Sensors (Basel) 20, 2905 (2020).
+[121] Duque, A. & V´azquez, C. Double attention bias for positive and negative
+emotional faces in clinical depression: Evidence from an eye-tracking
+study. Journal of behavior therapy and experimental psychiatry 46, 107–
+114 (2015).
+[122] Rahman, A., Malik, A., Sikander, S., Roberts, C. & Creed, F. Cognitive
+behaviour therapy-based intervention by community health workers for
+mothers with depression and their infants in rural pakistan: a cluster-
+randomised controlled trial. The Lancet 372, 902–909 (2008).
+[123] Min, K. et al. Detecting depression on video logs using audiovisual fea-
+tures. Humanities and Social Sciences Communications 10, 1–8 (2023).
+[124] Kipf, T. N. & Welling, M. Semi-supervised classification with graph
+convolutional networks. In International Conference on Learning Rep-
+resentations (ICLR) (2017).
+[125] Chen, J. et al. Iifdd: Intra and inter-modal fusion for depression de-
+tection with multi-modal information from internet of medical things.
+Information Fusion 102, 102017 (2024).
+[126] Rajan, V., Brutti, A. & Cavallaro, A. Is cross-attention preferable to
+self-attention for multi-modal emotion recognition? In ICASSP 2022 -
+2022 IEEE International Conference on Acoustics, Speech and Signal
+Processing (ICASSP), 4693–4697 (2022).
+[127] Bylinskii, Z., Judd, T., Oliva, A., Torralba, A. & Durand, F. What do dif-
+ferent evaluation metrics tell us about saliency models? IEEE transac-
+tions on pattern analysis and machine intelligence 41, 740–757 (2018).
+[128] Andersson, S., Bathula, D. R., Iliadis, S. I., Walter, M. & Skalkidou, A.
+Predicting women with depressive symptoms postpartum with machine
+learning methods. Scientific reports 11, 7877 (2021).
+[129] Gao, M. et al. Abnormal eye movement features in patients with depres-
+sion: Preliminary findings based on eye tracking technology. General
+Hospital Psychiatry 84, 25–30 (2023).
+[130] Balcilar, M. et al. Bridging the gap between spectral and spatial domains
+in graph neural networks. CoRR abs/2003.11702 (2020). URL https:
+//arxiv.org/abs/2003.11702. 2003.11702.
+[131] Breiman, L., Friedman, J., Olshen, R. A. & Stone, C. J. Classification
+and Regression Trees (Chapman and Hall/CRC, 1984), 1 edn.
+URL
+https://doi.org/10.1201/9781315139470.
+[132] Breiman, L. Random forests. Machine learning 45, 5–32 (2001).
+[133] Cortes, C. & Vapnik, V. Support-vector networks. Machine Learning 20,
+273–297 (1995). URL https://doi.org/10.1007/BF00994018.
+[134] Chen, T. & Guestrin, C.
+Xgboost: A scalable tree boosting system.
+In Proceedings of the 22nd ACM SIGKDD International Conference on
+Knowledge Discovery and Data Mining, KDD ’16, 785–794 (Associ-
+ation for Computing Machinery, New York, NY, USA, 2016).
+URL
+https://doi.org/10.1145/2939672.2939785.
+[135] Cover, T. & Hart, P. Nearest neighbor pattern classification. IEEE Trans-
+actions on Information Theory 13, 21–27 (1967).
+[136] John, G. H. & Langley, P.
+Estimating continuous distributions in
+bayesian classifiers.
+CoRR abs/1302.4964 (2013).
+URL http://
+arxiv.org/abs/1302.4964. 1302.4964.
+[137] McCullagh, P. & Nelder, J. A. Generalized Linear Models (Routledge,
+1989), 2 edn. URL https://doi.org/10.1201/9780203753736.
+[138] Kingma, D. & Ba, J.
+Adam: A method for stochastic optimization.
+In International Conference on Learning Representations (ICLR) (San
+Diega, CA, USA, 2015).
+[139] Sanchez, S., Romero, H. & Morales, A. A review: Comparison of per-
+formance metrics of pretrained models for object detection using the
+tensorflow framework. In IOP Conference Series: Materials Science
+and Engineering, vol. 844, 012024 (IOP Publishing, 2020).
+[140] Syarif, I., Prugel-Bennett, A. & Wills, G. Svm parameter optimization
+using grid search and genetic algorithm to improve classification perfor-
+mance. TELKOMNIKA (Telecommunication Computing Electronics and
+Control) 14, 1502–1509 (2016).
+[141] Zou, B. Chinese multimodal depression corpus (2022). URL https:
+//dx.doi.org/10.21227/jng1-rn06.

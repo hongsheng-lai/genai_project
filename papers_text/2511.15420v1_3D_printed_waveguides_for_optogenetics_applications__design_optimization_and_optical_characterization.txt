@@ -1,0 +1,1219 @@
+3D printed waveguides for optogenetics applications: design opti-
+mization and optical characterization
+Giorgio Scordo*
+Kostas Kanellopulos Surangrat Thongkorn Samuel Tavares da Silva Maraschin Kam-
+biz Ghaseminasab Evgeniy Shkondin Deepshika Arasu Stephan Sylvest Keller Arto Rainer Heiskanen
+Marta Perez Pereira Jenny Emn´eus*
+Dr. G. Scordo
+Electronic Engineering Department, University of Rome Tor Vergata, Via del Politecnico 1, 00133 Rome,
+Italy
+Email Address: giorgio.scordo@uniroma2.it
+Dr. K. Kanellopulos
+TU Wien, Institute of Sensor and Actuator Systems, Gusshausstrasse 27-29, 1040 Vienna, Austria
+Dr. S. Thongkorn
+Department of Biotechnology and Biomedicine, Technical University of Denmark, Kgs. Lyngby, 2800,
+Denmark
+S. T. D. S. Maraschin
+Department of Biotechnology and Biomedicine, Technical University of Denmark, Kgs. Lyngby, 2800,
+Denmark
+K. Ghaseminasab
+Department of Biotechnology and Biomedicine, Technical University of Denmark, Kgs. Lyngby, 2800,
+Denmark
+Dr. E. Shkondin
+Department of Biotechnology and Biomedicine, Technical University of Denmark, Kgs. Lyngby, 2800,
+Denmark
+D. Arasu
+Hospital Cl´ınic de Barcelona - Fundaci´o de Recerca Clin´ıc Barcelona - IDIBAPS - University of Barcelona,
+Barcelona, Catalonia, Spain
+Prof. S.S. Keller
+National Centre for Nano Fabrication and Characterization (DTU Nanolab), Technical University of
+Denmark, Ørsteds Plads Building 347, Kgs. Lyngby, 2800 Denmark
+Dr. A. R. Heiskanen
+Department of Biotechnology and Biomedicine, Technical University of Denmark, Kgs. Lyngby, 2800,
+Denmark
+Prof. M. P. Pereira
+The Institute for Molecular Biology of the Autonomous University of Madrid, Madrid, 20049, Spain
+Prof. J. Emn´eus
+Department of Biotechnology and Biomedicine, Technical University of Denmark, Kgs. Lyngby, 2800,
+Denmark Email Address: jemn@dtu.dk
+Keywords: Optogenetics, 3D printing, Optical waveguide, FEM modeling
+Optogenetics has emerged as a powerful tool for disease modeling, enabling precise control of cellular activities through light stim-
+ulation and providing a valuable insights into disease mechanisms and therapeutic possibilities. Innovative materials and technolo-
+gies such as micro-LEDs, optical ﬁbers and micro/nano probes have been developed to allow precise spatial and temporal control of
+light delivery to target cells. Recent advances in 3D printing have further enhanced optogenetic applications by enabling the fabri-
+cation of implantable, customizable, and miniaturized light stimulation systems with high spatial resolution. In this study, we intro-
+duce a novel concept of a 3D printed light delivery system for brain organoid stimulation exploring the capabilities of projection mi-
+crostereolithography (PµSL). We characterized the optical properties of the high-resolution acrylate-based 3D print resin, i.e., refrac-
+tive index and extinction coeﬃcient, to evaluate if the light transmission eﬃciency might limit the performance of the optogenetic
+stimulation systems. Finite element method simulations were employed to optimize the 3D printed design. An optogenetic setup
+was developed for optimal light delivery, and initial tests with optogenetically modiﬁed cells showed light-induced dopamine release
+with a stimulation eﬃciency of 2.8%, conﬁrming the 3D printed waveguide functionality and guiding future optimization. Our results
+demonstrate that this light stimulation tool oﬀers strong potential for advancing customizable optogenetic applications.
+1
+arXiv:2511.15420v1  [physics.optics]  19 Nov 2025
+
+
+1
+Introduction
+Optogenetics is a technique that integrates optics and genetics to control the activity of speciﬁc cells
+in living tissue, typically neurons [1] or cardiac cells [2], with high spatial and temporal precision. This
+method relies on light-sensitive proteins, such as channelrhodopsins [3] and halorhodopsins [4], which
+can be genetically introduced into cells to enable temporally controlled photostimulation. Optogenetics
+has revolutionized neuroscience by allowing researchers to investigate neural circuits, understand brain
+function, and develop potential therapeutic applications for neurological disorders [5]. For an optoge-
+netic system to function eﬀectively, several key parameters must be carefully considered, including wave-
+length, intensity, divergence, and penetration depth of light [6, 7]. These factors collectively inﬂuence the
+eﬃciency of light propagation within the target tissues, the precision of stimulation, and the overall di-
+mensions of the implanted system. Building on these considerations, a variety of device architectures
+have been developed to deliver optical stimulation in vivo, most commonly based on optical ﬁbers cou-
+pled to external light sources or micro-LED-based implants, which have proven reliable and user-friendly
+(Figure 1) [8, 9, 10, 11] . Among these, optical ﬁber–based systems remain the most established ap-
+proach for delivering light to deep brain regions, oﬀering robust and controllable illumination; however,
+their rigid geometry and intrinsic light scattering within biological tissue limit spatial precision and uni-
+form light distribution, particularly in volumetric or heterogeneous 3D models [7, 12]. In contrast, micro-
+LED-based systems oﬀer improved spatial selectivity, mechanical ﬂexibility, and reduced invasiveness,
+representing a promising alternative for chronic or localized optogenetic stimulation [12]. Advanced de-
+signs, including tapered and multifunctional ﬁbers integrating micro-optical structures [13] wireless im-
+plantable micro-LED probes [14] and and thin-ﬁlm microscale LED platforms [12] have partially miti-
+gated these drawbacks by improving light homogeneity, spatial control, and reducing shadowing eﬀects.
+Despite these advancements, current systems remain limited when applied to three-dimensional (3D) tis-
+sue environments, where optogenetic models such as spheroids or organoids are implanted, as restricted
+light penetration and proximity constraints hinder homogeneous and eﬃcient photostimulation. Address-
+ing these challenges requires not only advances in device architecture but also in the optical materials
+used for light delivery. Therefore, materials selected for constructing waveguides capable of stimulating
+3D tissue models must exhibit a well-deﬁned refractive index, low optical absorption in the visible range,
+high transparency, and biocompatibility to achieve eﬃcient and reproducible photostimulation [15].
+Several materials have been investigated for their suitability in optogenetic applications, each with dis-
+tinct advantages and limitations. Polydimethylsiloxane (PDMS) is widely used due to its ﬂexibility and
+biocompatibility; however, its high light absorption and low refractive index limit its eﬀectiveness for op-
+tical applications [16]. Parylene-C oﬀers excellent biocompatibility and moisture resistance, but it poses
+challenges in structuring complex 3D geometries, restricting its adaptability for intricate optogenetic sys-
+tems [17]. Poly(methyl methacrylate) (PMMA) provides high optical clarity, yet its brittleness and me-
+chanical instability hinder its long-term reliability [18].
+One of the most used materials is SU-8 [19], which is valued for its high refractive index for light con-
+ﬁnement (∼1.63 at 470 nm, ∼1.60 at 590 nm) [20], and its low absorption coeﬃcient of ∼0.002 at 470
+nm [21]. These optical properties make it an excellent candidate for waveguide applications. However,
+SU-8 is an epoxy-based negative photoresist that must be processed in a cleanroom via photolithography
+and is, due to its multi-stage curing, incompatible with methods intended to form high-aspect-ratio 3D
+architectures.
+Recent advances in 3D printing technologies have introduced novel materials that could overcome the
+aforementioned limitations [22]. The ability to fabricate complex 3D optogenetic system using micro-
+scale additive manufacturing allows for precise control of light propagation and spatial distribution. Sev-
+eral 3D-printable materials have been explored for optogenetic stimulation: Methacrylate-based resins
+oﬀer high optical transparency and mechanical stability for implantable optogenetic devices [23]. Poly(ethylene
+glycol) diacrylate (PEGDA)-based hydrogels are biocompatible with tunable optical properties and al-
+low light-guiding in biological environments [24]. Silicon-based hybrid materials combine the advantages
+of polymers and inorganics to enhance optical performance in neural interfaces [25]. Although several
+photopolymer materials have been reported for optogenetic applications, acrylate-based resins remain
+2
+
+
+Figure 1: Schematic representation of organoid photostimulation systems. (Left) 2D photoexcitation approaches: (top) full
+implanted Micro-LED; (bottom) partially implanted cannula coupled to an optical ﬁber. (Right) Innovative 3D optoge-
+netic stimulation system proposed in this work for 3D optogenetic cells and organoids stimulation.
+largely unexplored, and their optical behavior and waveguide design principles are poorly understood.
+In this study, we investigated the fabrication of a three-dimensional optical waveguide using projection
+microstereolithography (PµSL) to enable controlled light delivery to optogenetically modiﬁed neuronal
+cells. The Boston Micro Fabrication (BMF) high-resolution acrylate resin was selected and systemati-
+cally characterized in terms of refractive index, extinction coeﬃcient, and light transmission eﬃciency to
+evaluate its suitability for optical stimulation. Based on these data, a 3D optical system was designed
+and optimized through Finite Element Method (FEM) simulations, and an optogenetic setup incorpo-
+rating a custom-built Optical Motherboard was developed to assess light delivery performance (Figure 1,
+right). To validate the functionality of the 3D-printed system, a proof-of-concept experiment was con-
+ducted in which light transmitted through the BMF waveguide was used to stimulate optogenetically
+modiﬁed dopaminergic cells diﬀerentiated on pyrolytic carbon ﬁbers [26], positioned within the 3D printed
+cavity. Light-induced dopamine release was quantitatively detected on the carbon ﬁbers acting as work-
+ing electrodes, conﬁrming the eﬀectiveness of the 3D printed waveguide for precise light transmission
+and functional photostimulation.
+2
+Methods
+2.1
+Optical properties of BMF resin
+To systematically assess the suitability of biocompatible HTL Yellow 20 µm resin from Boston Micro
+Fabrication (BMF), USA, for optogenetic applications, we conducted a comprehensive investigation of
+its optical properties, quantifying its refractive index (n) and extinction coeﬃcient (κ), which serve as
+key inputs for realistic FEM simulations. Additionally, measurements of transmitted light intensity and
+divergence were performed to validate the performance of the light source during the 3D-printed optical
+waveguide testing.
+3
+
+
+2.2
+Optogenetic setup
+2.1.1
+Refractive index and extinction coeﬃcient
+Ellipsometry was used to characterize the refractive index (n) of the BMF resin in the wavelength range
+from 300 to 1000 nm. The measurements were carried out using disks 3D printed (Figure 2a) with PµSL
+3D printer (microArch® S140, BMF, USA). The optical dispersion n(λ) of the resin was measured us-
+ing an Angle Spectroscopic Ellipsometer M-2000XI (J.A. Woollam, US). In ellipsometry, key optical pa-
+rameters are determined via analysis of the changes in the light polarization upon reﬂection. The mea-
+surements were performed at six diﬀerent angles of incidence (45°-70°, with steps of 5°), to enhance the
+precision of extracted optical parameters [27].
+The extinction coeﬃcient (κ) was determined with spectrophotometry due to its higher absorption sen-
+sitivity compared to ellipsometry (κ ∼10−3) [28, 29]. For this purpose, a 3D printed BMF samples was
+designed in the form of a cuvette with dimensions of 1 cm × 1 cm × 5 cm (see supplementary informa-
+tion S2A). Spectrophotometry is a widely used optical technique for determining the refractive index
+and extinction coeﬃcient of materials by analyzing their absorbance and transmittance across diﬀerent
+wavelengths [30, 31]. In this study, a UV-Vis-NIR Evolution Spectrophotometer 201/220 (Thermo Fisher
+Scientiﬁc, US) was employed to measure the absorbance A = −log10(T) of the resin sample of thickness
+h = 1 cm, over a wavelength range of 400-800 nm, where T = It/I0 is the experimental optical transmit-
+tance, with I0 and It being the input and transmitted intensity, respectively. From the absorbance, it is
+possible to determine the extinction coeﬃcient according to [32]
+κ(λ) = λα(λ)
+4π
+,
+(1)
+where λ is the probing wavelength, and α(λ) = A(λ)/h is the absorption coeﬃcient of the material,
+given in units [1/m] (for more details see supplementary information S2B).
+2.1.2
+Intensity and divergence of the transmitted light
+The transmitted intensity (It) quantiﬁes the amount of optical power that passes through a material af-
+ter partial absorption and scattering. It is inﬂuenced by key factors such as the absorption coeﬃcient
+α(λ), material thickness h, and the intensity of the incident light I0. To determine It, three disks (A, B,
+and C) with a diameter of 15 mm and thicknesses of 0.5, 1, and 1.2 mm, respectively, were fabricated
+using BMF resin (Figure 2a). The disks were subsequently placed in a plastic holder between the LED
+light source (LED470 with blue light and LED590 with orange light, Thorlabs, USA) and the photodi-
+ode sensor (S121C Thorlabs, USA) connected to a power meter (PM121D Thorlabs, USA) as illustrated
+in Figure 2b. The LED was kept continuously emitting for 5 min to assess potential ﬂuctuations in light
+output, while the transmitted intensity through the material was recorded over this period using the
+photodiode.
+The light divergence governs the spatial distribution and expansion of the light beam as it propagates
+through a medium. For the present application, high divergence of the light source would be detrimen-
+tal, as it will reduce the intensity available for photostimulation. To quantify its contribution to the over-
+all performance in light delivery, the divergence angle of the LEDs used in this work was characterized in
+terms of the half-power angle θ1/2, i.e., the zenith angle with respect to the optical axis that deﬁnes a
+cone containing 50% of the power emitted by the LED source [33]. It was measured with the photodiode
+positioned at distances of 0.5, 1, 2, 4, 8, and 10 cm from the LED source with no BMF resin structure in
+between, as shown in Figure 2c. The measurements were carried out in the dark (see Figure 2d) with a
+light exposure of 5 min for each position.
+2.2
+Optogenetic setup
+To assess the suitability of the optogenetic stimulation systems proposed in this work for optogenetic ap-
+plications, we designed and implemented a specialized experimental setup, as depicted in Figure 3a.
+4
+
+
+2.2
+Optogenetic setup
+Figure 2: a-b Optical transmission characterization setup. a 3D printed disks with diﬀerent thickness: hA
+=
+0.5 mm,
+hB = 1.0 mm, hC = 1.2 mm. b A schematic of the experimental setup. d-e Light divergence characterization setup. a A
+schematic view of the distribution and the expansion of the light beam. b A lateral view of the experimental setup.
+5
+
+
+2.3
+FEM modeling
+Figure 3: Experimental setup and FEM modeling. a Schematic sketch of the optogenetic system testing . b Deﬁnition
+of the power detector (light red arrows indicate the scattered rays absorbed and measured by the detector). c Design of
+the device, with a focus on the main geometrical parameters used for optimization. d Deﬁnition of the light source at the
+bottom surface of input intensity I0 (the red arrows indicate the directionality of the emission).
+This setup integrates multiple fabrication techniques, including cleanroom processing, laser microma-
+chining, and high-precision 3D printing, to create a functional optogenetic waveguide, featuring a hollow
+cylindrical geometry with several openings patterned in its walls (Figure 1, right; Figure 3a).
+First, a 2D electrochemical sensor was fabricated on a silicon wafer using a cleanroom fabrication pro-
+cess (for details see supporting information SI, Section S4), resulting in gold reference and counter elec-
+trodes (see Figure 3a). Subsequently, the silicon chips electrodes were engraved obtaining precise aper-
+ture on either side of the electrode, allowing light to traverse the silicon substrate and couple eﬃciently
+into the 3D-printed waveguide structure (for more details see SI, Section S3C). The cylindrical struc-
+ture, optimized through FEM simulation (Section 2.3), was designed using the CAD software SolidWorks
+(SolidWorks, USA) and exported as an STL ﬁle. The ﬁle was then sliced by the software ChituBox (Chi-
+tuBox, China) using 5 µm layer thickness and printed using the BMF PµSL 3D printer adjusted to 1 s
+exposure time at 45% intensity (for more details see SI, Section S3C). The 3D printed waveguide struc-
+ture was precisely aligned over the working area of the electrode, ensuring that the surrounding wall of
+the cylinder was positioned above the cavity. This design lets light pass through the material, scatter oﬀ
+the patterned structures, and reach the optogenetic cell culture on the pyrolyzed ﬁber (Figure 3a, right).
+2.3
+FEM modeling
+Finite element simulations (COMSOL® Multiphysics, v5.5) were carried out to determine the impact
+of the geometrical parameters on the optical intensity of the transmitted light from the cylindrical 3D
+printed waveguide to its central axis, available for photostimulation (Idet, light red arrows in Figure 3b).
+The Geometrical Optics Physics was exploited with a focus on the Ray Tracing Study, as the geometri-
+cal features of the device are much larger than the optical wavelength (≫λ). Diﬀerent 3D waveguides
+were explored in terms of the geometry of the openings (Figure 3c), with the number of rows of holes,
+6
+
+
+2.4
+Culturing of optogenetically modiﬁed cells
+nrow, number of columns, ncol, and cylinder’s external radius, rcyl, being the optimized parameters. For
+all the diﬀerent combinations, the height of the cylinder (hcyl = 1.2 mm—for more info about this choice,
+see Figure 5d and relative discussion), radius of the hole (rhole = 50 µm), and thickness of the wall
+(tcyl = 50 µm) were kept ﬁxed. For each simulation, a light source with uniform intensity distribution
+was deﬁned at the bottom of the probe, from which the rays are released with a conical directional vec-
+tor pointing along the z-axis with a conical angle of 7°(red arrows in Figure 3d). The total input power
+was set to P0 = 0.1 W to match the experimental values used in this work. The rays travel within the
+cylindrical probe and are partially transmitted toward its central axis (light red arrows in Figure 3b).
+The transmitted intensity available for photostimulation Idet is then evaluated with a cylindrical ray de-
+tector positioned along the central axis (representing the pyrolyzed ﬁber of Figure 3a, right, with a ra-
+dius rdet = 125 µm and height hdet = 1.2 mm, at a distance of hcyl/4 from the bottom), and evalu-
+ated as the ratio Pdet/Adet between the optical power impinging on the detector Pdet and its useful area
+Adet = 2πrdethdet + πr2
+det (for more details about the distribution of the optical power on the detector, see
+SI S1). An optimization of the mesh was carried out upon a convergence analysis with a selected maxi-
+mum element size of tcyl/2 (with tcyl being the smallest geometry feature). For the optical properties of
+the 3D printed waveguide, the experimental results described in Section 3.1 have been used as input pa-
+rameters.
+2.4
+Culturing of optogenetically modiﬁed cells
+10 cm long segments of optical ﬁber with fused silica core (#57-086, Edmund Optics Ltd., UK) were py-
+rolyzed (Figure 3a, right) and subsequently treated with oxygen plasma as previously described to en-
+hance the wettability of the pyrolytic carbon [26]. Following plasma treatment, the ﬁbers were coated
+with poly-L-lysine (PLL-P6282, Merck Sigma-Aldrich, US) at a concentration of 50 µg mL−1 in PBS
+for 2 h in an incubator. Channelrhodopsin-2 (ChR2) modiﬁed human ventral mesencephalic neural stem
+cells (hVM1-Bcl-XL-ChR2-mCherry) [34, 26] were then seeded at a pipetting 50 µL of a cell suspension
+(cell density of 2 · 106 cells mL−1) per ﬁber (only a 5 mm section of each ﬁber exposed during cell seed-
+ing) and cultured for 24 h in growth medium containing DMEM/F12 with Gluta-MAX (Thermo Fisher
+Scientiﬁc Inc., USA), supplemented with 6 g L−1 glucose and non-essential amino acid solution (100x di-
+lution) from Merck, USA, 5 mM HEPES, 0.5% AlbuMAX, N-2 supplement (100x dilution), and peni-
+cillin/streptomycin (100x dilution) all acquired from Thermo Fisher Scientiﬁc Inc., USA, as well as 20 ng
+L−1 each of Recombinant Human Epidermal Growth Factor (EGF) and Recombinant Human Fibroblast
+Growth Factor (FGF) from Bio-Techne Ltd., USA. After 24 hours, cell diﬀerentiation was initiated by
+substituting the EGF and FGF with 1 mM dibutyryladenosine 3’, 5’-cylic monophosphate sodium salt
+(Merck, USA) and 2 ng mL−1 recombinant human glial cell line-derived neurotrophic factor (GDNF)
+(Bio-Techne Ltd., USA) and continued for 10 days. During culturing and diﬀerentiation, the cell loaded
+carbon ﬁbers were maintained in a humidiﬁed incubator at 37 °C under 95% air/5% CO2.
+2.5
+Neurotransmitter measurement
+The ability of the diﬀerentiated hVM1-Bcl-XL-ChR2-mCherry cells to release dopamine upon light-induced
+and chemical stimulation was evaluated by using chronoamperometry. The electrochemical measurement
+setup comprised a 3-electrode conﬁguration, with a pyrolytic-carbon-coated optical ﬁber as the working
+electrode (WE), a gold counter electrode (CE), and a reference electrode (RE), all connected to a CH
+Instruments 1010 potentiostat (USA). During the recording of the baseline and dopamine release, the
+carbon ﬁber WE was poised at 0.5 V vs. the RE. During the measurements, the optical ﬁber was in-
+serted into the lumen of the 3D printed waveguide under the guidance of a micromanipulator. The sil-
+icon chip, on which the optogenetic waveguide had been 3D printed, was placed in a micromilled vial
+fabricated of PMMA. For photostimulation of cells, light pulses were triggered using an Optical Moth-
+erboard (OpM) equipped with a blue light emitting LED (470 nm) (for details, see SI, Section S3A). As
+a control, chemical stimulation of the cells was conducted by pipetting high-K+ diﬀerentiation medium
+(additional 450 mM of KCl) into the chamber, where the 3D printed waveguide and cell loaded optical
+7
+
+
+ﬁber were placed, to raise the K+ concentration to ∼150 mM.
+3
+Results and discussion
+The optogenetic 3D stimulation systems designed and characterized in this study features a hollow cylin-
+drical geometry, with openings patterned on its lateral surface (Figure 1, right; Figure 3a). This geom-
+etry allows for central placement of the target cell, ensuring symmetric and uniform light delivery from
+the surrounding openings. The perforations in the 3D printed waveguide wall not only permit an eﬃ-
+cient light delivery to the cell during photostimulation, but also provide ﬂuidic exchange routes, enabling
+simultaneous light stimulation and sampling. Such integration is particularly advantageous for minimally
+invasive neuromodulation applications, where both controlled light delivery and ﬂuid handling are essen-
+tial.
+3.1
+Optical properties of BMF resin
+3.1.1
+Refractive index and extinction coeﬃcient
+The optical properties of materials used in optogenetic stimulation systems are fundamental for light
+propagation and interaction within optogenetic culture targets. In particular, the refractive index (n)
+and the extinction coeﬃcient (κ) play pivotal roles. The refractive index dictates the speed, direction,
+and dispersion of light as it traverses a medium, directly inﬂuencing the optical conﬁnement, waveguid-
+ing eﬃciency, and mode propagation in optoelectronic and photonic applications. In contrast, the extinc-
+tion coeﬃcient accounts for the optical attenuation due to the absorption and scattering of power by the
+material [35, 32]. These parameters are critical in determining the eﬃciency and precision of optogenetic
+stimulation.
+To the best of our knowledge, the n and κ of the BMF 3D printed resin at the key optogenetic wave-
+lengths of 470 nm and 590 nm have not previously been reported in the literature.
+Ellipsometry measurements were carried out using PµSL 3D printed disks (Figure 2a) to determine the
+refractive index n of the BMF resin in the 300-1000 nm wavelength range. The experimental results in
+Figure 4a show spectra of n measured at diﬀerent incident angles ϕ between the normal to the sample
+surface and the impinging light beam. As can be observed, the results are consistent, presenting minimal
+variation across the various angles of incidence, further highlighting the stability of the optical proper-
+ties of the resin. Based on these measurements, the determined refractive indices at the two main wave-
+lengths of interest, 470 nm (blue light) and 590 nm (orange light), were n = 1.52 and n = 1.51, respec-
+tively, similar to what reported for other 3D print resins [36, 37].
+Spectrophotometric measurements in the wavelength range 400-800 nm were carried out using cuvettes
+ﬁlled with cured BMF resin to determine κ at 470 nm and 590 nm. Figure 4b shows the measured trans-
+mittance T (black solid curve) and the calculated absorbance A (red dashed curve)
+A(λ) = −log[T(λ)],
+(2)
+as a function of λ. The BMF resin shows an exponential reduction in absorbance A with increasing λ,
+which is consistent with its formulation for 3D printing at around 405 nm. This resin is design to absorb
+strongly at this wavelength due to the presence of photoinitiators, which conﬁne polymerization to thin
+layers during the printing process.
+Based on these results and calculations using Equation 1, the determined extinction coeﬃcients were
+κ(470 nm) = 3.55 × 10−6 and κ(590 nm) = 2.18 × 10−6.
+The experimental results discussed above were compared with the complex refractive index (n + iκ) of
+other materials exploited in optogenetics at wavelengths of 470 nm and 590 nm, as shown in Figure 4c
+and d. The plots present the imaginary part (κ) on a logarithmic scale on the y-axis, and the real part
+n on the x-axis. At both wavelengths, BMF resin (represented by a star marker) exhibits a relatively
+high refractive index among the organic materials, closely approaching values typical of inorganic ma-
+terials such as SiN and SiO2. Importantly, BMF resin maintains an extremely low extinction coeﬃcient
+8
+
+
+3.1
+Optical properties of BMF resin
+Figure 4: Optical characterization of BMF 3D print resin and comparison to other materials. a Ellipsometric determina-
+tion of n as a function of the excitation wavelength λ for diﬀerent incident angles ϕ. b Spectrophotometric measurements
+of light transmission T as a function of λ (black solid curve) together with the corresponding calculated absorbance A (red
+dashed curve). c-d Comparison of the BMF resin (n, κ) with the other materials exploited in optogenetics at 470 nm (c)
+and 590 nm (d) probing wavelength.
+9
+
+
+3.1
+Optical properties of BMF resin
+(κ ∼10−6), indicating minimal optical absorption, which is a desirable characteristic for transparent
+optoelectronics devices. In comparison, inorganic materials like Si and SiC show signiﬁcantly higher κ
+values, particularly at 590 nm, where their optical losses reach up to three orders of magnitude greater
+than those of BMF resin. Organic materials, such as PEGDA, PDMS, and Polyalkylene (PAG), exhibit-
+ing low extinction coeﬃcients, have considerably lower refractive indices (around n ∼1.4 and 1.5), which
+may limit their utility in applications requiring high contrast in n. Notably, SU-8, another commonly
+used organic material for optical waveguide fabrication, shows similar optical transparency (κ value) to
+BMF but with a slightly lower n. These ﬁndings position BMF resin as a promising candidate material
+for optogenetics applications.
+3.1.2
+Transmitted light intensity and divergence
+In addition to the intrinsic optical properties of the material, the characteristics of the light source sig-
+niﬁcantly inﬂuence the outcomes of optogenetic experiments. Light divergence aﬀects beam expansion
+and focusing capabilities, directly impacting spatial resolution and targeted stimulation. This parame-
+ter is essential for the design of high-performance optogenetic stimulation systems, as it inﬂuences light
+penetration, scattering, and intensity distribution toward the target. Moreover, the transmitted inten-
+sity is determined by both the optical and geometrical properties of the material, i.e., absorption coeﬃ-
+cient and thickness, and the light source parameters, including incident intensity and wavelength. The
+transmitted intensity ultimately deﬁnes the energy available for optogenetic protein activation and sub-
+sequent cellular responses. These considerations are particularly crucial in optogenetics, where eﬃcient
+light delivery is necessary for precise neural stimulation, especially in three-dimensional cell cultures such
+as organoids and spheroids.
+To achieve eﬃcient activation of optically sensitive proteins as those used for optogenetics [38], it is cru-
+cial to optimize light delivery by minimizing the divergence while maximizing the transmitted intensity.
+We characterized the divergence properties of the light emitted from the two distinct LED sources (470
+nm and 590 nm), without BMF in between, as well as the corresponding light transmission T through
+the BMF resin, analyzing how it is inﬂuenced by both the emission characteristics of the LEDs and the
+optical properties of the BMF resin.
+As seen in Figure 5a and b, both LEDs exhibit an exponential decay of their emitted optical power with
+increasing LED-photodiode sensor distance d according to
+Pdet(d) = P0e−βd,
+(3)
+from which a divergence coeﬃcient β of 22 m−1 and 59 m−1 has been extracted for the LED470 and LED590,
+respectively.
+For LED470, approximately 80% of its total emitted power P0 can be detected within the ﬁrst 5 mm (Fig-
+ure 5a). For LED590, this value reduces to 70% (Figure 5b). The small divergence at short distances is a
+sign of a strong directivity, i.e., reduced angular dispersion, of the LEDs. From the measurements in Fig-
+ure 5a and b, the half-power angle θ1/2 of each LED was extracted according to
+θ1/2 = arctan
+ rdet
+d1/2
+!
+,
+(4)
+where rdet and d1/2 are the radius of the detector’s active area (here 4.75 mm), and the LED-photodiode
+distance at which the detected power is Pdet(d1/2) = P0/2. For the LED470, a θ1/2 = 8.54°was found,
+closely aligning with the reported value of 7°[39]. For the LED590, a θ1/2 = 23°was found, again closely
+aligning to the nominal value of 20°[40]. The corresponding intensity distribution are shown in Figure 5c
+(solid curves), indicating an excellent agreement with the nominal proﬁles (dashed curves). These results
+highlight the fact that the LEDs present an intensity distribution more similar to the Gaussian rather
+than Lambertian proﬁle [33].
+In Figure 5d, the optical intensity of the LED470 measured as a function of the thickness hcyl of the BMF
+resin disk samples, is displayed for an input intensity of I0 = 1.1 mW mm−2, with the LED and PD di-
+rectly in contact with the disks (d = 0 mm), exhibiting a monotonically decreasing trend with increasing
+10
+
+
+3.1
+Optical properties of BMF resin
+Figure 5: Characterization of light transmission and divergence. a-b Detected power Pdet emitted by the (a) LED470 (blue
+curve) and (b) LED590 (orange curve) as a function of the LED-photodetector distance (d), with no resin in between. The
+performed curve ﬁtting (black solid curve) according to Equation 3 gives a divergence coeﬃcient (β) of (a) 22 m−1 and (b)
+59 m−1. The dashed lines indicate Pdet
+=
+P0/2 (horizontal) and the corresponding d (vertical). c Comparison between
+the experimental (solid curves) and nominal (dashed curves) intensity proﬁles for the LED470 (blue) and LED590 (orange).
+Both proﬁles are Gaussian [33]. d-e Intensity attenuation for (d) LED470 and (e) LED590 as a function of the disk thick-
+ness hcyl. In d, an absorption coeﬃcient α
+=
+250 m−1 has been extracted based on linear regression. The horizontal
+dashed line indicates the threshold intensity for ChR2 photostimulation. Solid lines indicates the intensity reduction within
+the BMF disk, for diﬀerent LED-to-disk distance d.
+11
+
+
+3.2
+Modeling and 3D-printing of the optogenetic stimulation system
+disk thickness. Upon linear regression, an absorption coeﬃcient α(470nm) = 250 m−1 was extracted,
+which is in line with the spectrophotometric measurements. For the maximum thickness of 1.2 mm, the
+detected intensity reaches approximately 0.75 mW mm−2, which is close to the ChR2 activation thresh-
+old of 0.7 mW mm−2 (the red dashed line). Beyond this thickness, the transmitted light intensity may
+no longer be suﬃcient to eﬀectively activate the opsins, hence the value of hcyl = 1.2 mm was chosen
+for the fabrication of the ﬁnal device and informed the FEM simulations. Figure 5d also presents the
+calculated detected intensity for diﬀerent LED-to-resin disk distance d, using input intensity extracted
+from the power distribution shown in Figure 5a. The results show that for LED-to-disk distances d < 5
+mm, the detected intensity exceeds the photostimulation threshold (Idet ≥Ith) across all considered disk
+thicknesses hcyl. This suggests an upper limit of approximately 5 mm for the LED-to-waveguide separa-
+tion to achieve eﬀective optogenetic stimulation.
+With input intensity I0 = 0.13 mW mm−2, the LED590 exhibits a less pronounced attenuation pattern
+(Figure 5e). The intensity declines here more gradually, stabilizing at approximately 0.1 mW/mm2 for
+hcyl ≥0.5 mm. This behavior indicates that at 590 nm, the BMF resin exhibits lower absorption and
+scattering, leading to a reduced optical attenuation compared to the 470 nm LED.
+Our ﬁndings demonstrate that the LED470 should provide suﬃcient energy for opsin activation, with a
+critical constraint on the maximum permissible distance between the light source and the 3D printed
+waveguide. Speciﬁcally, to minimize optical losses and ensure eﬀective opsin activation, this distance
+should not exceed ≈5 mm (Figure 5d for λ = 470 nm). These insights are particularly relevant for 3D
+cell cultures, such as organoids and spheroids, where eﬃcient light penetration is essential to maintain
+adequate intensity for eﬀective photostimulation.
+3.2
+Modeling and 3D-printing of the optogenetic stimulation system
+The FEM modeling was carried out as shown in Figure 6. In the ﬁrst step, three diﬀerent hole geome-
+tries (circle, square, star, Figure 6a) were tested for a ﬁxed number of holes (nrow = ncol = 4) and ex-
+ternal radius (rcyl = 250 µm) of the cylinder. Figure 6b shows a comparison of the three diﬀerent hole
+geometries for an input intensity I0 = 3.3 · 103 mW mm −2, indicating that the detected light intensity
+Idet is greater than the threshold intensity Ith ≈0.7 mW mm−2 that is required for photostimulation
+of ChR2 [41] (dashed gray horizontal line). The star geometry shows the best performance, followed by
+the squares and circles. The main rationale is the increased number of discontinuities encountered by
+the optical rays when interacting with the star shaped openings. Hence, the star geometry was chosen
+for further optimization. It is worth noting that a vertex number higher than eight for the stars could
+further improve the light delivery of the 3D printed waveguide, but with a more stringent requirement
+on the spatial resolution of the printing process. Hence, eight vertices were chosen to simplify the device
+fabrication process, without compromising the performance in transmittance.
+Next, the number of rows, nrow, was varied along with their vertical spacing (pitch), due to the constraint
+imposed by the ﬁxed 3D waveguide height hcyl (see Figure 5d) and the design choice of maintaining equidis-
+tant rows. The corresponding FEM results are displayed in Figure 6c. Idet increases with nrow for a small
+values, followed by a plateau for nrow ≥5. This trend arises from two combined eﬀects. First, as more
+rows are added (with decreasing pitch), the lowest row of holes is positioned closer to the bottom of the
+3D printed waveguide, near the incident light source. This reduces absorption losses in the BMF resin
+before the light reaches the ﬁrst scattering interface, increasing the amount of power available for redi-
+rection toward the center. Second, light that is not scattered at this ﬁrst stage continues upward, where
+it encounters additional rows. With more rows and shorter spacing between them, less light is absorbed
+between the rows, allowing more optical power to reach the detector. Beyond nrow ≥5, this eﬀect satu-
+rates, indicating that the majority of useful scattering occurs within the ﬁrst four rows. In Figure 6c, the
+trend is further highlighted by an exponential ﬁtting curve of the form Idet = a + becnrow, where a = 3.53,
+b = −3.57, and c = −0.44. Based on these ﬁndings and with future in vivo applications in mind, a value
+of nrow = 7 was selected (red circle in Figure 6c). This choice ensures a suﬃcient number of outlet path-
+ways for solution containing the targeted cells, especially under conﬁgurations where the cell suspension
+is expected to be introduced from the top of the cylindrical waveguide. In such cases, the side openings
+12
+
+
+3.2
+Modeling and 3D-printing of the optogenetic stimulation system
+Figure 6: FEM-based device optimization. a Hole geometries considered for the optimization. b Idet as a function of three
+diﬀerent hole geometries. c Idet for star shaped holes as a function of the number of rows nrow (ncol = 4 kept constant). d
+Idet as a function of ncol (nrow = 7 kept constant). e Idet as a function of rcyl (ncol = 8 and nrow = 7 kept constant) for
+a cylindrical lumen (star markers), and conical lumen with a ﬁber (purple triangles) and spheroid detector (purple circles).
+f Transmittance of an inﬁnitely long full cylinder (BMF material) as a function of the ray travel distance d for the two
+wavelengths of interest. g SEM micrograph of the ﬁnal fabricated device (see dimensions in the main text).
+13
+
+
+3.2
+Modeling and 3D-printing of the optogenetic stimulation system
+facilitate outﬂow and reduce the risk of clogging, which could otherwise occur due to cell aggregation ob-
+structing the device holes during experiments [42].
+In the subsequent step, the eﬀect of the number of columns ncol on the total detected intensity was eval-
+uated, starting from the previously optimized value of nrow = 7. As shown in Figure 6d, increasing ncol
+beyond 4 led to a further enhancement of Idet, with gains up to approximately 50 %. This increase is
+primarily attributed to enhanced scattering of the principal rays by the additional columns in the ﬁrst
+row. The eﬀect progressively saturates for ncol ≥8. Also in this case, the trend is highlighted by the
+same exponential ﬁtting curve as for Figure 6c, with a = 6.502, b = −6.517, and c = −0.135. Based on
+these results, a design of ncol = 8 was chosen.
+All the previous simulations were carried out for an external hollow cylinder radius of rcyl = 250 µm,
+while keeping the walls thickness constant at tcyl = 50 µm. Although this compact geometry could sup-
+port eﬃcient light delivery, it poses practical challenges: the small in-plane dimension can make the align-
+ment of the pyrolytic ﬁber (diameter of 250 µm) used for the experimental optogenetics characterization
+extremely diﬃcult (see Section 3.3). To asses how increasing the cylinder radius aﬀects the optical per-
+formance, an analysis of the impact of rcyl on the detected light intensity was also carried out. As shown
+in Figure 6e, Idet decreases signiﬁcantly with increasingly larger devices (black star markers); doubling
+the radius rcyl leads to an intensity drop of nearly two orders of magnitude—falling more than one or-
+der below the threshold Ith). This trend is explained by the angular distribution of scattered rays: as de-
+tailed in SI Section S1, the majority of rays contributing to Idet are scattered at zenith angles θz < 45°.
+When the cylinder radius increases, these rays intersect the central axis at proportionally higher posi-
+tions, following z = rcyl tan(θz). Consequently, a growing number of rays escape the probe’s internal vol-
+ume before reaching the detector, reducing the eﬀective light collection. In contrast, rays scattered per-
+pendicular to the wall (θz = 90°) would intersect the z-axis at a ﬁxed height, making their contribution
+independent of the in-plane dimensions of the probe.
+To compensate for this reduction, the internal wall of the hollow cylinder was designed with a conical
+geometry, with the top radius being equal to rcyl −tcyl, and the bottom to 2/3 rcyl (see schematics in
+Figure 6e, right). The corresponding results are indicated by the purple downward triangles, showing a
+smaller decrease in detected intensity for increasing rcyl compared to the original design. This is mainly
+due to the scattering occurring at the ﬁrst rows of holes, which even in the modiﬁed design have a small
+in-plane distance from the detector.
+Based on this FEM model, the ﬁnal choice of device to be fabricated consists of: 1) a hollow cylinder
+with an external radius of rcyl = 0.6 mm, having a conical internal wall geometry with a bottom radius
+of 0.4 mm, to make the alignment of the pyrolytic ﬁber easier (see Section 3.3); 2) star shaped holes, ar-
+ranged in 7 rows and 12 columns (ncol was increased to compensate for the reduction in Idet due to the
+increase in rcyl). The FEM result corresponding to this design is indicated by the red circle in Figure
+6e with Idet ≈Ith. Working around the stimulation threshold intensity could have the advantage of re-
+ducing the excitation volume, better targeting the cells to be stimulated [41]. These results were com-
+pared with the case in which an organoid of radius rorg = 125 µm was used as detector (centered within
+the hollow cylinder at a height of hcyl/2 from the bottom, represented by the purple circles in Figure 6e,
+right). Idet is one order of magnitude smaller than that observed for the ﬁber detector. This comparison
+is meant to stress the importance of accounting for the cellular construct under study.
+For the sake of completeness, light transmission through the BMF printed material as a function of the
+distance d traveled by the rays inside an inﬁnitely long full cylinder is shown in Figure 6f, for which ex-
+perimental values of κ were used as input parameters for the material. It can be observed that, for a
+travel distance d = hcyl (vertical grey line), the transmission is T > 90%, showing that for the designed
+device absorption in material should not limit the performances in light delivery.
+Figure 6g shows an SEM micrograph of the corresponding 3D printed device. As can be observed in the
+SEM image, the device has signiﬁcant roughness due to the resolution of the 3D printing process, sug-
+gesting that light delivery toward to the center of the hollow cylinder could be further enhanced during
+actual experiments on photostimulation.
+14
+
+
+3.3
+Photostimulation of optogenetically modiﬁed cells
+Figure 7: Optogenetics test with the BMF waveguide. a Lateral view of the OpM aligned with the pyrolytic carbon ﬁber.
+b Top view of the 3D printed BMF waveguide. c Amperograms obtained at 0.2 mV analyzing of hVM1 cell cultured on
+top of the pyrolytic ﬁber. In green— chemical stimulation via K+; in blue— optogenetics using LED 470 nm.
+3.3
+Photostimulation of optogenetically modiﬁed cells
+To evaluate the functionality of the 3D-printed optogenetic system described in Section 2.2, we performed
+photostimulation of optogenetically modiﬁed neural stem cells (hVM1-Bcl-XL-LChR2-mCherry), com-
+bined with amperometric real-time detection of the released dopamine, which based on previous char-
+acterization is the main released neurotransmitter [43, 44, 26]. The 3D printed waveguide was secured
+within the custom-fabricated PMMA holder, with a 2 mL liquid reservoir and positioned above the light
+source (Figure 7a). A pyrolytic carbon ﬁber, coated with optogenetically modiﬁed cells diﬀerentiated
+for 10 days, was inserted into the central cavity of the optimized 3D-printed waveguide (Figure 7b) [43,
+44, 26]. Following approximately a 90 s of amperometric baseline recording, photostimulation was per-
+formed using a 470 nm LED mounted on the optogenetic motherboard, delivering a 500 ms light pulse
+into the lumen of the 3D printed waveguide. The corresponding current response after optogenetic stim-
+ulation (Figure 7c, blue trace), with a magniﬁed view provided in the inset. The time corresponding to
+the maximal current response is indicated by the grey vertical line. To further assess the viability and
+functionality of the optogenetically modiﬁed cells, dopamine exocytosis was induced via chemical de-
+polarization by elevating the K+ concentration of the diﬀerentiation medium, in which the 3D printed
+waveguide and diﬀerentiated cells were immersed, to the ﬁnal concentration of ∼150 mM. The corre-
+sponding current response after chemical stimulation (Figure 7c, green trace) conﬁrms successful real-
+time detection of dopamine release, validating both the functionality of the optogenetic cells and the
+eﬃciency of the acquisition system. A comparative analysis of the electrical responses elicited by light-
+induced (blue trace) and chemically induced (green trace) stimulation revealed a marked diﬀerence in
+signal magnitude. While the recorded current amplitude upon chemical stimulation (Ichem) reached on
+average about 20 nA, the photostimulation generated a signiﬁcantly lower current amplitude (Iphoto) of
+about 600 pA, suggesting suboptimal light delivery by the 3D printed waveguide. The resulting stim-
+ulation eﬃciency (Iphoto/ Ichem) was only about 2.8%. The experimental result is in line with the FEM
+simulation presented in Figure 6f (ﬁber detector), for which a detected intensity smaller than the thresh-
+old (dashed grey horizontal line) was predicted. Other factors may also contribute to this reduced stim-
+15
+
+
+ulation eﬃcacy. For instance, the culture medium and the 3D microenvironment may introduce optical
+impedance, further limiting light penetration to the cells. Based on these ﬁndings, a further iteration of
+the 3D waveguide design redesign will be necessary to optimize light delivery and improve the ﬁnal stim-
+ulation eﬃciency.
+4
+Conclusion
+In this study, we have demonstrated the feasibility of fabricating a complex 3D-printed waveguide for
+optogenetic applications using a projection micro stereolithography (PµSL) printing. The 3D printed
+waveguide is based on BMF resin, was optimized through geometric reﬁnements and an extensive opti-
+cal characterization of the resin to enhance light transmission while minimizing losses. In addition, we
+thoroughly characterized the light source used in this study as its properties signiﬁcantly inﬂuence light
+propagation and, ultimately, opsin protein activation.
+The primary objective of this work was to investigate the optical properties of BMF resin and assess
+its potential applicability in optogenetics. Our ﬁndings provide proof of concept, demonstrating that
+the 3D-printed BMF waveguide can transmit a suﬃcient light intensity for optostimulation, resulting in
+measurable current response during electrochemical real-time detection of the released dopamine. The
+optogenetic stimulation systems presented in this work is not a fully developed tool for optogenetic ap-
+plications, but it rather represents an initial investigation into the potential of 3D printed structures for
+such application. Future work will reduce optical losses by using photobleachable initiator systems and
+low-absorption ﬂuorinated or cycloaliphatic matrices, further optimizing 3D waveguide geometry, such
+as vertical alignment oﬀset between successive rows of holes, and minimizing the waveguide–cultured-cell
+separation, thereby enhancing light transmission and stimulation eﬃciency
+Ultimately, these advancements will be essential for the future integration of 3D-printed waveguide into
+complex three-dimensional optogenetic organoid models, supporting further research into disease mecha-
+nisms and potential therapeutic strategies.
+Supporting Information
+Supporting Information is available from the Wiley Online Library or from the author.
+Acknowledgements
+We thank the HORIZON-EIC-2021-PATHFINDEROPEN program and the projects 4-DBR (Project
+101047099) and OpenMIND (Project 101047177), for providing the essential infrastructure and support
+that made this research possible. The authors acknowledge PolyFabLab, a research infrastructure ﬁnan-
+cially supported by the Novo Nordisk Foundation, grant number NNF21OC0068814.
+References
+[1] W. Chen, C. Li, W. Liang, Y. Li, Z. Zou, Y. Xie, Y. Liao, L. Yu, Q. Lin, M. Huang, Z. Li, X. Zhu,
+Frontiers in Aging Neuroscience 2022, 14.
+[2] S. Leemann, F. Schneider-Warme, S. Kleinlogel, Pﬂ¨ugers Archiv-European Journal of Physiology
+2023, 475, 12 1421.
+[3] H. Tsukamoto, Y. Furutani, Optogenetics: Light-Sensing Proteins and Their Applications in Neuro-
+science and Beyond 2021, 73–88.
+[4] R. R. Parrish, C. MacKenzie-Gray-Scott, T. Jackson-Taylor, J. Voipio, A. Trevelyan, Physiology
+2023, 38, S1 5730420.
+[5] Q. Zhang, T. Li, M. Xu, B. Islam, J. Wang, Cellular and Molecular Neurobiology 2024, 44, 1 57.
+[6] T. Abaya, S. Blair, P. Tathireddy, L. Rieth, F. Solzbacher, Biomedical optics express 2012, 3, 12
+3087.
+16
+
+
+REFERENCES
+[7] G. Yona, N. Meitav, I. Kahn, S. Shoham, eneuro 2016, 3, 1.
+[8] D. R. Sparta, A. M. Stamatakis, J. L. Phillips, N. Hovelsø, R. Van Zessen, G. D. Stuber, Nature
+protocols 2012, 7, 1 12.
+[9] J.-W. Jeong, J. G. McCall, G. Shin, Y. Zhang, R. Al-Hasani, M. Kim, S. Li, J. Y. Sim, K.-I. Jang,
+Y. Shi, et al., Cell 2015, 162, 3 662.
+[10] P. Silva, L. Jacinto, Cellular and Molecular Bioengineering 2025, 18, 1 1.
+[11] H. Ajieren, A. Fox, E. Biggs, G. Albors, A. Llebaria, P. Irazoqui, Biomedical engineering letters
+2024, 14, 2 245.
+[12] H. Zhang, Y. Peng, N. Zhang, J. Yang, Y. Wang, H. Ding, Micromachines 2022, 13, 7 1069.
+[13] M. Pisanello, F. Pisano, L. Sileo, E. Maglie, E. Bellistri, B. Spagnolo, G. Mandelbaum, B. L. Saba-
+tini, M. De Vittorio, F. Pisanello, Scientiﬁc reports 2018, 8, 1 4467.
+[14] S. Mondello, B. Pedigo, M. Sunshine, A. Fischedick, P. Horner, C. Moritz, Experimental neurology
+2021, 335 113480.
+[15] M. Farnham, P. Pilowsky, W. Deng, E. Goldys,
+Am. J. Physiol. Regul. Integr. Comp. Physiol.
+2014.
+[16] L. Rudmann, D. Scholz, M. T. Alt, A. Dieter, E. Fiedler, T. Moser, T. Stieglitz, Advanced Health-
+care Materials 2024, 13, 16 2304513.
+[17] J. W. Reddy, V. Jain, N. Guessaymi, M. H. Malekoshoaraie, M. Chamanzar, In Optogenetics and
+Optical Manipulation 2023, volume 12366. SPIE, 2023 26–32.
+[18] J. A. Frank, Current Opinion in Pharmacology 2022, 63 102195.
+[19] Z. Chen, X. Li, Y. Tang, Z. Huang, J. Huang, H. Liu, Y. Weng, Y. Zhu, J. Zhao, R. Tang, et al.,
+Cell Reports Physical Science 2024, 5, 10.
+[20] G. H. Major, S. C. Chapman, J. T. Chapman, J. I. Wheeler, S. Chatterjee, C. V. Cushman, D. H.
+Ess, M. R. Linford, Surface and Interface Analysis 2021, 53, 1 5.
+[21] S. Ashraf, I. Niskanen, B. Kanyathare, E. Vartiainen, C. Mattsson, R. Heikkil¨a, G. Thungstr¨om,
+Journal of Quantitative Spectroscopy and Radiative Transfer 2019, 224 309.
+[22] Y. Zhu, T. Tang, S. Zhao, D. Joralmon, Z. Poit, B. Ahire, S. Keshav, A. R. Raje, J. Blair,
+Z. Zhang, et al., Additive Manufacturing 2022, 52 102682.
+[23] B. Monney, C. Kilchoer, C. Weder, ACS Polymers Au 2021, 2, 1 50.
+[24] J. Feng, Y. Zheng, S. Bhusari, M. Villiou, S. Pearson, A. del Campo, Advanced functional materials
+2020, 30, 45 2004327.
+[25] A. Mohanty, Q. Li, M. A. Tadayon, G. Bhatt, E. Shim, X. Ji, J. Cardenas, S. A. Miller, A. Kepecs,
+M. Lipson, arXiv preprint arXiv:1805.11663 2018.
+[26] S. Vasudevan, J. Kajtez, A.-I. Bunea, A. Gonzalez-Ramos, T. Ramos-Moreno, A. Heiskanen,
+M. Kokaia, N. B. Larsen, A. Mart´ınez-Serrano, S. S. Keller, et al., Advanced Science 2019, 6, 24
+1902011.
+[27] H. Fujiwara, Spectroscopic ellipsometry: principles and applications, John Wiley & Sons, 2007.
+[28] H. G. Tompkins, E. A. Irene, In Handbook of ellipsometry. William Andrew, 2005.
+[29] M. Corato-Zanarella, X. Ji, A. Mohanty, M. Lipson, Optics Express 2024, 32, 4 5718.
+17
+
+
+REFERENCES
+[30] T. C. Paul, J. Podder, Applied Physics A 2019, 125, 12 818.
+[31] S. F. Bdewi, O. G. Abdullah, B. K. Aziz, A. A. Mutar, Journal of Inorganic and Organometallic
+Polymers and Materials 2016, 26 326.
+[32] H. A. Macleod, H. A. Macleod, Thin-ﬁlm optical ﬁlters, CRC press, 2010.
+[33] T. Kashiwao, K. Ikeda, M. Tsumori, K. Bando, IEEJ Transactions on Electrical and Electronic En-
+gineering 2025.
+[34] S. Vasudevan, A. Dotti, J. Kajtez, A. Mart´ınez-Serrano, C. Gundlach, S. C. Ma¸c˜as, K. Lauschke,
+A. M. Vinngaard, S. G. L´opez, M. Pereira, A. Heiskanen, S. S. Keller, J. Emn´eus, Bioelectrochem-
+istry 2023, 149.
+[35] G. A. Reider, Photonics, Springer, 2016.
+[36] M. Reynoso, I. Gauli, P. Measor, Optical Materials Express 2021, 11, 10 3392.
+[37] T. Gissibl, S. Wagner, J. Sykora, M. Schmid, H. Giessen, Optical Materials Express 2017, 7, 7 2293.
+[38] K. Deisseroth, Nature Methods 2011, 8 26.
+[39] Thorlabs,
+Led470l,
+Technical report, Thorlabs, 2024,
+URL
+https://www.thorlabs.com/drawings/aa357ad5a7fa16bf-DEBD8A03-02F7-12E2-D90399FB89857F5B/LED
+Accessed: 2025-03-14.
+[40] Thorlabs,
+Led590l,
+Technical report, Thorlabs, 2024,
+URL
+https://www.thorlabs.com/drawings/aa357ad5a7fa16bf-DEBD8A03-02F7-12E2-D90399FB89857F5B/LED
+Accessed: 2025-03-14.
+[41] J. Mattis, K. M. Tye, E. A. Ferenczi, C. Ramakrishnan, D. J. O’shea, R. Prakash, L. A. Gunaydin,
+M. Hyun, L. E. Fenno, V. Gradinaru, et al., Nature methods 2012, 9, 2 159.
+[42] A. Sauret, K. Somszor, E. Villermaux, E. Dressaire, In Physical Review Fluids, volume 3. American
+Physical Society, ISSN 2469990X, 2018 .
+[43] C. Krabbe, E. Courtois, P. Jensen, J. R. Jørgensen, J. Zimmer, A. Mart´ınez-Serrano, M. Meyer,
+Journal of Neurochemistry 2009, 110, 6 1908.
+[44] E. T. Courtois, C. G. Castillo, E. G. Seiz, M. Ramos, C. Bueno, I. Liste, A. Mart´ınez-Serrano, Jour-
+nal of Biological Chemistry 2010, 285, 13 9881.
+18
+
+
+REFERENCES
+Table of Contents
+This article presents the design, optical characterization, and experimental validation of a 3D-printed waveguide for op-
+togenetic stimulation. It details material optical properties, FEM-based design optimization, fabrication of a cylindri-
+cal light-delivery system, and functional testing using ChR2-modiﬁed dopaminergic cells, demonstrating light-induced
+dopamine release and outlining future improvements for enhanced stimulation eﬃciency.
+19
+
+
+Supporting Information: 3D printed waveguides for optogenetics
+applications: design optimization and optical characterization
+Giorgio Scordo* Kostas Kanellopulos Surangrat Thongkorn Samuel Tavares da Silva Maraschin Kambiz Ghasem-
+inasab Evgeniy Shkondin Deepshika Arasu Stephan Sylvest Keller Arto Rainer Heiskanen Marta Perez Pereira
+Jenny Emn´eus*
+Dr. G. Scordo
+Electronic Engineering Department, University of Rome Tor Vergata, Via del Politecnico 1, 00133 Rome, Italy
+Email Address: giorgio.scordo@uniroma2.it
+Dr. K. Kanellopulos
+TU Wien, Institute of Sensor and Actuator Systems, Gusshausstrasse 27-29, 1040 Vienna, Austria
+Dr. S. Thongkorn
+Department of Biotechnology and Biomedicine, Technical University of Denmark, Kgs. Lyngby, 2800, Den-
+mark
+S. T. D. S. Maraschin
+Department of Biotechnology and Biomedicine, Technical University of Denmark, Kgs. Lyngby, 2800, Den-
+mark
+K. Ghaseminasab
+Department of Biotechnology and Biomedicine, Technical University of Denmark, Kgs. Lyngby, 2800, Den-
+mark
+Dr. E. Shkondin
+Department of Biotechnology and Biomedicine, Technical University of Denmark, Kgs. Lyngby, 2800, Den-
+mark
+D. Arasu
+Hospital Cl´ınic de Barcelona - Fundaci´o de Recerca Clin´ıc Barcelona - IDIBAPS - University of Barcelona,
+Barcelona, Catalonia, Spain
+Prof. S.S. Keller
+National Centre for Nano Fabrication and Characterization (DTU Nanolab), Technical University of Denmark,
+Ørsteds Plads Building 347, Kgs. Lyngby, 2800 Denmark
+Dr. A. R. Heiskanen
+Department of Biotechnology and Biomedicine, Technical University of Denmark, Kgs. Lyngby, 2800, Den-
+mark
+Prof. M. P. Pereira
+The Institute for Molecular Biology of the Autonomous University of Madrid, Madrid, 20049, Spain
+Prof. J. Emn´eus
+Department of Biotechnology and Biomedicine, Technical University of Denmark, Kgs. Lyngby, 2800, Den-
+mark Email Address: jemn@dtu.dk
+1
+
+
+CONTENTS
+Contents
+S1 FEM Ray Tracing
+3
+S2 BMF optical characterization
+6
+S2.1 Ellipsometry measurements . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+6
+S2.2 Data compilation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+7
+S3 Optical motherboard
+8
+S3.1 Schematic circuit . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+8
+S3.2 Arduino script . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+9
+S3.3 Light cavities on Si wafer and 3D printing parameters . . . . . . . . . . . . . . . . . . . . . . . .
+9
+S4 2D electromechanical sensor fabrication
+10
+2
+
+
+S1
+FEM Ray Tracing
+The FEM simulations presented in the main text were based on a Ray Tracing (RT) study, conducted using the
+Geometrical Optics (GO) module available in COMSOL Multiphysics. The physical parameters used in the
+simulations—such as geometry and material parameters—are described in the main text. Here, we provide ad-
+ditional computational details and illustrate the typical ray trajectories obtained from the simulations.
+In the GO module, the light source was deﬁned through the Release from Boundary condition at the bottom sur-
+face of the probe (see main text), with a input power P0. Each simulation released N = 2000 rays per event, with
+conical emission with angle θ = 7° to match the characteristics of the experimental LED470. For each wave vec-
+tor emitted, Nw = 10 rays were launched, resulting in a total of N · Nw = 2 · 104 rays per simulation. Each ray
+carried an input power of Pr,0 = P0/(N ·Nw).
+The cylindrical detector was modeled as a Boundary Wall set to fully absorb the impinging scattered light rays.
+For each RT study, light propagation was simulated for a sufﬁciently long time t to reach steady-state conditions,
+meaning all rays were either absorbed by the detector or had scattered into free space. An example of this tran-
+sient behavior is shown in Fig. S1a, where the total detected intensity Idet increases over time, eventually reach-
+ing a plateau. The observed staircase proﬁle corresponds to discrete rays arrival at the detector, each contributing
+to the total signal at different times. The total detected intensity shown in Fig. S1a, and discussed in the main
+Figure S1: a. Temporal evolution of Idet(t). b. 3D distribution of the scattered rays impinging onto the detector. The scalebar on the
+right indicates the corresponding power density Qabs(r,t = t0), in units [W/m2], at time t = t0.
+text, is obtained upon integration of the absorbed power density Qabs over the detector area Adet, and normalized
+by the same quantity,
+Idet(t) =
+1
+Adet
+ZZ
+Adet
+Qabs(r,t)dAdet = Pdet(t)
+Adet
+.
+(S1)
+All values reported in the main text refer to the steady-state value Idet(t ≫0). Fig. S1b shows the 3D power den-
+sity distribution Qabs(r,t = t0) across the detector area at a representative time t0.
+Fig. S2 provides a snapshot of the ray trajectories throughout the simulation domain at the same time t = t0, with
+the ray color indicating the delivered optical power. In this example, the source power was set to P0 = 1 W, lead-
+ing to a maximum power per ray of Pr,max ≃P0/(N ·Nw) = 50 µW (red rays). The black lines denote the geome-
+try of the probe.
+3
+
+
+Figure S2: Ray trajectories and corresponding carried optical power Pr,sca for nrow = ncol = 4, input wavelength λ = 470 nm, input
+power P0 = 1 W, and incident angle θ = 7°.
+As shown, the scattered rays form a complex pattern. Rays in the lower region (z < 0) that propagate downward
+(kz < 0) result primarily from backscattering by the ﬁrst row of holes, and do not contribute to Idet. Among the
+forward-propagating rays (kz > 0), some pass directly through the structure (for this speciﬁc case, the majority)
+and are lost into free space, while others interact with the wall of the probe. The outward-propagating rays do
+not contribute to Idet and are similarly lost into free space, whereas only inward-scattered rays—those directed
+toward the detector—contribute to the ﬁnal Idet.
+In particular, the outward-propagating rays are scattered with zenith angles θz ≤90°, with the ﬁrst row of holes
+being the stronger scatterer region. Rays scattered by this ﬁrst row typically carry power Pr,sca > 45 µW each,
+while those scattered from higher rows deliver reduced power (Pr,sca ∼20 µW) at smaller zenith angles (θz <
+90°).
+The inward-scattered rays contributing to Idet, shown in Fig. S3, are mostly scattered at zenith angles θz ≪90°.
+This directional bias explains the observed reduction in Idet as the probe cylinder radius rcyl increases (Fig. 6e in
+the main text): rays scattered at lower θz intesect the central axis at greater heights (z = rcyl tan(θz), increasing
+the likehood of escaping the probe before reaching the detector. This effect is discussed in further details in the
+main text.
+4
+
+
+Figure S3: Ray trajectories and corresponding carried optical power Pr,sca for nrow = ncol = 4, input wavelength λ = 470 nm, input
+power P0 = 1 W, and incident angle θ = 7°.
+5
+
+
+S2
+BMF optical characterization
+S2.1
+Ellipsometry measurements
+Ellipsometry provides a non-destructive means of extracting the complex dielectric permittivity ⟨ε⟩of a material
+by analyzing the change in polarization of reﬂected light. Assuming a single interface (air/material) and a known
+angle of incidence φ, the permittivity can be calculated as follows [1]:
+⟨ε⟩= sin2(φ)
+"
+1+tan2(φ)
+1−ρ
+1+ρ
+2#
+,
+(S2)
+where ρ is the ratio of the Fresnel reﬂection coefﬁcients for p- and s-polarized light:
+ρ ≡rp
+rs
+= tan(Ψ)ei∆,
+(S3)
+with Ψ and ∆representing the amplitude ratio and phase difference, respectively, obtained from the ellipsomet-
+ric measurement.
+The complex permittivity is expressed as ⟨ε⟩= ε1 −iε2, from which the refractive index n and the extinction
+coefﬁcient κ can be extracted using:
+n =
+
+ε1 +
+q
+ε2
+1 +ε2
+2
+2
+
+
+1/2
+,
+(S4)
+κ =
+
+−ε1 +
+q
+ε2
+1 +ε2
+2
+2
+
+
+1/2
+.
+(S5)
+Figure S4: Spectrophotometer samples. Left: 3D printed BMF cuvette 1x1x5 cm. Right: a standard transparent cuvette.
+6
+
+
+S2.2
+Data compilation
+S2.2
+Data compilation
+The values of refractive index and extinction coefﬁcients used in Fig. 4 in the main text for various commonly
+used material for optogenetics applications are listed in Table S1.
+Table S1: List of the refractive index n and extinction coefﬁcient κ for λ = 470,590 nm.
+Material
+λ (nm)
+n
+κ
+Ref.
+SiN
+470
+2.05
+2.5·10−6
+[2]
+590
+2.023
+3.57·10−7
+[2]
+Si
+470
+4.485
+7.02·10−2
+[3]
+590
+3.954
+2·10−2
+[3]
+SiO2
+470
+1.477
+1.5·10−5
+[4]
+590
+1.471
+3.73·10−6
+[4]
+SiC
+470
+3.47
+0.51
+[5]
+590
+3.41
+0.32
+[5]
+SU8
+470
+1.6
+3.74·10−6
+[6]
+590
+1.59
+3.03·10−6
+[6]
+PAG
+470
+1.5
+1.72·10−6
+[7]
+590
+1.5
+1.08·10−6
+[7]
+PEGDA
+470
+1.45
+4.49·10−8
+[8]
+590
+1.45
+5.63·10−9
+[8]
+PDMS
+470
+1.41
+1.43·10−6
+[9]
+590
+1.40
+1.54·10−6
+[9]
+FormLabs Clear
+470
+1.518
+0.2·10−6
+n [10], κ [11]
+590
+1.509
+0.14·10−6
+n [10], κ [11]
+OrmoComp
+470
+1.53
+0.19·10−6
+n [12], κ [13]
+590
+1.52
+9.4·10−8
+n [12], κ [13]
+7
+
+
+S3
+Optical motherboard
+S3.1
+Schematic circuit
+The designed Optical Motherboard comprises electrical transmission lines embedded in a matrix board (RS Com-
+ponents, UK), as shown in Fig. S6b, where LED470 or LED590 are mounted—a schematics of the LED circuit is
+shown in Fig. S5. A microcontroller board, Arduino Uno (Italy) regulates the current and controls pulse stimula-
+tion via a dedicated script (section S3.2). The OpM is enclosed within a 3D-printed shell fabricated from black
+tough resin using a Form 3 printer (Formlabs, USA). Neodymium magnets from RS Components, UK, are em-
+bedded along the edges to facilitate the attachment of interchangeable lids, enabling a modular conﬁguration.
+Figure S5: The schematic diagram of the equivalent circuit used for driving the LED
+Figure S6: a Full assembled opto-motherboard device (OpM). b Top view of the OpM LED side.
+8
+
+
+S3.2
+Arduino script
+S3.2
+Arduino script
+The script used to activate the LED implements a loop in which the LED is turned on for six cycles of 500 ms,
+followed by an off period of 50 s.
+1 /*
+2
+Blinking
+LED
+3
+4
+model , check the
+Technical
+Specs of your
+board at:
+5
+https :// www.arduino.cc/en/Main/Products
+6
+https :// www.arduino.cc/en/Tutorial/ BuiltInExamples /Blink
+7 */
+8
+9 // the setup
+function
+runs once when you press
+reset or power the board
+10 void
+setup () {
+11
+// initialize
+digital pin 9 as an output.
+12
+pinMode (9, OUTPUT);
+13
+digitalWrite (9, LOW);
+14
+delay (60000);
+15 }
+16
+17 // the loop
+function
+runs over and over
+again
+forever
+18 void loop () {
+19
+digitalWrite (9, HIGH);
+// turn the LED on (HIGH is the
+voltage
+level)
+20
+delay (500);
+21
+digitalWrite (9, LOW);
+// turn the LED off
+22
+delay (50000);
+23
+24
+digitalWrite (9, HIGH);
+// on
+25
+delay (500);
+26
+digitalWrite (9, LOW);
+// off
+27
+delay (50000);
+28
+29
+digitalWrite (9, HIGH);
+30
+delay (500);
+31
+digitalWrite (9, LOW);
+32
+delay (50000);
+33
+34
+digitalWrite (9, HIGH);
+35
+delay (500);
+36
+digitalWrite (9, LOW);
+37
+delay (50000);
+38 }
+Listing 1: Arduino sketch for 4-DBR blinking LED
+S3.3
+Light cavities on Si wafer and 3D printing parameters
+To obtain two identical openings for positioning the 3D-printed probe on top of the light source, two symmetri-
+cal semicircular apertures were ﬁrst designed using CAD software Layout Editor (Fig. S7a). The silicon chips
+containing gold electrodes were then processed using a laser micromachining system (3D-Micromac AG, Ger-
+many) operated at a power density of 7 mW/mm, a scanning speed of 250 µm/s, and 5000 repetitions. This pro-
+cedure produced precise apertures on both sides of the electrode (Fig. S7b). Subsequently, the chips were cleaned
+with ethanol to remove residual dust and debris.
+To fabricate the 3D optical waveguide on the Si cavity, the ChituBox software (Chitu Systems, China) was em-
+ployed for print preparation, using a layer thickness of 5 µm and fabricated using a Boston Micro Fabrication
+(BMF) projection microstereolithography (PµSL) 3D printer. The printing procedure was divided into three se-
+quential exposure stages to ensure proper adhesion, structural stability, and complete polymerization of the printed
+microstructure. In the ﬁrst stage, a single base layer was exposed for 1 s at 40% light intensity (corresponding to
+an effective optical power of 37.6 mW/cm2). This layer served to promote strong adhesion of the photocurable
+resin to the silicon chip surface and establish a uniform foundation for subsequent layers. In the second stage,
+9
+
+
+the following 49 layers were cured under a 1 s exposure at 30% light intensity ( 28.2 mW/cm2 ) with a 2 s inter-
+layer delay. This step allowed gradual structure buildup while minimizing internal mechanical stress and avoid-
+ing over-curing, which can cause deformation in high-aspect-ratio geometries. In the ﬁnal stage, the remaining
+261 layers were polymerized under a 1 s exposure at 45% ( 42.3 mW/cm2 )intensity with a 60 s interlayer delay.
+The resulting microstructure exhibited uniform layer stacking and smooth interfaces, conﬁrming the precision
+and stability of the PµSL printing process under these optimized exposure conditions (Fig. S7c).
+Figure S7: Fabrication process of the optical cavity: a. CAD design consisting of multiple semicircular lines used as the laser path. b.
+Top view of the fabricated optical cavity obtained after 5000 repetitions. c. Isometric view of the 3D-printed optical waveguide aligned
+on top of the cavity.
+S4
+2D electromechanical sensor fabrication
+Below is the detailed cleanroom step-by-step protocol used for device preparation.
+1. Base Wafer Preparation
+• 1.1 Stock-out – 150 mm Si <100>, 675 µm thick, single-side polished, n-type (P).
+2. Nanograss Template on Si
+• 2.1 ICP Etch (Pegasus 2) – Run “CORE” recipe to generate nanograss texture ([14]).
+• 2.2 RCA Clean – Sequential RCA-I and RCA-II.
+• 2.3 Wet Oxidation – Anneal+Oxide furnace (C1), WET at 1100 °C for 80 min (full boat), targeting 600 nm
+SiO2 thickness.
+3. Spin-Coating SU-8 2035 (˜15 µm)
+• 3.1 Syringe Preparation – In fume hood, ﬁll syringes with SU-8 2035≥24 h before use; record bottle lot
+and expiry.
+• 3.2 Plasma Descum – Plasma Asher 2: 400 sccm O2, 70 sccm N2, 1 kW, 75 min.
+• 3.3 Spin-Coating – RC08, program “BioMic 2035 15 µm (6-inch)”:
+– 1000 rpm for 10 s (200 rpm/s) →5000 rpm for 120 s (1000 rpm/s), manual dispense.
+• 3.4 Soft-Bake – Hot plate 1273: 50 °C for 15 min, with 2 °C/min ramps. Cool for 30 min.
+10
+
+
+• 3.5 Backside Wipe – Clean SU-8 from wafer backside using acetone and cleanroom tissue. Also wipe the
+hot plate.
+4. SU-8 Exposure and PEB
+• 4.1 UV Exposure – MA6-2, soft contact, 2 × 250 mJ/cm2.
+• 4.2 Post-Exposure Bake (PEB) – Hot plate 1273: 50 °C for 2 h with 2 °C/min ramps.
+5. SU-8 Development, Hard-Bake, and Characterization
+• 5.1 Development – PGMEA (NICOSTO), three 1-min puddles on Gamma spin-coater.
+• 5.2 Flood Dose Test – MA6-2, 2 × 250 mJ/cm2, 30 s wait.
+• 5.3 Hard-Bake – 90 °C for 15 h with 2 °C/min ramps.
+• 5.4 Optical Inspection – Microscope inspection of dose-test features.
+• 5.5 Thickness Measurement – Dektak/XTA; target: 15 µm. If deviation ¿15%, check resist age; note edge
+bead thickening.
+6. Pyrolysis of SU-8 to Glassy Carbon
+• 6.1 Furnace Preparation – Run BioMic Prep N2 unless furnace was used <72 h ago.
+– Load: wafers face-up, major ﬂat up, boat fully to rear; front side faces N2 ﬂow.
+• 6.2 Pyrolysis – Use recipe nicostot3-step LowRamp 1050C 2h.
+• 6.3 Post-Run Clean – Run BioMic CleanAfterUsed ActiveCooling.
+• 6.4 Carbon Thickness – Dektak/XTA; aim for 2.2–2.3 µm (same ¿15% deviation rule as in 5.5).
+• 6.5 Optical Check – Microscope inspection of dose-test patterns.
+• 6.6 Sheet Resistance – 4-point probe on test structures.
+• 6.7 SEM Cleanliness Check – Supra 2 (InLens/SE2); verify no dust or metal.
+7. Metal-Contact Photolithography (AZ 5214E, 4.2 µm)
+• 7.1 Spin-Coating – Gamma coater, program 6141-DCH, HMDS prime, 3 × 11.4 s coating, 20 s wait →
+4.2 µm ﬁlm.
+• 7.2 Pattern Exposure – MA6-2, contact mode, exposure time 20 s (design-dependent).
+• 7.3 Reversal Bake – 110 °C for 180 s.
+• 7.4 Flood Exposure – MA6-2, 20 × 49.5 mJ/cm2 (≈1 J/cm2), 4.5 s exposure, 20 s wait.
+• 7.5 Development – TMAH (1007 DCH), 5 × 60 s steps; extend in 60 s increments until clear and uniform.
+• 7.6 Final Inspection – Dektak + microscope; verify exposure quality, alignment, resist thickness, and cov-
+erage.
+11
+
+
+REFERENCES
+References
+[1] H. Fujiwara, Spectroscopic ellipsometry: principles and applications, John Wiley & Sons, 2007.
+[2] M. Corato-Zanarella, X. Ji, A. Mohanty, M. Lipson, Optics Express 2024, 32, 4 5718.
+[3] C. Schinke, P. Christian Peest, J. Schmidt, R. Brendel, K. Bothe, M. R. Vogt, I. Kr¨oger, S. Winter, A. Schir-
+macher, S. Lim, H. T. Nguyen, D. MacDonald, AIP Advances 2015, 5, 6 067168.
+[4] D. Franta, D. Neˇcas, I. Ohl´ıdal, A. Giglia, In Optical Micro- and Nanometrology VI, volume 9890. SPIE,
+ISBN 9781510601352, ISSN 1996756X, 2016 989014.
+[5] J. I. Larruquert, A. P. P´erez-Mar´ın, S. Garc´ıa-Cort´es, L. R. de Marcos, J. A. Azn´arez, J. A. M´endez, J. Opt.
+Soc. Am. A 2011, 28, 11 2340.
+[6] Z. Chen, X. Li, Y. Tang, Z. Huang, J. Huang, H. Liu, Y. Weng, Y. Zhu, J. Zhao, R. Tang, et al., Cell Reports
+Physical Science 2024, 5, 10.
+[7] B. Monney, C. Kilchoer, C. Weder, ACS Polymers Au 2021, 2, 1 50.
+[8] J. Feng, Y. Zheng, S. Bhusari, M. Villiou, S. Pearson, A. del Campo, Advanced functional materials 2020,
+30, 45 2004327.
+[9] X. Zhang, J. Qiu, X. Li, J. Zhao, L. Liu, Appl. Opt. 2020, 59, 8 2337.
+[10] M. Reynoso, I. Gauli, P. Measor, Optical Materials Express 2021, 11, 10 3392.
+[11] D. Bartels, M. Heise, M. Schmidt, Optics 2024, 5, 4 611.
+[12] T. Gissibl, S. Wagner, J. Sykora, M. Schmid, H. Giessen, Optical Materials Express 2017, 7, 7 2293.
+[13] N. Jost, A. Jacobo-Mart´ın, G. Vallerotto, J. J. Hern´andez, A. Garcia-Sanchez, C. Dom´ınguez, I. Rodr´ıguez,
+I. Ant´on, The International Journal of Advanced Manufacturing Technology 2024, 131, 12 5961.
+[14] V. Thi Hoang Nguyen, C. Silvestre, P. Shi, R. Cork, F. Jensen, J. Hubner, K. Ma, P. Leussink, M. de Boer,
+H. Jansen, ECS Journal of Solid State Science and Technology 2020, 9, 2 024002.
+12

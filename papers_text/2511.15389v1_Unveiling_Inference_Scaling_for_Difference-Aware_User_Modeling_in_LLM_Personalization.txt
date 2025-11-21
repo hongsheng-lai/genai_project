@@ -1,0 +1,648 @@
+Unveiling Inference Scaling for Difference-Aware User Modeling
+in LLM Personalization
+Suyu Chen
+University of Science and Technology
+of China
+Hefei, China
+chensuyv@mail.ustc.edu.cn
+Yimeng Bai∗
+University of Science and Technology
+of China
+Hefei, China
+baiyimeng@mail.ustc.edu.cn
+Yulong Huang
+University of Science and Technology
+of China
+Hefei, China
+huangyulong@mail.ustc.edu.cn
+Xiaoyan Zhao†
+The Chinese University of Hong Kong
+Hong Kong, China
+xzhao@se.cuhk.edu.hk
+Yang Zhang†
+National University of Singapore
+Singapore, Singapore
+zyang1580@gmail.com
+Abstract
+Large Language Models (LLMs) are increasingly integrated into
+users’ daily lives, driving a growing demand for personalized out-
+puts. Prior work has primarily leveraged a user’s own history, often
+overlooking inter-user differences that are critical for effective per-
+sonalization. While recent methods have attempted to model such
+differences, their feature extraction processes typically rely on fixed
+dimensions and quick, intuitive inference (System-1 thinking), lim-
+iting both the coverage and granularity of captured user differences.
+To address these limitations, we propose Difference-aware Reasoning
+Personalization (DRP), a framework that reconstructs the difference
+extraction mechanism by leveraging inference scaling to enhance
+LLM personalization. DRP autonomously identifies relevant dif-
+ference feature dimensions and generates structured definitions
+and descriptions, enabling slow, deliberate reasoning (System-2
+thinking) over user differences. Experiments on personalized re-
+view generation demonstrate that DRP consistently outperforms
+baseline methods across multiple metrics.
+CCS Concepts
+• Information systems →Personalization.
+Keywords
+LLM Personalization; Inference Scaling; LLM Reasoning
+ACM Reference Format:
+Suyu Chen, Yimeng Bai, Yulong Huang, Xiaoyan Zhao, and Yang Zhang.
+2018. Unveiling Inference Scaling for Difference-Aware User Modeling in
+LLM Personalization. In Woodstock ’18: ACM Symposium on Neural Gaze
+Detection, June 03–05, 2018, Woodstock, NY. ACM, New York, NY, USA,
+4 pages. https://doi.org/XXXXXXX.XXXXXXX
+∗Equal contribution.
+†Corresponding author.
+Permission to make digital or hard copies of all or part of this work for personal or
+classroom use is granted without fee provided that copies are not made or distributed
+for profit or commercial advantage and that copies bear this notice and the full citation
+on the first page. Copyrights for components of this work owned by others than the
+author(s) must be honored. Abstracting with credit is permitted. To copy otherwise, or
+republish, to post on servers or to redistribute to lists, requires prior specific permission
+and/or a fee. Request permissions from permissions@acm.org.
+Conference acronym ’XX, June 03–05, 2018, Woodstock, NY
+© 2018 Copyright held by the owner/author(s). Publication rights licensed to ACM.
+ACM ISBN 978-1-4503-XXXX-X/18/06
+https://doi.org/XXXXXXX.XXXXXXX
+1
+Introduction
+Large Language Models (LLMs) have achieved remarkable success
+across real-world applications—such as virtual assistants [2], con-
+tent creation [17], and scientific discovery [20]—driven by their
+powerful capabilities in context comprehension, generation, and
+reasoning [3, 21]. However, existing LLMs are generally built fol-
+lowing a “one-size-fits-all” paradigm [9], failing to account for
+the variability in user preferences. As the demand for delivering
+tailored and engaging experiences grows, interest in LLM personal-
+ization has steadily increased across both academic and industrial
+domains [8, 16], aiming to tailor model outputs based on user-
+specific information.
+Most existing works on LLM personalization adopt the memory-
+retrieval paradigm [15, 18], where user history is stored in memory,
+and key information is then retrieved as instructional contexts to
+customize model responses. Early approaches focused exclusively
+on leveraging information about the individual user for personaliza-
+tion [7, 11]. More recent works, such as DPL [13], emphasize that ef-
+fective personalization requires identifying the differences between
+users that shape individual preferences, an insight supported by re-
+search in psychology and behavioral science [5]. Accordingly, DPL
+selects representative users for comparison, extracts task-relevant
+differences, and incorporates them as augmented features within
+prompts to improve personalization.
+Despite demonstrated effectiveness of DPL, we argue that its
+difference extraction mechanism remains inherently limited in both
+the coverage and granularity of generated features. In terms of cov-
+erage, the extracted differences are restricted to fixed, pre-defined
+feature dimensions (writing, emotional, and semantic style), mak-
+ing it challenging to capture the potentially unbounded space of
+user preferences [8]. Regarding granularity, the mechanism relies
+on quick inference learned at training time (also referred to as
+System-1 thinking) [6], and therefore lacks the capability to deeply
+analyze fine-grained patterns that may be critical, such as the under-
+lying causes driving the observed differences [10]. Consequently,
+in dynamic personalization scenarios, it is desirable to leverage
+the advanced reasoning capabilities at inference time (System-2
+thinking), enabling on-the-fly reasoning to uncover richer and more
+informative difference features.
+arXiv:2511.15389v1  [cs.IR]  19 Nov 2025
+
+
+Conference acronym ’XX, June 03–05, 2018, Woodstock, NY
+Suyu Chen et al.
+To address these limitations, we propose reconstructing DPL’s
+difference extraction mechanism by incorporating additional test-
+time computation to enable flexible feature dimensions and ex-
+tended reasoning chains. This approach is inspired by the success
+of inference scaling in math [19] and coding [22] tasks. First, by
+enabling flexible dimension generation, the model can more thor-
+oughly explore the user preference space, alleviating the constraints
+imposed by handcrafted dimensions. Second, by allowing sophis-
+ticated reasoning, the model can produce fine-grained rationales,
+offering deeper insights into user differences. Together, this opens
+up the possibility of scaling both the coverage and granularity of
+generated difference features in a training-free manner, thereby
+capturing a broader spectrum of user preferences.
+To this end, we propose Difference-aware Reasoning Personaliza-
+tion (DRP), a novel framework that enhances LLM personalization
+through inference scaling. Specifically, DRP leverages reasoning-
+enhanced LLMs as the difference extractor: it first autonomously
+identifies the appropriate feature dimensions for generating differ-
+ences, and then provides clear definitions and descriptions for each
+dimension. This design provides a natural entry point for the model
+to transition from quick, intuitive inference (System-1 thinking) to
+slow, deliberate reasoning (System-2 thinking), thereby enabling
+scalable personalization. We compare DRP’s performance using
+reasoning-enhanced models (DeepSeek-R1-Distill-Qwen [3]) versus
+standard instruction-tuned models (Qwen2.5-Instruct [14]) across
+parameter sizes from 1.5B to 32B, on the representative personaliza-
+tion task of review generation, following prior studies [12, 13, 23].
+Across these settings, DRP consistently outperforms baselines, with
+reasoning-enhanced LLMs achieving gains of up to 23.0% on key
+metrics such as BLEU, and quantitative analyses provide empir-
+ical validation that these improvements stem from both broader
+coverage and enhanced granularity of user difference features.
+The main contributions of this work are summarized as follows:
+• To the best of our knowledge, we are the first to explore inference
+scaling to overcome limitations of existing LLM personalization
+methods, including restricted coverage and limited granularity
+in capturing user differences.
+• We propose DRP, which autonomously determine difference fea-
+ture dimensions and generate structured definitions and descrip-
+tions through extended reasoning, facilitating scalable difference
+features for personalization.
+• We conduct a series of experiments, showcasing the effectiveness
+of DRP in LLM personalization.
+2
+Methodology
+2.1
+Task Formulation
+LLM personalization aims to generate content that reflects a user’s
+individual preferences. In this work, we focus on personalized re-
+view generation [13]. Each user has historical texts—either written
+or preferred by them—that capture their personal style and pref-
+erences. Let D denote the historical dataset with samples (𝑢,𝑖,𝑦),
+where 𝑢is a user, 𝑖an item, and 𝑦the user-associated text. Given
+a target user 𝑢and item 𝑖, the objective is to generate a personal-
+ized review ˆ𝑦that aligns with the user’s historical texts. Following
+standard retrieval-based personalization [16], the target user’s key
+historical data D★
+𝑢can be retrieved as contextual input, forming
+Target 
+Others 
+Difference 
+Dimensions ?
+Definitions?
+Descriptions?
+Valid 
+Features
+Invalid
+Features
+Extraction
+Validation
+Selection
+Generation
+Item
+Figure 1: Overview of our proposed DRP Framework, where
+the core innovation lies in automatic dimension discovery
+and reasoning-based difference extraction.
+the base generation mechanism:
+ˆ𝑦= LLM𝐺(𝑢,𝑖, D★
+𝑢),
+(1)
+which serves as the foundation upon which DRP builds.
+2.2
+DRP Framework
+We propose DRP, a framework for difference-aware user modeling
+that enhances personalization via automatic dimension discovery
+and reasoning-based feature extraction.
+Step 0: Representative User Selection. To extract meaningful
+differences, DRP selects multiple users R for comparison. Users
+are clustered using K-means based on their historical text embed-
+dings, and for a target user 𝑢, 𝑀representatives are chosen from
+all clusters excluding 𝑢’s own:
+R = {𝑟1,𝑟2, . . . ,𝑟𝑀}.
+(2)
+Step 1: Reasoning-based Difference Extraction. Unlike prior
+work like DPL [13], which relies on fixed, handcrafted feature di-
+mensions and rapid System-1 inference, DRP combines automatic
+dimension discovery with deliberate reasoning in a single step. The
+reasoning-enhanced extractor LLM𝑅
+𝐸identifies relevant difference
+dimensions Δauto and analyzes the underlying factors driving the
+differences between the target user and each representative:
+{𝛿𝑢,𝑟= LLM𝑅
+𝐸(D★
+𝑢, D★
+𝑟, Δauto) | 𝑟∈R}.
+(3)
+This produces structured definitions and descriptions, enabling
+scalable difference features for personalization.
+Step 2: Reflective Validation. The extracted difference features
+are independently verified by a reflection-enabled LLM, which
+filters out invalid or spurious differences. Formally:
+{ ˜𝛿𝑢,𝑟}𝑟∈R = LLM𝑉({𝛿𝑢,𝑟}𝑟∈R),
+(4)
+where LLM𝑉denotes the LLM performing the validation (defaulting
+to the same model as LLM𝐸).
+Step 3: Personalized Generation. The validated difference
+features { ˜𝛿𝑢,𝑟}𝑟∈R and the target user’s key history D★
+𝑢are jointly
+summarized by the summarizer LLM𝑆and used by the generator
+LLM𝐺to produce the final personalized review:
+ˆ𝑦= LLM𝐺
+
+𝑢,𝑖, D★
+𝑢, LLM𝑆(D★
+𝑢, { ˜𝛿𝑢,𝑟}𝑟∈R)
+
+.
+(5)
+
+
+Unveiling Inference Scaling for Difference-Aware User Modeling in LLM Personalization
+Conference acronym ’XX, June 03–05, 2018, Woodstock, NY
+3
+Experiment
+In this section, we conduct experiments to answer the following
+research questions:
+RQ1: Does DRP outperform baseline methods in personalized text
+generation when leveraging inference scaling?
+RQ2: Does DRP improve the coverage and granularity of difference
+extraction to enhance personalization performance?
+3.1
+Experimental Setup
+Datasets. Building upon prior work [16], we focus on the repre-
+sentative task of item review generation for LLM personalization.
+Specifically, we utilize the Amazon Reviews dataset [4] prepro-
+cessed by DPL [13], which includes the Books and CDs & Vinyl.
+Baselines. We compare DRP with the following methods: (1) Non-
+personalized approach: Non-P ; (2) RAG-based variants: RAG [16],
+IntSum [15], LLM-TRSR [24], CICL [1], P-DB [18] ; (3) Difference-
+aware method: DPL [13].
+Evaluation Metrics. Following previous works on personalized
+text generation [12, 13], we evaluate all methods using BLEU, ME-
+TEOR, ROUGE-1, ROUGE-L.
+Implementation Details. In DRP, the difference extraction is per-
+formed using reasoning-enhanced (DeepSeek-R1-Distill-Qwen [3])
+and standard (Qwen2.5-Instruct [14]) models across 1.5B to 32B
+parameter scales. For each model, experiments are conducted at
+temperatures 0 and 0.8, with results averaged. The remaining config-
+urations are consistent with DPL. Due to space limitations, details
+regarding the datasets, baselines, and prompts used in the experi-
+ments are provided in the repository1.
+3.2
+Main Result (RQ1)
+Comparison results of the overall performance are presented in
+Table 1, from which the following observations can be drawn:
+Superior Performance. DRP consistently outperforms all base-
+lines on both datasets after scaling to 14B parameters (the default
+in DPL), demonstrating that the inference scaling of difference ex-
+tractor significantly improves personalized generation quality, with
+a maximum BLEU gain of 23.0% on Books.
+Scaling and Reasoning Effects. DRP’s performance improves
+with larger model sizes, reflecting the benefits of increased capac-
+ity. At the same extractor size, DeepSeek outperforms Qwen in
+most cases, likely due to its reasoning-enhanced design, which en-
+ables finer-grained extraction of user-specific differences and richer
+contextual information for personalized generation.
+3.3
+Qualitative Analysis (RQ2)
+3.3.1
+Coverage Analysis. We propose a metric to quantify the cov-
+erage of generated difference features. Based on a posterior analysis,
+we categorize the features into five representative types: Writing,
+Emotion, Semantics, Structure, and Pragmatics. The first two cap-
+ture surface-level tendencies, while the latter three reflect deeper
+cognitive and communicative patterns.
+A difference feature is considered valid if it is comparative (re-
+flecting the target relative to others), atomic (capturing a single
+property), clear (unambiguous), categorized (belonging to one of
+1https://github.com/Chen-Suyu/DRP
+3.2
+3.3
+3.4
+3.5
+3.6
+Log10 of the Quantity of Unique Valid Features
+5
+6
+7
+Personalization Performance (BLEU)
+Qwen-1.5B
+Qwen-7B
+Qwen-14B
+Qwen-32B
+DeepSeek-1.5B
+DeepSeek-7B
+DeepSeek-14B
+DeepSeek-32B
+Figure 2: Relationship between BLEU and UVQ across DRP
+backbones on Books.
+Qwen1.5B
+Qwen7B
+Qwen14B
+Qwen32B
+Dpsk1.5B
+Dpsk7B
+Dpsk14B
+Dpsk32B
+Model
+0
+10
+20
+30
+40
+50
+60
+Proportion (%)
+Writing
+Emotion
+Semantics
+Structure
+Pragmatics
+Figure 3: Proportions of difference feature categories across
+DRP backbones on Books.
+the five predefined types), and consistent (directionally stable across
+multiple sources). For each user, we deduplicate valid features and
+remove conflicting directional terms. Aggregating the remaining
+unique valid features across the dataset gives the Unique Valid
+Quantity (UVQ). A higher UVQ indicates that the model captures a
+broader and more diverse set of difference features, reflecting better
+coverage of potential user differences.
+We evaluate these features using Qwen-2.5-Instruct-32B via in-
+context learning. Figure 2 shows the relationship between BLEU
+and UVQ across different extractor models on the Books dataset.
+A significant positive correlation can be observed between BLEU
+and UVQ, indicating that one source of improvement in our pro-
+posed method stems from an increased number of unique valid
+differential features, which validates the necessity of overcoming
+the limitations imposed by handcrafted feature dimensions.
+3.3.2
+Granularity Analysis. Then, we analyze the granularity of the
+difference features. We report the proportions of the five dimension
+categories described above across different extractor models, as
+shown in Figure 3. It is evident that the stronger DeepSeek variants
+exhibit higher proportions in Semantics, Structure, and Pragmat-
+ics, suggesting that reasoning allows the model to capture deeper
+cognitive patterns during thinking processing, rather than merely
+surface-level tendencies. Additionally, we present a case study in
+Table 2, which demonstrates that the reasoning process can gen-
+erate analyses of the underlying causes driving user differences,
+thereby uncovering rare but valuable personalized features.
+4
+Conclusion
+We proposed DRP to enhance LLM personalization by leveraging
+inference scaling. DRP autonomously identified flexible difference
+
+
+Conference acronym ’XX, June 03–05, 2018, Woodstock, NY
+Suyu Chen et al.
+Table 1: Results on both datasets. QwenX and DpSkX refer to the Qwen-Instruct and DeepSeek-R1-Distill-Qwen models,
+respectively, each with X parameters. The best and second-best results are highlighted in bold and underlined font, respectively.
+Baseline Methods
+DRP (ours)
+Dataset
+Metric
+Non-P
+RAG
+IntSum
+LLM-TRSR
+CICL
+P-DB
+DPL
+Qwen1.5B
+Qwen7B
+Qwen14B
+Qwen32B
+DpSk1.5B
+DpSk7B
+DpSk14B
+DpSk32B
+Books
+BLEU
+1.2616
+4.1082
+4.6256
+4.6268
+5.1555
+5.1862
+5.6534
+5.2209
+6.0444
+6.1955
+6.4390
+4.8659
+5.2365
+6.2846
+6.9535
+METEOR
+0.1511
+0.2171
+0.2280
+0.2250
+0.2339
+0.2368
+0.2373
+0.2303
+0.2457
+0.2435
+0.2469
+0.2269
+0.2349
+0.2449
+0.2551
+ROUGE-1
+0.2711
+0.3238
+0.3183
+0.3140
+0.3262
+0.3271
+0.3289
+0.3274
+0.3387
+0.3386
+0.3394
+0.3192
+0.3244
+0.3361
+0.3424
+ROUGE-L
+0.1457
+0.1636
+0.1614
+0.1603
+0.1664
+0.1672
+0.1700
+0.1689
+0.1728
+0.1768
+0.1787
+0.1645
+0.1682
+0.1777
+0.1818
+CDs &
+Vinyl
+BLEU
+0.4783
+1.9271
+2.3621
+2.3628
+2.2978
+2.1616
+2.7189
+2.2435
+2.7000
+2.7561
+2.8014
+2.2621
+2.5999
+2.8617
+2.8092
+METEOR
+0.1327
+0.1857
+0.1956
+0.1952
+0.1946
+0.1912
+0.2026
+0.1919
+0.2044
+0.2059
+0.2080
+0.1936
+0.2009
+0.2062
+0.2073
+ROUGE-1
+0.2396
+0.2914
+0.2958
+0.2937
+0.2986
+0.2935
+0.3019
+0.2989
+0.3105
+0.3120
+0.3119
+0.2973
+0.3029
+0.3112
+0.3111
+ROUGE-L
+0.1273
+0.1418
+0.1422
+0.1417
+0.1433
+0.1421
+0.1453
+0.1450
+0.1473
+0.1483
+0.1480
+0.1438
+0.1453
+0.1480
+0.1515
+Table 2: Case study of difference features generated by DRP.
+Qwen2.5-14B-Instruct
+DeepSeek-R1-Distill-Qwen-14B
+“...includes more contextual information about
+their personal experiences (e.g., podcasts about
+true crime)... Others provide a more direct and
+concise summary...”
+“...provides more background context
+(podcasts/other books), leading to higher
+information density... Others are more
+concise, focusing on plot/characters.”
+“...notably more enthusiastic and positive (‘rave
+reviews’, ‘really cool books’)... Others are more
+measured and sometimes critical.”
+“...highly enthusiastic (exclamation marks +
+strong positive adjectives)... Others more
+measured, some neutral or slightly negative due
+to specific criticisms.”
+dimensions and generated structured definitions, enabling the tran-
+sition from quick, intuitive inference (System-1 thinking) to slow,
+deliberate reasoning (System-2 thinking). Overall, DRP demon-
+strated the potential to scale both the coverage and granularity of
+user difference features, facilitating scalable personalization.
+References
+[1] Xiang Gao and Kamalika Das. 2024. Customizing language model responses
+with contrastive in-context learning. In Proceedings of the Thirty-Eighth AAAI
+Conference on Artificial Intelligence and Thirty-Sixth Conference on Innovative
+Applications of Artificial Intelligence and Fourteenth Symposium on Educational
+Advances in Artificial Intelligence (AAAI’24/IAAI’24/EAAI’24). AAAI Press, Article
+2012, 8 pages.
+[2] Dong Guo, Faming Wu, Feida Zhu, Fuxing Leng, Guang Shi, Haobin Chen, Haoqi
+Fan, Jian Wang, Jianyu Jiang, Jiawei Wang, et al. 2025. Seed1. 5-vl technical
+report. arXiv preprint arXiv:2505.07062 (2025).
+[3] Daya Guo, Dejian Yang, Haowei Zhang, Junxiao Song, Peiyi Wang, Qihao Zhu,
+Runxin Xu, Ruoyu Zhang, Shirong Ma, Xiao Bi, et al. 2025. Deepseek-r1 incen-
+tivizes reasoning in llms through reinforcement learning. Nature 645, 8081 (2025),
+633–638.
+[4] Yupeng Hou, Jiacheng Li, Zhankui He, An Yan, Xiusi Chen, and Julian McAuley.
+2024. Bridging Language and Items for Retrieval and Recommendation. arXiv
+preprint arXiv:2403.03952 (2024).
+[5] Caglar Irmak, Beth Vallen, and Sankar Sen. 2010. You like what I like, but I don’t
+like what you like: Uniqueness motivations in product preferences. Journal of
+Consumer Research 37, 3 (2010), 443–455.
+[6] Daniel Kahneman. 2011. Thinking, fast and slow. macmillan.
+[7] Cheng Li, Mingyang Zhang, Qiaozhu Mei, Yaqing Wang, Spurthi Amba Hombaiah,
+Yi Liang, and Michael Bendersky. 2023. Teach LLMs to Personalize–An Approach
+inspired by Writing Education. arXiv preprint arXiv:2308.07968 (2023).
+[8] Jia-Nan Li, Jian Guan, Songhao Wu, Wei Wu, and Rui Yan. 2025. From 1,000,000
+users to every user: Scaling up personalized preference for user-level alignment.
+arXiv preprint arXiv:2503.15463 (2025).
+[9] Jiahong Liu, Zexuan Qiu, Zhongyang Li, Quanyu Dai, Wenhao Yu, Jieming Zhu,
+Minda Hu, Menglin Yang, Tat-Seng Chua, and Irwin King. 2025. A survey of
+personalized large language models: Progress and future directions. arXiv preprint
+arXiv:2502.11528 (2025).
+[10] Weihao Liu, Zhaocheng Du, Haiyuan Zhao, Wenbo Zhang, Xiaoyan Zhao, Gang
+Wang, Zhenhua Dong, and Jun Xu. 2025. Inference computation scaling for fea-
+ture augmentation in recommendation systems. arXiv preprint arXiv:2502.16040
+(2025).
+[11] Sheshera Mysore, Zhuoran Lu, Mengting Wan, Longqi Yang, Bahareh Sarrafzadeh,
+Steve Menezes, Tina Baghaee, Emmanuel Barajas Gonzalez, Jennifer Neville, and
+Tara Safavi. 2024. Pearl: Personalizing Large Language Model Writing Assistants
+with Generation-Calibrated Retrievers. In Proceedings of the 1st Workshop on
+Customizable NLP: Progress and Challenges in Customizing NLP for a Domain,
+Application, Group, or Individual (CustomNLP4U). Association for Computational
+Linguistics, Miami, Florida, USA, 198–219.
+[12] Yilun Qiu, Tianhao Shi, Xiaoyan Zhao, Fengbin Zhu, Yang Zhang, and Fuli Feng.
+2025. Latent inter-user difference modeling for llm personalization. arXiv preprint
+arXiv:2507.20849 (2025).
+[13] Yilun Qiu, Xiaoyan Zhao, Yang Zhang, Yimeng Bai, Wenjie Wang, Hong Cheng,
+Fuli Feng, and Tat-Seng Chua. 2025.
+Measuring What Makes You Unique:
+Difference-Aware User Modeling for Enhancing LLM Personalization. In Findings
+of the Association for Computational Linguistics: ACL 2025, Wanxiang Che, Joyce
+Nabende, Ekaterina Shutova, and Mohammad Taher Pilehvar (Eds.). Association
+for Computational Linguistics, Vienna, Austria, 21258–21277.
+[14] Qwen, An Yang, Baosong Yang, Beichen Zhang, Binyuan Hui, Bo Zheng, Bowen
+Yu, Chengyuan Li, Dayiheng Liu, Fei Huang, et al. 2025. Qwen2.5 Technical
+Report. arXiv preprint arXiv:2412.15115 (2025).
+[15] Chris Richardson, Yao Zhang, Kellen Gillespie, Sudipta Kar, Arshdeep Singh,
+Zeynab Raeesy, Omar Zia Khan, and Abhinav Sethy. 2023. Integrating summa-
+rization and retrieval for enhanced personalization via large language models.
+arXiv preprint arXiv:2310.20081 (2023).
+[16] Alireza Salemi, Sheshera Mysore, Michael Bendersky, and Hamed Zamani. 2024.
+LaMP: When Large Language Models Meet Personalization. In Proceedings of the
+62nd Annual Meeting of the Association for Computational Linguistics (Volume 1:
+Long Papers), Lun-Wei Ku, Andre Martins, and Vivek Srikumar (Eds.). Association
+for Computational Linguistics, Bangkok, Thailand, 7370–7392.
+[17] ByteDance Seed, Yuyu Zhang, Jing Su, Yifan Sun, Chenguang Xi, Xia Xiao, Shen
+Zheng, Anxiang Zhang, Kaibo Liu, Daoguang Zan, et al. 2025. Seed-coder: Let
+the code model curate data for itself. arXiv preprint arXiv:2506.03524 (2025).
+[18] Chenkai Sun, Ke Yang, Revanth Gangi Reddy, Yi Fung, Hou Pong Chan, Kevin
+Small, ChengXiang Zhai, and Heng Ji. 2025. Persona-DB: Efficient Large Lan-
+guage Model Personalization for Response Prediction with Collaborative Data
+Refinement. In Proceedings of the 31st International Conference on Computational
+Linguistics. Association for Computational Linguistics, Abu Dhabi, UAE, 281–296.
+[19] Jun Wang, Meng Fang, Ziyu Wan, Muning Wen, Jiachen Zhu, Anjie Liu, Ziqin
+Gong, Yan Song, Lei Chen, Lionel M Ni, et al. 2024. Openr: An open source
+framework for advanced reasoning with large language models. arXiv preprint
+arXiv:2410.09671 (2024).
+[20] Yi Xu, Luoyi Fu, Shuqian Sheng, Bo Xue, Jiaxin Ding, Lei Zhou, Xinbing Wang,
+and Chenghu Zhou. 2025. DeepReport: An AI-assisted Idea Generation System for
+Scientific Research. In Proceedings of the 48th International ACM SIGIR Conference
+on Research and Development in Information Retrieval (Padua, Italy) (SIGIR ’25).
+Association for Computing Machinery, New York, NY, USA, 3969–3973.
+[21] An Yang, Anfeng Li, Baosong Yang, Beichen Zhang, Binyuan Hui, Bo Zheng,
+Bowen Yu, Chang Gao, Chengen Huang, Chenxu Lv, et al. 2025. Qwen3 technical
+report. arXiv preprint arXiv:2505.09388 (2025).
+[22] Yuxiang Zhang, Shangxi Wu, Yuqi Yang, Jiangming Shu, Jinlin Xiao, Chao Kong,
+and Jitao Sang. 2024. o1-coder: an o1 replication for coding. arXiv preprint
+arXiv:2412.00154 (2024).
+[23] Xiaoyan Zhao, Juntao You, Yang Zhang, Wenjie Wang, Hong Cheng, Fuli Feng,
+See-Kiong Ng, and Tat-Seng Chua. 2025. NextQuill: Causal Preference Modeling
+for Enhancing LLM Personalization. arXiv preprint arXiv:2506.02368 (2025).
+[24] Zhi Zheng, WenShuo Chao, Zhaopeng Qiu, Hengshu Zhu, and Hui Xiong. 2024.
+Harnessing Large Language Models for Text-Rich Sequential Recommendation.
+In Proceedings of the ACM Web Conference 2024 (Singapore, Singapore) (WWW
+’24). Association for Computing Machinery, New York, NY, USA, 3207–3216.

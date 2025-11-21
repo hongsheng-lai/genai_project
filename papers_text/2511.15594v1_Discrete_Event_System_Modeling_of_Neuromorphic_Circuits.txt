@@ -1,0 +1,713 @@
+Discrete Event System Modeling of Neuromorphic Circuits
+Koen Scheres1, Rodolphe Sepulchre1,2
+Abstract— Excitable neuromorphic circuits are physical mod-
+els of event behaviors: their continuous-time trajectories con-
+sist of sequences of discrete events. This paper explores the
+possibility of extracting a discrete-event model out of the
+physical continuous-time model. We discuss the potential of this
+methodology for analysis and design of neuromorphic control
+systems.
+I. INTRODUCTION
+The majority of control and estimation problems can be
+separated in three categories: tracking, trajectory planning
+and decision-making. Although this separation is useful in
+many cases (e.g., to make analysis tractable), it necessi-
+tates a hierarchical control structure in the case where all
+are required. Indeed, in many high-tech (motion) control
+applications, first a low-level controller is designed that,
+e.g., tracks a given reference (and thus solves the tracking
+problem). Hereafter, a “reference generator” is designed
+which generates the reference for the low-level controller.
+Lastly, a “supervisor” is designed that typically handles the
+decision-making process (i.e., which reference to track) [1].
+This hierarchical structure is depicted in Fig. 1.
+The different controllers are often designed (and poten-
+tially implemented) in different domains and/or devices. For
+example, the decision-making process is usually formulated
+in terms of automata, while the feedback control portion
+is typically tackled via differential equations. This division
+between the discrete and the continuous is not apparent in
+the animal world. Instead, central nervous systems (CNSs)
+regulate neuronal rhythms, made of events. At the cellular
+level, those events are made of “spikes.” Spikes are mod-
+eled by biophysical differential equations, yet they can be
+counted. Hence, they combine attributes of the continuous
+and the discrete [2].
+Many models of neurons are hybrid, but we are not aware
+of any methodological attempt to extract a discrete-event
+model from the biophysical model. However, leveraging the
+discrete nature allows us to endow neuromorphic circuits –
+electronic circuits whose operating principles are inspired by
+neurons – with discrete decision-making capabilities. If we
+want to regard excitable systems as a unifying framework
+for regulation and automation, it seems crucial to combine
+continuous and discrete descriptions of their behavior. The
+The research leading to these results has received funding from
+the
+European
+Research
+Council
+under
+the
+Advanced
+ERC
+Grant
+Agreement SpikyControl n.101054323. Email: koen.scheres@kuleuven.be,
+rodolphe.sepulchre@kuleuven.be.
+1Department of Electrical Engineering (ESAT), KU Leuven, KasteelPark
+Arenberg 10, B-3001 Leuven, Belgium.
+2Department of Engineering, University of Cambridge, Trumpington
+Street, Cambridge CB2 1PZ, United Kingdom.
+DECISION
+MAKING
+TRAJECTORY
+PLANNING
+FEEDBACK
+CONTROL
+Increased flexibility
+and
+computation time
+Fig. 1: By separating the control stack into a hierarchical
+structure, it is possible to do fast (real-time) tracking as well
+as slow decision-making. Adapted from [1].
+key advantage of such an approach is that the same architec-
+ture can be used throughout the hierarchical control stack.
+For example, for low-level control, we can exploit central
+pattern generators, which are essential building blocks in
+the CNS for locomotion [3]. On the other hand, for high-
+level control we can use the winner-take-all principle, which
+was pioneered by Hopfield [4] in the classical Hopfield
+networks, and later shown to enable interesting computation
+capabilities and even universal approximation properties in
+some cases [5].
+This background motivates the question of the present
+paper: what is the discrete-event model of a continuous-
+time biophysical model of excitable neurons? The answer
+to this question allows us to systematically solve verification
+problems (which may be phrased, e.g., as temporal logic)
+or exploit other tools available in the discrete event system
+literature, but instead applied to neuromorphic circuits.
+The rest of this paper is structured as follows: In Section II,
+we will recall some basic concepts from discrete event
+systems. Next, we will explain the basic properties and
+behaviors of neurons and neuromorphic circuits in Sec-
+tion III. In Section IV, we will give several models in terms
+of automata for different behaviors potentially present in
+neurons. Next, we will delineate how to construct decision-
+making circuits and how this corresponds “one-to-one” with
+automata descriptions. We illustrate the latter by shortly
+discussing a realization theory for automata as neuromorphic
+circuits. Lastly, we will summarize and discuss our findings
+in Section VI.
+II. DISCRETE EVENT SYSTEMS
+This section provides a short recap on Discrete Event
+Systems (DESs) and different types of modeling classes that
+are of interest in modeling and simulating neuromorphic
+circuits.
+1
+arXiv:2511.15594v1  [eess.SY]  19 Nov 2025
+
+
+Definition 1 ([6, p. 30]). A Discrete Event System is a
+discrete-state, event-driven system, that is, its (state) evo-
+lution depends entirely on the occurrence of asynchronous
+discrete events over time.
+Many model classes exist within the DES literature. In
+the context of the present paper, we only consider two
+(sub)classes, namely, timed and untimed automata. In case of
+the untimed automaton, the interest lies in the ordering of the
+events. Thus, untimed automata can be fully characterized in
+terms of their (marked) language, with the following formal
+definition.
+Definition 2 ([6, p. 55]). A language defined over an event
+set E is a set of finite-length strings formed from events in E.
+The language of an automaton thus restricts the possible
+sequences of events that can occur. In this paper, we only
+consider regular languages, that is, languages that can be
+generated by a finite-state automaton.
+We refer to [6] for classical notions such as the accessible
+part Ac(A) of automaton A and the composition operator
+A ∥B that “joins” the automata A and B.
+When timing information is explicitly considered, such
+as in timed automata, the sample paths of the system are
+determined by both the event and its timing, i.e., by an
+ordered sequence {(e1, t1), (e2, t2), . . .}. Although it may be
+relevant to analyze event timings in neuromorphic circuits, as
+a first step we are restricting ourselves to untimed automata
+in this paper.
+III. NEUROMORPHIC CIRCUITS
+This section summarizes key behavioral properties of
+neurons, synapses, and neuromorphic circuits.
+A. The event behavior of an excitable neuron
+The “discreteness” of such excitable behaviors is illus-
+trated in Fig. 2: it stems from the existence of a threshold,
+which itself stems from a mixed pair of active currents. Each
+threshold accounts for a novel discrete state. A neuron with
+two thresholds, one for spiking and one for bursting, will
+have two discrete states that can be distinguished from the
+resting state.
+The biophysical modeling principles of neuronal modeling
+go back to the seminal work of Hodgkin and Huxley [7]. The
+neuron is modeled as an electrical circuit with the specific
+architecture shown in Fig. 3: an RC circuit (modeling the
+passive membrane) connected to a parallel bank of current
+sources, each made of a voltage-dependent conductor in
+series with a constant battery.
+B. Excitatory and inhibitory synaptic currents
+The inputs to neurons are synaptic currents. In line with
+the previous section, we can categorically separate these cur-
+rent in two types: inhibitory currents and excitatory currents.
+An inhibitory current hyperpolarizes the membrane, which
+“raises” distance to the threshold; this leads to the neuron
+being less sensitive to inputs. An excitatory current, however,
+depolarizes the membrane, which “lowers” the distance to
+0
+10
+20
+30
+40
+50
+60
+−50
+0
+50
+Vm [mV]
+0
+10
+20
+30
+40
+50
+60
+0
+2
+4
+Time [ms]
+Iext [µA]
+Fig. 2: A neuron is an excitable system: a minor variation
+in the input can cause a major variation in the output due to
+the presence of a bifurcation.
+C
+INa
+IK
+V
+−
++
+I
+Fig. 3: Circuit representation of Hodgkin-Huxley model.
+the threshold, bringing the membrane potential closer to (or
+over) the threshold.
+A neuron whose membrane is inhibited (i.e., hyperpo-
+larized) for a sufficiently long time may, depending on
+the included ion channels and parameters, display the so-
+called post-inhibitory rebound spiking or bursting phenom-
+ena. Whether a neuron is post-inhibitory rebound spiking
+or bursting depends on which ion channels are included
+in the model. This phenomenon is illustrated in Fig. 4.
+It is well-known that both inhibition and excitation are
+required for decision-making processes [8], hence we deem
+this distinction significant. We will illustrate this shortly in
+Section V.
+C. Event triggering by external inputs
+To create meaningful DES models, we have to include a
+transition function, i.e., a partial function that maps states and
+events to states. If no external current is supplied to a neuron
+in its resting state, it will never pass the threshold, and thus
+remain in its resting state. However, when an external current
+is supplied, a neuron will always return to its resting state
+endogenously, i.e., regardless of external inputs. This impor-
+tant distinction is not present in classical DES literature. In
+a DES, events are typically separated into controllable and
+uncontrollable events, wherein a “supervisor” can disable
+2
+
+
+0
+0.2
+0.4
+0.6
+0.8
+1
+−50
+0
+50
+Vm [mV]
+0
+0.2
+0.4
+0.6
+0.8
+1
+−10
+0
+10
+Time [s]
+Iext [µA]
+Fig. 4: Different responses to stimuli: excitatory spiking and
+post-inhibitory bursting of the Hodgkin-Huxley model with
+additional T-type Ca2+ and slow K+ ion channels.
+specific controllable events. Instead, we need a distinction
+between external and internal transitions. To that end, we
+borrow the concept of event forcing in [9].
+Such a “hierarchy” in the ordering of events is natural in
+neuromorphic circuits: we can separate the “endogenous” or
+internal behavior from the “exogenous” or external behavior.
+The concept of event forcing can thus be used to enrich the
+solution space of a DES; essentially, we enforce that, in the
+presence of an input, all external events preempt internal
+ones. Lastly, as both excitatory and inhibitory currents may
+enable distinct transitions (such as in Fig. 4), it is of interest
+to label a transition as resulting from either an excitatory or
+an inhibitory input.
+D. Separating the discrete from the continuous
+We are interested in DES abstractions of the continuous-
+time differential equation of the conductance-based models,
+that only model the discrete, that is: (i) the discrete states,
+which are in one to one correspondence with the pairs of
+mixed conductances; (ii) the transitions between the discrete
+states, which are either internal or external; and, (iii) the
+discrete classification between excitation and inhibition.
+The remaining properties of the conductance-based model
+are regarded as “continuous”. The role of the discrete-event
+model is to extract from the continuous-time differential
+equation what is discrete and only what is discrete. All other
+properties belong to the continuous-time model. For exam-
+ple, the timing of events is regarded as a continuous property,
+as it will be continuously regulated by neuromodulators,
+which can be modeled as continuous parameter variation
+in the differential equation. This also clearly illustrates why
+modeling a neuromorphic circuit as a DES is a complement
+rather than a replacement of the physical model: we wish
+to use the DES to investigate the temporal ordering of
+events (e.g., the decision-making), while we want to resort
+to the conductance-based differential equation to study the
+continuous-time behavior (i.e., the regulation problem or
+feedback control).
+In line with the above, the modeling abstractions we
+introduce below hold for neuronal models that exhibit certain
+behaviors. We want a systematic methodology to associate a
+specific DES model to a specific biophysical circuit model.
+We will therefore insist on the following conventions in the
+construction of DES models.
+Definition 3. The DES model of a neuromorphic circuit will
+adhere to the following rules:
+1) Each neuron has a “resting” or “idle” state;
+2) Each threshold requires a mixed pair of conductances,
+and, consequently, each threshold corresponds to a
+distinct state;
+3) Events are asynchronous, i.e., events that always occur
+simultaneously will be considered as a singular event;
+4) Transitions are separated in internal and external;
+5) Internal transitions are denoted by
+. External tran-
+sitions are separated in excitatory, i.e., depolarizing,
+and inhibitory, i.e., hyperpolarizing. They are denoted
+by
+and
+, respectively;
+6) External transitions preempt internal transitions.
+IV. DISCRETE EVENT SYSTEM MODELS OF
+NEUROMORPHIC CIRCUITS
+In this section, we apply the above principles to a number
+of well-known neuromorphic “motifs.”
+A. DES models of single neurons
+What is the DES of a single neuron? The simplest neu-
+ronal model is the leaky integrate-and-fire neuronal model,
+modeled as a leaking integrator with reset:
+˙x(t) = −αx + u,
+x ⩽θ,
+x(t+) = 0,
+x > θ,
+(1)
+where α > 0 denotes the membrane leakage and θ > 0
+the threshold. This model lacks the mixed pair of conduc-
+tances of the biophysical model. The excitability threshold
+is only modeled as a reset phenomenon. Thus, in this simple
+model, the reset is identified with the event. As the model
+has no threshold resulting from a balance between mixed
+conductances, the associated discrete-event model only has
+one state, namely the idle state, and a single transition, which
+is a self-loop, see Fig. 5a.
+In contrast, the DES model extracted from the Hogkin-
+Huxley circuit has a discrete state distinct from the resting
+state. The transition from rest to spike is external, because it
+requires an external input. In contrast, the transition from
+spike to rest is internal. This results in the automaton
+depicted in Fig. 5b.
+The model in Fig. 5c is a further refinement of the model
+in Fig. 5b: it captures the additional rebound property of
+Hodgkin-Huxley model. As both excitatory and inhibitory
+inputs can trigger a spike, the full model requires an extra
+transition from the idle state to the spiking state. Both of
+these transitions require external inputs in the single neuron
+3
+
+
+i
+σ
+(a) LIF neuron
+i
+s
+σ
+η
+(b) Hodgkin-Huxley
+i
+s
+σ
+ϱ
+η
+(c) Rebound spiking
+Fig. 5: Automaton representations of single spiking neurons.
+i
+s
+b
+σ
+β
+η
+ρ
+Fig. 6: Automaton representation of a spiking and rebound
+bursting neuron.
+case, however, one is induced by excitation and one by in-
+hibition. The complete model does not require an additional
+state, however, as only one pair of mixed conductances is
+present.
+The spiking neuronal model can be generalized to a burst-
+ing neuronal model. In a bursting model, the circuit includes
+an additional pair of mixed conductances, that creates a
+“bursting” threshold in addition to the “spiking” threshold.
+Consequently, a bursting neuron has three rather than two
+states: idle, spiking, and bursting, or i, s, and b, respectively.
+Depending on the neuron parameters, a burst event can result
+from excitation (burst excitability), from inhibition (rebound
+bursting), or both. Depending on the input trigger, the neuron
+can either spike or burst. All these models share the same
+set of states but different transitions from the idle state to the
+spiking or bursting states. Note that it may be impossible to
+reach the spiking state via external currents in some models.
+A common and important phenomenon in biological neu-
+rons is a neuron that spikes under depolarization (i.e., when
+an excitatory current is applied), but rebound bursts under
+hyperpolarization (i.e., when a sufficiently long inhibitory
+current is applied). This is the behavior modeled in Fig. 4.
+As we will refer to this neuron later, we explicitly provide the
+DES for this particular model, which is depicted in Fig. 6.
+B. DES models of synaptic interconnections
+We now add synapses to interconnect several neurons.
+To differentiate between the different states and events of
+the different neurons, we index the states by the number
+of the neuron, e.g., si and σi belong to the i-th neuron.
+As explained in Section III-B, synapses come in two types,
+which we treat separately in the following.
+In general, any synaptic connection between two neurons
+will turn an external transition into an internal transition.
+Depending on the synapse type and the neuron it is connected
+to, it will add a new synchronized internal transition on top
+of either the preexisting excitatory external transition or the
+preexisting inhibitory external transition. The key here is that
+these new transitions are synchronized to events/transitions in
+other neurons. As a consequence, when there is a synaptic
+connection from neuron N1 to neuron N2, the accessible
+i1
+s1
+σ1
+ϱ1
+η1
+(a) Neuron N1.
+i2
+s2
+σ1, ϱ1
+η2
+(b) Neuron N2.
+i1i2
+s1s2
+i1s2
+s1i2
+σ1
+ϱ1
+η1
+η2
+η1
+η2
+(c) N1 ∥N2 with N1
+e7→N2.
+Fig. 7: Automata with excitatory synapse: the external event
+σ2 is replaced by the internal events σ1 and ϱ1.
+i1
+s1
+σ1
+ϱ1
+η1
+(a) Neuron N1.
+i2
+s2
+η1
+η2
+(b) Neuron N2.
+i1i2
+s1i2
+i1s2
+σ1
+ϱ1
+η1
+η2
+(c) N1 ∥N2 with N1
+i7→N2.
+Fig. 8: Automaton with inhibitory synaptic connection: the
+external event σ2 is replaced by the internal event η1, as
+these events occur simultaneously.
+state-space in the composed automaton N1 ∥N2 is reduced.
+In Willem’s behavioral terminology, a synapse restricts the
+behavior by variable sharing, that is, transition synchrony.
+In all the examples given below, we use rebound spiking
+neurons (see Fig. 5c) and assume that we only interact
+with neuron N1, i.e., we prune the external transitions from
+neuron N2.
+1) Excitatory synapse: If there is an excitatory synap-
+tic connection from neuron N1 to neuron N2, compactly
+denoted as N1
+e7→N2, then σ2 becomes an internal event
+synchronized with σ1 and ϱ1. The resulting automata are
+given in Fig. 7.
+2) Inhibitory synapse: If there is an inhibitory synaptic
+connection from neuron N1 to neuron N2, compactly de-
+noted as N1
+i7→N2, then the transition σ2 becomes internal,
+as neuron N2 is forced to transition from i2 to s2 whenever
+η1 occurs. The resulting automata are given in Fig. 8.
+3) Bursting neurons: When the neurons are burst ex-
+citable and rebound bursting, the interconnection “rules”
+presented above are still valid, although the spiking states are
+then replaced by bursting states. In case that the neuron is
+4
+
+
+i1
+s1
+σ1
+ϱ1
+σ2
+σ1
+(a) Neuron N1.
+i2
+s2
+σ1, ϱ1
+σ2
+(b) Neuron N2.
+i1i2
+s1i2
+i1s2
+σ1
+ϱ1
+η1
+η2
+(c) N1 ∥N2 with N1
+i7→N2.
+Fig. 9: Automata with mutual inhibitory synaptic connec-
+tions.
+spike excitable but rebound bursting however, as is the case,
+e.g., in Fig. 4, some extra care is needed in forming the in-
+terconnections. The rebound bursting phenomenon typically
+only occurs if the neuron is inhibited sufficiently long, which
+is usually the same timescale as the bursting itself. Hence,
+when N1
+i7→N2, a spike generated by neuron N1 will not
+trigger the bursting phenomenon in neuron N2. This means
+that essentially two timescales exist within a neuromorphic
+circuit: the slow timescale, which captures mainly bursting
+behavior, and the fast timescale, which captures mainly
+spiking behavior. Note that, when N1
+e7→N2 and N1 is
+bursting, N2 is spiking “consecutively” as long as N1 is
+bursting. Due to space limitations, we will not include the
+details of interconnecting rebound bursting neurons in this
+paper; this will be subject of future work, as it will require
+an additional “discrete” classification between the “fast” and
+“slow” timescales.
+C. DES of a network of neurons
+We now construct the classical Half-Center Oscillator
+(HCO) and other ring oscillators as proposed in [10]. We do
+this by adding mutual inhibitory connections to two neurons,
+i.e., we consider N1
+i7→N2 and N2
+i7→N1 for a pair of
+rebound spiking neurons. If we assume that we can only
+interact with neuron N1, the resulting automata are given in
+Fig. 9.
+Lastly, as a prelude to the next section, we will consider
+a network of 3 post-inhibitory rebound spiking neurons with
+all-to-all inhibitory connections excluding self-inhibition. A
+couple of things change in this setting from the two-neuron
+case. Firstly, we consider the case where a small amount of
+noise is present in the membrane potential of each neuron,
+i.e., where the membrane potential of each neuron slightly
+fluctuates. This acts as a tie-breaker: suppose neuron N1
+spikes, inhibiting neurons N2 and N3. After neuron N1 stops
+spiking, either N2 will spike first, inhibiting neuron N3,
+or neuron N3 spikes, inhibiting neuron N2. Which neuron
+successfully suppresses the other is essentially decided ran-
+domly. Suppose now that we are only allowed to interaction
+with neuron N1. The resulting automaton of this network is
+then given in Fig. 10.
+i
+s1
+s2
+s3
+σ1
+ϱ1
+Fig. 10: Automaton representation of an N
+= 3 WTA
+network of rebound spiking neurons.
+Note that we can, in this case, enforce the transition to
+b1 from b2 or b3 by increasing the membrane potential
+“externally,” and recall that external transitions preempt
+internal ones. We will use these observations in the following
+to construct a general winner-take-all circuit for decision-
+making.
+V. DECISION-MAKING IN NEUROMORPHIC CIRCUITS
+A natural starting point for decision-making in neuro-
+morphic circuits is the winner-take-all (WTA) network [10],
+which is based on the winner-take-all principle [4], [5]. A
+WTA network is a network of N ∈{2, 3, . . .} neurons
+which have all-to-all inhibitory synaptic connections. The
+resulting behavior of a basic WTA circuit is summarized in
+Definition 4.
+Definition 4. Winner-take-all neuronal network properties:
+(i) Only one neuron can “win” (be on) at any given time.
+(ii) The neuron with the largest input wins.
+(iii) A neuron cannot win twice in a row.
+Some comments are in order. Firstly, we can view a neuron
+“firing” here as the representation of a decision that is made.
+Secondly, item (ii) considers inputs in the classical sense. As
+extensively discussed in Section III-C, the interpretation in
+the DES is slightly different. If we assume that some noise
+is present in the membrane potential of the neurons, this
+essentially results in a “random” other neuron winning (so
+that (iii) is not violated). Lastly, although item (iii) is natural
+in a biological context (as we cannot have a stable tunable
+rhythm with a single neuron), the DES interpretation is that
+there are no self-loops.
+A. Basic WTA automaton
+Using the insight obtained in Section IV-C, it is straight-
+forward to derive the following proposition.
+Proposition 1. The discrete dynamics of a winner-take-
+all network of N post-inhibitory rebound spiking neurons
+with no excitatory synapses can be captured in an N + 1
+automaton with all-to-all transitions excluding self-loops.
+Note that, indeed, this network satisfies items (i)-(iii) in
+Definition 4. Thus, as was already mentioned in the above,
+we can model a WTA-network as an automaton by simply
+assigning a state in the model that represents a single neuron
+“winning,” i.e., firing. An example of a DES models that
+represent the behavior of Definition 4 with N = 3 neurons
+is given in Fig. 11a. Note that the resulting model is fairly
+5
+
+
+i
+s1
+s2
+s3
+(a)
+i
+s1
+s2
+s3
+(b)
+Fig. 11: Automaton representation of the discrete dynamics
+of an N = 3 WTA network. The state i represents the
+neurons being idle, while s1, s2, and s3 represent each
+respective neuron firing. In 11b, we add N1
+e7→N3 and
+N2
+e7→N3 to enforce a partial temporal ordering.
+tractable: the number of states is linear in the number of
+neurons. We will exploit this fact in Section V-C.
+B. Adding excitatory synaptic connections
+As mentioned earlier, adding (slow) excitatory synapses
+enforces a particular ordering in the firing order of the
+neurons. Consequently, it “disables” transitions from the
+DES model. In this way, we can restrict the set of possible
+transitions neuron i ∈{2, 3, . . . , N} “internally” (i.e., with-
+out external inputs). Essentially, this causes some transitions
+to become external; we can still transition from b2 to b1, but
+it requires an external current being applied to neuron N1.
+This also implies that, when every neuron has exactly one
+excitatory synapse connecting it to another neuron, the firing
+order is a fixed (temporal) pattern.
+C. Towards a realization theory
+One can easily verify that, with these elementary building
+blocks, any automaton without self-loops can be built and/or
+implemented as a neuromorphic circuit. Such a circuit can be
+constructed as follows: (i) For each state, add a neuron in a
+WTA network. (ii) For each transition, add a slow excitatory
+synapse to “force” this transition internally. Clearly, when a
+small amount of noise is used as a tie-breaker when two (or
+no) excitatory synapses originate from a single neuron, such
+a circuit will mimic the behavior of the DES: the noise will
+“select” the next state randomly (from the set of connected
+neurons in case multiple excitatory synaptic connections).
+These principles where already suggested in the work Huo
+et al. [10], which motivated the question of the paper.
+VI. CONCLUSIONS AND DISCUSSION
+In this paper, we have motivated the value of discrete-event
+models of neuromorphic circuits and shown how to construct
+DES models that capture the discrete behavior in terms of
+the sequence of events. This approach is a complementary
+approach to the biophysical modeling as (conductance-based)
+differential equations. Indeed, from the conductance-based
+model, it is significant effort to grasp the ordering of the
+events, whereas for a DES model, it is impossible to do
+regulation properly if timings are not present. However, as
+timings can be regulated using neuromodulation, we believe
+that both models serve complementary objectives.
+In our DES models, pairs of mixed conductances add
+states whereas synaptic interconnections add internal tran-
+sitions. We have also seen that the WTA architecture results
+in tractable models. Lastly, we shortly demonstrated how
+the models and observations in this paper can be used to
+construct a neuromorphic circuit which represents or mimics
+the behavior of a specific automaton.
+We envision that, e.g., in the field of robotics, adding
+decision-making circuitry enables the design of more compli-
+cated interactive behaviors. In particular, when parts of the
+low-level control loops are implemented using half-center
+oscillators, such decision-making capabilities can be added
+to the circuitry by using the same elementary building blocks.
+The framework of (timed or untimed) DES can be used
+to analyze such circuits and to design behaviors, while the
+continuous-time conductance-based models can be used to
+tackle the regulation problem.
+REFERENCES
+[1] N. Matni, A. D. Ames, and J. C. Doyle, “A quantitative framework
+for layered multirate control: Toward a theory of control architecture,”
+IEEE Control Systems, vol. 44, no. 3, pp. 52–94, 2024.
+[2] R. Sepulchre, “Spiking control systems,” Proceedings of the IEEE,
+vol. 110, no. 5, pp. 577–589, 2022.
+[3] E. Marder and D. Bucher, “Central pattern generators and the control
+of rhythmic movements,” Current Biology, vol. 11, no. 23, pp. R986–
+R996, 2001.
+[4] J. J. Hopfield, “Neurons with graded response have collective compu-
+tational properties like those of two-state neurons,” Proceedings of the
+National Academy of Sciences, vol. 81, no. 10, pp. 3088–3092, 1984.
+[5] W. Maass, “Neural computation with winner-take-all as the only
+nonlinear operation,” in Advances in Neural Information Processing
+Systems, vol. 12.
+MIT Press, 1999.
+[6] C. G. Cassandras and S. Lafortune, Introduction to Discrete Event
+Systems.
+Cham: Springer International Publishing, 2021.
+[7] A. L. Hodgkin and A. F. Huxley, “A quantitative description of
+membrane current and its application to conduction and excitation
+in nerve,” The Journal of Physiology, vol. 117, no. 4, pp. 500–544,
+1952.
+[8] R. H. R. Hahnloser, R. Sarpeshkar, M. A. Mahowald, R. J. Douglas,
+and H. S. Seung, “Digital selection and analogue amplification coexist
+in a cortex-inspired silicon circuit,” Nature, vol. 405, no. 6789, pp.
+947–951, 2000.
+[9] M. Reniers and K. Cai, “Supervisory control theory with event
+forcing,” IEEE Transactions on Automatic Control, vol. 70, no. 5,
+pp. 3471–3477, 2025.
+[10] Y. Huo, F. Forni, and R. Sepulchre, “A winner-takes-all mechanism
+for event generation,” in IEEE Conference on Decision and Control,
+Rio de Janeiro, Brazil, 2025.
+6

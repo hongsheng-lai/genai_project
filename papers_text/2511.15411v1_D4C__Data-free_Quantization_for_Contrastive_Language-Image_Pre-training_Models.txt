@@ -1,0 +1,1557 @@
+D4C: Data-free Quantization for Contrastive Language-Image
+Pre-training Models
+Wenlun Zhang1
+Yunshan Zhong2
+Zihao Ding1
+Xinyu Li1
+Kentaro Yoshioka1
+1Department of Electronics and Electrical Engineering, Keio University
+2School of Computer Science and Technology, Hainan University
+{wenlun zhang, kyoshioka47}@keio.jp
+viperzhong@163.com
+Abstract
+Data-Free Quantization (DFQ) offers a practical solu-
+tion for model compression without requiring access to real
+data, making it particularly attractive in privacy-sensitive
+scenarios. While DFQ has shown promise for unimodal
+models, its extension to Vision-Language Models such as
+Contrastive Language-Image Pre-training (CLIP) models
+remains underexplored.
+In this work, we reveal that di-
+rectly applying existing DFQ techniques to CLIP results in
+substantial performance degradation due to two key limita-
+tions: insufficient semantic content and low intra-image di-
+versity in synthesized samples. To tackle these challenges,
+we propose D4C, the first DFQ framework tailored for
+CLIP. D4C synthesizes semantically rich and structurally
+diverse pseudo images through three key components: (1)
+Prompt-Guided Semantic Injection aligns generated images
+with real-world semantics using text prompts; (2) Struc-
+tural Contrastive Generation reproduces compositional
+structures of natural images by leveraging foreground-
+background contrastive synthesis; and (3) Perturbation-
+Aware Enhancement applies controlled perturbations to im-
+prove sample diversity and robustness. These components
+jointly empower D4C to synthesize images that are both se-
+mantically informative and structurally diverse, effectively
+bridging the performance gap of DFQ on CLIP. Exten-
+sive experiments validate the effectiveness of D4C, show-
+ing significant performance improvements on various bit-
+widths and models. For example, under the W4A8 setting
+with CLIP ResNet-50 and ViT-B/32, D4C achieves Top-1
+accuracy improvement of 12.4% and 18.9% on CIFAR-10,
+6.8% and 19.7% on CIFAR-100, and 1.4% and 5.7% on
+ImageNet-1K in zero-shot classification, respectively.
+1. Introduction
+Vision-Language Models (VLMs), such as Contrastive
+Language-Image Pre-training (CLIP) models [30], which
+integrate visual and textual modalities, have propelled
+progress across a range of fields, including healthcare di-
+agnostics [40], autonomous driving [8], and medical image
+analysis [17, 33]. Despite their impressive performance,
+these models often demand substantial computational and
+memory resources, limiting their practicality in resource-
+constrained environments.
+To address this issue, model
+quantization [28] has emerged as an effective technique,
+compressing models by transforming floating-point param-
+eters into low-bit representations, thereby reducing both
+memory footprint and inference latency.
+Conventional quantization methods require access to
+training data, which may not be viable in privacy-sensitive
+applications.
+A representative example is CLIP models
+trained on medical text-image datasets [32, 33], where
+the data itself may be highly confidential. To overcome
+this limitation, Data-Free Quantization (DFQ) provides a
+promising alternative by generating pseudo samples directly
+from pre-trained models [1, 4, 9, 13, 14, 35], which are then
+used for model calibration. Over the past few years, DFQ
+has achieved notable success in both Convolutional Neu-
+ral Networks (CNNs) and Vision Transformers (ViTs). In
+CNNs, DFQ typically uses Batch Normalization Statistics
+(BNS) to guide the image generation process [3], whereas
+ViT-based approaches exploit the inherent attention mech-
+anisms to produce more diverse and informative synthetic
+samples [21]. However, existing DFQ frameworks are de-
+signed for unimodal architectures, and little attention has
+been paid to extending DFQ to cross-modal models like
+CLIP, leaving a critical research gap unaddressed.
+In this paper, we observe that directly applying existing
+DFQ methods to CLIP leads to a substantial performance
+degradation compared to using real data, as demonstrated
+in Table 1. To better understand this issue, we identify two
+key challenges in synthesizing pseudo data for CLIP quan-
+tization. First, current DFQ techniques often generate syn-
+thetic images with insufficient semantic content, resulting
+in poor alignment in the latent feature space. As illustrated
+in Fig. 1, pseudo samples produced by conventional meth-
+1
+arXiv:2511.15411v1  [cs.CV]  19 Nov 2025
+
+
+ods tend to collapse into indistinct clusters, indicating lim-
+ited semantic expressiveness. Second, these synthetic sam-
+ples exhibit low intra-image diversity, failing to reflect the
+structural complexity of natural images. For instance, Fig. 2
+shows that existing methods produce overly uniform simi-
+larity patterns, which hinders their effectiveness for quanti-
+zation. Given that CLIP is trained using large-scale image-
+text pairs, effective quantization requires calibration sam-
+ples that preserve both semantic content and structural com-
+plexity. Without such qualities, the quantization process
+suffers a significant loss in accuracy.
+ Gaussian Noise
+ BNS Loss
+ PSE Loss
+ Real (Banana)
+ D4C (Banana)
+ Real (Jeep)
+ D4C (Jeep)
+ Real (Pizza)
+ D4C (Pizza)
+Banana
+Jeep
+Pizza
+Figure 1. UMAP [26] visualization of features across various sam-
+ples. Images generated using BNS or PSE losses are distant from
+real images, indicating limited semantic information. In contrast,
+D4C-generated samples closely match real data.
+  
+  
+  
+  
+   
+   
+   
+   
+   
+  
+  
+  
+  
+   
+   
+   
+   
+   
+           
+           
+   
+   
+   
+   
+   
+   
+   
+  
+  
+  
+  
+   
+   
+   
+   
+   
+  
+  
+  
+  
+   
+   
+   
+   
+   
+           
+           
+   
+   
+   
+   
+   
+   
+   
+  
+  
+  
+  
+   
+   
+   
+   
+   
+  
+  
+  
+  
+   
+   
+   
+   
+   
+           
+           
+   
+   
+   
+   
+   
+   
+   
+  
+  
+  
+  
+   
+   
+   
+   
+   
+  
+  
+  
+  
+   
+   
+   
+   
+   
+           
+           
+   
+   
+   
+   
+   
+   
+   
+  
+  
+  
+  
+   
+   
+   
+   
+   
+  
+  
+  
+  
+   
+   
+   
+   
+   
+           
+           
+   
+   
+   
+   
+   
+   
+   
+  
+  
+  
+  
+   
+   
+   
+   
+   
+  
+  
+  
+  
+   
+   
+   
+   
+   
+           
+           
+   
+   
+   
+   
+   
+   
+   
+Gaussian Noise
+Real Image
+BNS Loss
+PSE Loss
+D4C Generation (RN50)
+D4C Generation (VB32)
+Figure 2. Patch similarity visualization across different images.
+Compared to Gaussian noise and BNS/PSE-based synthetic im-
+ages, which exhibit weak or irregular internal patch relation-
+ships, D4C-generated images display structured similarity patterns
+closely resembling those of real images.
+To address the aforementioned challenges, we propose a
+novel DFQ Framework For CLIP, dubbed D4C. First, we in-
+troduce Prompt-Guided Semantic Injection (PGSI), which
+injects high-level semantics into pseudo images by guid-
+ing the synthesis process with text prompts, thereby im-
+proving their latent alignment with real samples. To miti-
+gate intra-image homogeneity, we propose Structural Con-
+trastive Generation (SCG), which leverages foreground-
+background contrastive synthesis to reproduce the com-
+positional structures of natural images.
+Additionally,
+Perturbation-Aware Enhancement (PAE) applies controlled
+perturbations during generation to increase sample diversity
+and robustness. Together, these components enable D4C to
+synthesize data that are both semantically informative and
+structurally realistic, significantly narrowing the DFQ per-
+formance gap on CLIP. Our main contributions are as fol-
+lows:
+• We identify and analyze the limitations of directly apply-
+ing existing DFQ methods to CLIP, revealing two critical
+challenges: semantic insufficiency and structural homo-
+geneity in the generated pseudo data.
+• We propose D4C, the first DFQ framework for CLIP that
+integrates PGSI, SCG, and PAE to jointly enhance the
+semantic expressiveness and structural diversity of syn-
+thetic samples, thereby significantly improving their ef-
+fectiveness for CLIP quantization.
+• We conduct extensive experiments to validate the effec-
+tiveness of D4C. The results consistently demonstrate that
+our method outperforms existing DFQ techniques and,
+to the best of our knowledge, establishes the first strong
+baseline for DFQ on CLIP. Specifically, under W4A8
+quantization for RN50 and VB321 in zero-shot classi-
+fication tasks, D4C achieves accuracy improvements of
+12.4/18.9%, 6.8/19.7%, and 1.4/5.7% over DFQ base-
+lines on CIFAR-10, CIFAR-100, and ImageNet-1K, re-
+spectively.
+2. Related Works
+2.1.
+Contrastive
+Language-Image
+Pre-training
+Models
+CLIP [30] marks a significant advancement in vision-
+language modeling by leveraging large-scale web data and
+contrastive learning to directly align image and text em-
+beddings. This approach not only enhances its generaliza-
+tion capabilities but also provides superior zero-shot trans-
+fer performance across diverse tasks, including image clas-
+sification, retrieval, and captioning. Driven by CLIP’s suc-
+cess, several domain-specific variants have emerged, no-
+tably MedCLIP [33], which facilitates representation learn-
+ing from unpaired medical image-text datasets, and adapta-
+tions such as MedCLIP-SAM [17], aimed at universal medi-
+cal image segmentation. However, quantizing CLIP in such
+privacy-sensitive domains is challenging due to the lack of
+calibration data, motivating our investigation of DFQ for
+CLIP-based VLMs.
+1We denote ResNet-50, ResNet-50x16, ViT-B/32, and ViT-B/16 as
+RN50, RN50x16, VB32, and VB16 in this paper, respectively.
+2
+
+
+2.2. Model Quantization
+2.2.1. Data-Driven Quantization
+Data-driven quantization approaches typically include
+Quantization-Aware Training (QAT) and Post-Training
+Quantization (PTQ). QAT [10, 11, 19, 25] achieves high
+quantization accuracy by incorporating quantization con-
+straints directly into the training phase, but this strategy
+requires full access to the original training dataset and ex-
+tensive retraining, imposing substantial computational over-
+head. Consequently, its practicality is often restricted, es-
+pecially for large-scale models or datasets.
+PTQ [2, 20,
+24, 27, 31, 34, 42, 44, 45] addresses these limitations by
+directly quantizing pre-trained models without full retrain-
+ing, usually relying on a limited subset of training sam-
+ples.
+This significantly reduces computational costs and
+enhances applicability to resource-constrained deployment
+scenarios [38]. Nevertheless, even minimal access to real
+calibration data can be problematic or impossible in sensi-
+tive domains such as healthcare, finance, or security, where
+data privacy and confidentiality constraints are prevalent.
+2.2.2. Data-Free Quantization
+DFQ has emerged as a practical alternative to conventional
+data-driven approaches, aiming to eliminate dependence
+on real calibration data entirely. DFQ leverages the pre-
+trained model itself to generate synthetic data for quan-
+tization purposes.
+For CNNs, ZeroQ [3] leverages BNS
+from pre-trained models to synthesize calibration samples
+for quantization. DSG [39] improves upon ZeroQ by in-
+troducing slack distribution alignment and layer-wise sam-
+ple enhancement to mitigate sample homogenization. In-
+traQ [41] further extends this approach by incorporating
+class-conditional generation using category labels, achiev-
+ing enhanced quantization performance. For ViTs, PSAQ-
+ViT [21, 22] synthesizes calibration samples by exploiting
+patch similarity entropy (PSE) derived from self-attention
+layers. MimiQ [5] enhances DFQ performance by align-
+ing the multi-head attention maps and applying structured
+head-wise distillation to generate consistent pseudo images.
+SARDFQ [43] further improves image quality by employ-
+ing attention priors alignment, and multi-semantic rein-
+forcement strategies, effectively mitigating semantic distor-
+tions during image synthesis. SynQ [16] introduces a novel
+framework for DFQ by integrating a low-pass filter, class
+activation map alignment, and difficult samples learning.
+[15] presents a more comprehensive DFQ survey, which
+may be beneficial for further reseach. Although DFQ tech-
+niques have demonstrated effectiveness for both CNNs and
+ViTs, their extension to multimodal architectures like CLIP
+remains limited, highlighting a critical challenge for the re-
+search community.
+3. Methodology
+3.1. Preliminaries
+3.1.1. Quantization
+Quantization maps floating-point values to discrete integer
+representations, significantly reducing computational and
+memory overhead. Formally, the quantization and dequan-
+tization processes of the popular uniform quantization can
+be described as:
+xq = clamp
+jx
+s
+m
++ z, 0, 2k −1
+
+,
+(1)
+x ≈ˆx = s · (xq −z),
+(2)
+where s and z are the scale and zero-point parameters, re-
+spectively, and k denotes the quantization bit-width.
+3.1.2. Optimization-Guided PTQ
+In this paper, we adopt a widely used optimization-guided
+PTQ method during the quantization phase of DFQ. Specif-
+ically, we perform block- or layer-wise reconstruction by
+minimizing the mean squared error between the original and
+quantized outputs:
+L = ∥Oi −ˆOi∥2
+2,
+(3)
+where Oi and ˆOi denote the floating-point and quantized
+outputs of the i-th block or layer, respectively.
+3.1.3. Data Synthesis
+DFQ generates synthetic data directly from the pre-trained
+model without relying on real samples. This process be-
+gins with Gaussian noise inputs ˜S ∼N(0, 1), which are
+optimized using a synthesis loss function LSyn. The goal is
+to obtain pseudo data S that can effectively support model
+quantization.
+The effectiveness of DFQ largely depends
+on the formulation of LSyn, which typically distills prior
+knowledge from the model. Notable examples include the
+BNS loss [3] for CNNs and the PSE loss [21] for ViTs.
+3.2. DFQ Challenges of CLIP
+Although BNS and PSE losses have proven effective for
+DFQ in CNNs and ViTs, they are designed for unimodal
+models and fall short when applied to CLIP, suffering
+from considerable performance drops.
+As shown in Ta-
+ble 1, W4A8 quantization of CLIP on CIFAR-10 yields
+only 48.9% with BNS (RN50) and 53.7% with PSE (VB32),
+compared to 71.7% and 89.6% when using real data. These
+stark gaps underscore the limitations of existing DFQ tech-
+niques on CLIP and drive our effort to explore solutions
+tailored to their unique challenges.
+The first challenge arises from the observation that syn-
+thetic images often lack meaningful semantic content, de-
+viating from real image distributions and resulting in sub-
+optimal quantization performance. To examine this issue,
+3
+
+
+Image
+Encoder
+IF1
+IF2
+IF3
+…
+IFN
+IF1∙IB1
+IF2∙IB1
+IF3∙IB1
+…
+IFN∙IB1
+IF1∙IB2
+IF2∙IB2
+IF3∙IB2
+…
+IFN∙IB2
+IF1∙IB3
+IF2∙IB3
+IF3∙IB3
+…
+IFN∙IB3
+…
+…
+…
+…
+…
+IF1∙IBN
+IF2∙IBN
+IF3∙IBN
+…
+IFN∙IBN
+Text
+Encoder
+IF1∙T1
+IF2∙T1
+IF3∙T1
+…
+IFN∙T1
+IF1∙T2
+IF2∙T2
+IF3∙T2
+…
+IFN∙T2
+IF1∙T3
+IF2∙T3
+IF3∙T3
+…
+IFN∙T3
+…
+…
+…
+…
+…
+IF1∙TN
+IF2∙TN
+IF3∙TN
+…
+IFN∙TN
+IB1
+IB2
+IB3
+…
+IBN
+T1
+T2
+T3
+…
+TN
+A photo of
+a {object}.
+Cat
+Ocean
+…
+Sofa
+Sushi
+IF1
+IF2
+IF3
+…
+IFN
+InfoNCE Loss
+Image
+Encoder
+Concat
+Background
+Foreground
+Crop
+Horizontal Flip
+Affine
+Color Jitter
+Gaussian Blur
+Erasing
+Optimization from Gaussian Noise
+Random
+Perturbation
+Prompt-Guided Semantic Injection (PGSI)
+Structural Contrastive Generation (SCG)
+Positive Logit Sample
+Negative Logit Sample
+Perturbation-Aware Enhancement (PAE)
+Figure 3. Overview of D4C: PGSI injects semantic information into synthetic samples through object concept prompting; SCG enhances
+structural diversity via foreground-background contrastive generation; and PAE introduces perturbations to further improve sample quality
+and expressiveness.
+we extract features using CLIP’s VB32 encoder from real
+images, Gaussian noise, and synthetic samples generated
+via BNS and PSE losses using RN50 and VB32 encoders.
+These features are projected into a 2D space using Uniform
+Manifold Approximation and Projection (UMAP) [26].
+As illustrated in Fig. 1, synthetic samples generated with
+BNS and PSE cluster tightly, resembling Gaussian noise,
+whereas real images form three clearly separated semantic
+groups (i.e., banana, jeep, and pizza). Given that CLIP is
+pre-trained on large-scale image-text pairs and strongly de-
+pends on semantic alignment between modalities, calibra-
+tion data with rich semantics is crucial for effective quan-
+tization. However, synthetic samples produced by conven-
+tional DFQ methods show limited semantic diversity in the
+latent space, making them suboptimal for CLIP. Such se-
+mantically deficient pseudo data tend to cause overfitting to
+quantization parameters, ultimately leading to performance
+degradation.
+The second challenge lies in the lack of structural di-
+versity within synthetic images, as their internal patch rela-
+tionships are overly homogeneous and deviate significantly
+from the distribution patterns observed in real data.
+To
+demonstrate this, we randomly select samples, divide each
+image into 16 × 16 patches, resize each patch to 224 × 224,
+and extract their features using a pre-trained ResNet-18
+model [12]. We then compute the pairwise cosine similar-
+ity between patches. As visualized in Fig. 2, real images
+exhibit structured and periodic similarity patterns, where al-
+ternating high- and low-similarity regions reflect the coex-
+istence of semantically related and unrelated content, such
+as foreground objects and background context. In contrast,
+synthetic images generated by BNS or PSE losses fail to
+capture this structural diversity and display weak or overly
+uniform similarity patterns, closely resembling Gaussian
+noise. The resulting lack of intra-sample diversity nega-
+tively impacts the quality of synthetic data for quantization.
+3.3. D4C
+To address the aforementioned challenges, we propose
+D4C, a novel framework specifically designed for the DFQ
+scenario on CLIP. As shown in Fig. 3, D4C comprises three
+core components: PGSI, which injects semantic informa-
+tion into synthetic data by prompting diverse object con-
+cepts; SCG, which enhances structural diversity through
+foreground-background contrastive generation; and PAE,
+which further enriches image quality and expressiveness by
+introducing controlled perturbations during generation.
+3.3.1. Prompt-Guided Semantic Injection
+To address the challenge of synthetic images lacking seman-
+tic content, we introduce PGSI, which utilizes text prompts
+to embed semantic information into the generated images.
+As shown in the left panel of Fig. 3, PGSI constructs a batch
+of textual prompts based on selected object categories and
+encodes them using the text encoder. For text inputs, we
+use the template “A photo of {c}” with a broad category set
+(animals, objects, food, scenes) for concept coverage. Si-
+multaneously, a batch of images, initialized from Gaussian
+noise, is processed by the image encoder. PGSI then ap-
+plies the InfoNCE loss [29] to encourage strong alignment
+between matched image-text pairs (Ii · Ti) while penalizing
+mismatched pairs:
+LInfoNCE = −1
+N
+N
+X
+i=1
+log
+exp(Ii · Ti/τ)
+N
+P
+j=1
+exp(Ii · Tj/τ)
+,
+(4)
+4
+
+
+where Ii and Ti represent the i-th image and text embed-
+dings, N is the batch size, and τ is a temperature param-
+eter. This contrastive objective guides the optimization of
+synthetic images, ensuring that each sample semantically
+aligns with a meaningful real-world concept.
+To validate the effectiveness of the proposed PGSI, we
+randomly sample generated images from three categories
+(banana, jeep, and pizza) and extract their features using
+the VB32 encoder. The projected latent features are visu-
+alized in Fig. 1. As illustrated, the features of the gener-
+ated samples form three clearly separated clusters, closely
+aligned with those of real images.
+This alignment indi-
+cates strong semantic consistency between the synthetic and
+real data, highlighting the semantic enrichment achieved
+through PGSI. Consequently, the improved semantic infor-
+mation of the synthetic samples contributes to enhanced
+quantization performance.
+3.3.2. Structural Contrastive Generation
+To address the second challenge that corresponds to insuffi-
+cient structural diversity in synthetic images, we propose
+SCG, which promotes the generation of semantically di-
+verse regions within each image. Natural images typically
+comprise multiple regions, including a foreground contain-
+ing the target object and a background composed of se-
+mantically unrelated content. The similarity between fore-
+ground and background regions is generally lower than that
+within each region. To emulate this property, SCG intro-
+duces a region-aware contrastive strategy. Specifically, for
+each synthetic image, we randomly initialize a foreground
+bounding box, crop and resize the corresponding region,
+and extract the foreground embedding IF , as illustrated in
+the middle panel of Fig. 3. Simultaneously, we mask the
+foreground region to obtain the background embedding IB.
+We then compute two similarity matrices: (1) between the
+foreground embeddings IF and text prompts T, and (2) be-
+tween IF and background embeddings IB. These matrices
+are concatenated to form a single pool of negative and posi-
+tive samples within the InfoNCE loss. Noted that these two
+InfoNCE losses can be unified with the original InfoNCE
+loss (Eq.4) in PGSI, which results in the following SCG
+losses:
+LSCG = −1
+N
+N
+X
+i=1
+log
+exp(IF i · Ti/τ)
+N
+P
+j=1
+exp(Cat(IF i · Tj, IF i · IBj)/τ)
+,
+(5)
+where only the foreground embedding IF i · Ti serves as the
+positive image-text pair, while all mismatched image-text
+similarities IF i · Tj and foreground-background similari-
+ties IF i · IBj are included in the denominator. This uni-
+fied design facilitates both effective representation learning
+and efficient backpropagation. By introducing two types
+of negative pairs, SCG loss not only encourages alignment
+Algorithm 1 D4C DFQ Pipeline
+Input: A pre-trained floating-point CLIP model F consist-
+ing of image encoder fI and text encoder fT .
+Output: Quantized CLIP model FQ.
+# Stage 1: Sample Synthesis
+1: Initialize Gaussian noise images ˜S and foreground
+bounding boxes C.
+2: while not converged do
+3:
+Crop foreground regions from ˜S based on C and re-
+size them.
+4:
+Apply PAE to foreground patches.
+5:
+Generate background images by masking C in ˜S with
+Gaussian noise.
+6:
+Encode foreground features IF i
+= fI(·), back-
+ground features IBi = fI(·), and text prompts Tj =
+fT (·).
+7:
+Compute contrastive logits and obtain final synthesis
+loss LSyn following Eq. 6.
+8:
+Update synthetic images ˜S via gradient descent.
+9: end while
+# Stage 2: Model Quantization
+1: Obtain final synthetic images S for image encoder, and
+reuse PGSI prompts for text encoder calibration.
+2: for i = 1, 2, · · · , N-th block/layer in image encoder fI
+and text encoder fT do
+3:
+Conduct reconstruction following Eq. 3.
+4: end for
+between the foreground and its assigned prompt but also
+explicitly pushes it away from irrelevant prompts and their
+corresponding background. This contrastive setup promotes
+diverse internal structure within synthetic images and leads
+to improved synthesis quality.
+To validate the effectiveness of SCG, we extract patch
+features from synthetic images generated by RN50 and
+VB32 encoders and perform the same patch similarity anal-
+ysis. As shown in Fig. 2, the resulting similarity maps ex-
+hibit a staggered pattern, reflecting alternating foreground
+and background regions that closely resemble those in real
+images. This structural alignment indicates that the gener-
+ated samples possess richer semantic and spatial informa-
+tion, leading to improved consistency with real data and en-
+hanced quantization performance.
+3.3.3. Perturbation-Aware Enhancement
+While PGSI and SCG collaboratively guide the generation
+of semantically meaningful and structurally diverse images,
+relying solely on these components can lead to overfit-
+ting during optimization, ultimately limiting sample qual-
+ity [4, 41]. In order to improve both diversity and robust-
+ness, we incorporate PAE into the generation pipeline. As
+illustrated in the right panel of Fig. 3, a collection of ran-
+5
+
+
+Table 1. Quantization results of D4C for zero-shot classification across four types of image encoders. Top-1 accuracy (%) is reported
+on CIFAR-10, CIFAR-100, and ImageNet-1K. ”W/A” indicates the bit-width of weights and activations. D4C consistently outperforms
+existing BNS and PSE approaches, achieving state-of-the-art performance.
+Model
+Method
+CIFAR-10
+CIFAR-100
+ImageNet-1K
+FP
+W4A8
+W6A6
+W8A8
+FP
+W4A8
+W6A6
+W8A8
+FP
+W4A8
+W6A6
+W8A8
+RN50
+Real
+71.5
+71.7
+73.8
+73.0
+40.3
+38.9
+37.6
+39.0
+59.8
+44.9
+45.5
+49.7
+Gaussian
+34.8
+58.9
+69.9
+8.0
+25.7
+38.5
+26.4
+39.5
+49.5
+BNS&PSE
+48.9
+66.9
+69.8
+20.1
+31.6
+38.6
+42.9
+44.0
+49.1
+D4C
+61.3
+73.4
+70.4
+26.9
+36.4
+40.8
+44.3
+47.9
+51.1
+Real
+81.4
+82.3
+82.1
+81.8
+52.2
+48.6
+48.7
+50.4
+70.7
+60.8
+59.0
+62.8
+RN50
+Gaussian
+74.6
+78.3
+80.0
+43.2
+44.4
+49.4
+55.0
+55.2
+62.0
+x16
+BNS&PSE
+76.4
+78.0
+80.2
+45.9
+48.0
+50.1
+58.5
+58.6
+63.0
+D4C
+77.9
+78.7
+80.4
+46.2
+48.2
+50.3
+60.4
+58.7
+64.8
+VB32
+Real
+89.8
+89.6
+89.3
+90.0
+64.2
+59.8
+59.2
+62.1
+63.3
+47.6
+48.1
+50.4
+Gaussian
+18.0
+19.1
+24.5
+2.8
+3.0
+4.8
+13.6
+15.7
+27.4
+BNS&PSE
+53.7
+57.7
+68.1
+22.1
+24.9
+35.5
+40.4
+42.9
+47.6
+D4C
+72.6
+75.5
+80.4
+41.8
+45.8
+51.0
+46.1
+46.1
+51.7
+VB16
+Real
+90.8
+91.8
+85.9
+91.0
+66.9
+63.4
+48.0
+64.7
+68.3
+52.7
+45.3
+56.4
+Gaussian
+24.5
+15.8
+72.3
+5.7
+2.4
+39.4
+15.3
+0.8
+49.0
+BNS&PSE
+70.6
+15.4
+81.6
+39.1
+4.9
+50.8
+47.0
+10.5
+56.1
+D4C
+81.4
+48.3
+86.5
+49.8
+19.5
+59.7
+49.9
+35.7
+57.9
+dom perturbations is applied to the foreground regions be-
+fore they are fed into the model. These perturbations in-
+clude horizontal flipping, affine transformations, color jit-
+ter, Gaussian blur, and random erasing. These perturba-
+tions reduce the likelihood of the model overfitting to spe-
+cific pixels or spatial patterns and promote the generation
+of more generalized representations. Moreover, since SCG
+relies on contrastive generation, increasing foreground vari-
+ability through PAE also strengthens background learning,
+ultimately improving both the diversity and quality of the
+synthetic samples.
+3.3.4. Overall DFQ Pipeline
+The complete quantization pipeline of D4C consists of two
+stages, which are formally described in Algorithm 1.
+The first stage involves generating images using the pre-
+trained floating-point model. This process begins by ini-
+tializing a batch of synthetic images with Gaussian noise
+and defining foreground and background regions via ran-
+domly generated bounding boxes. Simultaneously, a batch
+of representative text prompts is prepared for PGSI, cover-
+ing categories such as animals, daily objects, food, and nat-
+ural scenes. Foregrounds, backgrounds, and text prompts
+are then encoded using the corresponding image and text
+encoders, and the SCG loss is computed accordingly. No-
+tably, both the foreground-text contrast from PGSI and the
+foreground-background contrast from SCG are integrated
+into Eq. 5, enabling efficient joint optimization within a
+single backward pass. To further stabilize the generation
+process, we also incorporate a total variation regularization
+term [36], denoted as LTV, leading to the final synthesis ob-
+jective:
+LSyn = LSCG + 0.1 · LTV.
+(6)
+The synthetic images are iteratively optimized to minimize
+LSyn until convergence. This pipeline enables D4C to gen-
+erate pseudo images that are both semantically informa-
+tive and structurally diverse, thus facilitating more effective
+quantization and improving model performance.
+In the second stage, we adopt an optimization-guided
+PTQ strategy to quantize the CLIP model. The synthesized
+images serve as calibration data to perform block- or layer-
+wise reconstruction on the image encoder. Meanwhile, the
+text prompts used in PGSI are repurposed to calibrate the
+text encoder via layer-wise reconstruction.
+4. Experiments
+4.1. Experiment and Implementation Details
+We evaluate the effectiveness of D4C on zero-shot classifi-
+cation across CIFAR-10, CIFAR-100 [18], and ImageNet-
+1K [7].
+For the image encoder, we adopt RN50 and
+RN50x16 for CNNs, and VB32 and VB16 for ViTs. Pseudo
+images are first generated using D4C, followed by an
+optimization-based reconstruction PTQ process for model
+calibration. During pseudo-image generation, 180 repre-
+sentative prompts2 are curated for PGSI. These prompts
+2Full template list can be found in the supplementary code.
+6
+
+
+also serve to calibrate and guide the optimization of the text
+encoder, adhering to the constraints of a DFQ scenario. We
+set the generation batch size to 16, adopt a learning rate
+of 0.01, and run the optimization for 3,000 iterations. The
+temperature parameter τ in the InfoNCE loss is set to 0.1.
+To ensure fair comparisons, we apply per-channel asym-
+metric quantization to weights and per-tensor asymmetric
+quantization to activations [34]. However, for the QKV and
+Linear-1 projection layers in Transformers (including both
+ViTs and the text encoder), where activation quantization
+parameters can be folded into LayerNorm [23], we adopt
+per-channel quantization. We observe a performance bottle-
+neck in the MLP layers of the text encoder; hence, we main-
+tain 8-bit precision for these layers and apply per-channel
+quantization granularity. Addressing this challenge is left
+for future PTQ studies. Following common practice, the
+first convolution layer in both CNN and ViT image encoders
+is excluded from quantization [34, 37].
+For CNN-based
+encoders, we apply block-wise reconstruction [20] to op-
+timize quantization parameters, whereas for Transformer-
+based encoders (image and text), we adopt a layer-wise re-
+construction strategy [27]. We randomly sample 128 image
+inputs and 512 text inputs, initialize the quantization pa-
+rameters using OMSE [6], and perform reconstruction for
+20,000 iterations to ensure convergence, with learning rates
+set to 4.0e−5 for the image encoder and 4.0e−6 for the text
+encoder, respectively.
+Table 2. Ablation study results evaluating the contribution of each
+component under the W6A6 quantization setting.
+Dataset
+PGSI
+SCG
+PAE
+RN50
+VB32
+CIFAR-10
+58.9
+19.1
+✓
+61.0
+42.1
+✓
+✓
+67.2
+63.2
+✓
+✓
+71.0
+71.7
+✓
+✓
+✓
+73.4
+75.5
+CIFAR-100
+25.7
+3.0
+✓
+29.8
+16.6
+✓
+✓
+34.4
+29.7
+✓
+✓
+34.8
+41.4
+✓
+✓
+✓
+36.4
+45.8
+ImageNet-1K
+39.5
+15.7
+✓
+46.0
+40.0
+✓
+✓
+46.5
+45.6
+✓
+✓
+46.7
+44.2
+✓
+✓
+✓
+47.9
+46.1
+4.2. Experimental Results
+We evaluate D4C against three baselines: real samples,
+Gaussian noise, and existing DFQ methods, under W4A8,
+W6A6, and W8A8 quantization configurations.
+For the
+Real setting, image encoders are calibrated and optimized
+using randomly selected real images from the respective
+datasets. In the Gaussian setting, the initialized Gaussian
+noise is directly used for quantization. For the BNS&PSE
+baseline, BNS [3] is used to generate synthetic samples
+for CNN-based encoders, while PSE [21] is adopted for
+ViT-based encoders.
+These synthetic samples are then
+used to calibrate and quantize the corresponding models.
+The quantization results are summarized in Table 1. Our
+proposed method, D4C, consistently outperforms all base-
+lines, including the widely used BNS and PSE methods
+for CNN and ViT encoders, respectively. For instance, un-
+der W4A8 quantization, D4C improves the Top-1 accuracy
+of RN50/VB32 by 26.5/54.6%, 6.8/39.0%, and 17.9/32.5%
+on CIFAR-10, CIFAR-100, and ImageNet-1K, respectively,
+when compared to Gaussian noise. It also achieves gains of
+12.4/18.9%, 6.8/19.7%, and 1.4/5.7% over the BNS&PSE
+baseline.
+The results highlight the capability of D4C to
+generate high-quality synthetic samples with both semantic
+richness and diversity, positioning it as a compelling new
+baseline for DFQ on CLIP.
+4.3. Ablation Studies
+4.3.1. Ablation of Components
+To evaluate the contribution of each component in D4C, we
+conduct ablation experiments on CIFAR-10, CIFAR-100,
+and ImageNet-1K using RN50 and VB32 under the W6A6
+quantization configuration, as shown in Fig. 2. Since PGSI
+forms the core of our approach, while SCG and PAE are
+optional enhancements, we additionally report results for
+PGSI combined with either SCG or PAE. The results re-
+veal that each component contributes meaningfully to the fi-
+nal quantization performance, with accuracy improving in-
+crementally as more modules are included. The best per-
+formance is achieved when all three components are ap-
+plied together. These findings hold consistently across both
+CNN- and ViT-based encoders, underscoring the robustness
+and generalizability of D4C for CLIP.
+4.3.2. Ablation of PAE Perturbation
+To assess the individual effectiveness of each perturbation
+technique in PAE, we conduct an ablation study to eval-
+uate their contributions to quantization performance. The
+PAE module incorporates five types of perturbations: hori-
+zontal flipping, affine transformation, color jitter, Gaussian
+blur, and random erasing, denoted as H, A, C, G, and R,
+respectively, in Table 3. The results indicate that each per-
+turbation contributes positively to the final quantization out-
+come, with the best performance achieved when all five are
+applied jointly. This validates the PAE module and high-
+lights the complementary nature of these perturbations.
+7
+
+
+Table 3. Ablation study results of each perturbation technique in
+PAE under the W6A6 quantization setting.
+Dataset
+H
+A
+C
+G
+R
+RN50
+VB32
+CIFAR-10
+71.0
+71.7
+✓
+71.2
+74.0
+✓
+73.1
+75.1
+✓
+71.4
+72.7
+✓
+71.1
+73.0
+✓
+71.2
+72.4
+✓
+✓
+✓
+✓
+✓
+73.4
+75.5
+ImageNet-1K
+46.7
+44.2
+✓
+47.8
+45.0
+✓
+46.8
+45.9
+✓
+46.8
+45.6
+✓
+47.4
+45.8
+✓
+46.8
+44.7
+✓
+✓
+✓
+✓
+✓
+47.9
+46.1
+4.4. Synthetic Sample Visualization
+To qualitatively assess the effectiveness of our D4C frame-
+work in generating meaningful and structurally diverse
+pseudo images, we visualize the synthetic samples pro-
+duced by different methods in Fig. 4.
+For RN50, sam-
+ples generated via BNS loss tend to exhibit blurry and tex-
+tureless patterns. Similarly, PSE-based synthesis for VB32
+produces noisy and homogeneous textures with little dis-
+cernible structure. In contrast, D4C generates visually more
+coherent and interpretable samples across both RN50 and
+VB32 encoders. These synthetic images exhibit clear se-
+mantic attributes (e.g., shapes and colors) and rich spa-
+tial structures resembling foreground-background compo-
+sitions.
+BNS: RN50
+PSE: VB32
+D4C: RN50
+D4C: VB32
+Figure 4. Visualization of synthetic samples generated by BNS
+and PSE (left) versus our proposed D4C framework (right) under
+both RN50 and VB32 encoders.
+4.5. Training Cost and Storage Saving
+Table 4 compares the training costs of various DFQ meth-
+ods across different network architectures on ImageNet-1K.
+All experiments were conducted by generating 128 images
+on an RTX A6000 GPU (48 GB memory). The batch size
+was set to 16 for all methods, except PSE on VB16, which
+used a batch size of 8 due to memory limitations. As shown,
+D4C consistently delivers comparable or better efficiency
+than other baselines. For CNNs, D4C completes training in
+1,623 s (RN50) and 12,491 s (RN50x16), slightly exceed-
+ing but remaining close to BNS (1,280 s and 9,515 s). In
+contrast, for ViTs, D4C demonstrates significant gains over
+PSE, reducing training time to 1,434 s (VB32) and 5,346
+s (VB16), compared with 3,488 s and 44,398 s for PSE.
+Moreover, D4C efficiently supports both CNNs and ViTs,
+highlighting its strong generalization and practical utility.
+Table 4. Training cost analysis for synthesizing 128 images.
+Method
+RN50
+RN50x16
+VB32
+VB16
+BNS&PSE
+1,280 s
+9,515 s
+3,488 s
+44,398 s
+D4C
+1,623 s
+12,491 s
+1,434 s
+5,346 s
+We also evaluate the storage reduction and computa-
+tional acceleration of our D4C-quantized model by mea-
+suring model size and estimating FLOPs.
+Compared
+to the FP32 baseline, our W4A8 quantized CLIP model
+achieves 5.63× and 4.16× storage reduction and speedup
+for RN50x16, and 5.45× and 4.03× for VB16, respectively.
+Even when the MLP layers in the text encoder remain at 8-
+bit precision, the additional storage and latency overheads
+are only 28% and 13% relative to full W4A8 quantization,
+while still maintaining an impressive overall compression
+ratio.
+5. Limitations
+We highlight several limitations of D4C to suggest future
+directions. First, despite notable improvements over prior
+DFQ methods for CNNs and ViTs, a performance gap per-
+sists between synthetic and real samples, indicating room
+for further enhancement. Second, the quantization bottle-
+necks for CLIP remain underexplored, indicating a need for
+tailored quantization strategies.
+6. Conclusion
+In this work, we propose D4C, the first DFQ framework
+specifically designed for CLIP. D4C integrates three core
+components:
+PGSI, SCG, and PAE, to jointly mitigate
+the challenges of insufficient semantic richness and limited
+intra-image diversity in synthetic sample generation. Exten-
+sive experiments demonstrate that D4C consistently outper-
+forms existing DFQ methods across various encoder archi-
+tectures and quantization settings, underscoring the unique
+challenges of DFQ for CLIP and establishing D4C as a
+strong foundation for future research in this area.
+8
+
+
+References
+[1] Shipeng Bai, Jun Chen, Xintian Shen, Yixuan Qian, and
+Yong Liu.
+Unified data-free compression: Pruning and
+quantization without fine-tuning.
+In Proceedings of the
+IEEE/CVF International Conference on Computer Vision,
+pages 5876–5885, 2023. 1
+[2] Ron Banner, Yury Nahshan, and Daniel Soudry. Post train-
+ing 4-bit quantization of convolutional networks for rapid-
+deployment. Advances in neural information processing sys-
+tems, 32, 2019. 3
+[3] Yaohui Cai, Zhewei Yao, Zhen Dong, Amir Gholami,
+Michael W Mahoney, and Kurt Keutzer.
+Zeroq: A novel
+zero shot quantization framework.
+In Proceedings of
+the IEEE/CVF conference on computer vision and pattern
+recognition, pages 13169–13178, 2020. 1, 3, 7
+[4] Xinrui Chen, Yizhi Wang, Renao Yan, Yiqing Liu, Tian
+Guan, and Yonghong He. Texq: Zero-shot network quantiza-
+tion with texture feature distribution calibration. Advances in
+Neural Information Processing Systems, 36:274–287, 2023.
+1, 5
+[5] Kanghyun Choi, Hyeyoon Lee, Dain Kwon, SunJong Park,
+Kyuyeun Kim, Noseong Park, Jonghyun Choi, and Jinho
+Lee. Mimiq: Low-bit data-free quantization of vision trans-
+formers with encouraging inter-head attention similarity. In
+Proceedings of the AAAI Conference on Artificial Intelli-
+gence, pages 16037–16045, 2025. 3
+[6] Yoni Choukroun, Eli Kravchik, Fan Yang, and Pavel Kisilev.
+Low-bit quantization of neural networks for efficient infer-
+ence. In 2019 IEEE/CVF International Conference on Com-
+puter Vision Workshop (ICCVW), pages 3009–3018. IEEE,
+2019. 7
+[7] Jia Deng, Wei Dong, Richard Socher, Li-Jia Li, Kai Li,
+and Li Fei-Fei. Imagenet: A large-scale hierarchical image
+database. In 2009 IEEE conference on computer vision and
+pattern recognition, pages 248–255. Ieee, 2009. 6
+[8] Erfan Doroudian and Hamid Taghavifar.
+Clip-rldrive:
+Human-aligned autonomous driving via clip-based re-
+ward shaping in reinforcement learning.
+arXiv preprint
+arXiv:2412.16201, 2024. 1
+[9] Hoang Anh Dung, Cuong Pham, Trung Le, Jianfei Cai, and
+Thanh-Toan Do. Sharpness-aware data generation for zero-
+shot quantization. In Forty-first International Conference on
+Machine Learning, 2024. 1
+[10] Steven K Esser, Jeffrey L McKinstry, Deepika Bablani,
+Rathinakumar Appuswamy, and Dharmendra S Modha.
+Learned
+step
+size
+quantization.
+arXiv
+preprint
+arXiv:1902.08153, 2019. 3
+[11] Ruihao Gong, Xianglong Liu, Shenghu Jiang, Tianxiang Li,
+Peng Hu, Jiazhen Lin, Fengwei Yu, and Junjie Yan. Differ-
+entiable soft quantization: Bridging full-precision and low-
+bit neural networks. In Proceedings of the IEEE/CVF inter-
+national conference on computer vision, pages 4852–4861,
+2019. 3
+[12] Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun.
+Deep residual learning for image recognition. In Proceed-
+ings of the IEEE conference on computer vision and pattern
+recognition, pages 770–778, 2016. 4
+[13] Zixuan Hu, Yongxian Wei, Li Shen, Zhenyi Wang, Lei Li,
+Chun Yuan, and Dacheng Tao. Sparse model inversion: Ef-
+ficient inversion of vision transformers for data-free appli-
+cations. In Forty-first International Conference on Machine
+Learning, 2024. 1
+[14] Yongkweon Jeon, Chungman Lee, and Ho-young Kim. Ge-
+nie: show me the data for quantization. In Proceedings of
+the IEEE/CVF Conference on Computer Vision and Pattern
+Recognition, pages 12064–12073, 2023. 1
+[15] Minjun Kim, Jaehyeon Choi, Jongkeun Lee, Wonjin Cho,
+and U Kang. Zero-shot quantization: A comprehensive sur-
+vey. In Thirty-four International Joint Conference on Artifi-
+cial Intelligence, IJCAI, 2025. 3
+[16] Minjun Kim, Jongjin Kim, and U Kang. Synq: Accurate
+zero-shot quantization by synthesis-aware fine-tuning. In In-
+ternational Conference on Learning Representations (ICLR),
+2025. 3
+[17] Taha Koleilat, Hojat Asgariandehkordi, Hassan Rivaz, and
+Yiming Xiao.
+Medclip-sam:
+Bridging text and image
+towards universal medical image segmentation.
+In In-
+ternational conference on medical image computing and
+computer-assisted intervention, pages 643–653. Springer,
+2024. 1, 2
+[18] Alex Krizhevsky, Geoffrey Hinton, et al. Learning multiple
+layers of features from tiny images. 2009. 6
+[19] Yuhang Li, Xin Dong, and Wei Wang. Additive powers-of-
+two quantization: An efficient non-uniform discretization for
+neural networks. arXiv preprint arXiv:1909.13144, 2019. 3
+[20] Yuhang Li, Ruihao Gong, Xu Tan, Yang Yang, Peng Hu, Qi
+Zhang, Fengwei Yu, Wei Wang, and Shi Gu. Brecq: Pushing
+the limit of post-training quantization by block reconstruc-
+tion. arXiv preprint arXiv:2102.05426, 2021. 3, 7
+[21] Zhikai Li, Liping Ma, Mengjuan Chen, Junrui Xiao, and
+Qingyi Gu. Patch similarity aware data-free quantization for
+vision transformers. In European conference on computer
+vision, pages 154–170. Springer, 2022. 1, 3, 7
+[22] Zhikai Li, Mengjuan Chen, Junrui Xiao, and Qingyi Gu.
+Psaq-vit v2: Toward accurate and general data-free quanti-
+zation for vision transformers. IEEE Transactions on Neural
+Networks and Learning Systems, 2023. 3
+[23] Zhikai Li, Junrui Xiao, Lianwei Yang, and Qingyi Gu. Repq-
+vit: Scale reparameterization for post-training quantization
+of vision transformers. In Proceedings of the IEEE/CVF In-
+ternational Conference on Computer Vision, pages 17227–
+17236, 2023. 7
+[24] Jiawei Liu, Lin Niu, Zhihang Yuan, Dawei Yang, Xinggang
+Wang, and Wenyu Liu. Pd-quant: Post-training quantiza-
+tion based on prediction difference metric. In Proceedings of
+the IEEE/CVF Conference on Computer Vision and Pattern
+Recognition, pages 24427–24437, 2023. 3
+[25] Shih-Yang Liu, Zechun Liu, and Kwang-Ting Cheng.
+Oscillation-free quantization for low-bit vision transform-
+ers. In International conference on machine learning, pages
+21813–21824. PMLR, 2023. 3
+[26] Leland McInnes, John Healy, Nathaniel Saul, and Lukas
+Grossberger. Umap: Uniform manifold approximation and
+projection. The Journal of Open Source Software, 3(29):861,
+2018. 2, 4
+9
+
+
+[27] Markus Nagel, Rana Ali Amjad, Mart Van Baalen, Chris-
+tos Louizos, and Tijmen Blankevoort. Up or down? adap-
+tive rounding for post-training quantization. In International
+Conference on Machine Learning, pages 7197–7206. PMLR,
+2020. 3, 7
+[28] Markus Nagel, Marios Fournarakis, Rana Ali Amjad, Yely-
+sei Bondarenko, Mart Van Baalen, and Tijmen Blankevoort.
+A white paper on neural network quantization.
+arXiv
+preprint arXiv:2106.08295, 2021. 1
+[29] Aaron van den Oord, Yazhe Li, and Oriol Vinyals. Repre-
+sentation learning with contrastive predictive coding. arXiv
+preprint arXiv:1807.03748, 2018. 4
+[30] Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya
+Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sastry,
+Amanda Askell, Pamela Mishkin, Jack Clark, et al. Learning
+transferable visual models from natural language supervi-
+sion. In International conference on machine learning, pages
+8748–8763. PmLR, 2021. 1, 2
+[31] Huixin Sun, Runqi Wang, Yanjing Li, Xianbin Cao, Xiao-
+long Jiang, Yao Hu, and Baochang Zhang. P4q: Learning
+to prompt for quantization in visual-language models. arXiv
+preprint arXiv:2409.17634, 2024. 3
+[32] Yuxuan Sun, Yunlong Zhang, Yixuan Si, Chenglu Zhu,
+Zhongyi Shui, Kai Zhang, Jingxiong Li, Xingheng Lyu, Tao
+Lin, and Lin Yang. Pathgen-1.6 m: 1.6 million pathology
+image-text pairs generation through multi-agent collabora-
+tion. arXiv preprint arXiv:2407.00203, 2024. 1
+[33] Zifeng Wang, Zhenbang Wu, Dinesh Agarwal, and Jimeng
+Sun.
+Medclip: Contrastive learning from unpaired medi-
+cal images and text. In Proceedings of the Conference on
+Empirical Methods in Natural Language Processing. Con-
+ference on Empirical Methods in Natural Language Process-
+ing, page 3876, 2022. 1, 2
+[34] Xiuying Wei, Ruihao Gong, Yuhang Li, Xianglong Liu, and
+Fengwei Yu. Qdrop: Randomly dropping quantization for
+extremely low-bit post-training quantization. arXiv preprint
+arXiv:2203.05740, 2022. 3, 7
+[35] Shoukai Xu, Haokun Li, Bohan Zhuang, Jing Liu, Jiezhang
+Cao, Chuangrun Liang, and Mingkui Tan. Generative low-
+bitwidth data free quantization. In Computer Vision–ECCV
+2020: 16th European Conference, Glasgow, UK, August 23–
+28, 2020, Proceedings, Part XII 16, pages 1–17. Springer,
+2020. 1
+[36] Hongxu Yin, Pavlo Molchanov, Jose M Alvarez, Zhizhong
+Li, Arun Mallya, Derek Hoiem, Niraj K Jha, and Jan Kautz.
+Dreaming to distill: Data-free knowledge transfer via deep-
+inversion. In Proceedings of the IEEE/CVF conference on
+computer vision and pattern recognition, pages 8715–8724,
+2020. 6
+[37] Zhihang Yuan, Chenhao Xue, Yiqi Chen, Qiang Wu, and
+Guangyu Sun. Ptq4vit: Post-training quantization for vision
+transformers with twin uniform quantization. In European
+conference on computer vision, pages 191–207. Springer,
+2022. 7
+[38] Wenlun Zhang, Yunshan Zhong, Shimpei Ando, and Kentaro
+Yoshioka. Ahcptq: Accurate and hardware-compatible post-
+training quantization for segment anything model.
+arXiv
+preprint arXiv:2503.03088, 2025. 3
+[39] Xiangguo Zhang, Haotong Qin, Yifu Ding, Ruihao Gong,
+Qinghua Yan, Renshuai Tao, Yuhang Li, Fengwei Yu, and
+Xianglong Liu. Diversifying sample generation for accurate
+data-free quantization. In Proceedings of the IEEE/CVF con-
+ference on computer vision and pattern recognition, pages
+15658–15667, 2021. 3
+[40] Zihao Zhao, Yuxiao Liu, Han Wu, Mei Wang, Yonghao Li,
+Sheng Wang, Lin Teng, Disheng Liu, Zhiming Cui, Qian
+Wang, et al. Clip in medical imaging: A comprehensive sur-
+vey. arXiv preprint arXiv:2312.07353, 2023. 1
+[41] Yunshan Zhong, Mingbao Lin, Gongrui Nan, Jianzhuang
+Liu, Baochang Zhang, Yonghong Tian, and Rongrong Ji. In-
+traq: Learning synthetic images with intra-class heterogene-
+ity for zero-shot network quantization.
+In Proceedings of
+the IEEE/CVF Conference on Computer Vision and Pattern
+Recognition, pages 12339–12348, 2022. 3, 5
+[42] Yunshan Zhong, Jiawei Hu, You Huang, Yuxin Zhang, and
+Rongrong Ji. Erq: Error reduction for post-training quan-
+tization of vision transformers. In Forty-first International
+Conference on Machine Learning, 2024. 3
+[43] Yunshan Zhong, Yuyao Zhou, Yuxin Zhang, Shen Li, Yong
+Li, Fei Chao, Zhanpeng Zeng, and Rongrong Ji. Semantics
+prompting data-free quantization for low-bit vision trans-
+formers. arXiv preprint arXiv:2412.16553, 2024. 3
+[44] Yunshan Zhong, You Huang, Jiawei Hu, Yuxin Zhang, and
+Rongrong Ji. Towards accurate post-training quantization of
+vision transformers via error reduction. IEEE Transactions
+on Pattern Analysis and Machine Intelligence, 2025. 3
+[45] Sifan Zhou, Liang Li, Xinyu Zhang, Bo Zhang, Shipeng
+Bai, Miao Sun, Ziyu Zhao, Xiaobo Lu, and Xiangxiang Chu.
+Lidar-ptq: Post-training quantization for point cloud 3d ob-
+ject detection. arXiv preprint arXiv:2401.15865, 2024. 3
+10

@@ -1,0 +1,1920 @@
+Asymmetric Ramsey numbers of trees
+Jun Yan∗
+November 20, 2025
+Abstract
+Let n ≥ν, let T be an n-vertex tree with bipartition class sizes t1 ≥t2, and let S be a ν-vertex
+tree with bipartition class sizes s1 ≥s2. Using four natural constructions, we show that the Ramsey
+number R(T, S) is lower bounded by R(T, S) = max{n + s2, ν + min{t2, ν}, min{2t1, 2ν}, 2s1} −1.
+Our main result shows that there exists a constant c > 0, such that for all sufficiently large
+integers n ≥ν, if (i) ∆(T) ≤cn/ log n and ∆(S) ≤cν/ log ν, (ii) s2 ≥t2, and (iii) ν ≥t1, then
+R(T, S) = R(T, S). In particular, this determines the exact Ramsey numbers for a large family of
+pairs of trees. We also provide examples showing that R(T, S) can exceed R(T, S) if any one of the
+three assumptions (i), (ii), and (iii) is removed.
+1
+Introduction
+The Ramsey number of two graphs G1 and G2, denoted by R(G1, G2), is the smallest positive integer
+N such that every red/blue edge colouring of the N-vertex complete graph KN contains either a red copy
+of G1 or a blue copy of G2. For brevity, R(G) is used to denote R(G, G). The existence of R(G1, G2)
+follows from the foundational result of Ramsey [15] in 1930, but determining the exact value of R(G1, G2),
+or even just providing good bounds, has since proved extremely challenging.
+To muster any hope of determining R(G1, G2) exactly, usually at least one of G1 and G2 needs to
+be sparse, with some natural candidates being trees and cycles.
+Denote the n-vertex path by Pn−1.
+Gerencs´er and Gy´arf´as [5] proved in 1967 that for all n ≥m ≥2, R(Pn−1, Pm−1) = n + ⌊m/2⌋−1.
+For stars, it was determined by Burr and Roberts [3] in 1973 that R(K1,n−1, K1,m−1) = m + n −3 if m
+and n are both even, and R(K1,n−1, K1,m−1) = m + n −2 otherwise. For cycles, Faudree and Schelp [4]
+and Rosta [16] independently proved in the early 1970s that, aside from a few small exceptions, for all
+n ≥m, R(Cn, Cm) = 2n −1 if m is odd, R(Cn, Cm) = n + m/2 −1 if both n and m are even, and
+R(Cn, Cm) = max{n + m/2 −1, 2m −1} if n is odd and m is even.
+In this paper, we consider the Ramsey number R(T, S) of two general trees T and S. Even in the
+symmetric case when T = S, the exact value of R(T) is only known for a few very specific families of trees
+until very recently. There is, however, a general lower bound given by Burr [2] in 1974. Let the bipartition
+class sizes of T be t1 ≥t2 ≥2, and consider the following red/blue colourings of the complete graph G on
+N vertices.
+A1 N = t1 + 2t2 −2, G consists of two disjoint red cliques A and B of sizes t1 + t2 −1 and t2 −1,
+respectively, with all edges between them blue.
+A2 N = 2t1 −2, G consists of two disjoint red cliques A and B both of size t1 −1, with all edges between
+them blue.
+The constructions in both A1 and A2 contain no red copy of T, as the red connected components
+all have sizes smaller than |T|. The graph in A1 contains no blue copy of T as B is not large enough
+to accommodate the smaller bipartition class of T, while the graph in A2 contains no blue copy of T as
+∗Mathematical Institute, University of Oxford, Oxford OX2 6GG, UK. Email: jun.yan@maths.ox.ac.uk. Supported by
+ERC Advanced Grant 883810.
+1
+arXiv:2511.15673v1  [math.CO]  19 Nov 2025
+
+
+neither A nor B is large enough to accommodate the larger bipartition class of T. Together, these two
+examples give the general lower bound
+R(T) ≥max{t1 + 2t2, 2t1} −1.
+(†)
+Burr conjectured [2] that this bound is tight for every tree T with t1 ≥t2 ≥2. However, this was
+disproved in 1979 by Grossman, Harary, and Klawe [6] for certain trees called double stars.
+For any
+t1 ≥t2 ≥2, let Dt1,t2 be the tree formed by joining the central vertices of the stars K1,t1−1 and K1,t2−1
+with an edge, noting that Dt1,t2 has bipartition class sizes t1 and t2. Grossman, Harary, and Klawe [6]
+showed that if t1 ≥3t2 −2 ≥10, then R(Dt1,t2) = 2t1, and thus the bound (†) can be off by 1. Burr’s
+conjecture was much more strongly disproved in 2016 by Norin, Sun, and Zhao [14], who showed in
+particular that R(D2t,t) ≥(4.2 −o(1))t, and therefore the bound (†) can be off by a multiplicative factor.
+However, all known counterexamples to Burr’s conjecture have large maximum degrees, so perhaps it
+could be salvaged by imposing a suitable maximum degree condition on T. Towards this, Haxell,  Luczak,
+and Tingley [8] showed in 2002 that the bound (†) is approximately tight for trees with up to small linear
+maximum degrees. More precisely, they showed that for every µ > 0, there exists some c > 0, such
+that any n-vertex tree T with maximum degree ∆(T) ≤cn and bipartition class sizes t1 ≥t2 satisfies
+R(T) ≤(1 + µ) max{t1 + 2t2, 2t1}.
+In a recent breakthrough, Montgomery, Pavez-Sign´e, and Yan [13] showed that Burr’s conjecture is
+true, given a suitable linear maximum degree condition. In particular, this result determines the exact
+Ramsey numbers of a large family of trees.
+Theorem 1.1 ([13, Theorem 1.1]). There exists a constant c > 0 such that the following holds. Any n-
+vertex tree T with ∆(T) ≤cn and bipartition classes of sizes t1 ≥t2 satisfies R(T) = max{2t1, t1+2t2}−1.
+In this paper, building on ideas in [8] and [13], we prove an asymmetric version of Theorem 1.1, which
+determines the exact Ramsey numbers R(T, S) for a large family of pairs of trees (T, S).
+Let T be an n-vertex tree with bipartition class sizes t1 ≥t2. Let S be a ν-vertex tree with bipartition
+class sizes s1 ≥s2. Without loss of generality, assume that n ≥ν. Motivated by Burr’s constructions A1
+and A2 in [2] that lead to the general lower bound (†), we now provide a general lower bound for R(T, S)
+by considering the following red/blue coloured complete graphs G on N vertices that contain neither a
+red copy of T nor a blue copy of S (see Figure 1).
+B1 N = n + s2 −2, G consists of two disjoint red cliques A and B of sizes n −1 and s2 −1, respectively,
+with all edges between them blue.
+B2 N = ν+min{t2, ν}−2, G consists of two disjoint blue cliques A and B of sizes ν−1 and min{t2, ν}−1,
+respectively, with all edges between them red.
+B3 N = 2 min{t1, ν} −2, G consists of two disjoint blue cliques A and B both of size min{t1, ν} −1,
+with all edges between them red.
+B4 N = 2s1 −2, G consists of two disjoint red cliques A and B both of size s1 −1, with all edges
+between them blue.
+Similar to A1 and A2, it is easy to see that in each of B1–B4, G contains no red copy of T and no
+blue copy of S. Together, we get the following general lower bound on R(T, S).
+Proposition 1.2. Let T be an n-vertex tree with bipartition class sizes t1 ≥t2. Let S be a ν-vertex tree
+with bipartition class sizes s1 ≥s2. If n ≥ν, then
+R(T, S) ≥max{n + s2, ν + min{t2, ν}, min{2t1, 2ν}, 2s1} −1.
+(‡)
+From now on, we will use R(T, S) to denote the quantity on the right hand side of (‡).
+The main result of this paper is that if T and S satisfy certain conditions, then R(T, S) = R(T, S), or
+equivalently the lower bound (‡) in Proposition 1.2 is tight.
+2
+
+
+U1
+U2
+t1 + t2 −1
+s2 −1
+(a) B1
+U1
+U2
+ν −1
+min{t2, ν} −1
+(b) B2
+U1
+U2
+min{t1, ν} −1 min{t1, ν} −1
+(c) B3
+U1
+U2
+s1 −1
+s1 −1
+(d) B4
+Figure 1: The lower bound constructions B1–B4.
+Theorem 1.3. There exists a constant c > 0 such that the following holds.
+Let n ≥ν be sufficiently large integers. Let T be an n-vertex tree with ∆(T) ≤cn/ log n and bipartition
+class sizes t1 ≥t2. Let S be a ν-vertex tree with ∆(S) ≤cν/ log ν and bipartition class sizes s1 ≥s2. If
+s2 ≥t2 and ν ≥t1, then
+R(T, S) = R(T, S) = max{n + s2, 2t1} −1.
+Note that several conditions are required for Theorem 1.3 to hold. From the double star counterex-
+amples [6, 14] mentioned above, some maximum degree conditions are necessary, though our sublinear
+maximum degree condition may not be optimal. The condition n ≥ν can always be assumed without loss
+of generality, and we show that the other two conditions, s2 ≥t2 and ν ≥t1 are both necessary.
+First, the following counterexample shows that if the condition s2 ≥t2 is removed, then R(T, S) can
+exceed R(T, S) by an arbitrary additive factor, even when T and S are only allowed to have constant
+maximum degrees.
+Theorem 1.4. Let r ≫C ≥1 be integers. Then, there exist trees T and S such that the following hold.
+C1 ∆(T), ∆(S) ≤3C+1.
+C2 T has bipartition class sizes (3C + 1)r and (3C −1)r + (3C −1)/2.
+C3 S has bipartition class sizes (3C + 1)r and 2r −(3C −1)/2.
+C4 R(T, S) ≥2(3C + 1)r + C −1 = R(T, S) + C.
+The second counterexample shows that if the condition ν ≥t1 is removed, then we also can find T and
+S with constant maximum degrees, such that R(T, S) exceeds R(T, S) by an arbitrary additive factor.
+Theorem 1.5. Let r ≫C ≥2 and ρ ≥2 be integers. Then, there exist trees T and S such that the
+following hold.
+D1 ∆(T) ≤ρ + 3 and ∆(S) ≤3C+1 + 2.
+D2 T is an n-vertex tree with bipartition class sizes t1 = 3Cρr + OC(1) and t2 = 3Cr + OC(1).
+D3 S is a ν-vertex tree with bipartition class sizes s1 = ((3C −3)ρr + (3C + 3)r)/2 + OC(1) and
+s2 = 3(ρ −1)r −OC(1), such that 2ν = n + s2 < 2t1.
+D4 R(T, S) ≥2ν + C −2 = R(T, S) + C −1.
+3
+
+
+Instead of proving Theorem 1.3 directly, we reduce it to the following version with some additional
+conditions.
+Theorem 1.6. There exists a constant c > 0 such that the following holds.
+Let n ≥ν be sufficiently large integers. Let T be an n-vertex tree with ∆(T) ≤cn/ log n and bipartition
+class sizes t1 ≥t2 ≥(t1 −2)/3. Let S be a ν-vertex tree with ∆(S) ≤cν/ log ν and bipartition class sizes
+s1 ≥s2 ≥(t1 −1)/2. If ν ≥t1 ≥s1, s2 ≥t2, and t2 + s2 ≥t1 −1, then
+R(T, S) = R(T, S) = max{n + s2, 2t1} −1.
+Theorem 1.6 implies Theorem 1.3 as follows.
+Proof of Theorem 1.3. Let c > 0 be the constant given by Theorem 1.6, and let T, S, n, ν, t1, t2, s1, s2
+satisfy the assumptions in Theorem 1.3. Note that s2 ≥t2 and n ≥ν implies that t1 ≥s1.
+If t2 + s2 ≥t1 −1, then 2s2 ≥t2 + s2 ≥t1 −1, so s2 ≥(t1 −1)/2. Moreover, t1 + t2 = n ≥ν =
+s1 + s2 ≥2s2, so (t1 + t2)/2 ≥s2 ≥t1 −t2 −1. This implies that t1 + t2 ≥2t1 −2t2 −2, so t2 ≥(t1 −2)/3.
+Therefore, T and S satisfy the assumptions of Theorem 1.6, so R(T, S) = R(T, S) = max{n + s2, 2t1} −1.
+Now suppose that t2 + s2 < t1 −1. We claim that we can find t1 ≥t′
+2 ≥t2 and s1 ≥s′
+2 ≥s2, such
+that t′
+2 ≤s′
+2, t1 + t′
+2 ≥s1 + s′
+2, and t′
+2 + s′
+2 ∈{t1 −1, t1}. If 2s2 ≥t1 −1, then setting t′
+2 = t1 −1 −s2 and
+s′
+2 = s2 works. Otherwise, 2s2 < t1 −1, but 2s1 ≥s1 + s2 = ν ≥t1 from assumption. Hence, there exists
+s2 ≤s′
+2 ≤s1, such that 2s′
+2 ∈{t1 −1, t1}. Then, setting t′
+2 = s′
+2 works, proving the claim. Observe that
+max{t1 + t2 + s2, 2t1} = 2t1 = max{t1 + t′
+2 + s′
+2, 2t1}.
+Now, by Lemma 2.8, T contains a set L of at least t1 −t2 ≥t′
+2 −t2 leaves on the larger side of its
+bipartition. Pick t′
+2 −t2 leaves in L, and attach a new leaf to each of them to obtain a new tree T ′
+with bipartition class sizes t1 and t′
+2 and maximum degree ∆(T ′) = ∆(T) ≤cn/ log n ≤c|T ′| log |T ′|.
+Similarly, we can obtain a tree S′ with bipartition class sizes s1 and s′
+2 and maximum degree ∆(S′) ≤
+c|S′|/ log |S′|. Then, like above, T ′ and S′ satisfy all the assumptions in Theorem 1.6, so R(T ′, S′) =
+max{t1 +t′
+2 +s′
+2, 2t1}−1 = 2t1 −1. This means that every red/blue coloured complete graph G on 2t1 −1
+vertices must contain either a red copy of T ′ or a blue copy of S′, and thus must contain either a red
+copy of T or a blue copy of S. Combined with the lower bound (‡) given by Proposition 1.2, we have
+R(T, S) = R(T, S) = 2t1 −1 = max{n + s2, 2t1} −1, as required.
+Like the proof of Theorem 1.1 in [13], our proof of Theorem 1.6, and thus of Theorem 1.3, also consists
+of two parts, the stability part and the extremal part. In the stability part, we use the regularity method to
+show that if the host graph G contains no red copy of T and no blue copy of S, then G must approximate
+one of the lower bound constructions B1–B4 (see Definition 3.1). This part of the proof follows the same
+4-stage process as used in [13], and in fact also allows the trees T and S to have up to linear maximum
+degrees. However, instead of using a key result of Haxell,  Luczak, Tingley [8, Theorem 3] as a black
+box like in [13], we modify both its proof and application, which crucially allows us to bypass the most
+technical part in the first stage of the proof in [13]. In particular, after specialising to the symmetric case
+when T = S, we obtained a simplified proof of [13, Theorem 2.2], and thus of Theorem 1.1.
+In the extremal part, we show that even if G approximates one of the lower bound constructions B1–
+B4, a red copy of T or a blue copy of S can still be found. This part of the proof is much simpler than
+the corresponding one in [13], as we are not aiming for linear maximum degrees.
+The rest of the paper is organised as follows.
+In Section 2, we gather all the useful preliminary
+results that will be needed later.
+We then carry out the stability part and the extremal part of the
+proof of Theorem 1.6 in Section 3 and Section 4, respectively. The examples proving Theorem 1.4 and
+Theorem 1.5 are constructed in Section 5. Finally, we discuss some related results and open questions in
+Section 6.
+2
+Preliminaries
+In this section, we gather the preliminary results that will be used in the main proofs later on. We
+begin with some results on concentration in Section 2.1, on matchings in Section 2.2, and on trees in
+Section 2.3. We then recall some basic facts about the regularity method in Section 2.4, before recording
+4
+
+
+in Section 2.5 the five tree embedding methods using regularity that we borrow from [13]. Finally, in
+Section 2.6, we discuss weight functions on digraphs, which is the main tool we borrow from [8] in order
+to begin the stability part of our proof.
+2.1
+Concentration results
+We record here two well-known concentration inequalities.
+Lemma 2.1 (Azuma’s Inequality [17, Lemma 4.2]). Let X1, . . . , Xn be a sequence of random variables,
+such that for each i ∈[n], there exist constants ai ∈R and ci > 0 with |Xi −ai| ≤ci.
+• If E[Xi | X1, . . . , Xi−1] ≥ai for every i ∈[n], then for every t > 0,
+P (Pn
+i=1(Xi −ai) ≤−t) ≤exp
+
+−
+t2
+2 Pn
+i=1 c2
+i
+
+.
+• If E[Xi | X1, . . . , Xi−1] ≤ai for every i ∈[n], then for every t > 0,
+P (Pn
+i=1(Xi −ai) ≥t) ≤exp
+
+−
+t2
+2 Pn
+i=1 c2
+i
+
+.
+Lemma 2.2 (Chernoff Bound [9, Corollary 2.3, Theorem 2.10]). Let X be either a binomial random
+variable or a hypergeometric random variable. Then, for every 0 < ε ≤3/2,
+P (|X −E[X]| ≥εE[X]) ≤2 exp(−ε2E[X]/3).
+2.2
+Matchings
+In many of our later tree embedding arguments, we will first embed all but a small set of vertices with
+degrees 1 or 2 in T. To embed these low degree vertices at the end, we use a Hall type matching argument
+via the following well-known Hall’s Theorem and its generalisation. The conditions in Lemma 2.3 and
+Lemma 2.4 will both be referred to as Hall’s condition.
+Lemma 2.3 (Hall’s Theorem [7, Theorem 1]). Let G be a bipartite graph with bipartition classes A and
+B. If |N(I)| ≥|I| for every I ⊂A, then G contains a matching covering all vertices in A.
+Lemma 2.4 ([1, Corollary 11]). Let G be a bipartite graph with bipartition classes A and B, and let
+(fa)a∈A be a tuple of non-negative integers indexed by elements of A. Suppose that |N(I)| ≥P
+a∈I fa
+for every I ⊂A. Then, there exists a collection of vertex-disjoint stars (Fa)a∈A in G, such that for each
+a ∈A, Fa is centred at a and has exactly fa leaves.
+We also use the following Cascading Lemma later to obtain a large complete bipartite graph in one
+colour whenever we are given a maximum matching in the other colour.
+Lemma 2.5 (Cascading Lemma [13, Lemma 5.10]). Let G be a bipartite graph with bipartition classes A
+and B, and let M be a maximum matching in G. Let AM = A ∩V (M), BM = B ∩V (M), A′ = A \ AM,
+and B′ = B \ BM. Then, AM and BM can be partitioned as AM = A+ ∪A−∪A and BM = B+ ∪B−∪B
+such that the following hold.
+• M matches vertices in A+ with vertices in B−, vertices in A−with vertices in B+, and vertices in
+A with vertices in B.
+• G[A′ ∪A−, B′ ∪B−∪B] and G[A′ ∪A−∪A, B′ ∪B−] are both empty graphs.
+5
+
+
+2.3
+Trees
+In this subsection, we collect several elementary but useful results about trees. The first one says that
+every tree either has many bare paths or many leaves. In what follows, a path contained in a tree is called
+a bare path if all of its internal vertices have degree exactly 2.
+Lemma 2.6 ([11, Lemma 2.1]). Let k, ℓ, n be positive integers. Then, every n-vertex tree T either contains
+at least ℓleaves, or contains a collection of at least
+n
+k+1 −(2ℓ−2) vertex-disjoint bare paths of length k.
+The next result says that given t1 ≥t2, there is always a tree with bipartition class sizes t1 and t2,
+whose maximum degree is not much bigger than t1/t2.
+Lemma 2.7. Let t1 ≥t2 ≥1 be integers. Then, there exists a tree T with bipartition class sizes t1 and
+t2, and ∆(T) ≤⌈(t1 + t2 + 1)/t2⌉≤t1/t2 + 2.
+Proof. Let d = ⌈(t1 −t2 + 1)/t2⌉. Let P be a path with 2t2 −1 vertices v1, v2, . . . , v2t2−1. Then, for each
+i ∈[t2], attach either d −1 or d leaves to v2i−1, so that a total of t1 −t2 + 1 leaves are attached. Let T
+be the resulting tree. It is easy to see that T has bipartition class sizes t1 and t2, and ∆(T) ≤d + 2 =
+⌈(t1 + t2 + 1)/t2⌉≤t1/t2 + 2, as required.
+The next lemma says that every tree must have a certain number of leaves in its larger bipartition
+class.
+Lemma 2.8 ([13, Lemma 2.10]). If T is an n-vertex tree with bipartition classes V1 and V2 such that
+|V1| = t1, |V2| = t2, and t1 ≥t2, then T contains at least t1 −t2 + 1 leaves in V1.
+Two subtrees T1 and T2 of T decompose T if T1 and T2 share exactly one common vertex, and
+V (T1) ∪V (T2) = V (T). The next two results are about finding useful decompositions of T.
+Lemma 2.9 ([13, Corollary 2.14]). Let T be an n-vertex tree.
+Then, there exist subtrees T1 and T2
+decomposing T, such that ⌈n/3⌉≤|T1| ≤|T2| ≤⌈2n/3⌉.
+Lemma 2.10 ([13, Proposition 7.4]). Let 1/n ≪µ ≪1, and let T be an n-vertex tree with bipartition
+classes V1 and V2 such that |V1| ≥1.1|V2|. Then, there exist subtrees T1 and T2 decomposing T, such that
+10µn ≤|V (T1) ∩V1| −|V (T1) ∩V2| ≤25µn.
+The final result in this subsection finds in every tree a cut with some useful properties.
+Lemma 2.11 ([13, Proposition 7.2]). Let 1/n ≪ε ≪1. Let T be an n-vertex tree. Then, there is a
+partition V (T) = A ∪B with |A|, |B| ≤(2/3 −ε)n such that T[A] is a tree and {v ∈A : dT (v, B) > 0} is
+an independent set in T with size at most 2.
+2.4
+Szemer´edi’s Regularity Lemma
+In this subsection, we give an overview on Szemer´edi’s Regularity Lemma, in particular the coloured
+version that we will use.
+Let G be a bipartite graph with bipartition classes A and B. For sets X ⊂A and Y ⊂B, the density
+between X and Y is defined as
+d(X, Y ) = e(X, Y )
+|X||Y | .
+We say G is ε-regular if for every X ⊂A and every Y ⊂B with |X| ≥ε|A| and |Y | ≥ε|B|, we have
+|d(X, Y ) −d(A, B)| ≤ε. Furthermore, we say G is (ε, d)-regular if G is ε-regular and d(A, B) ≥d. The
+following well-known lemma shows that regularity is somewhat preserved after taking subsets.
+Lemma 2.12. Let ε ≤1/4, and let G be a bipartite graph with bipartition classes A and B that is
+(ε, d)-regular.
+Suppose X ⊂A and Y ⊂B satisfy |X| ≥√ε|A| and |Y | ≥√ε|B|, then G[X, Y ] is
+(√ε, d −ε)-regular.
+The starting point of the stability part of our proof is the following colourful variant of Szemer´edi’s
+Regularity Lemma.
+6
+
+
+Theorem 2.13 (Coloured Regularity Lemma [10, Theorem 1.18]). Let 1/k2 ≪1/k1 ≪ε. Every red/blue
+coloured graph G on n ≥k1 vertices contains disjoint subsets V1, . . . , Vk ⊂V (G) with k1 ≤k ≤k2 that
+satisfy the following.
+• |V (G) \ (V1 ∪· · · ∪Vk)| ≤εn.
+• |V1| = · · · = |Vk|.
+• For all but at most εk2 indices 1 ≤i < j ≤k, both Gred[Vi, Vj] and Gblue[Vi, Vj] are ε-regular.
+For technical reasons, we sometimes require the sets Vi to have different sizes, but do not necessarily
+need them to cover all but εn vertices in G. As this is a minor point, we do not introduce more notation
+and instead use the standard term ε-regular partition under the following more relaxed definition.
+Definition 2.14. Let 1/n ≪ε ≪d ≤1, and let G be a red/blue coloured graph on n vertices. An
+ε-regular partition in G is a collection of disjoint subsets V1, . . . , Vk ⊂V (G), such that for all but at most
+εk2 pairs of indices 1 ≤i < j ≤k, both Gred[Vi, Vj] and Gblue[Vi, Vj] are ε-regular. Each set Vi in an
+ε-regular partition is called a cluster.
+Given an ε-regular partition V1 ∪· · · ∪Vk in G, its corresponding (ε, d)-reduced graph H is a red/blue
+coloured graph with vertex set [k], such that for each ∗∈{red, blue} and any distinct i, j ∈[k], there is
+an ij edge of colour ∗in H if and only if G∗[Vi, Vj] is (ε, d)-regular.
+Note that if V1, . . . , Vk form an ε-regular partition in a red/blue coloured complete graph and ε ≪d ≤
+1/2, then for all but at most εk2 pairs of indices 1 ≤i < j ≤k, there is either a red edge ij or a blue edge
+ij (or both) in the corresponding (ε, d)-reduced graph H.
+Finally, we record the following refinement result that will be used later. In what follows, a graph H
+is µ-almost complete if d(v) ≥(1 −µ)|H| for every v ∈V (H), and a bipartite graph H with bipartition
+classes U1 and U2 is µ-almost complete if d(v, U3−i) ≥(1 −µ)|U3−i| for every i ∈[2] and every v ∈Ui.
+Lemma 2.15 ([13, Lemma 2.24]). Let 1/k, 1/m ≪ε ≪η ≪α ≪d ≤1.
+Suppose G is a graph
+containing disjoint subsets V1, . . . , Vk ⊂V (G), each of size m. Let H be a graph on [k] such that for every
+ij ∈E(H), G[Vi, Vj] is (ε, d)-regular. Suppose there exists a partition [k] = I1∪I2, with |I1| = k1, |I2| = k2,
+and k1, k2 ≥αk, such that H[I1, I2] is η-almost complete. Then, there exist two collections of disjoint sets
+{Ui : i ∈J} and {Wi : i ∈J} such that the following hold.
+• |Ui| = |Uj| and |Wi| = |Wj| for any i, j ∈J.
+• P
+i∈J |Ui| ≥(1 −α) P
+i∈I1 |Vi|, P
+i∈J |Wi| ≥(1 −α) P
+i∈I2 |Vi|.
+• G[Ui, Wi] is (√ε, d −ε)-regular for every i ∈J.
+2.5
+Embedding methods with regularity
+In this subsection, we gather five key embedding lemmas proved with regularity in [13]. Each of these
+says that given a suitable structure in the reduced graph H of a red/blue coloured complete graph G, we
+can embed a tree T using regularity.
+In [13], each of these methods is proved under the assumption t2 ≤t1 ≤2t2, but we will use the weaker
+assumption t2 ≤t1 ≤3.1t2 instead, as that is what we need later. It turns out that no other changes in
+the statements are needed, as the original size constraints are quite generous. We also omit the proofs as
+the corresponding proofs in [13] all carry through with no change needed, except for Lemma 2.17 (EMa)
+where we need to change the choice of an assignment probability from 70α to 90α.
+Lemma 2.16 (H LT [13, Lemma 4.5]). Let 1/n ≪c ≪1/k ≪ε ≪α ≪d ≪1. Let T be an n-vertex
+tree with ∆(T) ≤cn and bipartition classes of sizes t1 and t2 satisfying t2 ≤t1 ≤3.1t2. Let G be a graph
+on at most 2n vertices with a partition V (G) = V1 ∪· · · ∪V2k+1. Let RH LT be a graph with vertex set
+[2k + 1], such that if ij ∈E(RH LT) then G[Vi, Vj] is (ε, d)-regular. Let i ∈[2k + 1] and suppose there is
+a partition [2k + 1] \ {i} = IA ∪IB, with |IA| = |IB| = k, such that the following hold for some mA, mB
+(see Figure 2a).
+7
+
+
+E1 |Va| = mA for each a ∈IA, |Vb| = mB for each b ∈IB, and |Vi| ≥n/10k.
+E2 kmA ≥t2 + αn and kmB ≥t1 + αn.
+E3 In RH LT, i is adjacent to each vertex in IA, and there is a perfect matching M between IA and IB.
+Then, G contains a copy of T.
+Lemma 2.17 (EMa [13, Lemma 4.10]). Let 1/n ≪c ≪1/k ≪ε ≪η ≪α ≪d ≪1. Let T be an n-
+vertex tree with ∆(T) ≤cn and bipartition classes of sizes t1 and t2 with t2 ≤t1 ≤3.1t2. Let G be a graph
+with at most 2n vertices and a vertex partition V1 ∪· · · ∪Vk such that |V1| = |V2| = · · · = |Vk| = m. Let
+REMa be a graph with vertex set [k], such that if ij ∈E(REMa) then G[Vi, Vj] is (ε, d)-regular. Suppose
+there is a partition [k] = IA ∪IB ∪IC such that the following properties hold (see Figure 2b).
+F1 | ∪i∈IA Vi| ≥t2 + 200αn, | ∪i∈IB Vi| ≥t2 −αn, | ∪i∈IA∪IB Vi| = n −αn, and | ∪i∈IC Vi| = 100αn.
+F2 REMa[IA, IB] is an η-almost complete bipartite graph.
+F3 REMa[IA, IC] contains a matching M covering IC.
+F4 E(REMa[IA \ V (M)]) ̸= ∅.
+Then, G contains a copy of T.
+···
+···
+t+
+2
+t+
+1
+i
+IA
+IB
+(a) H LT
+IA
+IB
+IC
+M
+≥t+
+2
+≥t−
+2
+n−
+0+
+(b) EMa
+IA
+IB
+IC
+M
+≥t+
+2
+≥t−
+2
+n−
+0+
+(c) EMb
+IA
+IB
+IC
+ID
+M1
+M2
+t−
+2
+t−
+1
+0+
+0+
+(d) EMc
+IA
+IB
+IC
+M ′
+M
+≥t−
+2
+≥t−
+2
+n−
+0+
+(e) EMd
+Figure 2: The reduced graph structures used in the embedding methods H LT and EMa-d.
+Lemma 2.18 (EMb [13, Lemma 4.11]). Let 1/n ≪1/m ≪c ≪1/k ≪ε ≪η ≪α ≪d ≪1. Let T be
+an n-vertex tree with ∆(T) ≤cn and bipartition classes of sizes t1 and t2 with t2 ≤t1 ≤3.1t2. Let G be a
+graph with at most 2n vertices and a vertex partition V1 ∪· · · ∪Vk with |V1| = · · · = |Vk| = m. Let REMb
+be a graph with vertex set [k], such that if ij ∈E(REMb) then G[Vi, Vj] is (ε, d)-regular. Suppose there is
+a partition [k] = IA ∪IB ∪IC such that the following properties hold (see Figure 2c).
+G1 | ∪i∈IA Vi| ≥t2 + 200αn, | ∪i∈IB Vi| ≥t2 −αn, | ∪i∈IA∪IB Vi| = (1 −α)n, and | ∪i∈IC Vi| = 100αn.
+G2 REMb[IA, IB] is an η-almost complete bipartite graph.
+G3 REMb[IA, IC] contains a matching M covering IC.
+8
+
+
+G4 E(REMb[IB]) ̸= ∅.
+Then, G contains a copy of T.
+Lemma 2.19 (EMc [13, Lemma 4.12]). Let 1/n ≪1/m ≪c ≪1/k ≪ε ≪η ≪α ≪d ≪1. Let T be
+an n-vertex tree with ∆(T) ≤cn and bipartition classes of sizes t1 and t2 with t2 ≤t1 ≤3.1t2. Let G be a
+graph on at most 2n vertices with a partition V (G) = V1 ∪· · · ∪Vk satisfying |V1| = · · · = |Vk| = m. Let
+REMc be a graph with vertex set [k], such that if ij ∈E(REMc) then G[Vi, Vj] is (ε, d)-regular. Suppose
+there is a partition [k] = IA ∪IB ∪IC ∪ID such that the following properties hold (see Figure 2d).
+H1 | ∪i∈IA Vi| ≥(1 −α)t2, | ∪i∈IB Vi| ≥(1 −11α)t1, | ∪i∈IC Vi| = 100αt2, and | ∪i∈ID Vi| = 10αt2.
+H2 REMc[IA, IB] is an η-almost complete bipartite graph.
+H3 REMc[IA, IC] contains a matching M1 covering IC.
+H4 REMc[IB, ID] contains a matching M2 covering ID.
+Then, G contains a copy of T.
+Lemma 2.20 (EMd [13, Lemma 4.13]). Let 1/n ≪1/m ≪c ≪1/k ≪ε ≪η ≪α ≪d ≪1. Let T
+be an n-vertex tree with ∆(T) ≤cn and bipartition classes of sizes t1 and t2 with t2 ≤t1 ≤3.1t2. Let G
+be a graph with a partition V (G) = V1 ∪· · · ∪Vk satisfying |V1| = · · · = |Vk| = m. Let REMd be a graph
+with vertex set [k], such that if ij ∈E(REMd) then G[Vi, Vj] is (ε, d)-regular. Suppose there is a partition
+[k] = IA ∪IB ∪IC such that the following properties hold (see Figure 2e).
+I1 | ∪i∈IA Vi| ≥| ∪i∈IB Vi| ≥(1 −α)t2, | ∪i∈IA∪IB Vi| ≥(1 −α)n, and | ∪i∈IA∪IB∪IC Vi| = (1 + 100α)n.
+I2 REMd[IA] and REMd[IB] are both η-almost complete graphs.
+I3 REMd[IA, IC] contains a matching M covering IC, and a vertex in IA ∩V (M) that is adjacent to
+every vertex in IC ∩V (M).
+I4 REMd[IB, IC] contains a matching M ′ covering IC.
+Then, G contains a copy of T.
+2.6
+Weight functions on digraphs
+In this subsection, we define weight functions on digraphs, and gather several properties that they
+satisfy. This is the main tool used by Haxell,  Luczak, and Tingley to prove a key result [8, Theorem 3],
+which is then used by Montgomery, Pavez-Sign´e, and Yan as a black box in [13] to prove the stability part
+of their main result. In the stability part of our proof, we use this weight function tool to modify both the
+proof and application of [8, Theorem 3], in order to bypass the most technical part of the proof in [13].
+Definition 2.21. Let #»
+H = (V, E) be a digraph, let v ∈V , and let α ≥1.
+• D+(v) denotes the set of all arcs of #»
+H pointing out from v, and D−(v) denotes the set of all arcs of
+#»
+H pointing into v.
+• A non-negative function f : E →R is an α-weight function on #»
+H if for all v ∈V ,
+wα(v, f) := 1
+α
+X
+e∈D+(v)
+f(e) +
+X
+e∈D−(v)
+f(e) ≤1.
+• Denote the set of all α-weight functions on #»
+H by Fα(#»
+H), or simply Fα when the choice of #»
+H is clear.
+• For each f ∈Fα, define w(f) = P
+e∈E f(e).
+9
+
+
+• Let wα,max = max{w(f) : f ∈Fα}, and let Fα,max = {f ∈Fα : w(f) = wα,max}. By compactness,
+wα,max and Fα,max are both well-defined. The α subscript may be omitted for brevity if the choice
+of α is clear.
+Definition 2.22. Let H = (V, E) be a red/blue coloured graph, and let x ∈V . For every ∗∈{red, blue},
+let #»
+H∗(x) denote the digraph with vertex set V \ {x}, such that yz is an arc of #»
+H∗(x) if and only if both
+xy and yz are edges in H∗.
+Given a weight function with maximum weight on a (coloured) digraph #»
+H, the following two results
+provide decompositions of the vertex set of #»
+H with useful properties.
+Lemma 2.23 ([8, Theorem 8]). Let #»
+H = (V, E) be a digraph, and let α > 1 be fixed. Let
+A = {a ∈V : w(a, f) < 1 for some f ∈Fmax},
+B = {b ∈V : ba ∈E for some a ∈A},
+C = V \ (A ∪B).
+Then the following hold.
+J1 |B| ≤wmax/α.
+J2 |C| ≤(1 + 1/α)wmax −(1 + α)|B|.
+J3 |A| > |V | −(1 + 1/α)wmax.
+Lemma 2.24 ([8, Lemma 13]). Let H = (V, E) be a red/blue coloured graph, and let x ∈V . For any
+∗∈{red, blue}, let Q = N∗(x) and R = V \ (Q ∪{x}). Let A, B, C be the partition of V \ {x} obtained
+by applying Lemma 2.23 to #»
+H∗(x) with some fixed α > 1. Then, the following hold.
+K1 B ∩R = ∅.
+K2 All edges within Q ∩A, and all edges between Q ∩A, Q ∩C, and R ∩A are not colour ∗.
+K3 |Q ∩B| + |R ∩C| ≤w∗,max.
+The next lemma says that if a red/blue coloured almost complete graph H contains a vertex v with
+high red degree, but no weight function on #»
+Hred(v) has large enough weight, then H contains a large
+almost complete bipartite graph in blue.
+Lemma 2.25. Let ε ≪1 < β ≤α. Then, for all sufficiently large k the following holds.
+Let H = (V, E) be a red/blue coloured ε-almost complete graph on (1 + 1/α + 1/β −2ε)k vertices, and
+let v ∈V . Suppose that dred(v) ≥(1/α + 1/β −5ε)k. Let A, B, C be obtained by applying Lemma 2.23 to
+#»
+Hred(v) and α, let Q = Nred(v) and R = V \ (Q ∪{v}).
+Suppose that wred,max(#»
+Hred(v)) < (1 + ε)k and |Q ∩A| ≥1. Then, there exist z ∈V \ {v} and disjoint
+X, Y ⊂V \{v, z}, such that |X|, |Y | ≥(1/α−10ε)k, |X|+|Y | ≥(1/α+1/β −10ε)k, z is a blue neighbour
+of all vertices in X ∪Y , and all edges between X and Y in H are blue.
+Proof. By K1 and K3, |Q∩A|+|Q∩C|+|R∩A| ≥(1+1/α+1/β −3ε)k −(1+ε)k > (1/α+1/β −4ε)k.
+By K2, all edge within Q ∩A, and all edges between Q ∩A, Q ∩C, and R ∩A are blue.
+By J1,
+|Q ∩B| ≤|B| ≤(1 + ε)k/α < (1/α + ε)k, so |Q ∩A| + |Q ∩C| ≥(1/β −6ε)k. By J3, |Q ∩A| + |R ∩A| =
+|A| > |V | −1 −(1 + 1/α)(1 + ε)k > (1/β −5ε)k.
+Let z be any vertex in Q ∩A, and note that from assumptions, z is a blue neighbour of all but at most
+3εk vertices in (Q∩A)∪(Q∩C)∪(R∩A). If |Q∩C| ≥(1/α−6ε)k, then setting X = Nblue(z, Q∩C) and
+Y = Nblue(z, (Q ∩A) ∪(R ∩A)) works. Otherwise, there exists a subset Q ∩C ⊂X ⊂(Q ∩C) ∪(Q ∩A)
+with |X| = (1/α −10ε)k and X ⊂Nblue(z). Then, setting Y = Nblue(z, (Q ∩A) ∪(R ∩A)) \ X works.
+Finally, the reason we are interested in weight functions is the following lemma, which shows that
+given an α-weight function with large weight in the reduced graph, we can find the structure required to
+apply Lemma 2.16 (H LT) to embed a tree whose bipartition class sizes t1 and t2 have ratio t1/t2 = α. It
+follows from the derivation in [8, Section 8] of [8, Theorem 3] from [8, Theorem 10], after modifying some
+constants.
+10
+
+
+Lemma 2.26. Let 1/t1 ≪1/k2 ≪1/k1 ≪ε1 ≪ε2 ≪ζ ≪d ≤1 ≤α. Let G be a graph with at
+least (1 + 1/α + 10ζ)t1 vertices. Let V1 ∪· · · ∪Vk1 be an ε1-regular partition in V (G) containing at least
+(1 + 1/α + 5ζ)t1 vertices in total, with |V1| = · · · = |Vk1| = n′. Let H = (V, E) be the corresponding
+(ε1, 2d)-reduced graph with vertex set V = [k].
+If for some x ∈V , there exists an α-weight function f on #»
+H(x) with w(f) ≥(1 + 2ζ)t1/n′, then
+there exists an ε2-regular partition U0 ∪· · · ∪Uk2 in G with corresponding (ε2, d)-reduced graph H′, and a
+partition [k2] = IA ∪IB ∪IC, such that the following hold.
+L1 |Ui| = m for every i ∈{0} ∪IA and |Ui| = αm for every i ∈IB.
+L2 |IA| = |IB|, with |IB|αm ≥(1 + ζ)t1.
+L3 In H′, 0 is adjacent to every a ∈IA.
+L4 H′[IA, IB] contains a perfect matching.
+3
+Stability part
+In this section, we prove Theorem 3.2, which says that either we can find a red copy of T or a blue copy
+of S using regularity methods, or the graph G must be extremal, in the sense that it approximates one of
+the lower bound constructions B1–B4. After specialising to the case when T = S, this simplifies the proof
+of the corresponding stability result in [13, Theorem 2.2], and leads to an easier proof of Theorem 1.1.
+Before stating Theorem 3.2, we first need to formalise what we mean by being extremal, as follows.
+Definition 3.1. Let 0 < µ < 1. Let T be an n-vertex tree with bipartition class sizes t1 ≥t2, let S be
+a ν-vertex tree with bipartition class sizes s1 ≥s2, and suppose that ν ≥t1 and s2 ≥t2. Let G be a
+red/blue coloured complete graph.
+• G is Type 1 (µ, T, S)-extremal if there are disjoint subsets U1, U2 ⊂V (G) such that (see B1)
+– |U1| ≥(1 −µ)n and |U2| ≥(1 −µ)s2,
+– for every u ∈U1, dblue(u, U1) ≤µn, and
+– for every i ∈[2] and every u ∈Ui, dred(u, U3−i) ≤µn.
+• G is Type 2 (µ, T, S)-extremal if there are disjoint subsets U1, U2 ⊂V (G) such that (see B2)
+– |U1| ≥(1 −µ)ν and |U2| ≥(1 −µ)t2,
+– for every u ∈U1, dred(u, U1) ≤µn, and
+– for every i ∈[2] and every u ∈Ui, dblue(u, U3−i) ≤µn.
+• G is Type 3 (µ, T, S)-extremal if there are disjoint subsets U1, U2 ⊂V (G) such that (see B3)
+– |U1|, |U2| ≥(1 −µ)t1, and
+– for each i ∈[2] and u ∈Ui, dred(u, Ui) ≤µn and dblue(u, U3−i) ≤µn.
+• G is Type 4 (µ, T, S)-extremal if there are disjoint subsets U1, U2 ⊂V (G) such that (see B4)
+– |U1|, |U2| ≥(1 −µ)s1, and
+– for each i ∈[2] and u ∈Ui, dblue(u, Ui) ≤µn and dred(u, U3−i) ≤µn.
+• G is (µ, T, S)-extremal if it is Type 1, Type 2, Type 3, or Type 4 (µ, T, S)-extremal.
+Now we can state the main result of this section.
+Theorem 3.2. Let 1/n ≤1/ν ≪c ≪µ ≪1. Let T be an n-vertex tree with ∆(T) ≤cn and bipartition
+class sizes t1 ≥t2, and let S be a ν-vertex tree with ∆(S) ≤cν and bipartition class sizes s1 ≥s2. Suppose
+that s2 ≥t2 and ν ≥t1. Let G be a red/blue coloured complete graph with max{n + s2, 2t1} −1 vertices.
+Then, at least one of the following is true.
+11
+
+
+• G contains a red copy of T or a blue copy of S.
+• G is (µ, T, S)-extremal.
+Similar to how Theorem 1.3 is reduced to Theorem 1.6 in Section 1, we can also reduce Theorem 3.2
+to a version with more assumptions, Theorem 3.3, as follows.
+Theorem 3.3. Let 1/n ≤1/ν ≪c ≪µ ≪1. Let T be an n-vertex tree with ∆(T) ≤cn and bipartition
+class sizes t1 ≥t2 ≥(t1 −2)/3. Let S be a ν-vertex tree with ∆(S) ≤cν and bipartition class sizes
+s1 ≥s2 ≥(t1 −1)/2. Suppose ν ≥t1 ≥s1, s2 ≥t2, and t2 + s2 ≥t1 −1. Let G be a red/blue coloured
+complete graph with max{n + s2, 2t1} −1 vertices. Then, at least one of the following is true.
+M1 G contains a red copy of T or a blue copy of S.
+M2 G is Type 1 (µ, T, S)-extremal.
+M3 ν ≥(1 −µ)(t1 + s2) and G is Type 2 (µ, T, S)-extremal.
+M4 t1 ≥(1 −µ)(t2 + s2) and G is Type 3 (µ, T, S)-extremal.
+M5 s1 ≥(1 −µ)(n + s2)/2 and G is Type 4 (µ, T, S)-extremal.
+Proof of Theorem 3.2. Let G, T, S, n, ν, t1, t2, s1, s2, c, µ satisfy the assumptions in Theorem 3.2. Note that
+s2 ≥t2 and t1 + t2 = n ≥ν = s1 + s2 implies that t1 ≥s1.
+If t2 +s2 ≥t1 −1, then as in the proof of Theorem 1.3 in Section 1, T and S satisfy all the assumptions
+of Theorem 3.3, so we are done.
+Now suppose that t2 + s2 < t1 −1. Again as in the proof of Theorem 1.3 in Section 1, there exist
+t1 ≥t′
+2 ≥t2 and s1 ≥s′
+2 ≥s2, such that t′
+2 ≤s′
+2, t1 + t′
+2 ≥s1 + s′
+2, and t′
+2 + s′
+2 ∈{t1 −1, t1}. Observe
+that max{t1 + t2 + s2, 2t1} = 2t1 = max{t1 + t′
+2 + s′
+2, 2t1}.
+By Lemma 2.8, T contains a set L of at least t1 −t2 ≥t′
+2 −t2 leaves on the larger side of its bipartition.
+Pick t′
+2−t2 leaves in L, and attach a new leaf to each of them to obtain a new tree T ′ with bipartition class
+sizes t1 and t′
+2 and maximum degree ∆(T ′) = ∆(T) ≤cn ≤c|T ′|. Similarly, we can obtain a tree S′ with
+bipartition class sizes s1 and s′
+2 and maximum degree ∆(S′) ≤c|S′|. Then, like above, T ′ and S′ satisfy
+all the assumptions in Theorem 3.3, so G contains a red copy of T ′ and thus T, or a blue copy of S′ and
+thus S, or is (µ, T ′, S′)-extremal. Note that if G is (µ, T ′, S′)-extremal, then it is also (2µ, T, S)-extremal,
+so we are done.
+(n + s2)−
+Stage 1
+=⇒
+IA
+IB
+t−
+2
+t−
+2
+j
+Stage 2
+=⇒
+IA
+IB
+≥s−
+2
+≥s−
+2
+(t1 + s2)−
+Stage 3
+=⇒
+IA
+IB
+≥t−
+2
+≥t−
+2
+(n + t2)−
+Stage 4
+=⇒
+IA
+IB
+ν−
+t−
+2
+OR
+IA
+IB
+t−
+1
+t−
+1
+A-situation
+B-situation
+C-situation
+D-situation
+E-situation
+Figure 3: An illustration of one potential route in the 4-stage process we use to prove Theorem 3.3.
+Throughout this section, let T and S be fixed, and let all parameters satisfy the assumptions in
+Theorem 3.3. As mentioned in Section 1, Theorem 3.3 will be proved using a 4-stage process (see Figure 3)
+similar to the one used in [13]. In each stage, we attempt to find a nice structure in the reduced graph in
+either red or blue, which will allow us to embed the corresponding tree using regularity. If this attempt
+fails, then we show that the reduced graph must contain a structure in the other colour that represents
+the start of the next stage. At the end of the four stages, if we managed to embed neither a red copy of T
+nor a blue copy of S, then we can conclude that the reduced graph must be extremal (see Definition 3.4),
+and thus so is the original host graph G (see Lemma 3.5). To avoid repetition, we will carry out the 4
+12
+
+
+stages in reverse order from Section 3.2 to Section 3.5. Theorem 3.3, and thus Theorem 3.2, will follow
+immediately from Lemma 3.11 (Stage 1) in Section 3.5.
+The main difference between our proof and the one in [13] is in Stage 1. Recall from Lemma 2.16
+that if the reduced graph contains the H LT structure (see Figure 2a), then we can find a copy of the tree.
+In [13], the authors use [8, Theorem 3] as a black box and start Stage 1 with a slightly smaller version
+of the H LT structure, H LT−, which is guaranteed to exist by this key result. Instead, we start with the
+original red/blue coloured reduced graph, and modify the proof of [8, Theorem 3] to show that we can
+either find a full-size H LT structure and embed with Lemma 2.16 immediately, or find a B-situation
+or a C-situation, which allows us to skip ahead to Stage 2 or Stage 3, respectively. This enables us
+to bypass the technical arguments used in Stage 1 of [13], which involves the use of three regularity
+embedding lemmas [13, Lemma 4.6, Lemma 4.8, Lemma 4.9] whose proofs are very tedious.
+3.1
+Extremal coloured graphs and extremal regular partitions
+Recall from Definition 3.1 what it means for a red/blue coloured complete graph G to be (µ, T, S)-
+extremal. In this subsection, we define a similar notion for the reduced graph of a regular partition, and
+show that the reduced graph being extremal implies that the host graph is extremal as well.
+Definition 3.4. Let 1/n ≪1/k ≪ε ≪µ, d ≤1. Let T be an n-vertex tree with bipartition class sizes
+t1 ≥t2, let S be a ν-vertex tree with bipartition class sizes s1 ≥s2, and suppose that ν ≥t1 and s2 ≥t2.
+Let G be a red/blue coloured complete graph.
+• G has a Type 1 (µ, T, S)-extremal (ε, d)-regular partition if there exists an ε-regular partition V1 ∪
+· · · ∪Vk in V (G) with corresponding (ε, d)-reduced graph R, and a partition [k] = IA ∪IB such that
+the following hold.
+– |Vi| = m for every i ∈[k].
+– |IA| ≥(1 −µ)n/m and |IB| ≥(1 −µ)s2/m.
+– Both Rblue[IA] and Rred[IA, IB] are µ-almost empty.
+• G has a Type 2 (µ, T, S)-extremal (ε, d)-regular partition if there exists an ε-regular partition V1 ∪
+· · · ∪Vk in V (G) with corresponding (ε, d)-reduced graph R, and a partition [k] = IA ∪IB such that
+the following hold.
+– |Vi| = m for every i ∈[k].
+– |IA| ≥(1 −µ)ν/m and |IB| ≥(1 −µ)t2/m.
+– Both Rred[IA] and Rblue[IA, IB] are µ-almost empty.
+• G has a Type 3 (µ, T, S)-extremal (ε, d)-regular partition if there exists an ε-regular partition V1 ∪
+· · · ∪Vk in V (G) with corresponding (ε, d)-reduced graph R, and a partition [k] = IA ∪IB such that
+the following hold.
+– |Vi| = m for every i ∈[k].
+– |IA|, |IB| ≥(1 −µ)t1/m.
+– All of Rred[IA], Rred[IB], and Rblue[IA, IB] are µ-almost empty.
+• G has a Type 4 (µ, T, S)-extremal (ε, d)-regular partition if there exists an ε-regular partition V1 ∪
+· · · ∪Vk in V (G) with corresponding (ε, d)-reduced graph R, and a partition [k] = IA ∪IB such that
+the following hold.
+– |Vi| = m for every i ∈[k].
+– |IA|, |IB| ≥(1 −µ)s1/m.
+– All of Rblue[IA], Rblue[IB], and Rred[IA, IB] are µ-almost empty.
+With suitable choices of constants, if a red/blue coloured complete graph G has a Type i (µ′, T, S)-
+extremal (ε, d)-regular partition for some i ∈[4], then it is Type i (µ, T, S)-extremal, as follows.
+13
+
+
+Lemma 3.5. Let 1/n ≪1/k ≪ε ≪µ′ ≪d ≪µ ≪1. Let T be an n-vertex tree with bipartition
+class sizes t1 ≥t2, let S be a ν-vertex tree with bipartition class sizes s1 ≥s2, and suppose that ν ≥t1
+and s2 ≥t2. If G is a red/blue coloured complete graph on at most 2n vertices that contains a Type i
+(µ′, T, S)-extremal (ε, d)-regular partition for some i ∈[4], then G is Type i (µ, T, S)-extremal.
+Proof. Suppose G contains a Type 1 (µ′, T, S)-extremal (ε, d)-regular partition V1 ∪· · · ∪Vk satisfying
+the conditions in Definition 3.4. Let VA = ∪i∈IAVi and VB = ∪i∈IBVi. From assumptions and using
+km ≤|G| ≤2n, the number of blue edges in VA is at most µ′|IA|2m2 + d|IA|2m2 + |IA|m2 ≤µ′k2m2 +
+dk2m2 + km2 ≤4(µ′ + d + 1/k)n2 ≤5dn2. Therefore, by removing at most
+√
+5dn vertices from VA, we
+can obtain a subset V ′
+A such that dblue(u, V ′
+A) ≤
+√
+5dn for every u ∈V ′
+A.
+Similarly, the number of red edges between V ′
+A and VB is at most µ′|IA||IB|m2 + d|IA||IB|m2 ≤
+4(µ′ + d)n2 ≤5dn2. Thus, we can remove at most
+√
+5dn vertices from each of V ′
+A and VB to obtain
+subsets U1 and U2, respectively, such that for every i ∈[2] and every u ∈Ui, dred(u, U3−i) ≤
+√
+5dn. Since
+µ ≫
+√
+d, U1 and U2 show that G is Type 1 (µ, T, S)-extremal.
+The cases when G contains a Type i (µ′, T, S)-extremal (ε, d)-regular partition for some 2 ≤i ≤4 are
+similar and thus omitted.
+3.2
+Stage 4
+Lemma 3.6 (Stage 4). Let 1/n, 1/ν ≪1/m ≪c ≪1/k ≪ε ≪ζ ≪d ≪µ ≪1. Let T be an n-vertex
+tree with ∆(T) ≤cn and bipartition class sizes t1 ≥t2. Let S be a ν-vertex tree with ∆(S) ≤cν and
+bipartition class sizes s1 ≥s2. Suppose ν ≥t1 ≥s1, s2 ≥t2, and t2 + s2 ≥t1 −1.
+Let G be a red/blue coloured complete graph that contains a coloured ε-regular partition V1 ∪· · · ∪Vk
+with |V1| = · · · = |Vk| = m and corresponding red/blue coloured (ε, d)-reduced graph H. Suppose there is a
+partition [k] = IA ∪IB such that either N1 and N2 hold (see D-situation in Figure 3) or O1 and O2
+hold.
+N1 |IA|m, |IB|m ≥(1 −ζ)t2 and |IA|m + |IB|m ≥(1 −ζ)(n + s2).
+N2 Hred[IA, IB] is ζ-almost complete.
+O1 |IA|m, |IB|m ≥(1 −ζ)s2 and |IA|m + |IB|m ≥(1 −ζ)(n + s2).
+O2 Hblue[IA, IB] is ζ-almost complete.
+Then, at least one of M1–M5 holds.
+Proof. We will mainly prove the case when N1 and N2 hold, and only comment briefly on the case
+when O1 and O2 hold, as it can be proved in a similar way after exchanging the role of s2 and t2, and
+red and blue. Without loss of generality, assume that |IA| ≥|IB|. Let A = ∪i∈IAVi and B = ∪i∈IBVi.
+Note that from N1, |A| + |B| ≥(1 + 200ζ)n and |A| = |IA|m ≥(1 −ζ)(n + s2)/2 ≥t2 + 200ζn.
+Case I. |B| ≥t2 + 100ζn. If there exists an edge ij in Hred[IA], then we can use N2 to greedily find a
+perfect matching between some I′
+A ⊂IA \ {i, j} of size 100ζn/m and some I′
+B ⊂IB. This allows us to
+apply Lemma 2.17 (EMa) to IA, IB \ I′
+B, and I′
+B to embed T in red. Similarly, we can use Lemma 2.18
+(EMb) to embed T in red if there is an edge in Hred[IB]. Thus, we may assume that both Hred[IA] and
+Hred[IB] are empty. This implies that both Hblue[IA] and Hblue[IB] contain at most εk2 non-edges, so
+we can find JA ⊂IA and JB ⊂IB, such that |JA| ≥(1 −10√ε)|IA|, |JB| ≥(1 −10√ε)|IB|, and both
+Hblue[JA], Hblue[JB] are 10√ε-almost complete.
+If there is any edge ib in Hblue[JA, JB] with i ∈JA, then by moving i out of JA and finding an arbitrary
+neighbour a of i in JA, we get the structure required to apply Lemma 2.20 (EMd) to find a blue copy of
+S in G. Therefore, we can assume that Hblue[JA, JB] is empty.
+If |A| ≥t1 + 10ζn, then after using Lemma 2.15 to refine the clusters indexed by JA and JB, we can
+embed T in red using Lemma 2.16 (H LT). If instead |A| < t1+10ζn, then it follows from |A| ≥(1−ζ)(n+
+s2)/2 that t1 ≥(1−50ζ)(t2+s2). Also, we have |B| ≥(1−ζ)(n+s2)−|A| ≥(1−25ζ)(t2+s2) ≥(1−30ζ)t1.
+Therefore, JA and JB show that G contains a Type 3 (100ζ, T, S)-extremal (ε, d)-regular partition, so G
+is Type 3 (µ, T, S)-extremal by Lemma 3.5, and M4 holds. When O1 and O2 hold instead, a similar
+14
+
+
+argument shows that s1 ≥|A| −10ζn ≥(1 −ζ)(n + s2)/2 −10ζn ≥(1 −20ζ)(n + s2)/2, and G is Type 4
+(µ, T, S)-extremal, so M5 holds.
+Case II. |B| < t2 + 100ζn. Then |A| ≥(1 −ζ)(n + s2) −|B| > t2 + 500ζn.
+If the maximum matching M in Hred[IA] has size at least 101ζn/m, then we can move one side of
+a submatching of M with size 100ζn/m out of IA to obtain the structure needed to apply Lemma 2.17
+(EMa) to find a red copy of T. Otherwise, let I′
+A = IA \ V (M), let A′ = ∪i∈I′
+AVi, and observe that
+|I′
+A| ≥|IA| −202ζn/m. Then, Hred[I′
+A] is empty and so Hblue[I′
+A] contains at most εk2 non-edges.
+Note that |A′| = |I′
+A|m ≥(1 −400ζ)(t1 + s2). If |A′| = |I′
+A|m ≥(1 + 5ζ)ν, then we can easily find the
+structure to apply Lemma 2.19 (EMc) to embed S in Gblue[A′]. Thus, we may assume that |A′| ≤(1+5ζ)ν,
+so ν ≥(1 −400ζ)(t1 + s2)/(1 + 5ζ) ≥(1 −1000ζ)(t1 + s2), and |B| ≥(1 −ζ)(n + s2) −|A′| −202ζn ≥
+(1 −1500ζ)t2. Let ζ ≪ζ′ ≪d. If at least 2ζ′n/m vertices in I′
+A have at least 2ζ′n/m blue neighbours
+in IB, then we can greedily find the structure to apply Lemma 2.19 (EMc) to embed S in Gblue[A′ ∪B].
+Otherwise, we can find JA ⊂I′
+A and JB ⊂IB such that |JA| ≥(1 −3ζ′)(t1 + s2)/m ≥(1 −3ζ′)ν/m,
+|JB| ≥(1 −50√ζ′)t2/m, and Hblue[JA, JB] is 10√ζ′-almost empty. This shows that G contains a Type 2
+(50√ζ′, T, S)-extremal (ε, d)-regular partition, so G is Type 2 (µ, T, S)-extremal by Lemma 3.5, and M3
+holds. When O1 and O2 hold instead, a similar argument shows that G is Type 1 (µ, T, S)-extremal,
+so M2 holds.
+3.3
+Stage 3
+Lemma 3.7 (Stage 3). Let 1/n, 1/ν ≪1/m ≪c ≪1/k ≪ε ≪ζ ≪d ≪µ ≪1. Let T be an
+n-vertex tree with ∆(T) ≤cn and bipartition class sizes t1 ≥t2 ≥(t1 −2)/3. Let S be a ν-vertex tree
+with ∆(S) ≤cν and bipartition class sizes s1 ≥s2 ≥(t1 −1)/2. Suppose ν ≥t1 ≥s1, s2 ≥t2, and
+t2 + s2 ≥t1 −1.
+Let G be a red/blue coloured complete graph that contains a coloured ε-regular partition V1 ∪· · · ∪Vk
+with |V1| = · · · = |Vk| = m and corresponding blue/red coloured (ε, d)-reduced graph H. Suppose there is a
+partition [k] = IA ∪IB ∪IC such that either P1 and P2 hold or Q1 and Q2 hold (see C-situation in
+Figure 3).
+P1 |IA|m, |IB|m ≥(1 −ζ)t2 and |IA|m + |IB|m = (1 −ζ)(t1 + t2).
+P2 Hred[IA, IB] is ζ-almost complete.
+Q1 |IA|m, |IB|m ≥(1 −ζ)s2 and |IA|m + |IB|m = (1 −ζ)(t1 + s2).
+Q2 Hblue[IA, IB] is ζ-almost complete.
+Then, at least one of M1–M5 holds.
+Proof. We will only prove the case when P1 and P2 hold. The case when Q1 and Q2 hold has essentially
+the same proof after exchanging the role of t2 and s2, and red and blue, so we will only comment on the
+one minor difference during the proof.
+Let ζ ≪ζ′ ≪η ≪η′ ≪d. To further avoid repetition, we first prove the following two claims dealing
+with two commonly occurring structures.
+Claim 3.8. Suppose there exist disjoint JA, JB, JC ⊂[k], such that the following hold.
+R1 |JA| = (1 −ζ′)t1/m, |JB| = (1 −ζ′)t2/m, and |JC| = (1 −ζ′)s2/m.
+R2 Hred[JA, JB] is ζ-almost complete.
+R3 Hred[JB, JC] contains a matching with size 100ζ′t2/m.
+Then, at least one of M1–M5 holds.
+15
+
+
+Proof of Claim 3.8. If at least 100ζ′t2/m vertices in JA have at least 200ζ′t2/m red neighbours in JC,
+then we can greedily find a matching of size 100ζ′t2/m in Hred[JA, JC] disjoint from the matching given
+by R3. This allows us to apply Lemma 2.19 (EMc) to find a red copy of T in G. Otherwise, at most
+100ζ′t2/m vertices in JA have at least 200ζ′t2/m red neighbours in JC, so we can find J′
+A ⊂JA and
+J′
+C ⊂JC with |J′
+A| ≥(1 −200ζ′)t1/m and |J′
+C| ≥(s2 −20√ζ′t2)/m ≥(1 −20√ζ′)s2/m, such that
+Hblue[J′
+A, J′
+C] is 20√ζ′-almost complete.
+If at most 200ηt2/m vertices in JB have at least 200ηt2/m blue neighbours in J′
+C, then we can find
+J′
+B ⊂JB and J′′
+C ⊂J′
+C, such that |J′
+B| ≥(1 −300η)t2/m, |J′′
+C| ≥(1 −20√η)s2/m, and Hred[JA ∪J′′
+C, J′
+B]
+is 20√η-almost complete. This gives the required structure (D-situation) in red to apply Lemma 3.6
+(Stage 4) to finish the proof.
+Thus, we may assume that at least 200ηt2/m vertices in JB have at least 200ηt2/m blue neighbours in
+J′
+C, so we can find a blue matching of size 100ηt2/m in Hblue[JB, J′
+C] disjoint from the red matching given
+by R3. Arbitrarily pick a matching of size 10(ζ′ + η)t2/m in H[JA]. By pigeonhole, it either contains a
+red matching Mred of size 10ζ′t2/m or a blue matching Mblue of size 10ηt2/m. In the former case, moving
+vertices on one side of Mred out of JA, and using R2, R3, we have the structure to apply Lemma 2.19
+(EMc) to find a red copy of T in G. In the latter case, moving vertices on one side of Mblue out of JA,
+and using that Hblue[JA, J′
+C] is 20√ζ′-almost complete, we can again apply Lemma 2.19 (EMc) to find a
+blue copy of S in G.
+⊡
+Claim 3.9. Suppose there exist disjoint JA, JB, JC ⊂[k], such that the following hold.
+S1 |JA| ≥(t2 + 200ζ′n)/m, |JB| ≥(t2 −ζ′n)/m, |JA| + |JB| = (1 −ζ′)n/m, and |JC| = (1 −ζ′)s2/m.
+S2 Hred[JA, JB] is ζ-almost complete.
+S3 Hred[JA, JC] contains a matching with size 100ζ′n/m.
+Then, at least one of M1–M5 holds.
+Proof of Claim 3.9. If there is an edge in either Hred[JA] or Hred[JB], then we can apply Lemma 2.17
+(EMa) or Lemma 2.18 (EMb), respectively, to find a red copy of T in G. Thus, by removing at most
+10√ε-fraction of vertices from JA and JB, we may assume that Hblue[JA] and Hblue[JB] are both 10√ε-
+almost complete.
+Suppose there exists a set of 10ηt2/m vertices in JC, each of which has at least 10ηt2/m blue neighbours
+in both JA and JB. Then, we can find a blue matching M1 of size η2t2/m between JA and JC with a
+vertex in V (M1) ∩JA adjacent to every vertex in J′
+C := V (M1) ∩JC. Greedily, we can also find another
+blue matching between J′
+C and JB covering J′
+C. This allows us to apply Lemma 2.20 (EMd) to find a blue
+copy of S in G. Here, we used n ≥ν, so |JA| + |JB| ≥(1 −ζ′)ν/m. In the other case when Q1 and Q2
+hold, we instead use s2 ≥t2, so from the corresponding assumptions that |JA|+|JB| ≥(1−ζ′)(t1 +s2)/m,
+we have |JA| + |JB| ≥(1 −ζ′)n/m, and thus enough space to embed T in red using Lemma 2.20 (EMd).
+Thus, we may now assume that there exist two disjoint subsets J+
+A , J+
+B ⊂JC containing all but at
+most 10ηt2/m vertices in JC, such that every vertex in J+
+A has at most 10ηt2/m blue neighbours in JB,
+and every vertex in J+
+B has at most 10ηt2/m blue neighbours in JA. Using S2, and by removing at most
+5√ηt2/m vertices from each of JA and JB to obtain J−
+A and J−
+B , respectively, we can ensure that both
+Hred[J−
+A , J−
+B ∪J+
+B ] and Hred[J−
+B , J−
+A ∪J+
+A ] are 5√η-almost complete. Note that if |J+
+A | ≤η′t2/m, then
+|J−
+A ∪J−
+B ∪J+
+B | ≥(1 −2η′)(n + s2)/m, so J−
+A and J−
+B ∪J+
+B form the required red structure (D-situation)
+to apply Lemma 3.6 (Stage 4) to finish the proof. Thus, we can assume that |J+
+A | ≥η′t2/m, and similarly
+|J+
+B | ≥η′t2/m.
+As in the beginning of this proof, we may further assume that Hblue[J−
+A ∪J+
+A ] and Hblue[J−
+B ∪J+
+B ]
+are both 10√ε-almost complete, as the presence of any red edge within either of them allows us to apply
+Lemma 2.17 (EMa) or Lemma 2.18 (EMb) to find a red copy of T in G. If there is any blue edge between
+J−
+A ∪J+
+A and J−
+B ∪J+
+B , then we can move one end of this blue edge out and then find a blue copy of S
+using Lemma 2.20 (EMd). Therefore, Hred[J−
+A ∪J+
+A , J−
+B ∪J+
+B ] contains the red structure (D-situation)
+needed to apply Lemma 3.6 (Stage 4) to finish the proof.
+⊡
+Now we can carry out Stage 3. If at most 2ηn/m vertices in IA∪IB have at least 2ηs2/m red neighbours
+in IC, then we can find IAB ⊂IA ∪IB and I′
+C ⊂IC with |IAB| ≥(1 −3η)n/m and |I′
+C| ≥(1 −5√η)s2/m,
+16
+
+
+such that Gblue[IAB, I′
+C] is 5√η-almost complete. Therefore, clusters indexed by IAB and I′
+C form the
+blue structure (D-situation) required to apply Lemma 3.6 (Stage 4) to finish the proof. Thus, we may
+assume that at least 2ηn/m vertices in IA ∪IB have at least 2ηs2/m red neighbours in IC, from which it
+follows that there is a red matching of size ηs2/m ≥ηt2/m between IA and IC or between IB and IC.
+Case I. |IA|, |IB| ≥(t2 + 200ζn)/m. Without loss of generality, assume that there is a red matching of
+size ηt2/m between IA and IC. Then, we can apply Claim 3.9 to finish the proof.
+Case II. Without loss of generality, assume that |IB| < (t2 + 200ζn)/m, so |IA| ≥(t1 −201ζn)/m ≥
+(1 −500ζ)t1/m from P1. If there is a red matching of size ηt2/m between IB and IC, then we can finish
+the proof using Claim 3.8.
+Thus, we may assume that there is a red matching of size ηt2/m between IA and IC. If t1 ≤(1 +
+2000ζ)t2, then |IB| ≥(1 −ζ)t2/m ≥(1 −2001ζ)t1/m, so we can apply Claim 3.8 to finish the proof. If
+instead t1 > (1 + 2000ζ)t2, then |IA| ≥(1 −500ζ)t1/m ≥(t2 + 200ζn)/m, so we can apply Claim 3.9 to
+finish the proof.
+□
+3.4
+Stage 2
+Lemma 3.10. Let 1/n, 1/ν ≪1/m ≪c ≪1/k ≪ε ≪ζ ≪d ≪µ ≪1. Let T be an n-vertex tree with
+∆(T) ≤cn and bipartition class sizes t1 ≥t2 ≥(t1 −2)/3. Let S be a ν-vertex tree with ∆(S) ≤cν and
+bipartition class sizes s1 ≥s2 ≥(t1 −1)/2. Suppose ν ≥t1 ≥s1, s2 ≥t2, and t2 + s2 ≥t1 −1.
+Let G be a red/blue coloured complete graph that contains a coloured ε-regular partition V0∪V1∪· · ·∪Vk
+with corresponding red/blue coloured (ε, d)-reduced graph H, such that |V0| = · · · = |Vk| = m, and km ≥
+t1 + t2 + s2 −2ζt1. Suppose there is a partition [k] = IA ∪IB ∪IC such that the following hold (see
+B-situation in Figure 3).
+T1 |IA|m, |IB|m ≥(1 −ζ)t2 and |IA|m + |IB|m = t2 + s2 −ζt1.
+T2 In Hred, 0 is adjacent to every i ∈IA ∪IB.
+T3 Hred[IA, IB] is ζ-almost complete.
+Then, at least one of M1–M5 holds.
+Proof. Let ε ≪γ ≪ζ. Refine every cluster Vi with i ∈IA or i ∈IB down to clusters of size γt2m/t1,
+and label these new clusters as {V ′
+i : i ∈JA} and {V ′
+i : i ∈JB}, respectively. Refine every cluster Vi with
+i ∈IC down to clusters of size γm and label the new clusters as {V ′
+i : i ∈JC}. In this refinement process,
+at most O(γn) covered vertices are lost. Let H′ be the new reduced graph on JA ∪JB ∪JC, where for each
+∗∈{red, blue}, ij ∈E(H′
+∗) if and only if G∗[V ′
+i , V ′
+j ] is (√ε, d −ε)-regular. By Lemma 2.12, H′[JA, JB] is
+ζ-almost complete. Let M be a maximum red matching in H′ between JA ∪JB and JC.
+Case I. |V (M) ∩JC| ≤(t1 −s2 + 10ζt1)/γm. Let X = (JA ∪JB) ∩V (M), X′ = (JA ∪JB) \ V (M),
+Y = JC ∩V (M), and Y ′ = JC \ V (M). By Lemma 2.5, there are partitions X = X+ ∪X−∪X and Y =
+Y +∪Y −∪Y such that M matches X+ with Y −, X−with Y +, and X with Y , and Hred[X′∪X−, Y ′∪Y −∪Y ]
+is empty. From assumption, |X| = |Y | ≤(t1 −s2 + 10ζt1)/γm, and the following hold.
+|X′ ∪X−| ≥|X′| ≥(t2 + s2 −ζt1)/γm −(t1 −s2 + 10ζt1)/γm ≥(s2 −12ζt1)/γm.
+|Y ′ ∪Y −∪Y | = |IC| −|Y +| ≥|IC| −|Y | ≥(1 −ζ)t1/γm −(t1 −s2 + 10ζt1)/γm ≥(s2 −12ζt1)/γm.
+|X′ ∪X−∪Y ′ ∪Y −∪Y | = |X′ ∪Y + ∪Y ′ ∪Y −∪Y | = |(JA ∪JB) \ V (M)| + |JC|
+≥(t1 + t2 + s2 −2ζt1)/γm −(t1 −s2 + 10ζt1)/γm ≥(t1 + s2 −13ζt1)/γm.
+Hence, the clusters indexed by X′ ∪X−and Y ′ ∪Y −∪Y contain a blue C-situation, so we can use
+Lemma 3.7 (Stage 3) to complete the proof.
+Case II. |V (M) ∩JC| ≥(t1 −s2 + 10ζt1)/γm. For brevity, let m′ = γt2m/t1 be the common size of
+clusters in JA ∪JB. Let M ′ be a red matching between JA ∪JB and JC, such that |V (M ′) ∩JC| =
+|V (M ′) ∩JA| + |V (M ′) ∩JB| = (t1 −s2 + 10ζt1)/γm. It follows that
+|V (M ′) ∩JA|m′ + |V (M ′) ∩JB|m′ = (t1 −s2 + 10ζt1)t2/t1 = t2 −s2t2/t1 + 10ζt2,
+17
+
+
+|JA \ V (M)′|m′ + |JB \ V (M ′)|m′ = (t2 + s2 −ζt1) −(t2 −s2t2/t1 + 10ζt2)
+= s2 + s2t2/t1 −ζt1 −10ζt2 ≥(1 + t1/t2)(s2t2/t1 −6ζt2).
+Case II.1. |JA \ V (M ′)|m′, |JB \ V (M ′)|m′ ≥s2t2/t1 −6ζt2. Then, we can find disjoint subsets
+JA,1, JA,2 ⊂JA \V (M ′) and JB,1, JB,2 ⊂JB \V (M ′), such that |JA,1|/|JB,2| = |JB,1|/|JA,2| ≥t1/t2, each
+of |JA,1|, |JA,2|, |JB,1|, |JB,2| is at least εn/m′, and their total size is at least (1+t1/t2)(s2t2/t1 −8ζt2)/m′.
+Moreover, since H′
+blue[JA, JB] is ζ-almost complete, by choosing the subsets above randomly and using
+Lemma 2.2, we can ensure that both H′
+blue[JA,1, JB,2] and H′
+blue[JA,2, JB,1] are 10ζ-almost complete. Then,
+for some ε ≪γ′ ≪γ, use Lemma 2.15 to further appropriately refine these clusters along with those in
+M ′ into two sets of smaller clusters of sizes γ′t2m/t1 and γ′m, respectively, which can be paired up into
+( 4√ε, d −2√ε)-regular pairs. Together, these new clusters contain at least
+(1 −γ′)(1 + t2/t1)((s2 −8ζt1) + (t1 −s2 + 10ζt1)) ≥(1 + ζ)n
+vertices. Finally, note that by T2, each new cluster of size γ′t2m/t1 forms an (√ε, d−ε)-regular pair with
+V0, so we have the structure to apply Lemma 2.16 (H LT) to find a red copy of T.
+Case II.2. One of |JA \ V (M ′)|m′ and |JB \ V (M ′)|m′ is at most s2t2/t1 −6ζt2. Without loss of
+generality, say |JA \ V (M ′)|m′ ≤s2t2/t1 −6ζt2. Moreover, pick M ′ so that it maximises |JA \ V (M ′)|
+subject to |JA \ V (M ′)|m′ ≤s2t2/t1 −6ζt2. Then, |V (M ′) ∩JA|m′ ≥(1 −ζ)t2 −s2t2/t1 + 6ζt2 ≥5ζt2, so
+in particular |V (M ′) ∩JA| ≥1. Also, |JB \ V (M ′)|m′ ≥s2 −6ζt1. Let JD be the vertices in JC matched
+by M ′ to the vertices in JB.
+Suppose there is a red edge in H′ between JB \V (M ′) and JC \JD. Let M ′′ be the matching obtained
+by replacing an edge in M ′ adjacent to JA with this edge. Then, |JA \ V (M ′′)| = 1 + |JA \ V (M ′)|, so in
+order to avoid contradicting the maximality of M ′, we must have |JA \ V (M ′′)|m′ ≥s2t2/t1 −6ζt2. Note
+that |JB \ V (M ′′)|m′ = |JB \ V (M ′)|m′ −m′ ≥s2 −6ζt1 −m′ ≥s2t2/t1 −6.1ζt2. Therefore, we can use
+the same proof as in Case II.1. with 6.1 in place of 6 to find a red copy of T.
+Otherwise, there is no red edge in H′ between JB\V (M ′) and JC\JD. Thus, H′
+blue[JB\V (M ′), JC\JD]
+contains at most ε|H′|2 non-edges. Moreover, |JD| = |V (M ′) ∩JB| ≤6ζt1/m′ = 6ζt2
+1/γt2m ≤24ζt1/γm,
+so |JC \ JD| ≥(1 −25ζ)t1/γm.
+Therefore, the clusters indexed by JB \ V (M ′) and JC \ JD cover
+at least s2 −6ζt1 and (1 −25ζ)t1 vertices, respectively.
+After removing clusters with low degrees in
+H′
+blue[JB \ V (M ′), JC \ JD] and refining all remaining clusters down to a smaller common size, we get a
+C-situation in blue, and can finish the proof with Lemma 3.7 (Stage 3).
+3.5
+Stage 1
+Lemma 3.11 (Stage 1). Let 1/n, 1/ν ≪1/m ≪c ≪1/k ≪ε ≪ζ ≪d ≪µ ≪1. Let T be an
+n-vertex tree with ∆(T) ≤cn and bipartition class sizes t1 ≥t2 ≥(t1 −2)/3. Let S be a ν-vertex tree
+with ∆(S) ≤cν and bipartition class sizes s1 ≥s2 ≥(t1 −1)/2. Suppose ν ≥t1 ≥s1, s2 ≥t2, and
+t2 + s2 ≥t1 −1. Let G be a red/blue coloured complete graph with at least n + s2 vertices. Then, at least
+one of M1–M5 holds.
+Proof. Let α = (1 + ε/2)t1/t2 and β = (1 + ε/2)t1/s2, so α ≥β > 1, and 1/α + 1/β ≥1 −ε. By
+Theorem 2.13, G contains a coloured ε-regular partition V1 ∪· · · ∪Vk with |V1| = · · · = |Vk| = m and
+km = (1 + 1/α + 1/β −10ε)t1. Let H be the corresponding red/blue coloured (ε, d)-reduced graph, and
+note that H contains at most εk2 non-edges. By removing at most √εk ≪ζk clusters if necessary, we may
+assume that |H| ≥(1 + 1/α + 1/β −2ζ)t1/m, and every vertex in H has at most ζt1/m non-neighbours
+in H. Let V = V (H) and k′ = t1/m.
+Let v ∈V be arbitrary.
+Then, either Nred(v, V ) ≥(1/2 + 1/2α + 1/2β −ζ)k′, or Nblue(v, V ) ≥
+(1/2+1/2α+1/2β −ζ)k′. First assume that Nred(v, V ) ≥(1/2+1/2α+1/2β −ζ)k′. Let Q = Nred(v, V ),
+R = V \ (Q ∪{v}), and let A, B, C be given by applying Lemma 2.23 to #»
+Hred(v). If wred,max(#»
+Hred(v)) ≥
+(1 + ζ)k′, then G contains a red copy of T by Lemma 2.26 and Lemma 2.16 (H LT), so assume otherwise.
+Then, by K1 and K3, |Q ∩A| + |Q ∩C| + |R ∩A| > (1/α + 1/β −4ζ)k′.
+Case I. Q∩A = ∅. Then, |Q∩B|+|Q∩C| ≥(1/2+1/2α+1/2β−ζ)k′. Since wred,max(#»
+Hred(v)) < (1+ζ)k′,
+(1 + α)|Q ∩B| + |Q ∩C| ≤(1 + 1/α)(1 + ζ)k′ < (1 + 1/α + 2ζ)k′ by J2. Thus, |Q ∩B| ≤(1/2α + 1/2α2 −
+18
+
+
+1/2αβ + 3ζ)k′, and so |Q ∩C| ≥(1/2 + 1/2β −1/2α2 + 1/2αβ −4ζ)k′. Since α ≥β,
+|Q ∩C| ≥(1/2β + 1/2β + (1/β −1/α)/2α −4ζ)k′ ≥(1/β −4ζ)k′.
+Next, by J3, |R∩A| = |A| > |V |−1−(1+1/α)(1+ζ)k′ ≥(1/β −5ζ)k′. Moreover, by J2, |R∩C|+|B| =
+|C| −|Q ∩C| + |B| < (1 + 1/α)(1 + ζ)k′ −α|B| −|Q ∩C| ≤(1 + 1/α + 2ζ)k′ −|Q|, and so
+|Q ∩C| + |R ∩A| = |V | −|R ∩C| + |B| ≥(1/β −4ζ)k′ + (1/2 + 1/2α + 1/2β −ζ)k′ ≥(1 + 1/β −6ζ)k′.
+Therefore, using K2, the clusters in Q ∩C and R ∩A together contain a C-situation in blue, so we can
+apply Lemma 3.7 (Stage 3) to finish the proof.
+Case II. |Q ∩A| ≥1. Then, by K2 and using that any z ∈Q ∩A is a blue neighbour of all but at most
+ζk′ vertices in (Q ∩A) ∪(Q ∩C) ∪(R ∩A), we get that |Nblue(z, V )| ≥(1/α + 1/β −5ζ)k′.
+Let Q′ = Nblue(z, V ), R′ = V \ (Q′ ∪{z}), and let A′, B′, C′ be given by applying Lemma 2.23 to
+#»
+Hblue(z). If wblue,max(#»
+Hblue(z)) ≥(1 + ζ)k′, then we can find a blue copy of S by Lemma 2.26 and
+Lemma 2.16 (H LT), so assume otherwise. Then, by K1 and K3, |Q′ ∩A′| + |Q′ ∩C′| + |R′ ∩A′| >
+(1/α + 1/β −4ζ)k′.
+Case II.1. Q′∩A′ = ∅. Then, |Q′∩B′|+|Q′∩C′| ≥(1/α+1/β−5ζ)k′. We proceed similarly to Case
+I above. Since wblue,max(#»
+Hblue(z)) < (1 + ζ)k′, by J2, (1 + β)|Q′ ∩B′| + |Q′ ∩C′| ≤(1 + 1/β)(1 + ζ)k′ <
+(1 + 1/β + 2ζ)k′. Thus, |Q′ ∩B′| ≤(1/β −1/αβ + 7ζ)k′, and so |Q′ ∩C′| ≥(1/α + 1/αβ −12ζ)k′ ≥
+(1/α −5ζ)k′. By J3, |R′ ∩A′| = |A′| > |V | −1 −(1 + 1/β)(1 + ζ)k′ ≥(1/α −5ζ)k′. Then, by J2,
+|R′ ∩C′| + |B′| = |C′| −|Q′ ∩C′| + |B′| < (1 + 1/β)(1 + ζ)k′ −β|B′| −|Q′ ∩C′| ≤(1 + 1/β + 2ζ)k′ −|Q′|.
+Thus, |Q′ ∩C′| + |R′ ∩A′| ≥(1/α −4ζ)k′ + |Q′| ≥(2/α + 1/β −9ζ)k′ ≥(1 + 1/α −10ζ)k′. Therefore,
+the clusters in Q′ ∩C′ and R′ ∩A′ contain a C-situation in red, so we can use Lemma 3.7 (Stage 3) to
+finish the proof.
+Case II.2. |Q′ ∩A′| ≥1. Since α ≥β, by Lemma 2.25, we get a B-situtaion in red, and can finish
+the proof using Lemma 3.10 (Stage 2).
+The case when Nblue(v, V ) ≥(1/2 + 1/2α + 1/2β −ζ)k′ is similar, and the same proof mostly works
+after exchanging the roles of α and β, and red and blue, so we only comment on two instances where
+α ≥β is used in the proof above.
+Let Q = Nblue(v, V ), R = V \(Q∪{v}), and let A, B, C be given by applying Lemma 2.23 to #»
+Hblue(v).
+If Q∩A = ∅, then as in Case I above, we can similarly obtain |Q∩C| ≥(1/2+1/2α−1/2β2+1/2αβ−4ζ)k′.
+Then, we prove |Q ∩C| ≥(1/α −4ζ)k′ in a different way as follows.
+|Q ∩C| ≥(1/2 + 1/2α −1/2β2 + 1/2αβ −4ζ)k′ ≥(1/2β + 1/2α −1/2β2 + 1/2αβ −4ζ)k′
+= (1/α −4ζ + (1/2β −1/2α)(1 −1/β))k′
+≥(1/α −4ζ)k′,
+where the last inequality follows from α ≥β. The rest of the proof in Case I does not use α ≥β, so
+carries through directly.
+If |Q ∩A| ≥1, then we proceed as in Case II. The only place where α ≥β is used is Case II.2.
+In this setting, Q′ = Nred(z, V ), R′ = V \ (Q′ ∪{z}), A′, B′, C′ are given by applying Lemma 2.23 to
+#»
+Hred(z), and |Q′ ∩A′| ≥1. Then, any y ∈Q′ ∩A′ is a blue neighbour of all but at most ζk′ vertices in
+(Q′ ∩A′) ∪(Q′ ∩C′) ∪(R′ ∩A′). In particular, |Nblue(y, V )| ≥(1/α + 1/β −5ζ)k′. Let Q′′ = Nblue(y, V ),
+R′′ = V \ (Q′′ ∪{y}), and let A′′, B′′, C′′ be given by applying Lemma 2.23 to #»
+Hblue(y). Then, we are in
+the same situation as Case II above with y in place of z, and can finish the proof in the same way.
+4
+Extremal part
+In this section, we show that even if G is (µ, T, S)-extremal, we can still find either a red copy of T or
+a blue copy of S in G. The cases when G is Type 1, Type 2, Type 3, or Type 4 (µ, T, S)-extremal will
+be proved in order from Section 4.1 to Section 4.4. Combining these with Theorem 3.3, we complete the
+proof of Theorem 1.6, and thus of Theorem 1.3. Before that, we collect and prove several preparatory
+19
+
+
+tree embedding results, which allow us to embed trees with many bare paths or many leaves into almost
+complete graphs or almost complete bipartite graphs. Many proofs of this section are adapted from the
+extremal part of the proof of Theorem 1.1 in [13].
+The first such embedding result is adapted from [13, Lemma 6.1], and shows that a spanning tree with
+many bare paths can be embedded into an almost complete graph.
+Lemma 4.1. Let 1/n ≪µ ≪ξ ≤1/100. Let H be a graph with at least n vertices satisfying δ(H) ≥ξn
+and d(v) ≥|H| −µn for all but a set W of at most µn vertices v ∈V (H). Let T be an n-vertex tree with
+∆(T) ≤µn that contains 10µn vertex-disjoint bare paths of length 4. Then, for any t ∈V (T) not on any
+of these bare paths and any u ∈V (H), there is a copy of T in H with t copied to u.
+Proof. Let P be a set of ℓ= 10µn vertex-disjoint bare paths of length 4 in T, and let T ′ be the forest
+obtained by deleting the 3 internal vertices of every path in P from T, so in particular |T ′| = (1 −30µ)n.
+Let m = |W| if u ̸∈W, and let m = |W|−1 otherwise, noting that m ≤µn. Let the vertices in W that
+are not u be w1, . . . , wm. Since δ(H) ≥ξn ≫m, we can greedily find distinct vertices x1, y1, . . . , xm, ym ∈
+V (H) \ W, such that xiwiyi is a path of length 2 for every i ∈[m]. Let W + = ∪m
+i=1{xi, yi, wi}, and let
+H′ = H −W +.
+Note that dH′(v) ≥|H′| −µn ≥|T ′| for every v ∈V (H′) except possibly u, and dH′(u) ≥ξn −3m ≥
+∆(T). Thus, we can greedily find a copy ψ(T ′) of T ′ in H′, with t copied to u. Let u1, v1, . . . , uℓ, vℓbe
+the copies of the endpoints of the ℓpaths in P. To complete a copy of T, it suffices to find uivi-paths of
+length 4 using new distinct internal vertices for each i ∈[ℓ].
+Let H′′ = H′ −V (ψ(T ′)) = H −W + −V (ψ(T ′)), and note that δ(H′′) ≥|H′′| −µn ≥|H′′|/2 because
+|H′′| ≥n −3m −(1 −30µ)n ≥27µn. By Dirac’s Theorem, there is a Hamilton cycle in H′′. In particular,
+we can find distinct xm+1, ym+1, wm+1, . . . , xℓ, yℓ, wℓ∈V (H′′), such that xiwiyi is a path of length 2 for
+every m + 1 ≤i ≤ℓ.
+Let K be the auxiliary bipartite graph with bipartition classes A = {a1, . . . , aℓ} and B = {b1, . . . , bℓ},
+such that for any i, j ∈[ℓ], aibj ∈E(K) if and only if both uixj and viyj are edges in H.
+Since
+∪ℓ
+i=1{ui, vi, xi, yi} ⊂V (H) \ W, for every i ∈[ℓ], dK(ai), dK(bi) ≥ℓ−2µn. Then, for any I ⊂A with
+0 < |I| ≤ℓ−2µn, we have |NK(I, B)| ≥ℓ−2µn ≥|I|, while for any I ⊂A with |I| > ℓ−2µn, we have
+|NK(I, B)| = |B| ≥|I|, as any b ∈B \ NK(I, B) would satisfy dK(b) < 2µn < ℓ−2µn, a contradiction.
+Thus, by Lemma 2.3, there is a perfect matching in K, say matching ai with bσ(i) for every i ∈[ℓ].
+This implies that ψ(T ′) along with the paths uixσ(i)wσ(i)yσ(i)vi for all i ∈[ℓ] form a copy of T in H, as
+required.
+The next result is a bipartite version of Lemma 4.1.
+Lemma 4.2 ([13, Lemma 6.2]). Let 1/n ≪µ ≪ξ ≤1/100. Let H be a bipartite graph with bipartition
+classes U1 and U2 such that d(v, U2) ≥|U2| −µn for every v ∈U1, d(v, U1) ≥ξn for every v ∈U2, and
+d(v, U1) ≥|U1| −µn for all but a set W of at most µn vertices in U2.
+Let T be an n-vertex forest with bipartition classes V1 and V2 such that |Vj| ≤|Uj| for each j ∈[2].
+Moreover, suppose that T contains a set P of 10µn vertex-disjoint bare paths of length 4 whose endpoints
+are all in V2. Then, for any j ∈[2], any t ∈Vj and u ∈Uj, H contains a copy of T with t copied to u, Vi
+copied to Ui for each i ∈[2], and W covered by the central vertices of the bare paths in P.
+The next result shows that if a tree has many leaves and a sublinear maximum degree, then it can be
+embedded into an almost complete graph of the same size. This is similar to [18, Lemma 3.2] and is a less
+complicated version of several related results in [13].
+Lemma 4.3. For every ξ ≤1/100, there exists c = cξ > 0 such that the following holds. Let 1/n ≪µ ≪ξ.
+Let H be a graph with at least n vertices, one of which is u, such that d(v) ≥|H|−µn for all v ∈V (H)\{u},
+and d(u) ≥ξn. Let T be an n-vertex tree with ∆(T) ≤cn/ log n, and suppose that T contains at least
+ξn/103 leaves. Then, for any t ∈V (T), there is a copy of T in H with t copied to u.
+Proof. Let L be a set of ξn/104 leaves in T not including t or any neighbours of t. Let P = {p1, . . . , pℓ}
+be the set of parents of leaves in L, and let di = d(pi, L) for every i ∈[ℓ]. Order the vertices of T −L
+using a breadth first search as t = t1, t2, . . . , tm, so that for every 2 ≤i ≤m, ti has a unique neighbour to
+20
+
+
+its left in this ordering, and all neighbours of t1 appear immediately after t1. By relabelling if necessary,
+we may assume that p1, . . . , pℓappear in this order.
+Consider the following random embedding ψ of T −L into H. Let ψ(t) = ψ(t1) = u. Then, for
+each 2 ≤i ≤m, let ji ∈[i −1] be the unique index such that tji is a neighbour of ti, and pick ψ(ti)
+uniformly at random from the set Yi = N(ψ(tji)) \ {ψ(t1), . . . , ψ(ti−1)}. We claim that this procedure
+always succeeds in producing a random embedding of T −L. Indeed, if ji ≥2, then ψ(tji) ̸= u, so
+|Yi| ≥|L| −µn ≥ξn/104 −µn ≥2µn > 0. If ji = 1, then |Yi| ≥ξn −∆(T) ≥2µn > 0
+Now, note that for every v ∈V (H) \ {u} and every i ∈[ℓ], if pi = ti′ and Yi′ is defined as above, then
+P(v ̸∈N(ψ(pi)) | ψ(t1), . . . , ψ(ti′−1)) ≤|Yi′ \ N(v)|
+|Yi′|
+≤µn
+2µn < 1
+2.
+Therefore, by Lemma 2.1,
+P
+
+
+X
+i:v∈N(ψ(pi))
+di < |L|/4
+
+≤exp
+
+−
+(|L|/4)2
+2
+|L|
+cn/ log n(cn/ log n)2
+
+
+= exp
+
+−|L| log n
+32cn
+
+≤exp
+
+−ξ log n
+106c
+
+= o(n−1),
+provided that c < ξ/106. Therefore, by a union bound, with high probability, every v ∈V (H) \ {u}
+satisfies P
+i:v∈N(ψ(pi)) di ≥|L|/4. Fix an embedding ψ with this property.
+Let W ⊂V (H)\{u} be the set of remaining vertices, it suffices now to embed L appropriately into W,
+noting that |W| ≥|L|. To do this, we verify Hall’s condition. For any ∅̸= I ⊂[ℓ], if P
+i∈I di ≤|L| −µn,
+then |N(ψ({pi : i ∈I}), W)| ≥|W| −µn ≥P
+i∈I di as d(v) ≥|H| −µn for every v ∈V (H) \ {u}. If
+I ⊂[ℓ] satisfies P
+i∈I di > |L| −µn, then N(ψ({pi : i ∈I}), W) = W and |N(ψ({pi : i ∈I}), W)| = |W| ≥
+|L| ≥P
+i∈I di, because any w ∈W \ N(ψ({pi : i ∈I}), W) would satisfy P
+i:w∈N(ψ(pi)) di ≤µn < |L|/4,
+a contradiction. Hence, Hall’s condition holds and we can use Lemma 2.4 to finish the embedding.
+We also prove a bipartite version of Lemma 4.3, which is again similar to some results in [13].
+Lemma 4.4. For every ξ ≤1/100, there exists c = cξ > 0 such that the following holds.
+Let 1/n ≪µ ≪ξ. Let H be a bipartite graph with bipartition classes U1 and U2 such that d(v, U2) ≥
+|U2| −µn for every v ∈U1, d(v, U1) ≥ξ|U1| for every v ∈U2, and d(v, U1) ≥|U1| −µn for all but a set
+W2 of at most µn vertices in U2.
+Let T be an n-vertex tree with ∆(T) ≤cn/ log n and bipartition classes V1 and V2, such that |V1| +
+n/10 ≤|U1| and |V2| ≤|U2|. If T contains a set L of ξn/105 leaves in V2, then there is an embedding of
+T in H with Vi embedded into Ui for each i ∈[2], and only vertices in L embedded into W2.
+Proof. If |U2| ≥|V2| + 2µn, then we can simply embed T greedily, so assume otherwise.
+Let P =
+{p1, . . . , pℓ} be the set of parents of leaves in L, and let di = d(pi, L) for every i ∈[ℓ].
+Note that
+|P| ≤|L| = ξn/105. Order the vertices of T −L as t1, t2, . . . , tm, such that t1 ̸∈P ∪L, and for every
+2 ≤i ≤m, ti has a unique neighbour to its left in this ordering. By relabelling if necessary, we may
+assume that p1, . . . , pℓappear in this order.
+Let W1 ⊂U1 be a uniformly random set of size n/20. Then, by Lemma 2.2, with high probability
+every v ∈U2 satisfies d(v, W1) ≥ξn/50.
+Consider the following random embedding ψ of T −L into H[U1, U2 \ W2]. Pick ψ(t1) ∈U1 \ W1
+uniformly at random if t1 ∈V1, and pick ψ(t1) ∈U2 \ W2 uniformly at random if t1 ∈V2. Then, for
+each 2 ≤i ≤m, let ji ∈[i −1] be the unique index such that tji is a neighbour of ti. If ti ̸∈P, pick
+ψ(ti) uniformly at random from the set N(ψ(tji)) \ (W1 ∪W2 ∪{ψ(t1), . . . , ψ(ti−1)}), which has size at
+least |U1| −|V1| −|W1| −µn > 0 if ti ∈V1, and at least |L| −|W2| −µn > 0 if ti ∈V2. If ti ∈P, then
+ti ∈V1, and pick ψ(ti) uniformly at random from the set Yi = N(ψ(tji), W1) \ {ψ(t1), . . . , ψ(ti−1)}, which
+has size at least |W1|−|P|−µn > 0. In particular, this procedure always succeeds in producing a random
+embedding of T −L.
+21
+
+
+Now, note that for every v ∈U2 and every i ∈[ℓ], if pi = ti′ and Yi′ is defined as above, then, using
+d(v, W1) ≥ξn/50 and that at most |P| ≤ξn/103 vertices have been embedded into W1, we have
+P(v ∈N(ψ(pi)) | ψ(t1), . . . , ψ(ti′−1)) = |Yi′ ∩N(w)|
+|Yi′|
+≥ξn/50 −ξn/105 −µn
+n/20
+≥ξ
+5.
+Therefore, by Lemma 2.1,
+P
+
+
+X
+i:w∈N(ψ(pi))
+di < ξ|L|/10
+
+≤exp
+
+−
+(ξ|L|/10)2
+2
+|L|
+cn/ log n(cn/ log n)2
+
+
+= exp
+
+−ξ2|L| log n
+200cn
+
+≤exp
+
+−ξ3 log n
+108c
+
+= o(n−1),
+provided that c < ξ3/108. By a union bound, with high probability, P
+i:w∈N(ψ(pi)) di ≥ξ|L|/10 for every
+w ∈V (H). Fix an embedding ψ with this property.
+Let W ⊃W2 be the set of remaining vertices in U2, it suffices now to embed L appropriately into W,
+noting that |W| ≥|L|. To do this, we verify Hall’s condition. For any ∅̸= I ⊂[ℓ], if P
+i∈I di ≤|L| −µn,
+then |N(ψ({pi : i ∈I}), W)| ≥|W| −µn ≥P
+i∈I di as d(v, U2) ≥|U2| −µn for every v ∈U1. If I ⊂[ℓ]
+satisfies P
+i∈I di > |L| −µn, then N(ψ({pi : i ∈I}), W) = W and |N(ψ({pi : i ∈I}), W)| = |W| ≥|L| ≥
+P
+i∈I di, because any w ∈W \ N(ψ({pi : i ∈I}), W) would satisfy P
+i:w∈N(ψ(pi)) di ≤µn < ξ|L|/10, a
+contradiction. Hence, Hall’s condition holds and we can use Lemma 2.4 to finish the embedding. Note
+that only vertices in L are embedded in to W2 in this embedding.
+Finally, by combining Lemma 2.6, Lemma 4.2 and Lemma 4.4, the following lemma embeds trees into
+almost complete bipartite graphs.
+Lemma 4.5. For every ξ ≤1/100, there exists c = cξ > 0 such that the following holds.
+Let 1/n ≪µ ≪ξ. Let H be a bipartite graph with bipartition classes U1 and U2 such that d(v, U2) ≥
+|U2| −µn for every v ∈U1, d(v, U1) ≥ξ|U1| for every v ∈U2, and d(v, U1) ≥|U1| −µn for all but a set
+W2 of at most µn vertices in U2.
+Let T be an n-vertex tree with ∆(T) ≤cn/ log n and bipartition classes V1 and V2, such that n/4 ≤
+|V1| + n/5 ≤|U1| and n/100 ≤|V2| ≤|U2|. Then, there is an embedding of T in H with Vi embedded into
+Ui for each i ∈[2].
+Proof. Let L1 be the set of leaves of T in V1, and let T ′ = T −L1. Note that |T ′| ≥|V2| ≥n/100.
+Let Z ⊂U1 be a uniformly random subset of size n/10, and note that |U1|−|Z| ≥|V1|+n/10. Then, by
+Lemma 2.2, with high probability every v ∈U2 satisfies d(v, Z) ≥ξn/20 and d(v, U1 \ Z) ≥ξ|U1 \ Z|/2 ≥
+ξn/20. Fix a realisation of Z with this property.
+If T ′ contains at least n/103 vertex-disjoint bare paths of length 5, then it also contains at least n/103
+vertex-disjoint bare paths of length 4 with all of their endpoints in V2. By averaging, there is a collection
+of 100µn such bare paths, such that the set X of their central vertices satisfies N(X, L1) ≤105µn2/n ≤
+ξn/20. Then, we can find a copy of T ′ in H[U1 \ Z, U2] by Lemma 4.2 with only vertices in X embedded
+into W2. Formally, this is done by letting T ′′ be the tree obtained by attaching |L1| new leaves to the
+end points of the 100µn chosen bare paths in T ′, then apply Lemma 4.2 to T ′′. To finish, note that
+d(v, Z) ≥ξn/20 for every v ∈U2, and d(v, U1 \ Z) ≥|U1 \ Z| −µn ≥|V1| for every v ∈U2 \ W2, so we can
+greedily embed the leaves in L1 adjacent to vertices in X into Z, and the leaves in L1 not adjacent to X
+into U1 \ Z.
+Otherwise, T ′ contains at least n/100 leaves by Lemma 2.6, which must all belong to V2. Again by
+averaging, we can find a set X of ξn/104 such leaves, such that |N(X, L1)| ≤ξn2/102n ≤ξn/20. By
+Lemma 4.4, formally applied to the tree T ′′ obtained by attaching |L1| leaves to vertices in X while
+preserving ∆(T ′′) ≤cn/ log n, we can find a copy of T ′ in H[U1 \Z, U2], with only vertices in X embedded
+into W2. Then, like above, we can finish the embedding of T by greedily embedding leaves in L1 into
+U1 \ Z or Z, depending on whether they are adjacent to X.
+22
+
+
+4.1
+Type 1
+Lemma 4.6 (Type 1). There exists a constant c > 0 such that the following holds. Let 1/n ≤1/ν ≪
+µ ≤1. Let T be an n-vertex tree with ∆(T) ≤cn/ log n and bipartition class sizes t1 ≥t2 ≥(t1 −2)/3.
+Let S be a ν-vertex tree with ∆(S) ≤cν/ log ν and bipartition class sizes s1 ≥s2 ≥(t1 −2)/2. Suppose
+also that ν ≥t1 ≥s1, s2 ≥t2 and s2 + t2 ≥t1 −1.
+Let G be a red/blue coloured complete graph with max{n + s2, 2t1} −1 vertices that is Type 1 (µ, T, S)-
+extremal.
+That is, G contains disjoint U1, U2 ⊂V (G) such that |U1| ≥(1 −µ)n, |U2| ≥(1 −µ)s2,
+dblue(v, U1) ≤µn for every v ∈U1, and dred(v, U3−i) ≤µn for every i ∈[2] and v ∈Ui. Then, G contains
+either a red copy of T or a blue copy of S.
+Proof. Let ξ = 1/100, and let c be smaller than the constants given by applying Lemma 4.3 and Lemma 4.5
+with ξ. Let U +
+1 = {v ∈V (G) : dred(v, U1) ≥|U1| −ξn} and U +
+2 = V (G) \ U +
+1 . Then, dblue(v, U1) ≥ξn for
+every v ∈U +
+2 . Note also that U1 ⊂U +
+1 and U2 ⊂U +
+2 . Let k = |U +
+1 |−n, so |k| ≤2µn and |U +
+2 | ≥s2−k−1.
+First suppose that k ≥0, then |U +
+1 | ≥n and δ(Gred[U +
+1 ]) ≥|U +
+1 | −2ξn. If T contains at least n/100
+vertex-disjoint bare paths of length 4, then we can find a red copy of T in G[U+
+1 ] by Lemma 4.1. Otherwise,
+T contains at least n/20 leaves by Lemma 2.6. Then, we can find a red copy of T in G[U +
+1 ] by Lemma 4.3.
+Now suppose k < 0, so |U +
+2 | ≥s2. Note that ν ≥t1 ≥n/2 and |U1| ≥(1 −µ)(s1 + t2) ≥s1 + n/5 from
+assumption. Thus, we can find a blue copy of S in G[U1, U +
+2 ] by Lemma 4.5.
+4.2
+Type 2
+Lemma 4.7 (Type 2). There exists a constant c > 0 such that the following holds. Let 1/n ≤1/ν ≪
+µ ≤1. Let T be an n-vertex tree with ∆(T) ≤cn/ log n and bipartition class sizes t1 ≥t2 ≥(t1 −2)/3.
+Let S be a ν-vertex tree with ∆(S) ≤cν/ log ν and bipartition class sizes s1 ≥s2 ≥(t1 −2)/2. Suppose
+also that ν ≥(1 −µ)(t1 + s2), s2 ≥t2, and s2 + t2 ≥t1 −1.
+Let G be a red/blue coloured complete graph with max{n+s2, 2t1}−1 vertices which is Type 2 (µ, T, S)-
+extremal.
+That is, G contains disjoint U1, U2 ⊂V (G) such that |U1| ≥(1 −µ)ν, |U2| ≥(1 −µ)t2,
+dred(v, U1) ≤µn for every v ∈U1, and dblue(v, U3−i) ≤µn for every i ∈[2] and v ∈Ui. Then, G contains
+either a red copy of T or a blue copy of S.
+Proof. Let ξ = 1/100, and let c be smaller than the constants given by applying Lemma 4.3 and Lemma 4.5
+with ξ. Let U +
+1 = {v ∈V (G) : dblue(v, U1) ≥|U1| −ξn} and U +
+2 = V (G) \ U +
+1 . Then, dred(v, U1) ≥ξn
+for every v ∈U +
+2 .
+Note also that U1 ⊂U +
+1
+and U2 ⊂U +
+2 .
+Let k = |U +
+1 | −ν, so |k| ≤10µn and
+|U +
+2 | ≥t2 −k −1.
+First suppose that k ≥0, then |U +
+1 | ≥ν and δ(Gblue[U +
+1 ]) ≥|U +
+1 | −2ξn. If S contains at least
+ν/100 vertex-disjoint bare paths of length 4, then we can find a blue copy of S in G[U+
+1 ] by Lemma 4.1.
+Otherwise, S contains at least ν/20 leaves by Lemma 2.6. Then, we can find a blue copy of S in G[U +
+1 ]
+by Lemma 4.3.
+Now suppose k < 0, so |U +
+2 | ≥t2. Note that |U1| ≥(1 −µ)2(t1 + s2) ≥t1 + n/5 from assumption.
+Thus, we can find a red copy of T in G[U1, U +
+2 ] by Lemma 4.5.
+4.3
+Type 3
+Lemma 4.8 (Type 3). There exists a constant c > 0 such that the following holds. Let 1/n ≤1/ν ≪
+µ ≤1. Let T be an n-vertex tree with ∆(T) ≤cn/ log n and bipartition class sizes t1 ≥t2 ≥(t1 −2)/3.
+Let S be a ν-vertex tree with ∆(S) ≤cν/ log ν and bipartition class sizes s1 ≥s2 ≥(t1 −2)/2. Suppose
+also that ν ≥t1 ≥(1 −µ)(t2 + s2) ≥(1 −µ)(t1 −1) and s2 ≥t2.
+Let G be a red/blue coloured complete graph with max{n+s2, 2t1}−1 vertices which is Type 3 (µ, T, S)-
+extremal. That is, G contains disjoint U1, U2 ⊂V (G) such that |U1|, |U2| ≥(1 −µ)t1, dred(v, Ui) ≤µn for
+every i ∈[2] and every v ∈Ui, and dblue(v, U3−i) ≤µn for every i ∈[2] and v ∈Ui. Then, G contains
+either a red copy of T or a blue copy of S.
+Proof. Let c be smaller than the constants given by applying Lemma 4.3 and Lemma 4.5 with ξ = 1/100.
+Let U +
+1 , U +
+2 ⊂V (G) be maximal disjoint sets with U1 ⊂U +
+1 , U2 ⊂U +
+2 , and dred(v, U3−i) ≥|U3−i|/3 for
+23
+
+
+every i ∈[2] and v ∈U +
+i . Note that |U +
+i \ Ui| ≤10µn for each i ∈[2]. By relabelling if necessary, we can
+assume that |U +
+1 | ≥|U +
+2 |.
+First, suppose that there are two distinct vertices v1, v2 ∈V (G) \ (U +
+1 ∪U +
+2 ). By the maximality of
+U +
+1 and U +
+2 , we must have dblue(vi, Uj) ≥2|Uj|/3 for each i, j ∈[2]. As t1 ≥(1 −µ)(t2 + s2) ≥(2 −2µ)t2,
+we have |Ui| ≥t1 −µn ≥(2/3 −2µ)n ≥(2/3 −2µ)ν for each i ∈[2]. By Lemma 2.11, there is a partition
+V (S) = A ∪B with |A|, |B| ≤(2/3 −10µ)ν, such that S[A] is a tree and A′ := {v ∈A : dS(v, B) > 0}
+is an independent set in S with |A′| ≤2. View S[A] as a tree rooted at a vertex in A′, and embed this
+vertex to v1. Then, greedily extend this to an embedding of the tree S[A] in Gblue[U1 ∪{v1, v2}], such
+that if there is another vertex in A′, then it is embedded to v2. This is possible as |U1| −|A| ≫µn
+and |Nblue(v1, U1) ∩Nblue(v2, U1)| ≥|U1|/3 ≫µn. We can then extend this to a copy of S by greedily
+embedding S[A′ ∪B] in Gblue[U2 ∪{v1, v2}].
+Therefore, we may assume from now on that |V (G) \ (U +
+1 ∪U +
+2 )| ≤1. Note that if n + s2 ≥2t1, then
+3s2 ≥(t2 + s2) + (2s2 −t2) ≥t1 + t2 = n. It follows that |U +
+1 | ≥⌈(|G| −1)/2⌉≥max{⌈2n/3⌉−1, t1 −1}.
+If there exists v ∈V (G) with at least 20µn red neighbours in both U +
+1 and U +
+2 , then v has at least
+20µn−10µn ≥∆(T) red neighbours in both U1 and U2. By Lemma 2.10, we can find subtrees T1 and T2 of
+T with a unique common vertex t, such that V (T1)∪V (T2) = V (T), and 10µn ≤|V (T1)∩V1|−|V (T1)∩V2| ≤
+25µn. Embed t to v, then we can greedily embed both T1 and T2 so that vertices in V (T2) ∩V1 and
+V (T1) ∩V2 go into U1 and vertices in V (T1) ∩V1 and V (T2) ∩V2 go into U2. This is possible because
+|V (T1) ∩V2| + |V (T2) ∩V1| ≤|V (T1) ∩V1| + |V (T2) ∩V1| −10µn ≤t1 + 1 −10µn ≤|U1| −µn,
+|V (T1) ∩V1| + |V (T2) ∩V2| ≤|V (T1) ∩V2| + |V (T2) ∩V2| + 25µn ≤t2 + 1 + 25µn ≤|U2| −µn,
+and v has at least ∆(T) red neighbours in both U1 and U2. Thus, we can assume that no such v exists,
+so in particular δ(Gblue[U +
+i ]) ≥|U +
+i | −20µn for each i ∈[2].
+Now suppose that V (G) \ (U +
+1 ∪U +
+2 ) contains a unique vertex w. By maximality, dblue(w, U +
+j ) ≥
+dblue(w, Uj) ≥2|Uj|/3 for each j ∈[2].
+By Lemma 2.9, there exist subtrees S1 and S2 of S with a
+unique common vertex t, such that V (S1) ∪V (S2) = V (S), and ⌈ν/3⌉≤|S1| ≤|S2| ≤⌈2ν/3⌉. For each
+j ∈[2], Sj either has ν/100 vertex-disjoint bare paths of length 4 or ν/100 leaves by Lemma 2.6, so we
+can use Lemma 4.1 or Lemma 4.3, respectively, to embed Sj into Gblue[U +
+j ∪{w}], with t embedded to
+w. Together, this gives a blue copy of S in G.
+Finally, suppose that V (G) \ (U +
+1 ∪U +
+2 ) = ∅. Then, |U +
+1 | ≥t1, and |U2| ≥(1 −µ)t1 ≥t2 + n/5, so we
+can find a red copy of T in G[U +
+1 , U2] by Lemma 4.5.
+4.4
+Type 4
+Lemma 4.9 (Type 4). There exists a constant c > 0 such that the following holds. Let 1/n ≤1/ν ≪
+µ ≤1. Let T be an n-vertex tree with ∆(T) ≤cn/ log n and bipartition class sizes t1 ≥t2 ≥(t1 −2)/3.
+Let S be a ν-vertex tree with ∆(S) ≤cν/ log ν and bipartition class sizes s1 ≥s2 ≥(t1 −2)/2. Suppose
+also that s1 ≥(1 −µ)(n + s2)/2, ν ≥t1 ≥s1, t2 + s2 ≥t1 −1, and s2 ≥t2.
+Let G be a red/blue coloured complete graph with max{n+s2, 2t1}−1 vertices which is Type 4 (µ, T, S)-
+extremal. That is, G contains disjoint U1, U2 ⊂V (G) such that |U1|, |U2| ≥(1 −µ)s1, dblue(v, Ui) ≤µn
+for every i ∈[2] and every v ∈Ui, and dred(v, U3−i) ≤µn for every i ∈[2] and v ∈Ui. Then, G contains
+either a red copy of T or a blue copy of S.
+Proof. Let c be smaller than the constants given by applying Lemma 4.3 and Lemma 4.5 with ξ = 1/100.
+From assumptions, 2s1 ≥(1 −µ)(s1 + t2 + s2), so s1 ≥(1 −2µ)(t2 + s2) ≥(1 −3µ)t1. Also, 2s1 ≥
+(1 −µ)(ν + s2), so t1 ≥s1 ≥(2 −4µ)s2 ≥(2 −4µ)t2. Let U +
+1 , U +
+2 ⊂V (G) be maximal disjoint sets with
+U1 ⊂U +
+1 , U2 ⊂U +
+2 , and dblue(v, U3−i) ≥|U3−i|/3 for every i ∈[2] and v ∈U +
+i . Note that |U +
+i \Ui| ≤10µn
+for each i ∈[2]. By relabelling if necessary, we can assume that |U +
+1 | ≥|U +
+2 |.
+First, suppose that there are two distinct vertices v1, v2 ∈V (G) \ (U +
+1 ∪U +
+2 ). By the maximality
+of U +
+1
+and U +
+2 , we must have dred(vi, Uj) ≥2|Uj|/3 for each i, j ∈[2]. As s1 ≥(1 −3µ)t1, we have
+|Ui| ≥(1 −µ)s1 ≥(2/3 −10µ)n for each i ∈[2]. By Lemma 2.11, there is a partition V (T) = A ∪B with
+|A|, |B| ≤(2/3 −20µ)n, such that T[A] is a tree and A′ := {v ∈A : dT (v, B) > 0} is an independent set
+in T with |A′| ≤2. Then, as in the proof of Lemma 4.8, we can use this partition to find a red copy of T
+in G, with any vertex in A′ embedded to {v1, v2}.
+24
+
+
+Therefore, we may assume from now on that |V (G)\(U +
+1 ∪U +
+2 )| ≤1. Note that |U +
+1 | ≥⌈(|G| −1)/2⌉≥
+max{⌈2n/3⌉−1, t1 −1}.
+If there exists v ∈V (G) with at least 20µn blue neighbours in both U+
+1 and U +
+2 , then like in the proof
+of Lemma 4.8, we can use Lemma 2.10 to find a blue copy of S in G. Thus, we can assume that no such
+v exists, so in particular δ(Gblue[U +
+i ]) ≥|U +
+i | −20µn for each i ∈[2].
+Now suppose that V (G) \ (U +
+1 ∪U +
+2 ) contains a unique vertex w. By maximality, dred(w, U +
+j ) ≥
+dred(w, Uj) ≥2|Uj|/3 for each j ∈[2]. By Lemma 2.9, there exist subtrees T1 and T2 decomposing T, such
+that ⌈n/3⌉≤|T1| ≤|T2| ≤⌈2n/3⌉. Then, for each j ∈[2], we can use either Lemma 4.1 or Lemma 4.3 to
+embed Tj into Gred[U +
+j ∪{w}], with the unique common vertex of T1 and T2 embedded to w. Together,
+this gives a red copy of T in G.
+Finally, suppose that V (G) \ (U +
+1 ∪U +
+2 ) = ∅. Then, |U +
+1 | ≥t1 ≥s1, and |U2| ≥(1 −µ)s1 ≥s2 + n/5,
+so we can find a blue copy of S in G[U +
+1 , U2] by Lemma 4.5.
+5
+Counterexamples
+In this section, we construct examples proving Theorem 1.4 and Theorem 1.5, thus showing that neither
+s2 ≥t2 nor ν ≥t1 can be removed from the list of assumptions in Theorem 1.3.
+The two constructions share a similar idea, and can be viewed as a non-bipartite version and a bipartite
+version. We now give a sketch for the non-bipartite version, used for Theorem 1.4. As a warm-up, let’s
+suppose we want to find a tree T with bipartition class sizes t1 ≥t2 and a tree S with bipartition class
+sizes t1 ≥s2, with t1 = t2 + s2, such that R(T, S) ≥2t1 = R(T, S) + 1. Suppose the host graph G is
+quite close to the extremal construction B3, and has a vertex partition V (G) = U1 ∪U2 ∪{w}, such that
+|U1| = |U2| = t1 −1, all of Gred[U1], Gred[U2] and Gred[U1 ∪U2, {w}] are complete, and all other edges are
+blue. Then, G contains no blue copy of S as the larger bipartition class of S has size t1 > |U1|, |U2|. To
+ensure that G contains no red copy of T, let T be a tree containing a vertex v such that T −v consists of
+exactly 3 components, each of size (t1 + t2 −1)/3. If t1 ≤2t2 −2, then (t1 + t2 −1)/3 ≥t1/2, so each of
+U1 and U2 is not big enough to accommodate 2 of these 3 components. However, a simple case analysis
+on where v is embedded to shows that we cannot avoid embedding 2 of these 3 components to the same
+side, so no red copy of T exists in G.
+This idea can be extended to find arbitrarily large trees T and S satisfying R(T, S) ≥R(T, S) + C
+for any C ≥1.
+Let G be the same graph as above, except now {w} is replaced by a set W of size
+C. Let T be the tree obtained by attaching a tree of size r ≫C to each of the 3C leaves of a perfect
+ternary tree T ′ with C + 1 levels. Intuitively, if a red embedding attempt of T starts in U1, then the
+C vertices in W can be used to move at most 3C−1 + 3C−2 + · · · + 1 = (3C −1)/2 trees attached to
+leaves of T ′ to U2, so at least (3C + 1)/2 trees attached to leaves of T ′ must be embedded into U1. This
+is proved more rigorously in Lemma 5.1 below. Therefore, if we choose the parameters carefully so that
+|U1| = |U2| = t1 −1 < (3C + 1)r/2, then no red copy of T exists. The full proof will be carried out in
+Section 5.1.
+For the bipartite version of the construction, used for Theorem 1.5, let G be a red/blue coloured
+complete graph with a vertex partition V (G) = U1 ∪U2 ∪W, such that |U1| = |U2| = |S|−1, |W| = C −1,
+Gred[U1, U2] and Gred[U1 ∪U2, W] are complete, and all other edges are blue. Then, it is clear that G
+contains no blue copy of S. Let T be constructed by gluing the same tree T to each leaf of a perfect
+ternary tree T ′ with C + 1 levels. Similar to above, the rough idea (see Lemma 5.2) is that the C −1
+vertices in W can only be used to flip the embedding direction of slightly less than half of the copies of T
+attached to the leaves of T ′. Thus, there is a lower bound on |U1| = |S| −1 if a red copy of T exists in G,
+and we can rule this out with careful choices of parameters. This will be carried out in Section 5.2
+5.1
+Proof of Theorem 1.4
+Lemma 5.1. Let r ≫C ≥1 be integers. Let T ′ be the perfect ternary tree with C + 1 levels, PC−1
+i=0 3i =
+(3C −1)/2 internal vertices, and 3C leaves. Let T be a tree obtained by gluing to each leaf of T ′ a (possibly
+different) tree of size r.
+Let G be a graph with a vertex partition V (G) = U1 ∪U2 ∪W, such that the following hold.
+25
+
+
+• |U1| = |U2| and |W| = C.
+• G[U1], G[U2], and G[U1 ∪U2, W] are all complete, and there is no other edge in G.
+If there is a copy of T in G, then |U1| ≥(3C + 1)r/2.
+Proof. Let ψ : V (T) →V (G) be an embedding of T in G, and suppose for a contradiction that |U1| =
+|U2| < (3C + 1)r/2.
+Since there is no edge between U1 and U2, every component of T −ψ−1(W) is
+embedded entirely within one of U1 and U2. In particular, ψ−1(W) ̸= ∅.
+For each 0 ≤i ≤C −1, let Li be the set of vertices in the i-th level of T ′, so that |Li| = 3i. Let
+LC = V (T) \ (∪C−1
+i=0 Li). Let ℓi = |ψ−1(W) ∩
+ ∪i
+j=0Lj
+
+| for every 0 ≤i ≤C, and note that ℓC = C.
+Suppose first that ℓi ≤i for every 0 ≤i ≤C. In particular, ℓ0 = 0, so we may assume without loss of
+generality that the root of T ′ is embedded into U1. Then, without the help of vertices in W, each of the
+3C trees of size r glued to the leaves of T ′ will be embedded into U1. Since ℓi ≤i for every i ∈[C], the C
+vertices in W can be used to transfer at most PC
+i=1 3C−i = (3C −1)/2 trees glued to the leaves of T ′ to
+U2, so at least (3C + 1)/2 of them still need to be embedded inside U1, contradicting |U1| < (3C + 1)r/2.
+Therefore, there exists 0 ≤i ≤C satisfying ℓi ≥i + 1. Let 0 ≤i∗≤C be maximal subject to
+ℓi∗≥i∗+ 1, and note that i∗≤C −1. Since i∗is maximal, ℓi∗+1 ≤i∗+ 1, so no vertex in Li∗+1
+is embedded into W.
+Thus, by pigeonhole, and without loss of generality, we can assume that a set
+L′
+i∗+1 of at least (3i∗+1 + 1)/2 vertices in Li∗+1 are embedded into U1. Let T be the set of at least
+(3i∗+1 + 1)3C−i∗−1/2 trees of size r glued to the leaves of T ′ that are descendants of vertices in L′
+i∗+1.
+Without the help of vertices in W, every tree in T will be embedded into U1. By the maximality of i∗
+again, ℓi ≤i for every i ≥i∗+ 1, so there are at most i −i∗−1 vertices in ∪i
+j=i∗+1Lj that are embedded
+into W. Together, they can be used to transfer at most PC
+j=i∗+2 3C−j = (3C−i∗−1 −1)/2 trees in T to
+U2. Thus, at least
+1
+2(3i∗+1 + 1)3C−i∗−1 −1
+2(3C−i∗−1 −1) = 1
+2(3C + 1)
+trees in T still need to be embedded into U1, contradicting |U1| < (3C + 1)r/2.
+Proof of Theorem 1.4. Since r ≫C, (3C + 1)r/(2r −(3C −1)/2) ≤3C + 1, so by Lemma 2.7, we can find
+a tree S satisfying both C1 and C3.
+Let T ′ be the perfect ternary tree with C + 1 levels, PC−1
+i=0 3i = (3C −1)/2 internal vertices, and 3C
+leaves. Let T be a tree obtained by gluing to each leaf of T ′ a (possibly different) tree of size 2r. Then,
+|T| = 3C ·2r +(3C −1)/2. Moreover, by picking the trees glued to the leaves of T ′ carefully, we can ensure
+that both C1 and C2 hold, as C2 is only asking for mildly unbalanced bipartition classes.
+Let G be the red/blue coloured complete graph on 2(3C + 1)r + C −2 vertices with a vertex partition
+V (G) = U1 ∪U2 ∪W, such that the following conditions hold.
+• |U1| = |U2| = (3C + 1)r −1 and |W| = C.
+• Gred[U1], Gred[U2], and Gred[U1 ∪U2, W] are all complete.
+• Gblue[U1, U2] and Gblue[W] are both complete.
+Note that Gblue contains exactly two connected components with vertex sets U1 ∪U2 and W, respec-
+tively. Neither can contain a copy of S, as Gblue[W] is too small, while neither side of the bipartite graph
+Gblue[U1, U2] is large enough to accommodate the larger bipartition class of S. Meanwhile, Gred contains
+no copy of T by Lemma 5.1, as
+1
+2(3C + 1) · 2r = (3C + 1)r > |U1|.
+Therefore, C4 holds, which completes the proof.
+26
+
+
+5.2
+Proof of Theorem 1.5
+Lemma 5.2. Let r ≫C ≥2 and ρ ≥2 be integers. Let T ′ be the perfect ternary tree with C + 1 levels,
+PC−1
+i=0 3i = (3C −1)/2 internal vertices, and 3C leaves. Let T be a tree obtained by gluing to each leaf of
+T ′ the same tree T with bipartition class sizes ρr and r.
+Let G be a graph with a vertex partition V (G) = U1 ∪U2 ∪W, such that the following hold.
+• |U1| = |U2|, and |W| = C −1.
+• G[U1, U2] and G[U1 ∪U2, W] are both complete, and there is no other edge in G.
+If there is a copy of T in G, then |U1| ≥((3C + 3)ρr + (3C −3)r)/2.
+Proof. Let ψ : V (T) →V (G) be an embedding of T in G, and suppose for a contradiction that |U1| <
+((3C + 3)ρr + (3C −3)r)/2. Since both G[U1] and G[U2] are empty, every component of T −ψ−1(W) has
+one of its bipartition classes embedded into U1, and the other into U2. In particular, ψ−1(W) ̸= ∅as
+|U1| < 3Cρr.
+For each 0 ≤i ≤C −1, let Li be the set of vertices in the i-th level of T ′, so that |Li| = 3i. Let
+LC = V (T) \ (∪C−1
+i=0 Li). Let ℓi = |ψ−1(W) ∩
+ ∪i
+j=0Lj
+
+| for every 0 ≤i ≤C, and note that ℓC ≤C −1.
+Suppose first that ℓi ≤i for every 0 ≤i ≤C. In particular, ℓ0 = 0, so we may assume without loss of
+generality that the root of T ′ is embedded into U1 if it is in the larger bipartition class of T, and into U2
+otherwise. Then, without the help of vertices in W, each of the 3C copies of T glued to the leaves of T ′ will
+have its larger bipartition class embedded into U1, and its smaller class embedded into U2. Note that if a
+vertex in LC is embedded into W, then it can be used to potentially embed all vertices in its corresponding
+copy of T except itself into U2. This can move at most ρr vertices that would be embedded into U1 to
+U2. However, if a vertex in LC−1 is embedded into W, then it can flip the embedding direction of all 3
+copies of T below it in T, reducing the number of vertices embedded into U1 by 3(ρ −1)r > ρr. Thus,
+we may assume all vertices embedded into W are from ∪C−1
+i=0 Li. Then, since ℓi ≤i for every 0 ≤i ≤C,
+the C −1 vertices in W can be used to flip the embedding direction of at most PC−1
+i=1 3C−i = (3C −3)/2
+copies of T attached to the leaves of T ′. Thus, the number of vertices embedded into U1 is still at least
+((3C + 3)ρr + (3C −3)r)/2 > |U1|, a contradiction.
+Therefore, we may assume that ℓi ≥i + 1 for some 0 ≤i ≤C. Let 0 ≤i∗≤C be maximal subject
+to ℓi∗≥i∗+ 1, and note that i∗≤C −2. Since i∗is maximal, ℓi∗+1 ≤i∗+ 1, so every vertex in Li∗+1
+is not embedded into W. Thus, by pigeonhole, and without loss of generality, there is a set L′
+i∗+1 of at
+least (3i∗+1 + 1)/2 vertices in Li∗+1 which are embedded into U1 if vertices in Li∗+1 are in the larger
+bipartition class of T, and into U2 otherwise. Let T be the set of at least (3i∗+1 + 1)3C−i∗−1/2 copies
+of T which are glued to the descendants of L′
+i∗+1. Without the help of vertices in W, every tree in T
+will have its larger bipartition class embedded into U1, and its smaller class embedded into U2. By the
+maximality of i∗again, ℓi ≤i for every i∗+ 1 ≤i ≤C −1, so there are at most i −i∗−1 vertices in
+∪i
+j=i∗+1Lj that are embedded into W. Together, they can be used to flip the embedding direction of at
+most PC−1
+j=i∗+2 3C−j = (3C−i∗−1 −3)/2 trees in T . Thus, at least
+1
+2((3i∗+1 + 1)3C−i∗−1ρr + (3i∗+1 −1)3C−i∗−1r) −1
+2(3C−i∗−1 −3)(ρr −r) = 1
+2(3C + 3)ρr + (3C −3)r
+vertices are still embedded into U1, a contradiction.
+Proof of Theorem 1.5. Let T ′ be the perfect ternary tree with C +1 levels, PC−1
+i=0 3i = (3C −1)/2 internal
+vertices, and 3C leaves. Let T be a tree obtained by gluing to each leaf of T ′ the same tree T with
+bipartition class sizes ρr and r. Then, it is easy to see that D2 holds. Moreover, by Lemma 2.7, we can
+pick T so that ∆(T) ≤ρ + 2, and thus ∆(T) ≤ρ + 3 and D1 holds for T.
+Let s1 = t1+t2−((3C+3)ρr+(3C−3)r)/2 = ((3C−3)ρr+(3C+3)r)/2+OC(1), and let s2 = t1+t2−2s1.
+Note that
+s2 = (3C + 3)ρr + (3C −3)r −t1 −t2
+= (3C + 3)ρr + (3C −3)r −3Cρr −3Cr −OC(1) = 3(ρ −1)r −OC(1).
+27
+
+
+Since s1/s2 ≤t1/s2 ≤(3Cρr +OC(1))/(3(ρ−1)r −OC(1)) ≤3C+1, we can use Lemma 2.7 to find a tree S
+with bipartition class sizes s1 and s2, such that both D1 and D3 hold. Also, note that 2ν = 2s1+s2+s2 =
+t1 + t2 + s2 from the definition of s2, and ν = s1 + s2 = t1 + t2 −s1 = ((3C + 3)ρr + (3C −3)r)/2 < t1, so
+R(T, S) = 2ν −1.
+Let G be the red/blue coloured complete graph on 2ν + C −3 vertices with a vertex partition V (G) =
+U1 ∪U2 ∪W, such that the following conditions hold.
+• |U1| = |U2| = ν −1 and |W| = C −1.
+• Gred[U1, U2] and Gred[U1 ∪U2, W] are both complete.
+• Gblue[U1], Gblue[U2], and Gblue[W] are all complete.
+Note that Gblue contains exactly three connected components with vertex sets U1, U2, and W, respec-
+tively. None of them is large enough to contain a blue copy of S. Meanwhile, Gred contains no copy of T
+by Lemma 5.2, as
+1
+2((3C + 3)ρr + (3C −3)r) = ν > |U1|.
+Therefore, D4 holds, which completes the proof.
+6
+Concluding remarks
+In this section, we discuss some related results and pose some open questions.
+The most natural open question is whether the sublinear maximum degree condition in Theorem 1.3
+can be improved to a linear one like in Theorem 1.1. The extremal part of the proof of Theorem 1.1
+crucially uses T = S, as the failure to embed T in one colour implies that within the host graph G, there
+exists a certain structure in the other colour whose size depends on T, which can be used to embed T in
+the other colour. The same proof no longer works in general when T ̸= S.
+Question 6.1. Can the conditions ∆(T) ≤cn/ log n and ∆(S) ≤cν/ log ν in Theorem 1.3 be replaced
+with ∆(T) ≤cn and ∆(S) ≤cν?
+Recall that Theorem 3.2, which is the stability part of our proof of Theorem 1.3, is stated with the
+conditions ∆(T) ≤cn and ∆(S) ≤cν. If we are only aiming for an approximate version of Theorem 1.3,
+then the answer to Question 6.1 is yes. This can be shown by starting with a slightly larger red/blue
+coloured complete graph G, then following the proof of Theorem 3.2 until eventually in Stage 4 noting
+that being (µ, T, S)-extremal is no longer a possible outcome. More precisely, we have the following.
+Theorem 6.2. For every µ > 0, there exists c = cµ > 0 such that the following hold.
+Let n ≥ν be sufficiently large. Let T be an n-vertex tree with ∆(T) ≤cn and bipartition class sizes
+t1 ≥t2. Let S be a ν-vertex tree with ∆(S) ≤cν and bipartition class sizes s1 ≥s2. Suppose s2 ≥t2 and
+ν ≥t1, then
+R(T, S) ≤(1 + µ)R(T, S) ≤(1 + µ) max{n + s2, 2t1}.
+Theorem 1.4 and Theorem 1.5 show that if one of the assumptions s2 ≥t2 and ν ≥t1 is dropped from
+Theorem 1.3, then R(T, S) can exceed R(T, S) by an arbitrary additive factor. Another natural question
+is whether the lower bound R(T, S) is still approximately tight if either of these assumptions is dropped.
+Question 6.3. Does Theorem 6.2 hold, possibly with a stronger maximum degree condition, if one of the
+assumptions s2 ≥t2 and ν ≥t1 is dropped?
+Recall that when T = S is a double star, then by [14], R(T) = R(T, T) can exceed R(T, T) by a
+multiplicative factor. The following construction provides examples of pairs (T, S) of distinct trees, such
+that R(T, S) exceed R(T, S) by a multiplicative factor. This is related to both questions above, though
+does not fully answer either. In regards to Question 6.1, the example shows that if the condition s2 ≥t2
+is dropped from Theorem 1.3, then any linear maximum degree condition is not sufficient. Regarding
+Question 6.3, it shows that Theorem 6.2 is false if the condition s2 ≥t2 is dropped and the order of the
+quantifiers for µ and c is switched.
+28
+
+
+Theorem 6.4. For every c > 0, there exists 0 < µ ≪c, such that for all sufficiently large n, there exist
+two trees T and S satisfying the following.
+U1 ∆(T) ≤cn and ∆(S) = cn.
+U2 T has bipartition class sizes 2n and 2n −µn.
+U3 S has bipartition class sizes 2n and µn.
+U4 R(T, S) ≥4n + µn ≥R(T, S) + µn.
+Proof. Let 0 < µ ≪(c/10)10/c and let N = 4n + µn.
+Let T be a tree with bipartition class sizes 2n and 2n −µn, such that it contains two adjacent vertices
+x and y with d(x) + d(y) −2 = 10/c, and all other vertices of T are distributed as evenly as possible as
+neighbours of the 10/c vertices in W = (N(x) ∪N(y)) \ {x, y}. In particular, ∆(T) ≤cn. Let S be a
+tree with bipartition class sizes 2n and µn, such that it contains a vertex z with degree µn, and all other
+vertices of S are neighbours of the µn neighbours of z, distributed so that ∆(S) = cn. Then, U1–U3
+hold.
+Let q = c/10, p = 1 −q, and let G ∼G(N, p). Then, by Lemma 2.2, with high probability G has
+minimum degree at least (4 + µ)n −cn/2.
+Let U be any fixed subset of V (G) of size t = 10/c, and let XU be the number of vertices in V (G) \ U
+adjacent to at least one vertex in U. Then, the expected value of XU is
+E[XU] ≤(4 + µ)n(1 −qt) ≤(4 −2µ)n,
+using that µ ≪(c/10)10/c = qt. By Lemma 2.2, P(XU ≥(4−µ)n−t) ≤2 exp(−µ2n/1000). Therefore, by a
+union bound, the probability that there exists U ⊂V (G) of size t with |N(U)∪U| = XU+t ≥(4−µ)n = |T|
+is at most
+2
+N
+t
+
+exp(−µ2n/1000) ≤2(5n)10/c exp(−µ2n/1000) = o(1).
+Hence, with high probability such U does not exist.
+Fix a realisation of G such that δ(G) ≥(4 + µ)n −cn/2, and there is no U ⊂V (G) of size 10/c
+satisfying |N(U) ∪U| ≥|T|. Then, G contains no copy of T as T contains a set W of 10/c vertices
+satisfying |N(W) ∪W| = |T|, while Gc contains no copy of S as ∆(S) = cn > |G| −δ(G) ≥∆(Gc).
+Therefore, R(T, S) ≥4n + µn, and so U4 holds.
+Finally, note that the assumptions n ≥ν and ν ≥t1 in Theorem 1.3 imply that n ≥ν ≥n/2, so for
+all positive results in this paper, the sizes of T and S are close. What happens when |T| is significantly
+larger than |S|? Are there families of pairs (T, S) for which the lower bound (‡) in Proposition 1.2 is tight?
+One positive result in this direction is a special case of [12, Theorem 1.1], which establishes the Ramsey
+goodness of bounded degree trees versus general graphs.
+Theorem 6.5. For every ∆≥1, there exists a constant C∆≫1 such that the following holds.
+For every ν-vertex tree S with bipartition class sizes s1 ≥s2, every n ≥C∆ν, and every n-vertex tree
+T with ∆(T) ≤∆,
+R(T, S) = R(T, S) = n + s2 −1.
+Question 6.6. Decide for more families of pairs of trees (T, S) whether R(T, S) = R(T, S).
+References
+[1] B´ela Bollob´as. Modern Graph Theory. Springer, 1998.
+[2] Stefan A. Burr. Generalized Ramsey theory for graphs - a survey. In Graphs and Combinatorics,
+pages 52–75. Springer, 1974.
+[3] Stefan A. Burr and John A. Roberts. On Ramsey numbers for stars. Utilitas Mathematica, 4:217–220,
+1973.
+29
+
+
+[4] Ralph J. Faudree and Richard H. Schelp. All Ramsey numbers for cycles in graphs. Discrete Mathe-
+matics, 8(4):313–329, 1974.
+[5] L´aszl´o Gerencs´er and Andr´as Gy´arf´as. On Ramsey-type problems. Annales Universitatis Scientiarium
+Budapestinensis de Rolando E¨otv¨os Nominatae, Sectio Mathematica, 10:167–170, 1967.
+[6] Jerrold W. Grossman, Frank Harary, and Maria Klawe. Generalized Ramsey theory for graphs, x:
+double stars. Discrete Mathematics, 28(3):247–254, 1979.
+[7] Philip Hall. On representatives of subsets. Journal of the London Mathematical Society, s1-10(1):26–
+30, 1935.
+[8] Penny E. Haxell, Tomasz  Luczak, and Peter W. Tingley. Ramsey numbers for trees of small maximum
+degree. Combinatorica, 22(2):287–320, 2002.
+[9] Svante Janson, Tomasz  Luczak, and Andrzej Ruci´nski. Random graphs. Wiley-Interscience, 2000.
+[10] J´anos Koml´os and Mikl´os Simonovits. Szemer´edi’s Regularity Lemma and its applications in graph
+theory. In Combinatorics, Paul Erd˝os is eighty, Volume 2, pages 295–352. J´anos Bolyai Mathematical
+Society, 1996.
+[11] Michael Krivelevich. Embedding spanning trees in random graphs. SIAM Journal on Discrete Math-
+ematics, 24(4):1495–1500, 2010.
+[12] Richard Montgomery, Mat´ıas Pavez-Sign´e, and Jun Yan. Ramsey numbers of bounded degree trees
+versus general graphs. Journal of Combinatorial Theory, Series B, 173:102–145, 2025.
+[13] Richard Montgomery, Mat´ıas Pavez-Sign´e, and Jun Yan. Ramsey numbers of trees. arXiv:2509.07934,
+2025.
+[14] Sergey Norin, Yue Ru Sun, and Yi Zhao.
+Asymptotics of Ramsey numbers of double stars.
+arXiv:1605.03612, 2016.
+[15] Frank P. Ramsey. On a problem of formal logic. Proceedings of The London Mathematical Society,
+s2-30(1):264–286, 1930.
+[16] Vera Rosta. On a Ramsey-type problem of J. A. Bondy and P. Erd¨os. II. Journal of Combinatorial
+Theory, Series B, 15(1):105–120, 1973.
+[17] Nicholas C. Wormald.
+The differential equation method for random graph processes and greedy
+algorithms. In Lectures on Approximation and Randomized Algorithms, pages 73–155. Polish Scientific
+Publishers, 1999.
+[18] Jun Yan. Spanning trees with large maximum degrees. arXiv:2510.17736, 2025.
+30

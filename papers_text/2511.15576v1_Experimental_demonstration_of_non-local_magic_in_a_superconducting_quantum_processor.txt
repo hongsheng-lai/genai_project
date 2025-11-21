@@ -1,0 +1,1999 @@
+Experimental demonstration of non-local magic in a superconducting
+quantum processor
+Halima Giovanna Ahmad
+1†, Gianluca Esposito
+2,3†, Viviana Stasino
+1, Jovan Odavi´c
+1,3,
+Carlo Cosenza
+1, Alessandro Sarno
+1, Pasquale Mastrovito
+1, Michele Viscardi
+1,3,
+Stefano Cusumano
+1,3, Francesco Tafuri
+1*, Davide Massarotti
+4, Alioscia Hamma
+1,2,3*
+1Dipartimento di Fisica “Ettore Pancini”, Universit`a degli Studi di Napoli “Federico II”, Complesso
+Universitario di Monte Sant’Angelo, Via Cinthia, 21, Napoli, 80126, Italy.
+2Mathematical and Physical Sciences for Advanced Material and Technologies, Scuola Superiore
+Meridionale, Via Mezzocannone, 4, Napoli, 80134, Italy.
+3Istituto Nazionale di Fisica Nucleare (INFN), Sezione di Napoli, Complesso Universitario di Monte
+Sant’Angelo, Via Cinthia, 21, Napoli, 80126, Italy.
+4Dipartimento di Ingegneria Elettrica e delle Tecnologie per l’Informazione, Via Claudio, Napoli, 80125,
+Italy.
+*Corresponding author(s). E-mail(s): francesco.tafuri@unina.it; alioscia.hamma@unina.it;
+†These authors contributed equally to this work.
+Magic is a non-classical resource whose efficient manipulation is fundamental to advancing efficient and scalable
+fault-tolerant quantum computing. Quantum advantage is possible only if both magic and entanglement are present.
+Of particular interest is non-local magic - the fraction of the resource that cannot be distilled (or erased) by local
+unitary operations - which is a necessary feature for quantum complex behavior. We perform the first experimental
+demonstration of non-local magic in a superconducting Quantum Processing Unit (QPU). Direct access to the QPU
+device enables us to identify and characterize the dominant noise mechanisms intrinsic to the quantum hardware. We
+observe excellent agreement between theory and experiment without the need for any free parameter in the noise
+modeling of our system and shows the experimental capability of harnessing both local and non-local magic resources
+separately, thereby offering a promising path towards more reliable pre-fault-tolerant quantum devices and to advance
+hardware-aware research in quantum information in the near term. Finally, the methods and tools developed in this
+work are conducive to the experimental realization of efficient purity estimation (featuring exponential speedup) and
+the decoding of Hawking radiation from a toy-model of a Black Hole.
+An essential objective in quantum information science is
+to identify the physical resources that lead to quantum
+computational speedups over classical algorithms [11–15].
+Entanglement is necessary for universal fault-tolerant
+quantum computation, though not sufficient for quan-
+tum advantage. A common paradigm for fault-tolerant
+operations uses the stabilizer formalism [1, 16]. In this
+framework, the additional resources needed for quantum
+advantage are non-stabilizer states, namely those resources
+that go beyond Clifford operations, also colloquially known
+as magic [2, 3, 17]. A system that only uses stabilizer
+operations may have access to extensive entanglement
+(and no magic), while exclusively using local operations
+allows for generation of extensive magic (but no entan-
+glement). Notably, in both cases these systems can be
+efficiently simulated on a classical computer. For this rea-
+son, the onset of both quantum complex behavior and
+quantum advantage resides in the interplay between the
+two resources [6–8, 18–22].
+So-called non-local magic [23] is a recent resource intro-
+duced to capture the interplay between entanglement and
+magic. It quantifies the fraction of non-stabilizer resources
+that cannot be removed by local unitary operations and
+operationally represents the amount of magic that cannot
+be distilled using local operations. Even in the NISQ [24]
+era, local and non-local magic are both believed to be
+crucial for universal quantum computation [4]: in quan-
+tum algorithms that rely on the preparation of complex
+quantum states exhibiting non-local magic [25], or in
+magic state distillation processes in fault-tolerant quan-
+tum computing, where stabilizer codes are used to purify
+non-stabilizer states and achieve fault-tolerant non-Clifford
+operations [26, 27]. Notably, non-local magic can also be a
+hindrance to some genuine quantum behavior. For instance,
+if a state only contains non-local magic, then no Bell
+inequality violations can occur [28]. Non-local magic plays
+a role in the flourishing field of Anti-de Sitter/Conformal
+Field Theory (AdS/CFT) correspondence, representing the
+holographic counterpart of gravitational back-reaction [23].
+This connection thus provides an additional intriguing link
+between quantum advantage, error-correcting codes and
+holography[29].
+In this paper, we give the first experimental demon-
+stration and measurement of non-local magic on a super-
+conducting QPU shown in Fig. 1. We utilize Stabilizer
+(R´enyi) Entropy (SRE) - the unique computable measure
+of magic for pure states - which is experimentally measur-
+able [30–32] via Randomized Measurement toolbox [33].
+Our main result is that non-local magic is measurable in
+real quantum devices. We measure it using two different
+methods in three classes of states: i) those that have mostly
+1
+arXiv:2511.15576v1  [quant-ph]  19 Nov 2025
+
+
+local magic, ii) those with both local and non-local magic,
+and iii) those only possessing non-local magic. The first
+method involves measuring residual magic after an opti-
+mal local erasure protocol given the preparation and noise,
+and the second, more direct approach hinges on measur-
+ing the Schmidt coefficients via reduced density matrix
+(RDM) [34]. Across the three classes of states, the two
+methods yield results consistent both with the theoretical
+predictions and with each other.
+In the NISQ era of quantum devices it becomes of
+paramount importance to investigate the relationship
+between experimentally measured magic on real devices
+and noise sources, as well as the characteristic physical
+parameters of the hardware itself. Our experimental inves-
+tigation opens new avenues for studying the impact of
+noise sources on quantum hardware. We find that the
+greater source of error is given by readout errors, which are
+responsible for injecting local magic. Moreover, noise and
+decoherence will generally reduce state purity, hence one
+needs to maintain the state at a very high purity. Here, we
+show that non-local noise can be modeled as a depolarizing
+Controlled-Z (CZ) channel and can be taken into account
+in the quantum state preparation. This noise mainly affects
+the optimal local magic erasure protocol, while being gen-
+tle on the overall purity. In comparison, readout noise is
+more impactful, but it can be tackled by error mitigation
+techniques [35, 36].
+Our approach to readout-noise mitigation reinforces
+the idea that both local and non-local magic measure-
+ment can be used to benchmark and calibrate quantum
+devices beyond state-of-the-art protocols, e.g. Randomized
+Benchmarking (RB), which extensively rely on Clifford
+gates to benchmark gate fidelities [37–39]. We complement
+recent proposals, which include the use of non-Clifford
+gates to benchmark gate fidelity [40, 41], though lacking
+information about the ability to generate and eventu-
+ally manipulate magic for quantum advantage. Therefore,
+our framework may help tackling current challenges in
+hardware-aware quantum algorithms in the NISQ era,
+advancing gate calibration and optimization, as well
+as benchmarking computational resources for quantum
+advantage in an accessible way.
+Local and non-local stabilizer entropy
+Stabilizer entropy characterizes the extent to which a quan-
+tum state spreads over the Pauli operator basis, serving as
+a measure of its departure from stabilizer states [30]. The
+α SRE is defined as
+Mα(ψ) =
+1
+1 −α log2
+ 
+1
+d
+X
+P ∈PN
+|Tr(Pψ)|2α
+!
+,
+(1)
+where ψ = |ψ⟩⟨ψ| is the density matrix of the N-qubit
+pure state |ψ⟩of dimension d = 2N. The set PN represents
+the N−qubit Pauli strings composed from the identity and
+Pauli operators {1, X, Y, Z}. For pure states, SRE with
+α ≥2 constitutes a proper magic monotone in the context
+of magic-state resource theory [30, 31]. For mixed states,
+this quantity can be extended by subtracting the 2-R´enyi
+entropy, that is, −log2(P(ψ)) where P(ψ) = Tr
+ ψ2
+is the
+purity of ψ.
+The interplay between entanglement and magic is
+non-trivial: for example, factorized states cannot have max-
+imum amount of magic even though the most commonly
+used magic-injecting gate, the T gate, is a single-qubit gate.
+This means that entanglement is necessary to reach higher
+values of magic, and the value of magic obtainable in a
+state is influenced by its entanglement [18]. This simple
+fact suggests that there is an inherently non-local part of
+magic that arises by using both non-Clifford and entan-
+gling gates together. By construction, such non-local magic
+cannot be extracted, or erased from a state by means of
+local unitaries.
+Non-local magic is defined as follows [23]: given H =
+HA ⊗HB, then M NL
+2
+(|ψ⟩) = min
+UA,UB M2(UA ⊗UB |ψ⟩), or
+in other words, the minimal amount of magic contained
+in a bipartite state upon optimization in all local bases.
+Conversely, local magic of a state is defined as the dif-
+ference between the total magic and the non-local one
+M L
+2 (|ψ⟩) = M2(|ψ⟩) −M NL
+2
+(|ψ⟩) and corresponds to the
+amount of magic that can be removed from a state with
+local gates. Notice that non-local magic is not simply magic
+in entangled states: there are entangled states that only
+host local magic, as in any state of the form (UA⊗UB)C |0⟩
+where C |0⟩is an entangled stabilizer state. Remarkably,
+maximally entangled states only possess local magic.
+Despite being the result of an optimization proce-
+dure, non-local magic is analytically computable for pure
+two-qubit states [5] and is tied to the Schmidt decomposi-
+tion of the state. We denote the class of states achieving
+M NL(|ψλ⟩) = M(|ψλ⟩) as non-local magic states. More-
+over, for two qubit states, non-local magic is a function
+of the purity of the reduced density matrix (RDM) ψA :=
+TrB |ψ⟩⟨ψ| (see Methods for details):
+M NL(|ψ⟩) = −log2
+ 4P(ψA)2 −6P(ψA) + 3
+
+.
+(2)
+This effectively amounts to measuring non-local magic
+from the anti-flatness of the entanglement spectrum, as
+proposed in [23]. Thus, by measuring RDM purity, we get
+a direct measurement of a state’s non-local magic to test
+the local optimal erasure protocol against. In this work
+we focus on the experimental realization of a minimal
+setting involving two qubits, and investigate representative
+examples of Local Magic (LM), Local + Non-Local Magic
+(M) and Non-Local Magic (NLM) states. In the following,
+we measure non-local magic both from the local optimal
+erasure protocol via local unitaries (obtained numerically
+and then implemented on quantum hardware) and from
+subsystem purity measurements. Taken together, these two
+approaches provide a bona-fide experimental confirmation
+of non-local magic.
+Despite the nascent importance of non-local magic in
+understanding quantum physics phenomena [5, 19, 23], its
+role in quantum algorithms and broader quantum infor-
+mation processing tasks is yet to be fully understood. As
+a preliminary step in this direction, we prove a lemma,
+found in Supplemental Information, which establishes that
+the local magic is the maximum amount of magic that
+2
+
+
+can be distilled from a two-qubit state to a third ancil-
+lary state without disrupting the entanglement of the two
+initial qubits. Such a scenario can be relevant in realistic
+quantum computing protocols, as the possibility of imple-
+menting multi-qubit gates can be limited by the physical
+connectivity of the quantum hardware.
+The device
+The superconducting Quantum Processing Unit (sQPU)
+used in this work is a Contralto-D from Quantware (Fig. 1
+(a)), composed of 21 flux-tunable transmons and 4 fixed-
+frequency transmon qubits (in yellow). The fixed-frequency
+qubits are specifically designed for coherence times bench-
+marking, i. e. they lack drive lines to minimize radiative
+interaction with the environment, are isolated and not
+affected by flux noise. The sQPU is thermally and mechani-
+cally anchored at the coldest stage of a BlueforsXLD1000SL
+(the mixing chamber, MXC), and is enclosed by two mag-
+netic shields. At room temperature, the system uses Qblox
+electronics, which is comprised of two main parts: Clusters
+(equipped with RF modules to implement drive, readout,
+and two-qubit gates) and a low-noise SPI rack for setting
+static DC flux. The full description of the setup is reported
+in Supplemental Information.
+The 21-qubits matrix has rectangular 2D connectivity,
+where high-frequency bus resonators (in grey) are used to
+couple neighboring qubits [42]. Qubits are designed to fall
+in three frequency bandwidths: high-frequency qubits (in
+red) have frequencies of the order of 6 GHz, intermediate
+frequency qubits (in blue) have frequencies of the order of
+5 GHz, low frequency qubits (in green) lie in a frequency
+range of the order of 4 GHz. Each qubit is equipped with a
+dedicated superconducting readout resonator, equally dis-
+tributed over 4 readout feedlines in a notch-type geometry
+(highlighted with different colors for clarity), hence guar-
+anteeing multiplexed readout. Dedicated drive and flux
+lines are used to implement X, Y, Z single-qubit and two-
+qubit gates, respectively [43]. In fact, flux-lines are used to
+implement the native two-qubit gate of the processor, the
+Controlled-Z (CZ) gate, using magnetic Sudden-net-Zero
+(SNZ) flux pulsed signals [44], combined with low 1/f-noise
+static flux fields through bias-tees at room-temperature.
+Flux lines also allow for parking qubits at specific working
+points by using a static magnetic flux.
+In this work, we focus on qubits D3 and C4 (interme-
+diate and low frequency qubits), operated at their flux
+sweet spots (Fig. 1 (b)). Additionally, the neighboring
+qubit A6 has been placed at its sweet spot (at least 1GHz
+detuned from the interested qubits), whereas the remain-
+ing qubits of the matrix are operated at their anti-sweet
+spot (in black). This allows us to operate in a quasi-ideal
+2-qubit register and avoid frequency crowding. Notably,
+flux-tunable transmons in the processor are designed to be
+symmetric [45].
+QPU’s non-local magic measurements
+To overcome the exponential cost of direct measurement of
+SRE with qubit number, we use a more scalable protocol,
+namely Randomized Clifford Measurements (RCM)[32].
+Anticipating purity-impacting noise in our device, we use
+the mixed-state extension of SRE. Thus, our experimental
+approach consists of two main steps: i) preparation of an
+N-qubit state ψ; ii) implementation of the RCM protocol
+to evaluate purity P and stabilizer purity W of the pre-
+pared state ψ. These two independent quantities enable
+estimation of SRE according to
+M2(|ψ⟩) = −log2 W + log2 P −log2 d,
+(3)
+where P = d P
+⃗s(−2)−∥⃗s∥2 EC
+
+P(s1|C)P(s2|C)
+
+, and W =
+−P
+⃗s(−2)−∥⃗s∥4 EC
+
+P(s1|C)P(s2|C)P(s3|C)P(s4|C)
+
+.
+Here, si denote computational basis strings, and ∥· ∥refers
+to their corresponding Hamming weight. The expectation
+value EC indicates averaging over different random choices
+of single-qubit Clifford gates C. To ensure statistical
+reliability, a sufficiently large number of samples must be
+considered, as discussed in Ref. [32].
+After a thorough characterization and benchmarking
+of the qubits, including measurements of readout and gate
+fidelities, coherence times, and crosstalk effects, we per-
+formed measurements of the SRE for the quantum states
+summarized in Fig. 1 (c-f). The corresponding experimen-
+tal results are presented in Extended Data Table 1, which
+reports the measured fidelities, coherence, and crosstalk
+parameters. These data provide direct insight into how the
+relevant sources of error affect the estimation of magic in
+our device.
+We begin by considering single-qubit states prepared
+on both the D3 and C4 qubits. Specifically, we examine the
+computational basis state |0⟩and the superposition states
+|+⟩and |−⟩, obtained by initializing the qubit in either
+|0⟩or |1⟩and subsequently applying a Hadamard gate, as
+illustrated in Fig. 1 (c) and (d). In these experiments, we
+expect vanishing magic. By contrast, when a T gate is
+introduced, the experimentally measured magic increases
+and approaches the theoretical value of log2(4/3) ≈0.41.
+Next, we measure magic for two-qubit quantum states
+according to the circuit depicted in Fig. 1 (e). At this stage,
+we choose not to implement any entangling gate between
+the two qubits. Since magic is additive, experimental results
+demonstrate that RCM can obtain experimental magic
+values consistent with the sum of the values measured in
+the isolated case, both with and without the injection of
+non-Clifford gates. Additivity is consistent with the fairly
+low impact of microwave and ZZ crosstalk [46, 47].
+Finally, we measure magic for a Bell state, thus includ-
+ing more complexity and hardware noise sources in the
+experiment(see Fig. 1 (f)). From Extended Data Table
+1 one notices: i) readout fidelities are lower in the case
+of two-qubit states; ii) interleaved RB fidelities for the
+native two-qubit gate CZ is considerably lower than single-
+qubit gate RB fidelities, either measured in the isolated
+(a) and coupled scheme (b), thus implicitly including any
+microwave or ZZ-crosstalk. This explains the presence of
+non-zero experimental magic in those cases where one does
+not expect any.
+We employ a classical post-processing error mitigation
+scheme to counteract the effect of readout errors. This
+scheme directly uses information from different benchmark-
+ing tools to single out sources of crosstalk, thanks to direct
+experimental control of the chip. In particular, our scheme
+relies on the knowledge of the readout calibration matrix
+3
+
+
+ 
+ 
+Fig. 1: Superconducting Quantum Processing Unit and Benchmarking Circuits. (a, b) Processor schematics. In (a),
+overview of the superconducting quantum processor. In (b), focus on the investigated pair (D3–C4), coupled with a
+high-frequency qubit (A6) parked at its sweet spot and a low-frequency qubit (C3) at the anti-sweet spot (in black). (c–f)
+Benchmarking circuits. The colored quantum states correspond to the injection (purple) and non-injection (orange) of
+non-Clifford T gates. The measurement block represents the RCM protocol.
+Fig. 2: Experimental approach and investigated circuits. (a) Experimental approach for magic measurement and error
+mitigation. The studies of LM, M, and NLM quantum states involve: (1) preparing target states and performing standard
+benchmarking protocols to extract CZ gate fidelity and readout calibration matrix Λ, (2) using Λ in classical post-
+processing to obtain error-mitigated probabilities P(si|C), and (3) adjusting theoretical predictions for stabilizer entropy
+and purity given the observed CZ depolarizing error in case of the M state ψ2. (b–d) Investigated circuits. The first
+two experiments comprise preparation and erasure protocols, while the third involves only non-local magic, confirmed
+by RDM-purity-inferred data (see Fig. 3(b)). In all panels, the depolarizing CZ error Edep. CZ
+p
+is accounted for at the
+theoretical-prediction level.
+(see Methods). This makes the error mitigation procedure
+“parameter free”, as it does not require any fitting parame-
+ter across a vast set of experiments, as done in other works,
+such as Ref. [32].
+4
+
+
+State
+Circuit
+State
+Th. Purity
+Exp. Purity
+Th. Magic
+Exp. Magic
+NL-Magic (from RDM purity)
+Local Magic (LM)
+Fig. 2(b)
+ψ1
+0.94
+0.90 ± 0.04
+0.48
+0.38 ± 0.09
+0.0888 ± 0.0004
+ψ′
+1
+0.94
+0.93 ± 0.05
+0.08
+0.1 ± 0.1
+Non-Local (M)
+Fig. 2(c)
+ψ2
+0.94
+0.94±0.04
+0.46
+0.42 ± 0.09
+0.19 ± 0.07
+ψ′
+2
+0.94
+1.00 ± 0.05
+0.27
+0.3 ± 0.1
+Table 1: Comparison of purity and magic. Obtained values for states ψi (before) and ψ′
+i (after) local magic erasure
+for i = {1, 2}, as well as the value of non-local magic obtained from subsystem purity by tracing out qC4 qubit. The
+theoretical predictions for purity and magic are calculated by considering the CZ depolarizing error and compared with
+the experimental results after readout error mitigation. Details on the errors are reported in Methods.
+In our hardware, CNOT is decomposed in terms of a
+combination of single-qubit Hadamard gates and the CZ
+gate. Motivated by the relatively larger CZ errors on the
+measured purity and stabilizer entropy, we account for its
+influence on the theoretical prediction side by modeling
+the effects as a depolarizing channel (see Methods), with
+a depolarization strength directly based on the IRB CZ
+fidelity. Our approach allowing for a consistent comparison
+between theoretical expectations and the experimental
+outcomes, is summarized Fig. 2 (a).
+Next, we focus on three specific quantum circuits
+preparing LM, M and NLM states, shown in Fig. 2 (b-d).
+Accounting for CZ depolarizing error at the theory level
+and post-processing of readout error mitigation in concert
+has been instrumental for the experimental detection of
+non-local magic.
+Local Magic (LM) state. We first consider a circuit
+that only hosts local magic injected by a T gate, despite
+the state being maximally entangled (see Fig. 2(b)). The
+preparation circuit output reads ψ1 = Edep.CZ
+p
+[2−1/2(|00⟩+
+ei π
+4 |11⟩)]. Evaluation of stabilizer entropy for this state
+yields M2(ψ1) ∼0.48. One removes or erase local magic in
+the state by applying another T gate on the same qubit,
+yielding M2(ψ′
+1) ∼0.1. This constitutes a minimal example
+where we are able to (almost) completely remove magic
+with a local gate. We observe consistency between theoret-
+ical expectations and experimental results for both purity
+and stabilizer entropy within the statistical error associ-
+ated with the RCM, together with the results obtained by
+the measurement of RDM purity, as seen in Table 1.
+Local+Non-Local Magic (M) state. We measure
+the response of the quantum circuit in Fig. 2(c) for which
+the output state has both local and non-local magic.
+The output state of the preparation circuit reads ψ2 =
+Edep.CZ
+p
+[2−3/2(c+
+ |00⟩+ ei π
+8 |10⟩
+
+−ic−
+ |01⟩+ ei π
+8 |11⟩)
+
+],
+with c± = (2 ± (2 +
+√
+2)
+1
+2 )
+1
+2 , and stabilizer entropy is
+M2(ψ2) ∼0.46. Since this state has both local and non-
+local magic, one expects to be able to partially erase
+magic using single-qubit gates. Numerical optimizations
+yield the following local magic-erasing unitaries: UA =
+Rz(α)Ry(β)Rz(γ)
+and UB = Rz(δ)Ry(η)Rz(ϕ) , with
+the rotation angles α = β = γ = δ = η = 0 and ϕ =
+67.61◦. Experimental data strongly validates theoretical
+predictions, as summarized in Tab. 1.
+Non-Local
+Magic
+(NLM)
+states.
+We
+con-
+sider
+a
+two-qubit
+state
+of
+the
+form
+ψ3(p,θ)
+=
+Edep.CZ
+p
+[cos(θ/2)|00⟩−isin(θ/2)|11⟩], realized by the quan-
+tum circuit in Fig. 2(d). This state only hosts non-local
+magic, and including the depolarizing CZ noise channel
+we obtain the following closed-form expression for the sta-
+bilizer entropy M2(ψ3(p, θ)) = −log2
+
+4
+ (p −1)4 cos(4θ) +
+5(p −2)p((p −2)p + 2) + 7
+
++ log2(3(p −2)p + 4) + 3,
+A systematic investigation of the stabilizer entropy as a
+ 
+ 
+Fig. 3: NLM state experiment results (Fig. 2, panel (d)).
+In (a), experimental raw data repeated over 7 runs for
+the NML quantum state. The shadowed gray area high-
+lights fluctuations between different experiments. In (b),
+focus on experimental readout-error-mitigated data with
+a smaller angle interval (dashed box in panel (a)) as well
+as the values of non-local magic obtained by RDM purity
+compared to the theoretical line of the stabilizer entropy
+and RDM purity (inset) with CZ depolarizing errors taken
+into account.
+function of θ is reported in Fig. 3. In panel (a), the raw
+experimental data for stabilizer entropy is shown for mul-
+tiple independent runs. We recognize that for θ = π/2 the
+resulting state is the Bell state |Ψ4⟩in Extended Data
+Table 1. Theoretically, this state is expected to have van-
+ishing stabilizer entropy, while for θ = π/4, we anticipate
+maximum non-local magic. However, we measure a strong
+asymmetry between rotations below and above π/4, with
+5
+
+
+considerable fluctuations, much larger than the statistical
+error bars for the respective runs. This asymmetry cannot
+be explained by readout and CZ depolarizing errors. For
+θ > π/4, the nature of the error is yet to be addressed
+thoroughly, but it is beyond the scope of our work. At this
+stage, we consider the data for θ ≤π/4 and observe excel-
+lent agreement between experimental data and theoretical
+predictions, as shown in Fig. 3(b).
+Discussions and Conclusions
+ 
+ 
+Fig. 4: Quantum circuit for Local+Non-local magic quan-
+tum state with CNOT gate. Panel (a): circuit representa-
+tion of the sweeping protocol for empirically estimating
+the optimal magic erasure angles. The minimum amount
+of theoretically obtainable magic using Rz rotations is 0.29
+with (γ, ϕ) = (67.5◦, 90◦). Panel (b): results, with the star
+marking the values of the angles for which the state has
+minimal magic. The sweeping angles method reaches the
+same minimum value as theoretically predicted, although
+for different angles than anticipated.
+Genuine quantum advantage only arises with coexis-
+tence between non-stabilizerness and entanglement, with
+non-local magic capturing such an interplay [25, 48], and
+here we provided its first experimental measurement on a
+QPU.
+Currently there is no unique way to precisely bench-
+mark the performance of QPUs across the various quantum
+circuit designs and error-mitigation schemes, hence the
+link between magic manipulation of NISQ devices and the
+physical characteristics of hardware, as well as its noise
+sources, is a pressing challenge. The quantum processor
+used in this work, core of the first Italian Superconduct-
+ing Quantum Computing Center (Partenope), fits all the
+criteria of the challenge, allowing a custom-tailored error
+mitigation approach directly based on the experimental
+performances of the device. This was key for the experi-
+mental demonstration of local magic erasure from a given
+state and non-local magic experimental observation using
+subsystem purity.
+Our hardware-informed noise modeling correctly iden-
+tifies measurement readout and CZ depolarizing noise
+as main noise sources of the QPU. Readout errors are
+especially relevant for injecting local magic, whereas depo-
+larizing noise keeps the non-local structure of magic intact.
+Despite these two channels not being the only noise sources
+in our devices, as magic measurements on the NLM exper-
+iment for θ > 45◦shows, we demonstrate that addressing
+the most impacting noise sources suffices to correctly char-
+acterize non-local features of magic. However, quantum
+devices are complex systems, and more sophisticated noise-
+mitigation techniques may become necessary to account
+for State Preparation and Measurement (SPAM) errors,
+that arise when increasing the number of gates in circuit
+preparation. Nonetheless, the ability to erase local magic
+does not depend on the full knowledge of the noise channels
+affecting the chip.
+We present a proof-of-concept protocol showing it is
+possible to empirically identify optimal unitaries that erase
+local magic in situ, shown in Fig. 4. The protocol is partly
+informed by theory which identifies a restricted set where
+the optimal erasing unitaries lie. Then, by sweeping the
+rotation angles in the relevant interval we empirically iso-
+late actual gates that erases local magic, the results of
+which are in Fig. 4 (b). The minimum local magic value
+closely matches the theoretical expectation for the investi-
+gated state, although the experimental angles are different
+than the predicted ones. This implies other noise sources
+affect the hardware beyond the theoretical model, and high-
+lights the promise of heuristically determining the local
+magic-erasing unitaries.
+In conclusion, the study of local and non-local magic
+resources cannot neglect the noisy nature of the hardware.
+Our work opens a rich playground to benchmark and cal-
+ibrate quantum devices of different architectures beyond
+traditional gate fidelity protocols, and we envision these
+benchmarks can be extended to other quantum platforms
+as well. We also foresee the experimental accessibility of
+quantum systems where non-local magic plays a role: from
+violations of Bell’s inequalities in NLM states [28], to the
+toy-modeling of black holes in a laboratory. The harness-
+ing of non-local magic is preliminary to the experimental
+capability of moving magic around the system and cleans-
+ing subsystems from their local magic. With the ability
+to confidently manipulate a larger number of qubits, we
+anticipate the application of novel algorithms that demon-
+strate the capacity to decode the Hawking radiation from
+a black hole without previous knowledge of the initial
+state [10, 49, 50]. The kernel of these quantum algorithms
+has already inspired applications in more generic scenarios
+of quantum information processing, promising exponen-
+tial advantage over state-of-the-art metrology protocols
+such as purity estimation [9]. We propose that with proper
+knowledge of magic manipulation abilities of one’s quan-
+tum device, such algorithms can be implemented on real
+quantum hardware.
+6
+
+
+Methods
+Non-local magic as a function of RDM purity
+In this section, we derive the expression of non-local magic
+as a function of RDM purity, valid in the case of two-qubit
+states. Any pure two qubit state |ψ⟩can be written in the
+following way: |ψ⟩=
+√
+λ
+ψA
+1
+ ψB
+1
+
++
+√
+1 −λ
+ψA
+2
+ ψB
+2
+
+,
+where {λ, 1 −λ} are called Schmidt coefficients and
+{
+ψX
+1
+
+,
+ψX
+2
+
+} is the Schmidt basis of HX, with X ∈
+{A, B}. Given this expression, the non-local magic of |ψ⟩
+is equal to
+M NL(|ψ⟩) = −log2
+ 4(λ −1)λ(1 −2λ)2 + 1
+
+,
+(4)
+with states achieving M NL(|ψλ⟩) = M(|ψλ⟩) being of the
+form |ψλ⟩=
+√
+λ |00⟩+
+√
+1 −λ |11⟩, and |00⟩, |11⟩being
+states of the computational basis, i.e. the eigenstates of
+the Z-Pauli matrix. Note that Eq. (4) reduces to the
+one derived in [5] when one parametrizes the Schmidt
+coefficients as {cos(θ/2), sin(θ/2)}, i.e.
+M NL(θ) = log2
+ 8(7 + cos (4θ))−1
+.
+(5)
+Since non-local magic depends exclusively on the Schmidt
+spectrum, in the unique case of two-qubit states one is
+able to measure the Schmidt coefficients by measuring a
+single quantity, e.g. subsystem purity. Starting from a pure
+state |ψ⟩in the Schmidt form, the purity of the RDM
+ψA := TrB |ψ⟩⟨ψ| is given by P(ψA) = λ2 + (1 −λ)2 .
+Inverting this relationship and substituting it in Eq. (4), we
+get an explicit function of non-local magic on RDM purity:
+M NL(|ψ⟩) = −log2
+ 4P(ψA)2 −6P(ψA) + 3
+
+.
+(6)
+This method of deriving M NL remains valid also in the
+presence of noise, although the expression will be different
+than the one shown in Eq. (6). More specifically, the rela-
+tionship between P(ψA) and λ will change according to
+the action of the specific noise channel, and will depend
+on the noise parameters ⃗pnoise as well. Nevertheless, again
+inverting such relation and obtaining λ(P(ψA), ⃗pnoise) and
+plugging it in Eq. (4) one obtains an expression of M NL as a
+function of P(ψA) (and ⃗pnoise, that need to be determined
+experimentally).
+Randomized Clifford Measurements
+experimental parameters and errors
+The RCM protocol exploits the use of a randomized set of
+Clifford unitaries to estimate, by sample average, the purity
+and the stabilizer purity. The cardinality of the possible
+N-qubit Clifford unitaries (modulo global phase U(1)) [51]
+that are randomly picked from the Clifford group reads as
+|CN| = |CN/U(1)| = 2N2+2N
+N
+Y
+k=1
+ 4k −1
+
+.
+(7)
+Since the number of possible Clifford combinations for a
+single-qubit is not particularly demanding, being |C1| = 24,
+in this work, we have used all the possible unitaries to exper-
+imentally assess the fundamental quantities cited above
+for single-qubit states. For two-qubits, instead, the num-
+ber of possible products of single-qubit Clifford unitaries
+dramatically increases (|C1 ⊗C1| = 576) and in general
+the cardinality grows as 24N. To reduce the experimental
+effort in calculating two-qubit states and purities, we have
+randomly picked Nrand = 400 Clifford gates from the C2
+gate set, where Nrand is the number of randomizations.
+For each choice of single-qubit Clifford C, we measure
+the readout probability vector P(s|C). The vector com-
+ponents of P(s|C) are obtained as the number of events
+ns for which the measured output corresponds to the
+computational basis states represented by the bitstring
+s normalized to the total number of shots measurements
+Nshot, ps = ns/Nshot. The state assignment process uses
+the discrimination threshold obtained by an initialization
+experiment, unique for each quantum state preparation.
+Since EC represents the sample mean of P(sl|C) over
+the number of Clifford gates NC,
+¯x = EC [x] ≡
+1
+NC
+NC
+X
+i=1
+xi ,
+(8)
+where x either represents purity P and stabilizer purity
+W, the statistical sample variance is calculated in terms
+of the square deviations from the mean d2
+i = (xi −¯x)2 as
+s2 = Var (x) = EC
+h
+(x −¯x)2i
+≡
+1
+NC −1
+NC
+X
+i=1
+(xi−¯x)2. (9)
+It follows that the statistical sample standard deviation
+is the square root s = Std(x) =
+√
+s2, which represents,
+as usual, the spread of the experimental measurements.
+However, when taking a limited sample from a probability
+distribution, an inherent error is induced by the finite sam-
+pling. Therefore, we introduce the sampling error, defined
+in terms of the statistical sample standard deviation s as
+∆x =
+s
+√NC
+.
+(10)
+Finally, given the non-linear (logarithm) function behav-
+ior of our random variables P (purity) and W (stabilizer
+purity), we are required to perform error propagation to
+get the average and statistical sampling error of Stabilizer
+R´enyi entropy and 2-R´enyi entropy. Using standard meth-
+ods of error propagation, the estimator of the variance of
+a function f of two random variables x and y is given by
+Var[f(x, y)] ≈
+
+∂f
+∂x
+
+¯x,¯y
+
+2
+Var(x)
++
+
+∂f
+∂y
+
+¯x,¯y
+
+2
+Var(y) + 2
+∂f
+∂x
+∂f
+∂y
+
+¯x,¯y
+Cov(x, y) ,
+(11)
+which for the SRE M2 yields
+Var(M2) ≈Var(W)
+( ¯
+W ln 2)2 + Var(P)
+( ¯P ln 2)2 + 2 Cov(W, P)
+¯
+W ¯P(ln 2)2 . (12)
+7
+
+
+However, in Ref. [18], it is shown that the covariance
+between P and W is exactly zero, so we can neglect that
+term in the expression, finally yielding
+∆M2 =
+1
+ln 2
+s
+Var(W)
+NC ¯
+W2 + Var(P)
+NC ¯P2 .
+(13)
+RDM purity from global measurement data
+In case of the direct method for measuring non-local
+magic, we measure the subsystem purity P(ψA) with
+ψA := TrB(|ψ⟩⟨ψ|) to extract the value of the Schmidt
+coefficient. Analogously to the global system purity, par-
+tial purity can be measured via Randomized Clifford
+Measurements using the following formula [34]:
+P(ψA) = EC 2NAX
+sA,s′
+A
+(−2)−||⃗sA||2P (sA|C)P (s′
+A|C) , (14)
+where the authors used generic randomized unitaries to
+compute this quantity. However, the same result holds if
+one restricts the unitary gate set to be taken from the Clif-
+ford group, as it is a unitary 3-design [52]. The prefactors
+in terms of Hamming weight of strings ||⃗s|| are defined as
+||⃗s||2 = Pn
+i=1 si
+1 ⊕si
+2 where ||⃗s| where the ⊕symbol repre-
+sents the modulo 2 sum or XOR between the bit strings.
+Note that in the RCM protocol the expression for eval-
+uating the stabilizer purity involves the prefactor ||⃗s||4,
+involving XOR operations between 4 bit strings.
+One recovers the subsystem probability outcomes as
+the marginal probability distributions of the global mea-
+surement outcomes, thereby using the same data taken to
+measure the purity and magic of the global state, as seen
+in the following calculation:
+Pψ(s) = P(sA, sB) = Tr[ψ |sAsB⟩⟨sAsB|]
+= TrA{TrB[(1A ⊗|sB⟩⟨sB|)ψ] |sA⟩⟨sA|}
+= TrA[ψA |sA⟩⟨sA|] TrB[ψB |sB⟩⟨sB|]
+= PψA(sA)PψB(sB) .
+(15)
+Therefore, summing over all possible outcomes of one
+of the two qubits we reconstruct the partial probability
+distribution on the other qubit as
+PψA(sA) =
+X
+sB
+P(sA, sB) .
+(16)
+Initialization experiment
+The initialization experiment involves the preparation of
+an N-qubit computational state |i⟩. We then acquire simul-
+taneously a readout voltage across each qubit readout
+resonator in the I, Q plane, and identify the state discrim-
+ination threshold as discussed in Ref.[53] by using the
+conditional probability method therein introduced. This
+also allows us to obtain the readout probability matrix,
+i. e. the probability to measure the state |j⟩over the com-
+putational basis states as the ratio between the number
+of counts in the different basis states ninit
+ij
+and the total
+number of shots Nshot, pinit
+ij
+= ninit
+ij /Nshot. The readout
+probability matrix is finally used to calculate the read-
+out fidelity per quantum circuit. In this work, we have
+used Nshot = 5000 for determining the outcome probability
+distributions P(sl|C) for each given Clifford pair C.
+Noise analysis
+In this section, we explain the main sources of noise by
+which the chip is affected, and the techniques we used to
+mitigate and obtain an appropriate theoretical error model
+for the experimental data. We created a model without
+making use of free parameters, and only using independent
+benchmarking data of the quantum processor. As men-
+tioned in the main text, we focused on two main sources,
+namely readout error in computational basis measurements,
+and depolarizing error on the CNOT (or rather, the CZ)
+gate, each of which we will tackle in a separate subsection.
+Readout noise
+Readout error means the expected outcomes of mea-
+surements do not necessarily correspond to the actual
+preparation. For example, if we prepare a two qubit state
+in |00⟩and we find it in |10⟩upon measurement, it means
+a readout error has occurred. The readout errors we
+encounter are of classical type, and come in different vari-
+eties: i) uncorrelated (no cross-talk); ii) correlated, which
+signals crosstalk, i.e., unwanted correlation between qubits
+existing on the quantum chip.
+Formally, a quantum measurement is modeled through
+the
+use
+of
+Positive-Operator
+Valued
+Measurements
+(POVM), which are positive-semi-definite operators Πx,
+one for each possible measurement outcome, that satisfy
+P
+x Πx = 1. The probability of getting an outcome x on a
+certain state preparation ρ is then given by the Born rule,
+namely px = Tr[Πxρ]. In the case of two qubits and a mea-
+surement in the computational basis, we have four POVMs,
+namely Mideal = (Π00, Π01, Π10, Π11)T , with Πij = |ij⟩⟨ij|.
+However, in the presence of readout noise, the mea-
+surement actually performed is a noisy POVMs, denoted
+Mnoisy, related to the ideal one through a left-stochastic
+matrix Λ, in the following way:
+Mnoisy = Λ · Mideal ,
+(17)
+where Λ is usually referred to as calibration or noise matrix.
+Practically, the presence of readout noise induces a trans-
+formation on the would-be ideal outcome probabilities by
+the same matrix Λ, namely pexp = Λ · pideal, due to the
+linearity of the Born rule.
+The calibration matrix is experimentally obtained by
+preparing states in the computational basis and measuring
+them in the same basis. The entries of Λ are then given
+by Λij = p(i|j), namely the probability of measuring the
+outcome j given that the preparation is in the state |i⟩.
+In the ideal case, the calibration matrix should coincide
+with the identity matrix, i.e. one should not get outcomes
+different from the preparation. However, in the presence
+of readout noise this is not the case.
+Given the calibration matrix, one would be tempted to
+just invert it to obtain the ideal probabilities in the post-
+processing of the data, and to some extent, this can work
+well when the objective of the experiment is the expectation
+value of an observable [54]. However, this is considered bad
+practice when the actual focus of the analysis is the vector
+8
+
+
+of outcomes probabilities, such as our case. The reason
+is that the inverse of a stochastic matrix is not positive
+in general; this means that applying this inverse matrix
+to the probability data may yield negative, non-physical
+probability vectors. To avoid this, we employ another post-
+processing, least-squares measuring filter method. This
+consists in computing the probabilities that minimize the
+distance between the measured ones given the noise matrix.
+The vectors obtained by this minimization are then used
+for the subsequent analysis. More explicitly, we compute
+pmit :=
+argmin
+p≥0,P pi=1
+∥Λ · p −pexp∥2
+2 .
+(18)
+This method is straightforward, but difficult to scale to
+more than a few qubits, since in the case of correlated noise
+we need to store the entire 2N × 2N calibration matrix
+in memory and perform a minimization procedure over a
+(2N−1)-dimensional space of probabilities. However, since
+the number of qubits involved in our experiments is either
+one or two, this method is easily implementable and quick.
+In case of larger qubit number, other methods may be
+implemented [54–60].
+Depolarizing noise
+On the prediction side, we account for the presence of
+depolarizing noise on the CNOT gate (or rather, the CZ
+since it is the native gate of our processor, which explains
+the lower gate fidelity compared to the single qubit ones.
+The action of the depolarizing noise channel on a state ρ
+is described as follows[61]:
+Edep(ρ) := pdep ρ + (1 −pdep) 1
+d ,
+(19)
+which means that with a probability 1 −pdep the initial
+state is mapped to the completely mixed state, whereas
+with probability pdep the state remains unchanged. We
+used the respective parameters of depolarizing noise, which
+correspond exactly to the survival probability p1 of the
+Interleaved Randomized Benchmarking [38] seen in Eq. S4
+in Supplemental Information for each experiment.
+Supplementary information.
+The article is accompanied
+by supplemental information.
+Acknowledgements.
+The authors thank Lorenzo Campos
+Venuti for useful discussion, Hany Ali, Alessandro Bruno,
+Johannes Hermann, and Christian Junger for support on
+the gate calibrations.
+Declarations
+Funding
+The work is supported by the PNRR MUR project
+PE0000023-NQSTI and the PNRR MUR project CN
+00000013-ICSC.
+Author contribution
+These authors contributed equally: H.G.A. and G.E..
+H.G.A. and G.E. developed the experimental protocol; V.S.,
+C.C., A.S. and H.G.A. characterized and calibrated the
+device; V.S., H.G.A, C.C. and A.S.performed and analyzed
+the experiments; G.E. and J.O. analyzed the data; G.E.
+and J.O. developed the error mitigation scheme used for
+data analysis. A.H. conceived and supervised the project.
+All authors contributed to the interpretation of the results
+and production of the paper.
+9
+
+
+Circuit
+Qubit
+FRO(%)
+FRB(%)
+Techo
+2
+(µs)
+T∗
+2(µs)
+T1(µs)
+state
+M2 (= 0)
+M2 (̸= 0)
+Fig. 1(c)
+D3
+96 ± 1
+99.75 ± 0.01
+34 ± 2
+24 ± 1
+30 ± 1
+|ψ0⟩
+0.1 ± 0.3
+|ψ1⟩
+0.0 ± 0.3
+0.43 ± 0.12
+C4
+97 ± 1
+99.910 ± 0.002
+38 ± 1
+34 ± 4
+30.0 ± 0.4
+0.0 ± 0.3
+0.42 ± 0.12
+94 ± 1
+99.925 ± 0.002
+42 ± 1
+21 ± 1
+36 ± 2
+0.0 ± 0.3
+0.39 ± 0.14
+Fig. 1(d)
+D3
+97 ± 1
+99.910 ± 0.002
+38 ± 1
+34 ± 4
+30.0 ± 0.4
+|ψ2⟩
+0.0 ± 0.3
+0.43 ± 0.12
+C4
+94 ± 1
+99.925 ± 0.002
+42 ± 1
+21 ± 1
+36 ± 2
+0.0 ± 0.3
+0.40 ± 0.13
+FRO(%)
+FRB(%)
+FCZ
+RB(%)
+CMW(%)
+CZZ(kHz)
+Fig. 1(e)
+D3
+C4
+92 ± 1
+99.75 ± 0.01
+98 ± 2
+∼0.12
+∼100
+|ψ3⟩
+0.1 ± 0.1
+0.85 ± 0.05
+Fig. 1(f)
+92 ± 1
+99.905 ± 0.003
+∼1.57
+|ψ4⟩
+0.2 ± 0.1
+Extended Data Table 1: Experimental magic measured for the quantum states in Fig. 1. Systematic investigation of
+experimental magic for single and two-qubit quantum states, for qubits D3 and C4, as a function of: the readout fidelity
+FRO, the average single-qubit gates fidelity from Randomized Benchmarking FRB, relaxation, Ramsey and Echo coherence
+times (T1, T ∗
+2 and T Echo
+2
+, respectively). For two-qubit circuits, we report an estimation of the drive and ZZ crosstalk, CMV
+and CZZ respectively, on the investigated pair. The final columns refers measured magic for the states after introduction
+of T gates and in the circuits are denoted as |ψT
+i ⟩. Discussion on error estimation is in Methods.
+10
+
+
+Supplemental Information for ”Experimental demonstration of
+non-local magic in a superconducting quantum processor”
+S1 Experimental setup
+The fridge employed in this work is a dry dilution refrigerator BlueforsXLS1000SL, with minimal base temperature of
+7 mK. It is equipped with microwave coaxial cables, which allow operation within the microwave frequency range (DC-
+18GHz, nominally). The cryostat features four types of cryogenic lines: input and output lines for the readout, drive lines
+for qubit control, and flux lines for frequency tuning with either static or pulsed external magnetic flux. Feedline and
+drive lines feature a nominal attenuation of −60dB, which adds to −10dB attenuation of the line itself (stainless steel)
+and infrared low-pass filters with a cutoff of about 10GHz. The flux lines are equipped with −20dB nominal attenuation,
+anchored at 4K to prevent Joule heating, and two infrared low-pass filters in series of 10GHz and 1GHz. Flux lines are in
+stainless steel from room temperature to the 4K plate, and in niobium titanium below 4K. This allows for reducing heat
+dissipation when delivering static currents up to 40mA, used to generate magnetic flux on chip. The output lines, also
+made of niobium titanium below 4K and in copper-nickel at highest temperatures, are not attenuated, and include a
+10GHz low-pass filter and a Low-Noise Factory LNF-ISC double junction isolator at the mixing chamber (MXC), so that
+signals from room-temperature towards the sample are attenuated nominally by a total of 40 dB. Since the output signals
+of the qubits are single-photon signals, amplifiers are required. In our system, there are two amplification stages. There is
+a High Electron Mobility Transistor (HEMT) with nominal amplification of 40dB on the 4K plate, and three amplifiers
+at room temperature with a nominal 16dB amplification each. The cryogenic setup is shown in Figure S1. Finally, to
+QCM-RF
+Bias Tee
+QRM-RF
+QRM-RF
+SPI
+QCM
+Fig. S1: Cryogenic setup scheme, including the attenuation scheme for the input, drive and flux lines. On the output line,
+there are a dual juction isolator and an HEMT amplifier. Each line has a low-pass filter.
+provide combined static and pulsed magnetic flux through the flux lines, we employ bias-tees at room temperature, where
+the DC signal is generated by Qblox S4g modules (installed in a Qblox SPI-rack) and the RF signal is generated by a
+Qubit Control Module (QCM). This generates output signals up to 400 MHz, and are installed in a Qblox Cluster, a
+room-temperature microwave modular electronics fully interfaceable with Python packages, thanks to the open-source
+package Quantify [62]. The modules used for the measurements of this work are:
+11
+
+
+• Qubit Readout Module RF (QRM-RF), which allows generation of output multi-tone signals for multiplexed readout
+up to 18.5 GHz, and to demodulate the readout signals over a 400 MHz bandwidth;
+• Qubit Control Module RF (QCM-RF), which allows output signals up to 18.5 GHz;
+• Qubit Control Module (QCM), which generates pulses in the baseband regime up to 400 MHz.
+0
+200
+400
+600
+800
+1000
+Number of Cliffords
+0.0
+0.2
+0.4
+0.6
+0.8
+1.0
+qD3 - 0  population
+Fcl: 0.9971 ± 0.0001
+Favg: 0.9985 ± 0.0001
+0
+200
+400
+600
+800
+1000
+Number of Cliffords
+0.0
+0.2
+0.4
+0.6
+0.8
+1.0
+qC4 - 0  population
+Fcl: 0.9982 ± 0.0001
+Favg: 0.99905 ± 0.00003
+Simultaneous randomized benchmarking on qD3-qC4
+(a)
+0
+200
+400
+600
+800
+1000
+Number of Cliffords
+0.0
+0.2
+0.4
+0.6
+0.8
+1.0
+qD3 - 0  population
+Fcl: 0.9981 ± 0.00004
+Favg: 0.99899 ± 0.00002
+0
+200
+400
+600
+800
+1000
+Number of Cliffords
+0.0
+0.2
+0.4
+0.6
+0.8
+1.0
+qC4 - 0  population
+Fcl: 0.9984 ± 0.0001
+Favg: 0.99917 ± 0.00002
+Simultaneous randomized benchmarking on qD3-qC4
+(b)
+0
+200
+400
+600
+800
+1000
+Number of Cliffords
+0.0
+0.2
+0.4
+0.6
+0.8
+1.0
+qD3 - 0  population
+Fcl: 0.9978 ± 0.0001
+Favg: 0.99884 ± 0.00003
+0
+200
+400
+600
+800
+1000
+Number of Cliffords
+0.0
+0.2
+0.4
+0.6
+0.8
+1.0
+qC4 - 0  population
+Fcl: 0.9983 ± 0.0001
+Favg: 0.99912 ± 0.00003
+Simultaneous randomized benchmarking on qD3-qC4
+(c)
+Fig. S2: Simultaneous Randomized Benchmarking for single-qubit gate fidelity on qubit qD3 and qC4 for the three
+proposed experiment: the RB in (a) for the LM state experiment, in (b) for the M state, and in (c) for the NLM state.
+Blue scatter data corresponds to the population of the |0⟩state as a function of the number of Clifford gates in the
+randomized benchmarking sequence, averaged over 50 random seeds. The solid line represents the fit function (Eq.(S1))
+used for the estimation of the single-qubit randomized benchmarking average gate fidelity.
+12
+
+
+0
+50
+100
+150
+200
+250
+Number of Cliffords
+0.0
+0.2
+0.4
+0.6
+0.8
+1.0
+00  population
+Fcl: 0.979 ± 0.001
+FCZ, naive: 0.9861 ± 0.0004
+FCz, inter. : 0.991 ± 0.001
+Two-qubit Interleaved CZ RB on qD3-qC4
+Standard RB
+IRB
+(a)
+0
+50
+100
+150
+200
+250
+Number of Cliffords
+0.0
+0.2
+0.4
+0.6
+0.8
+1.0
+00  population
+Fcl: 0.9767 ± 0.0003
+FCZ, naive: 0.9844 ± 0.0002
+FCz, inter. : 0.991 ± 0.001
+Two-qubit Interleaved CZ RB on qD3-qC4
+Standard RB
+IRB
+(b)
+0
+50
+100
+150
+200
+250
+Number of Cliffords
+0.0
+0.2
+0.4
+0.6
+0.8
+1.0
+00  population
+Fcl: 0.972 ± 0.001
+FCZ, naive: 0.981 ± 0.001
+FCz, inter. : 0.985 ± 0.002
+Two-qubit Interleaved CZ RB on qD3-qC4
+Standard RB
+IRB
+(c)
+Fig. S3: Interleaved Randomized Benchmarking for the CZ gate on qubit qD3 and qC4 for the three proposed experiment:
+the CZ-IRB in (a) for the LM state experiment, in (b) for the M state, and in (c) for the NLM state. The scatter
+data correspond to the population of the |00⟩state as a function of the number of Clifford gates in the randomized
+benchmarking sequence, averaged over 50 random seeds. The solid line represents the fit function (Eq.(S1)) used for the
+estimation of survival probabilities. Specifically, the blue line refers to the standard simultaneous RB, while the orange
+one refers to the IRB, from which it is possible to estimate p0 and p1, respectively. From the two survival probabilities,
+the fidelity of the CZ can be obtain according to Eq.(S4).
+S2 Benchmarking protocols and experiments
+S2.1 Single and two-qubit gates optimization protocols
+Before the experimental measurements of magic on the investigated D3-C4 pair, we have performed: i) single- and two-
+qubits gate calibrations [63, 64], ii) simultaneous readout calibration. In detail, the experimental single-qubit gate set
+includes rotations Rxy(θ), where the rotation angle θ is controlled by changing the amplitude of drive DRAG (Derivative
+Reduction Adiabatic Gate) pulses [43, 65, 66] with a fixed duration of 60 ns. After a rough estimation of the amplitude
+required to perform a transition from the ground to the excited state of the qubits (π-pulse) with Rabi oscillations
+experiments [43], we have optimized the pulses frequency by using Ramsey oscillations experiments [43], the shape through
+Motzoi protocol [67] and we performed a fine tuning of the π-pulse amplitude through the flipping protocol. This sequence
+of optimization steps is finally tested through simultaneous All-XY experiments, able to recover error syndromes in X-Y
+gates (e.g., detuning, amplitude and DRAG errors), and eventually allowing us to correct for specific errors when they
+occur [64].
+13
+
+
+As for the two-qubit gates calibration, we have focused on CZ gates implemented through flux-pulses able to set on
+resonance the high-frequency qubit (D3) with the low-frequency qubit (C4). We used the cryoscope technique to correct for
+flux pulses distortions [68], and CZ-Chevron experiments employing unipolar flux pulses to get a rough estimation of the
+amplitude and the duration of the CZ flux pulses [43, 44]. Then, we have used Sudden-Net Zero (SNZ) flux pulses, whose
+parameters have been optimized through conditional oscillations experiments [69] (Sec. S2). By measuring landscapes of
+the conditional two-qubit phase and the leakage as a function of the amplitude and the shape of the SNZ pulses, as well
+as the flux sweet spot of the qubits, we aimed at the minimum leakage and a conditional phase as close as possible to the
+nominal 180◦conditional two-qubit phase [44]. Finally, we have also corrected for the single-qubit phases to enhance the
+fidelity of the CZ gates [44].
+The readout calibration procedure, instead, involved Single-Shot Readout (SSRO) experiments [70] as a function
+of the power and the frequency of the readout tone, as well as the duration of the readout signal and the integration
+time. Single-shot readout is performed suddenly before any quantum circuit implemented, and is used to identify the
+discrimination threshold for the computational basis state and the calculation of the count vectors and the readout
+state probability [53]. Finally, besides standard coherence times benchmarking, e.g. relaxation, Ramsey and Hahn-Echo
+coherence times (T1, T ∗
+2 and T2) [43], simultaneous single-qubit Randomized Benchmarking (RB) [71] and CZ Interleaved
+two-qubits RB (IRB) [38, 72] were used to estimate the average Clifford gate fidelities for the two qubits and the average
+CZ gate fidelity (App. S2), while SSRO experiments have been used to estimate the readout fidelity [53].
+In the context of RCM, C = NN
+i=1 Ci represents the tensor product of N single-qubit Clifford unitaries Ci, each
+randomly sampled from the ensemble of unitaries, which includes X, Y , Z, H, and S gates, plus the trivial identity gate
+I, and all 24 of their possible combinations. While X, Y and Z gates are directly related to microwave/flux pulses[43], H
+and S gates are decomposed in terms of Rx, Ry, and Rz gates. For example, H is decomposed in terms of Ry(π/2)Rz(π)
+rotations, while S is implemented as a Rz(π/2) pulse, where Ry(θ)≡Rxy
+ θ, π
+2
+
+, Rz(θ) = e−i θ
+2 Z. The T is implemented as
+Rz(π/4). CNOT is implemented as CNOT1→2 = (I ⊗H) · CZ1→2 · (I ⊗H).
+S2.2 Fidelity estimation
+Randomized Benchmarking (RB) is a class of methods used to evaluate the fidelity of applied gates and is based on
+the implementation of sequences of random gate operations [73–75]. The advantages of RB protocols are their efficient
+scalability with the number of qubits n and the fact that they account for State Preparation and Measurement (SPAM)
+errors. In our protocol, the RB has been implemented over the Clifford gate set. Clifford based RB has several variants.
+Specifically, we focused on the Standard RB and the Interleaved RB (IRB).
+S2.2.1 Single qubit Randomized Benchmaking
+Standard Clifford RB is performed by initializing the qubit in the |0⟩state, followed by the application of a sequence
+of Ncl random Clifford gates, and then the inverse of all applied gates. Ideally, this sequence acts as the identity gate.
+However, due to gate errors, the final state will differ from the ideal one. Finally, we can thus extract the fidelity of the
+gates by comparing how close the final state is to the initial one. The survival probability p can be obtained by fitting the
+population of the |0⟩state as a function of the number of Clifford, using the exponential decay [76]:
+F|0⟩(Ncl) = A · pNcl + B,
+(S1)
+where Ncl is the number of Clifford gates in the sequence. Given d = 2n as the dimensionality of the system for n qubits,
+the average gate fidelity can be estimated from the survival probability as:
+Favg.gate = (Fcl)
+1
+1.875 ,
+(S2)
+where
+Fcl = 1 −
+d −1
+d
+−(1 −p)
+
+.
+(S3)
+This protocol was performed simultaneously on both qubits, qD3 and qC4. The single-qubit gate for each qubit was
+chosen randomly and independently from the single-qubit Clifford group, i.e., the protocol required applying the product
+of the single-qubit Clifford unitaries to the two-qubit register. An example of the protocol applied simultaneously on
+qubits D3 and C4 is shown in Fig. S2.
+S2.2.2 CZ - Interleaved Randomized Benchmarking
+The Interleaved Randomized Benchmarking (IRB) is a scalable experimental protocol for estimating the average error
+of individual quantum computational gates. The protocol involves interleaving random Clifford gates with the gate of
+interest, i.e., the CZ gate in our case [38]. This protocol is composed of three steps [38]:
+• perform standard randomized benchmarking (RB) by choosing K sequences of random gates, where the first m
+gates in each sequence are selected randomly from the Clifford group, and the (m + 1)-th gate is the inverse of the
+composition of the first m gates. By fitting the exponential decay, we can obtain the survival probability p0 (Eq.(S1));
+14
+
+
+• choose K sequences of Clifford elements where the first Clifford, in each sequence, is chosen randomly for the Clifford
+group, while the second is always the CZ gate, and alternate between random Clifford and the CZ gate up to m-th
+random gate. The (m + 1)-th gate is the inverse of the composition of the first m gates and the m CZ gates. As well
+as for the standard RB, we can use the exponential decay fit to estimate the survival probability p1;
+• estimate the fidelity for the CZ gate as follow:
+FCZ,int = 1 −
+d −1
+d
+·
+
+1 −p1
+p0
+
+(S4)
+An example of the CZ-IRB performed on D3 and C4 is shown in Fig. S3. Moreover, we performed statistical measurements
+of the interleaved CZ gate fidelity, obtaining an average fidelity of (98 ± 2)%. The results are shown in Fig. S4.
+0
+2
+4
+6
+8
+10
+12
+14
+Repetitions
+96.0
+96.5
+97.0
+97.5
+98.0
+98.5
+99.0
+Fidelity (%)
+Fidelity: 98 ± 2 %
+IRB-CZ gate statistic
+Fig. S4: Statistical measurements of the interleaved CZ gate fidelity.
+S2.3 Crosstalk measurements
+Crosstalk phenomena refer to interactions between qubits that can introduce noise into the system, leading to errors in
+algorithm implementation. Therefore, as a preliminary step, it is necessary to study the crosstalk affecting the device.
+There are various types of crosstalk, but in this work, we specifically focus on microwave crosstalk and ZZ crosstalk.
+S2.3.1 Microwave crosstalk
+To determine the microwave crosstalk strength from one qubit to another, we send a microwave pulse to the driveline
+of one qubit and measure its effect on the other qubit, referred to as the ’driven’ and ’measured’ qubit, respectively.
+Specifically, we perform a Rabi experiment on the driven qubit by sending a π-pulse at the frequency of the measured
+qubit and carry out a dispersive measurement on the latter. By using a sinusoidal fit, we can extract the π-pulse amplitude
+obtained from the experiment, which allows us to estimate the strength of the microwave crosstalk coefficient. Specifically,
+it can be estimated as:
+Ci→j = Aj→j
+Ai→j
+tj→j
+ti→j
+(S5)
+where Ai→j and ti→j are the amplitude and duration of the π-pulse sent on qubit i and measured on qubit j, respectively.
+The microwave crosstalk matrix for the couple D3-C4 is shown in Fig. S5.
+S2.3.2 ZZ crosstalk
+By performing two-qubit gates, we introduce a controlled interaction between the two qubits. However, there may also be
+a small undesired coupling between them, which persists even when the controlled interaction is turned off. The effect
+of this interaction, known as residual ZZ coupling [68], is that the frequency of the |0⟩→|1⟩transition of one qubit
+shifts depending on the state of the other. In order to estimate the streght of this interaction, we can use a Ramsey-type
+experiment. Specifically, we perform a Ramsey sequence on the target qubit with an echo pulse at the midway point. In
+the meanwhile, the spectator the spectator is prepared in the ground state for half of the sequence, and in the excited
+state for the second half. The pulse scheme of the experiment is shown in Fig. S6.
+15
+
+
+1.00
+0.75
+0.50
+0.25
+0.00
+0.25
+0.50
+0.75
+1.00
+Amplitude [V]
+7
+8
+9
+10
+11
+12
+13
+14
+Rotated transmission SR
+21 [mV]
+Pi-pulse amplitude: 0.26 ± 0.03 V
+Cross-Rabi oscillation - drive qD3, measure qC4
+(a)
+1.00
+0.75
+0.50
+0.25
+0.00
+0.25
+0.50
+0.75
+1.00
+Amplitude [V]
+7.475
+7.500
+7.525
+7.550
+7.575
+7.600
+7.625
+7.650
+Rotated transmission SR
+21 [mV]
+Pi-pulse amplitude: 2.8 ± 4.8 V
+Cross-Rabi oscillation - drive qC4, measure qD3
+(b)
+qD3
+qC4
+Spectator
+qD3
+qC4
+Target
+100.00
+1.57
+0.12
+100.00
+Crosstalk matrix - Microwave
+0
+20
+40
+60
+80
+100
+CrossMW[%]
+(c)
+Fig. S5: Measurement of the MW crosstalk between qD3 and qC4. In (a) and (b), the results of the Rabi protocol
+performed using qD3 as the driven qubit and qC4 as the measured one, and vice versa, respectively. In (c), the MW
+crosstalk matrix for qD3 and qC4. The x- and y-axis indicates the measured qubit and the driven one. The colorbar
+represents the percentage of MW crosstalk.
+Fig. S6: Pulse sequence for ZZ residual coupling estimation. First, a Rx(π/2) and Rx(π) gates are applied on the target
+and the spectator qubit, respectively. The qubits are allowed to evolve freely for a variable delay t/2, after which a Ry(π)
+and Rx(π) rotation are applied on the target and spectator qubit, respectively. After waiting again for a variable delay
+t/2, a Ry(π/2) pulse is applied on the target qubit. Finally, the circuit’s output is measured.
+16
+
+
+0
+20
+40
+60
+80
+100
+Ramsey delay time [ s]
+0.0
+0.5
+1.0
+qD3 - Population 1
+: 99.8 ± 0.7 kHz 
+Residual ZZ qD3 - qC4
+0
+20
+40
+60
+80
+100
+Ramsey delay time [ s]
+0.0
+0.5
+1.0
+qC4 - Population 1
+: 100.0 ± 0.7 kHz 
+Residual ZZ qC4 - qD3
+(a)
+qD3
+qC4
+Spectator
+qD3
+qC4
+Target
+0.0
+100.0
+99.8
+0.0
+Crosstalk matrix - Residual ZZ
+0
+20
+40
+60
+80
+100
+ [kHz]
+(b)
+Fig. S7: Measurement of the ZZ residual coupling between qD3 and qC4. In (a) and (b) the population of the |1⟩state
+using qD3 and qC4 as target, respectively. The solid lines represent the fit function used to estimate the ZZ residual
+coupling. In (c), the ZZ crosstalk matrix for qD3 and qC4. The x- and y-axis indicates the spectator and the target qubit,
+respectively. The colorbar represents the shift in frequency due to the ZZ interaction.
+|00 >
+|01 >
+|10 >
+|11 >
+Measured state
+|00 >
+|01 >
+|10 >
+|11 >
+Prepared state
+SSRO qD3-qC4
+0.95
+0.07
+0.07
+0.01
+0.03
+0.92
+0.00
+0.06
+0.02
+0.00
+0.90
+0.06
+0.00
+0.01
+0.03
+0.87
+0.00
+0.20
+0.40
+0.60
+0.80
+1.00
+(a)
+|00 >
+|01 >
+|10 >
+|11 >
+Measured state
+|00 >
+|01 >
+|10 >
+|11 >
+Prepared state
+SSRO qD3-qC4
+0.95
+0.05
+0.06
+0.00
+0.02
+0.92
+0.00
+0.07
+0.03
+0.00
+0.91
+0.05
+0.00
+0.03
+0.02
+0.88
+0.00
+0.20
+0.40
+0.60
+0.80
+1.00
+(b)
+|00 >
+|01 >
+|10 >
+|11 >
+Measured state
+|00 >
+|01 >
+|10 >
+|11 >
+Prepared state
+SSRO qD3-qC4
+0.96
+0.06
+0.04
+0.00
+0.02
+0.93
+0.00
+0.04
+0.02
+0.00
+0.93
+0.06
+0.00
+0.01
+0.03
+0.90
+0.00
+0.20
+0.40
+0.60
+0.80
+1.00
+(c)
+Fig. S8: Supplemental Figure – Initialization/assignment probability matrices. Initialization matrix for the three proposed
+experiments: in (a) for the LM state experiment, in (b) for the M state, and in (c) for the NLM state. The x- and y-axis
+indicate the measured and prepared state, respectively.
+17
+
+
+Computational 
+basis state 
+preparation
+(𝐼𝑚, 𝑄𝑚)𝑘, 𝑚= {1, … , 𝑁𝑠ℎ𝑜𝑡}
+Simultaneous 
+single-shot 
+readout
+Initialization 
+count 
+vector 𝑛𝑖𝑗
+𝑖𝑛𝑖𝑡
+Discrimination 
+threshold 
+identification
+| ۧ𝑖= ⨂𝑘=1
+𝑁
+|
+ۧ
+𝜙𝑘𝜙={| ۧ
+0 ,| ۧ
+1 }
+Initialization 
+readout 
+probability 
+𝑝𝑖𝑗
+𝑖𝑛𝑖𝑡
+Quantum 
+circuit count 
+vector 𝑛𝑖𝑗
+Quantum 
+circuit 
+readout 
+probability 𝑝𝑖𝑗
+Fig. S9: Supplemental Figure - Experimental randomized protocol for magic measurements. In (a), a schematic represen-
+tation of the randomized measurement protocol. In (b), the steps involved in the initialization experiment are performed
+before any quantum circuit. The initialization procedure is used on one hand to calculate the readout fidelity, but most
+importantly the computational basis states discrimination threshold (black dashed line in the top right inset). This allows
+to determine the output of any randomized Clifford circuit performed after the preparation of a quantum state.
+18
+
+
+(a)
+(b)
+(c)
+Fig. S10: The measured |1⟩population as a function of the phase on qD3 on the left and on qC4 on the right for the three
+proposed experiment: in (a) for the LM state experiment, in (b) for the M state, and in (c) for the NLM state. The blue
+scatter data represent the measured values for the Off variant, while the orange ones the measured values for the On variant.
+The solid lines represent the fit fuction used to estimate the two-qubit phase θ2Q on the left and the leakage L on the right.
+19
+
+
+Due to the residual ZZ interaction, the target qubit will acquire a phase. By varying the delay in the experiment,
+we observe an oscillation in the target qubit population, from which it is possible to estimate the residual ZZ coupling
+frequency. The ZZ-crosstalk matrix for the couple D3-C4 is shown in Fig. S7.
+S2.4 Conditional oscillation
+To tune up the CZ gate, it is possible to perform the conditional oscillation experiment. It can be used to measure the
+conditional phase θ2Q acquired during an uncalibrated CZ gate, and to estimate the leakage L, defined as the average
+probability that a random computational state leaks out of the computational subspace [77]. In the conditional oscillation
+experiment, two variants of the same experiment are performed [69]. In the first variant (Off), a π/2-pulse is applied on the
+target qubit, while the control qubit is left in the ground state. After that, the CZ flux pulse is applied. Finally, another
+π/2-pulse is applied on the target before measuring the state of both qubits simultaneously. In the second variant (On), the
+control qubit is rotated into the excited state before applying the CZ gate. Then, the control qubit is pulsed back to the
+ground state before measuring both qubits. The difference in phase acquired by the target in the On and Off variants yields
+θ2Q, while the population difference on the control, defined as the missing fraction m, allows us to estimate the leakage as
+L = m/2. In order to optimize θ2Q, i.e. to have it equal to π, and to minimize the leakage L, the flux pulse amplitude and
+duration are changed. An example of the protocol performed for the CZ between D3 and C4 is shown in Fig. S10.
+S3 Local magic distillation lemma
+Lemma 1 (Local magic distillation). Given a state |ψ⟩∈H = HA ⊗HB, an ancillary system in |0⟩, and a Clifford unitary
+C such that
+C(|ψ⟩⊗|0⟩) = |ψ′⟩⊗|ϕ⟩,
+(S6)
+with M2(|ϕ⟩) > M L(ψ), then C does not allow a decomposition in local unitary operators on HA ⊗HB, namely it cannot
+be of the form C = CA ⊗CBC or C = CB ⊗CAC.
+Proof Since C ∈C, then M2(
+ψ′
+⊗|ϕ⟩) = M2(|ψ⟩). Since M2 is additive, it holds that
+M2(
+ψ′
+) + M2(|ϕ⟩) = M2(|ψ⟩)
+= MNL(|ψ⟩) + ML(|ψ⟩) =⇒M2
+ ψ′
+= MNL(|ψ⟩) + ML(|ψ⟩) −M2(|ϕ⟩)
+(S7)
+by hypothesis, M2(|ϕ⟩) > ML(|ψ⟩), hence ML(|ψ⟩) −M2(|ϕ⟩) < 0: thus we have
+M2(
+ψ′
+) < MNL(|ψ⟩) =
+min
+UA,UB
+M2[(UA ⊗UB) |ψ⟩]
+(S8)
+proving that
+ψ′
+cannot be the output of the product of local unitaries on A and B.
+□
+20
+
+
+References
+[1] Aaronson, S. & Gottesman, D. Improved simulation of stabilizer circuits. Phys. Rev. A 70, 052328 (2004). URL
+https://link.aps.org/doi/10.1103/PhysRevA.70.052328.
+[2] Bravyi, S. & Kitaev, A. Universal quantum computation with ideal Clifford gates and noisy ancillas. Physical Review
+A 71, 022316 (2005).
+[3] Veitch, V., Hamed Mousavian, S. A., Gottesman, D. & Emerson, J. The resource theory of stabilizer quantum
+computation. New Journal of Physics 16, 013009 (2014).
+[4] Li, G.-C. et al. Invested and potential magic resources in measurement-based quantum computation. Phys. Rev. Lett.
+135, 160203 (2025). URL https://link.aps.org/doi/10.1103/4yyv-hggz.
+[5] Qian, D. & Wang, J. Quantum nonlocal nonstabilizerness. Physical Review A 111, 052443 (2025).
+[6] Leone, L., Oliviero, S. F. E., Zhou, Y. & Hamma, A. Quantum chaos is quantum. Quantum 5, 453 (2021).
+[7] Zhou, S., Yang, Z.-C., Hamma, A. & Chamon, C. Single T gate in a Clifford circuit drives transition to universal
+entanglement spectrum statistics. SciPost Phys. 9, 087 (2020). URL https://scipost.org/10.21468/SciPostPhys.9.6.087.
+[8] True, S. & Hamma, A. Transitions in entanglement complexity in random circuits. Quantum 6, 818 (2022).
+[9] Leone, L., Oliviero, S. F. E., Esposito, G. & Hamma, A. Phase transition in stabilizer entropy and efficient purity
+estimation. Physical Review A 109, 032403 (2024).
+[10] Oliviero, S. F. E., Leone, L., Lloyd, S. & Hamma, A. Unscrambling quantum information with Clifford decoders.
+Physical Review Letters 132, 080402 (2024).
+[11] Feynman, R. P. Simulating physics with computers. International Journal of Theoretical Physics 21, 467–488 (1982).
+[12] Shor, P. W. Polynomial-time algorithms for prime factorization and discrete logarithms on a quantum computer.
+SIAM Journal on Computing 26, 1484–1509 (1997).
+[13] Harrow, A. W., Hassidim, A. & Lloyd, S. Quantum algorithm for linear systems of equations. Physical Review
+Letters 103, 150502 (2009).
+[14] Lloyd, S. Universal quantum simulators. Science 273, 1073–1078 (1996).
+[15] Grover, L. K. Quantum mechanics helps in searching for a needle in a haystack. Physical Review Letters 79, 325–328
+(1997).
+[16] Gottesman, D. The Heisenberg representation of quantum computers (1998). URL https://arxiv.org/abs/quant-ph/
+9807006. arXiv:quant-ph/9807006.
+[17] Howard, M. & Campbell, E. Application of a resource theory for magic states to fault-tolerant quantum computing.
+Physical Review Letters 118, 090501 (2017).
+[18] Iannotti, D., Esposito, G., Campos Venuti, L. & Hamma, A. Entanglement and Stabilizer entropies of random
+bipartite pure quantum states. Quantum 9, 1797 (2025). URL https://doi.org/10.22331/q-2025-07-21-1797.
+[19] Tirrito, E. et al. Quantifying nonstabilizerness through entanglement spectrum flatness. Phys. Rev. A 109, L040401
+(2024). URL https://link.aps.org/doi/10.1103/PhysRevA.109.L040401.
+[20] Szombathy, D., Valli, A., Moca, C. P., Farkas, L. & Zar´and, G. Independent stabilizer r´enyi entropy and entanglement
+fluctuations in random unitary circuits (2025). URL http://arxiv.org/abs/2501.11489. ArXiv:2501.11489 [quant-ph].
+[21] Korbany, D. A., Gullans, M. J. & Piroli, L. Long-range nonstabilizerness and phases of matter. Phys. Rev. Lett. 135,
+160404 (2025). URL https://link.aps.org/doi/10.1103/1hlj-h6t9.
+[22] Odavi´c, J., Viscardi, M. & Hamma, A. Stabilizer entropy in nonintegrable quantum evolutions. Physical Review B
+112, 104301 (2025).
+[23] Cao, C. et al. Gravitational back-reaction is magical (2024). URL http://arxiv.org/abs/2403.07056.
+21
+
+
+[24] Preskill, J. Quantum computing in the NISQ era and beyond. Quantum 2, 79 (2018). URL https://doi.org/10.22331
+/q-2018-08-06-79.
+[25] Odavi´c, J. et al. Complexity of frustration: A new source of non-local non-stabilizerness. SciPost Physics 15, 131
+(2023).
+[26] Wills, A., Hsieh, M.-H. & Yamasaki, H. Constant-overhead magic state distillation. Nature Physics (2025). URL
+https://doi.org/10.1038/s41567-025-03026-0.
+[27] Sales Rodriguez, P. et al. Experimental demonstration of logical magic state distillation. Nature (2025). URL
+https://doi.org/10.1038/s41586-025-09367-3.
+[28] Cusumano, S. et al. Non-stabilizerness and violations of CHSH inequalities (2025). URL https://arxiv.org/abs/2504
+.03351. arXiv:2504.03351.
+[29] Pastawski, F., Yoshida, B., Harlow, D. & Preskill, J. Holographic quantum error-correcting codes: toy models for the
+bulk/boundary correspondence. Journal of High Energy Physics 2015, 149 (2015).
+[30] Leone, L., Oliviero, S. F. & Hamma, A. Stabilizer Renyi entropy. Physical Review Letters 128, 050402 (2022).
+[31] Leone, L. & Bittel, L. Stabilizer entropies are monotones for magic-state resource theory. Physical Review A 110,
+L040403 (2024).
+[32] Oliviero, S. F. E., Leone, L., Hamma, A. & Lloyd, S. Measuring magic on a quantum processor. npj Quantum
+Information 8, 1–8 (2022). URL https://www.nature.com/articles/s41534-022-00666-5.
+[33] Elben, A. et al. The randomized measurement toolbox. Nature Reviews Physics 5, 9–24 (2022).
+[34] Brydges, T. et al. Probing R´enyi entanglement entropy via randomized measurements. Science 364, 260–263 (2019).
+URL https://www.science.org/doi/10.1126/science.aau4963.
+[35] Cai, Z. et al. Quantum error mitigation. Rev. Mod. Phys. 95, 045005 (2023). URL https://link.aps.org/doi/10.1103
+/RevModPhys.95.045005.
+[36] Ahmad, H. G. et al. Mitigating errors on superconducting quantum processors through fuzzy clustering. Advanced
+Quantum Technologies 7, 2300400 (2024).
+[37] Magesan, E., Gambetta, J. M. & Emerson, J. Scalable and robust randomized benchmarking of quantum processes.
+Phys. Rev. Lett. 106, 180504 (2011). URL https://link.aps.org/doi/10.1103/PhysRevLett.106.180504.
+[38] Magesan, E. et al. Efficient measurement of quantum gate error by interleaved randomized benchmarking. Phys.
+Rev. Lett. 109, 080505 (2012). URL https://link.aps.org/doi/10.1103/PhysRevLett.109.080505.
+[39] Chen, J., Ding, D. & Huang, C. Randomized benchmarking beyond groups. PRX Quantum 3, 030320 (2022). URL
+https://link.aps.org/doi/10.1103/PRXQuantum.3.030320.
+[40] Cross, A. W., Magesan, E., Bishop, L. S., Smolin, J. A. & Gambetta, J. M. Scalable randomised benchmarking of
+non-Clifford gates. npj Quantum Information 2, 16012 (2016).
+[41] Helsen, J., Xue, X., Vandersypen, L. M. K. & Wehner, S. A new class of efficient randomized benchmarking protocols.
+npj Quantum Information 5, 71 (2019).
+[42] DiCarlo, L. et al. Demonstration of two-qubit algorithms with a superconducting quantum processor. Nature 460,
+240–244 (2009). URL https://doi.org/10.1038/nature08121.
+[43] Krantz, P. et al. A quantum engineer’s guide to superconducting qubits. Applied Physics Reviews 6, 021318 (2019).
+[44] Negˆırneac, V. et al. High-fidelity controlled-z gate with maximal intermediate leakage operating at the speed limit in
+a superconducting quantum processor. Phys. Rev. Lett. 126, 220502 (2021). URL https://link.aps.org/doi/10.1103/P
+hysRevLett.126.220502.
+[45] Koch, J. et al. Charge-insensitive qubit design derived from the cooper pair box. Phys. Rev. A 76, 042319 (2007).
+URL https://link.aps.org/doi/10.1103/PhysRevA.76.042319.
+22
+
+
+[46] Zhao, P. et al. Quantum crosstalk analysis for simultaneous gate operations on superconducting qubits. PRX
+Quantum 3, 020301 (2022). URL https://link.aps.org/doi/10.1103/PRXQuantum.3.020301.
+[47] Ketterer, A. & Wellens, T. Characterizing crosstalk of superconducting transmon processors. Phys. Rev. Appl. 20,
+034065 (2023). URL https://link.aps.org/doi/10.1103/PhysRevApplied.20.034065.
+[48] Cao, C. Non-trivial area operators require non-local magic. Journal of High Energy Physics 2024, 105 (2024).
+[49] Leone, L., Oliviero, S. F. E., Lloyd, S. & Hamma, A. Learning efficient decoders for quasi-chaotic quantum scramblers.
+Physical Review A 109, 022429 (2024).
+[50] Leone, L., Oliviero, S. F. E., Piemontese, S., True, S. & Hamma, A. Retrieving information from a black hole using
+quantum machine learning. Physical Review A 106, 062434 (2022).
+[51] Grier, D. & Schaeffer, L. The classification of Clifford gates over qubits. Quantum 6, 734 (2022). URL https:
+//quantum-journal.org/papers/q-2022-06-13-734/.
+[52] Webb, Z. The Clifford group forms a unitary 3-design. Quantum Information and Computation 16, 1379–1400 (2016).
+[53] Stasino, V. et al. Implementation and readout of maximally entangled two-qubit gates quantum circuits in a
+superconducting quantum processor. Journal of Superconductivity and Novel Magnetism 38, 129 (2025). URL
+https://doi.org/10.1007/s10948-025-06968-x.
+[54] Bravyi, S., Sheldon, S., Kandala, A., Mckay, D. C. & Gambetta, J. M. Mitigating measurement errors in multiqubit
+experiments. Physical Review A 103, 042605 (2021). URL https://link.aps.org/doi/10.1103/PhysRevA.103.042605.
+[55] Kandala, A. et al. Error mitigation extends the computational reach of a noisy quantum processor. Nature 567,
+491–495 (2019). URL https://doi.org/10.1038/s41586-019-1040-7.
+[56] Song, C. et al. Quantum computation with universal error mitigation on a superconducting quantum processor.
+Science Advances 5, eaaw5686 (2019).
+[57] Smith, A. W. R., Khosla, K. E., Self, C. N. & Kim, M. S. Qubit readout error mitigation with bit-flip averaging.
+Science Advances 7, eabi8009 (2021).
+[58] van den Berg, E., Minev, Z. K. & Temme, K. Model-free readout-error mitigation for quantum expectation values.
+Phys. Rev. A 105, 032620 (2022). URL https://link.aps.org/doi/10.1103/PhysRevA.105.032620.
+[59] Maciejewski, F. B., Zimbor´as, Z. & Oszmaniec, M. Mitigation of readout noise in near-term quantum devices by
+classical post-processing based on detector tomography. Quantum 4, 257 (2020).
+[60] Cosco, F., Plastina, F. & Lo Gullo, N. Bayesian mitigation of measurement errors in multiqubit experiments. Physical
+Review A 112, 042621 (2025).
+[61] Nielsen, M. A. & Chuang, I. L. Quantum Computation and Quantum Information (Cambridge University Press,
+Cambridge, UK, 2010). URL https://books.google.it/books?id=-s4DEy7o-a0C.
+[62] Software package quantify. URL https://quantify-os.org/.
+[63] Lucero, E. et al. High-fidelity gates in a single Josephson qubit. Phys. Rev. Lett. 100, 247001 (2008). URL
+https://link.aps.org/doi/10.1103/PhysRevLett.100.247001.
+[64] Reed, M. Entanglement and Quantum Error Correction with Superconducting Qubits (PhD Thesis). URL https:
+//books.google.it/books?id=7mORBQAAQBAJ.
+[65] Babu, A. P., Tuorila, J. & Ala-Nissila, T. State leakage during fast decay and control of a superconducting transmon
+qubit. npj Quantum Information 7, 30 (2021). URL https://doi.org/10.1038/s41534-020-00357-z.
+[66] Werninghaus, M. et al. Leakage reduction in fast superconducting qubit gates via optimal control. npj Quantum
+Information 7, 14 (2021). URL https://doi.org/10.1038/s41534-020-00346-2.
+[67] Motzoi, F., Gambetta, J. M., Rebentrost, P. & Wilhelm, F. K. Simple pulses for elimination of leakage in weakly
+nonlinear qubits. Phys. Rev. Lett. 103, 110501 (2009). URL https://link.aps.org/doi/10.1103/PhysRevLett.103.110501.
+23
+
+
+[68] Rol, M. A. et al. Time-domain characterization and correction of on-chip distortion of control pulses in a quantum
+processor. Applied Physics Letters 116, 054001 (2020).
+[69] Rol, M. A. et al. Fast, high-fidelity conditional-phase gate exploiting leakage interference in weakly anharmonic
+superconducting qubits. Phys. Rev. Lett. 123, 120502 (2019). URL https://link.aps.org/doi/10.1103/PhysRevLett.1
+23.120502.
+[70] Mallet, F. et al. Single-shot qubit readout in circuit quantum electrodynamics. Nature Physics 5, 791–795 (2009).
+URL https://doi.org/10.1038/nphys1400.
+[71] Gambetta, J. M. et al. Characterization of addressability by simultaneous randomized benchmarking. Physical
+Review Letters 109 (2012). URL http://dx.doi.org/10.1103/PhysRevLett.109.240504.
+[72] C´orcoles, A. D. et al. Process verification of two-qubit quantum gates by randomized benchmarking. Phys. Rev. A
+87, 030301 (2013). URL https://link.aps.org/doi/10.1103/PhysRevA.87.030301.
+[73] Hashim, A. et al. Practical introduction to benchmarking and characterization of quantum computers. PRX Quantum
+6, 030202 (2025). URL https://link.aps.org/doi/10.1103/PRXQuantum.6.030202.
+[74] Helsen, J., Roth, I., Onorati, E., Werner, A. & Eisert, J. General framework for randomized benchmarking. PRX
+Quantum 3, 020357 (2022). URL https://link.aps.org/doi/10.1103/PRXQuantum.3.020357.
+[75] Proctor, T. et al. Scalable randomized benchmarking of quantum computers using mirror circuits. Phys. Rev. Lett.
+129, 150502 (2022). URL https://link.aps.org/doi/10.1103/PhysRevLett.129.150502.
+[76] Epstein, J. M., Cross, A. W., Magesan, E. & Gambetta, J. M. Investigating the limits of randomized benchmarking
+protocols. Phys. Rev. A 89, 062321 (2014). URL https://link.aps.org/doi/10.1103/PhysRevA.89.062321.
+[77] Wood, C. J. & Gambetta, J. M. Quantification and characterization of leakage errors. Phys. Rev. A 97, 032306
+(2018). URL https://link.aps.org/doi/10.1103/PhysRevA.97.032306.
+24

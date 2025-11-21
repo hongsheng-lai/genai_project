@@ -1,0 +1,1181 @@
+I
+,
+OPTIMIZING ROBOT POSITIONING AGAINST PLACEMENT INACCURACIES:
+A STUDY ON THE FANUC CRX10IA/L
+Nicolas Gautier 1,2, Yves Guillermit 1, Mathieu Porez 2, David Lemoine 2, Damien Chablat 2,∗
+1Weez-U Welding, 101 rue de Coulmiers, 44 000 Nantes, France
+2Nantes Université, École Centrale Nantes, IMT Atlantique, CNRS, LS2N, UMR 6004, F-44000 Nantes, France
+ABSTRACT
+This study presents a methodology for determining the opti-
+mal base placement of a Fanuc CRX10iA/L collaborative robot
+for a desired trajectory corresponding to an industrial task. The
+proposed method uses a particle swarm optimization algorithm
+that explores the search space to find positions for performing the
+trajectory. An 𝛼-shape algorithm is then used to draw the borders
+of the feasibility areas, and the largest circle inscribed is calcu-
+lated from the Voronoi diagrams. The aim of this approach is to
+provide a robustness criterion in the context of robot placement
+inaccuracies that may be encountered, for example, if the robot is
+placed on a mobile base when the system is deployed by an oper-
+ator. The approach developed uses an inverse kinematics model
+to evaluate all initial configurations, then moves the robot end-
+effector along the reference trajectory using the Jacobian matrix
+and assigns a score to the attempt. For the Fanuc CRX10iA/L
+robot, there can be up to 16 solutions to the inverse kinematics
+model. The calculation of these solutions is not trivial and re-
+quires a specific study that planning tools such as MoveIt cannot
+fully take into account. Additionally, the optimization process
+must consider constraints such as joint limits, singularities, and
+workspace limitations to ensure feasible and efficient trajectory
+execution.
+Keywords: Welding application, serial robot, trajectory plan-
+ning, simulation
+1. INTRODUCTION
+Optimization of a robot’s placement for complex, sometimes
+one-off, industrial tasks such as welding or cutting represents a
+major challenge [1], particularly when the workpieces are large
+relative to the robot and the trajectory to be followed is highly
+constrained in terms of orientation. For example, a trajectory
+resulting from the intersection of two cylinders imposes strict
+requirements on both position and orientation, making it difficult
+to determine an optimal placement that ensures feasible move-
+ments. These constraints are even more critical as positioning
+∗Corresponding author: Damien.Chablat@cnrs.fr
+Documentation for asmeconf.cls: Version 1.40, November 20, 2025.
+inaccuracies can affect execution robustness, e.g. when the robot
+is mounted on a mobile platform. This issue remains a major
+challenge, and robot placement still relies largely on iterative
+testing and human intuition.
+In the literature, several approaches have been proposed to
+address this problem. The approach presented in [2] is based
+on optimizing the base position of an industrial robot to mini-
+mize cycle time while ensuring the absence of collisions with the
+environment. Similarly, [3] focuses on optimizing the number
+of robots and their positioning to maximize paint coverage while
+reducing the risk of collisions between robots. Other studies have
+focused on minimizing the robot’s dynamic effects. In [4], the
+authors propose to place the workpiece to minimize joint efforts,
+thereby improving task quality.
+Likewise, [5] aims to reduce
+joint torques in a milling application due to the low rigidity and
+high flexibility of robots compared to traditional CNC machines.
+For mobile manipulation tasks, [6] proposes a multi-objective
+optimization approach to improve coverage and the efficiency of
+the robot’s placement on its mobile base. Finally, [7] develops a
+strategy that combines planning and heuristics to optimize robot
+placement in object-grasping tasks, taking into account robot
+reach and surrounding obstacles.
+In this paper, we propose a new approach that combines kine-
+matic trajectory simulation (including Inverse Kinematics Model
+(IKM), motion constraints, singularities, joint limits, and robot
+self-collision detection), workspace exploration using a Particle
+Swarm Optimization (PSO) algorithm, and the evaluation of the
+largest feasibility area. Our method stands out by introducing a
+robustness criterion to compensate for positioning inaccuracies,
+ensuring better adaptability to real execution conditions. More-
+over, its computational efficiency allows quick integration of a
+robot into industrial environments requiring regular adjustments.
+In the next two sections, we detail our methodology and
+the different steps of our approach. We then present the experi-
+mental results obtained before concluding with perspectives for
+improvement and future applications.
+1
+arXiv:2511.15290v1  [cs.RO]  19 Nov 2025
+
+
+2. SIMULATION OF ROBOTIC TRAJECTORIES
+To model, simulate and plan a robotic task, the robot’s tra-
+jectories in space are defined by a set of end-effector poses. Each
+pose includes the vector position P = [𝑥, 𝑦, 𝑧] and the set of
+Euler angles [𝜑, 𝜃, 𝜓] (following the ‘Z-Y-X’ convention) in the
+world frame. The pose 𝑝𝑖is represented by the homogeneous
+transformation matrix 𝑊T𝑖
+𝐸, as follow [8]
+𝑊T( 𝑝𝑖)
+𝐸
+=
+[︃
+R( 𝑝𝑖)
+P( 𝑝𝑖)
+0
+1
+]︃
+,
+(1)
+with
+R
+=
+𝑅𝑜𝑡(𝑧, 𝜓) · 𝑅𝑜𝑡(𝑦, 𝜃) · 𝑅𝑜𝑡(𝑥, 𝜑)
+(2)
+=
+⎡⎢⎢⎢⎢⎣
+𝐶𝜃𝐶𝜓
+𝑆𝜑𝑆𝜃𝐶𝜓−𝐶𝜑𝑆𝜓
+𝐶𝜑𝑆𝜃𝐶𝜓+ 𝑆𝜑𝑆𝜓
+𝐶𝜃𝑆𝜓
+𝑆𝜑𝑆𝜃𝑆𝜓+ 𝐶𝜑𝐶𝜓
+𝐶𝜑𝑆𝜃𝑆𝜓−𝑆𝜑𝐶𝜓
+−𝑆𝜃
+𝑆𝜑𝐶𝜃
+𝐶𝜑𝐶𝜃
+⎤⎥⎥⎥⎥⎦
+,
+where, 𝐶𝛼denotes the cosine of 𝛼, and 𝑆𝛼denotes the sine of
+𝛼. For a pose of the robot base 𝑊T0 (which is the parameter to
+optimize) and a configuration of the Terminal Center Point (TCP
+or end-effector) 6T𝐸, each point of the trajectory can be expressed
+in the robot’s base frame by the following relation:
+0T( 𝑝𝑖)
+6
+= 𝑊T−1
+0
+· 𝑊T( 𝑝𝑖)
+𝐸
+· 6T−1
+𝐸.
+(3)
+In the paper, we will use the Fanuc CRX10iA/L robot as an
+example. The modified Denavit Hartenberg (DH) parameters of
+this robot (Khalil-Kleinfinger convention, see [9]) are given in
+Table 1.
+𝑖
+𝑑𝑖(m)
+𝑎𝑖(m)
+𝛼𝑖(rad)
+𝜃𝑖(rad)
+1
+0.245
+0
+0
+𝑞1
+2
+0
+0
+𝜋/2
+𝑞2
+3
+0
+0.710
+0
+𝑞3
+4
+0.540
+0
+−𝜋/2
+𝑞4
+5
+0.150
+0
+𝜋/2
+𝑞5
+6
+0.160
+0
+−𝜋/2
+𝑞6
+TABLE 1: MODIFIED DH PARAMETERS OF THE FANUC CRX10IA/L
+ROBOT.
+In the rest of the document the position of joint 𝑖will be
+noted 𝑞𝑖. We will fix the values of the twist angles 𝛼, while
+the values of the joint-to-joint distance 𝑑and the offset 𝑎will
+remain symbolic. The developed equations will thus be valid for
+all robots with a similar kinematic architecture. It is worth noting
+that 6R anthropomorphic robotic arms with a spherical wrist are
+a special case of this architecture, where 𝑑5 = 𝑑6 = 0. For numer-
+ical applications, we will use the length values from the Fanuc
+CRX10iA/L robot. The joint limits of the Fanuc CRX10iA/L
+robot are given in Table 2 for this set of DH parameters.
+i
+1
+2
+3
+4
+5
+6
+min (rad)
+-𝜋
+-𝜋/2
+-𝜋
+-19𝜋/18
+-𝜋
+-5𝜋/4
+max (rad)
+𝜋
+3𝜋/2
+2𝜋
+19𝜋/18
+𝜋
+5𝜋/4
+TABLE 2: JOINT LIMITS OF THE FANUC CRX10IA/L ROBOT
+Finally, to calculate the position of the end-effector according
+to its base, we use transformation matrices between each link.
+Between two bodies 𝑖and 𝑗, this matrix is given by:
+𝑖T𝑗=
+⎡⎢⎢⎢⎢⎢⎢⎣
+𝐶𝜃𝑗
+−𝑆𝜃𝑗
+0
+𝑎𝑗
+𝐶𝛼𝑗𝑆𝜃𝑗
+𝐶𝛼𝑗𝐶𝜃𝑗
+−𝑆𝛼𝑗
+−𝑑𝑗𝑆𝛼𝑗
+𝑆𝛼𝑗𝑆𝜃𝑗
+𝑆𝛼𝑗𝐶𝜃𝑗
+𝐶𝛼𝑗
+𝑑𝑗𝐶𝛼𝑗
+0
+0
+0
+1
+⎤⎥⎥⎥⎥⎥⎥⎦
+.
+(4)
+2.1. Computation of inverse kinematic model
+To create a continuous trajectory, we must avoid singularities,
+joint limits, and self-collision. However, these factors depend on
+the robot’s initial position, and different initial positions can lead
+to different outcomes. Therefore, it is essential to evaluate all
+possible starting postures, i.e., all solutions to the inverse kine-
+matics problem for the starting point of the trajectory. Inverse
+kinematics is a fundamental problem in robotics, which involves
+calculating the joint angles necessary for a robot to reach a given
+position and orientation of its end-effector. This problem is of-
+ten complex, especially for robots with a cuspidal morphology
+[10], such as the Fanuc CRX10iA/L, which can have up to 16
+distinct solutions, and for which no general analytical solution
+exists [11]. To address this problem, several methods have been
+proposed. One of them relies on the use of iterative algorithms
+that exploit higher-order derivatives to converge towards a solu-
+tion [12]. Other approaches include polynomial resolution, such
+as the one applied to the Kinova Gen3 Lite manipulator, where a
+univariate polynomial equation in 𝑞1 (i.e. the first joint position
+of the robot) is solved, with the other variables determined by
+backward substitution [13]. We used a method similar to the
+one employed for an anthropomorphic robot. According Paul’s
+method, position and orientation are decomposed to separate the
+problem into independent solutions for 𝑞1, 𝑞2, and 𝑞3, and then
+for 𝑞4, 𝑞5, and 𝑞6 [8]. However, the wrist offset at joint 5 makes
+the position of the wrist dependent on 𝑞4. To address this, we
+discretize 𝑞4 over the interval [−𝜋, 𝜋] in order to compute 𝑞1, 𝑞2,
+and 𝑞3. From a final equation derived from the rotation matrix,
+we can compute a residual that indicates a pair of solutions when
+it vanishes. This method has the advantage of obtaining the set of
+solutions to the inverse kinematics problem, provided that the dis-
+cretization step of 𝑞4 is fine enough. It allows solving 4 equations
+instead of a single one of degree 16. This is particularly useful
+when using non-mathematical programming languages such as
+Python or C.
+The position equations of 0T5, centre of the wrist, are given
+by:
+⎧⎪⎪⎪⎨
+⎪⎪⎪⎩
+𝑃𝑥= 𝑥−𝑑6𝑟13
+𝑃𝑦= 𝑦−𝑑6𝑟23
+𝑃𝑧= 𝑧−𝑑6𝑟33
+,
+(5)
+where 𝑟𝑖𝑗is the component in row 𝑖and column 𝑗of the rotation
+matrix R. By pre-multiplying (5) by 1T0, the position equations
+(5) become:
+⎧⎪⎪⎪⎨
+⎪⎪⎪⎩
+𝐶1𝑃𝑥+ 𝑆1𝑃𝑦= 𝑎3𝐶2 −𝑑4𝑆23 + 𝑑5𝐶23𝑆4
+−𝑆1𝑃𝑥+ 𝐶1𝑃𝑦= −𝑑5𝐶4
+𝑃𝑧−𝑑1 = 𝑑4𝐶23 + 𝑎3𝑆2 + 𝑑5𝑆23𝑆4
+.
+(6)
+2
+
+
+The second equation of (6) is of the form 𝑋𝑆1 + 𝑌𝐶1 = 𝑍, where
+𝑋,𝑌and 𝑍are generalized variables. The solutions to solve for
+𝑞1 are given by:
+𝑞1 = atan2(S1, C1) ,
+(7)
+where:
+𝑆1
+=
+𝑋𝑍+ 𝜖1𝑌
+√
+𝑋2 + 𝑌2 −𝑍2
+𝑋2 + 𝑌2
+, and
+𝐶1
+=
+𝑌𝑍−𝜖1𝑋
+√
+𝑋2 + 𝑌2 −𝑍2
+𝑋2 + 𝑌2
+,
+with 𝜖1 ∈{−1, 1}. Since 𝑞1 is known, we can pre-multiply our
+matrix 1T5 by 2T1. The position equations become:
+⎧⎪⎪⎪⎨
+⎪⎪⎪⎩
+(𝑃𝑧−𝑑1)𝑆2 + (𝑃𝑥𝐶1 + 𝑃𝑦𝑆1)𝐶2 = 𝑎3 −𝑑4𝑆3 + 𝑑5𝑆4𝐶3
+(𝑃𝑧−𝑑1)𝐶2 −(𝑃𝑥𝐶1 + 𝑃𝑦𝑆1)𝑆2 = 𝑑4𝐶3 + 𝑑5𝑆4𝑆3
+𝑃𝑥𝑆1 −𝑃𝑦𝐶1 = 𝑑5𝐶4
+,
+which can be written in the form:
+{︄
+𝑊1𝐶2 + 𝑊2𝑆2 = 𝑋𝐶3 + 𝑌𝑆3 + 𝑍1
+𝑊1𝑆2 −𝑊2𝐶2 = −𝑋𝑆3 + 𝑌𝐶3
+.
+By squaring and adding the two equations, we are led to solve
+an equation of the form 𝐵1𝑆3 + 𝐵2𝐶3 = 𝐵3 with 𝐵1 = 2𝑍1𝑌,
+𝐵2 = 2𝑍1𝑋, and 𝐵3 = 𝑊2
+1 + 𝑊2
+2 −𝑋2 −𝑌2 −𝑍2
+1. The solutions
+for 𝑞3 are given by:
+𝑞3 = atan2(S3, C3) ,
+(8)
+where:
+𝑆3
+=
+𝐵1𝐵3 + 𝜖2𝐵2
+√︂
+𝐵2
+1 + 𝐵2
+2 −𝐵2
+3
+𝐵2
+1 + 𝐵2
+2
+, and
+𝐶3
+=
+𝐵2𝐵3 −𝜖2𝐵1
+√︂
+𝐵2
+1 + 𝐵2
+2 −𝐵2
+3
+𝐵2
+1 + 𝐵2
+2
+,
+with 𝜖2 ∈{−1, 1}. Knowing 𝑞3, the two equations previously
+used in (8) become of the form:
+{︄
+𝑋1𝑆2 + 𝑌1𝐶2 = 𝑍1
+𝑋2𝑆2 + 𝑌2𝐶2 = 𝑍2
+.
+(9)
+The solution for 𝑞2 is:
+𝑞2 = atan2(S2, C2) ,
+(10)
+where:
+𝑆2 = 𝑍1𝑌2 −𝑍2𝑌1
+𝑋1𝑌2 −𝑋2𝑌1
+, and 𝐶2 = 𝑍2𝑋1 −𝑍1𝑋2
+𝑋1𝑌2 −𝑋2𝑌1
+.
+To obtain a new equation to calculate the residual of 𝑞4, we use
+the orientation equations of the rotation matrix 3R6. The 𝑟13 and
+𝑟33 components of this matrix give us the following equations:
+{︄
+−𝐶4𝑆5 = 𝑟33𝑆23 + 𝑟13𝐶1𝐶23 + 𝑟23𝑆1𝐶23
+𝑆4𝑆5 = 𝑟13𝑆1 −𝑟23𝐶1
+.
+(11)
+By multiplying the equations of (11) by 𝑆4 and𝐶4 respectively and
+adding them, we obtain the following equation, named residual
+equation and denoted by 𝐺:
+𝐺(𝑞4, 𝜖)
+=
+𝑆4(𝑟33𝑆23 + 𝑟13𝐶1𝐶23 + 𝑟23𝑆1𝐶23)
+(12)
++
+𝐶4(𝑟13𝑆1 −𝑟23𝐶1) .
+According to the four possible combinations of sign coefficients
+[𝜖1, 𝜖2], from (12), we obtain four equations. When the residual
+equation is zero, the quadruple {𝑞1, 𝑞2, 𝑞3, 𝑞4} constitutes a solu-
+tion of the inverse kinematic. Each equation has at most four so-
+lutions. Figure 1 illustrates an example of residual evolutions as a
+function of 𝑞4. This example is given for the pose [𝑥, 𝑦, 𝑧, 𝜑, 𝜃, 𝜓]
+= [−0.2406, −0.1188, 0.5603, 2.6204, 1.1236, 0.4276] where 16
+real solutions exist, as each of the four equations has four real
+solutions.
+FIGURE
+1:
+FOUR
+RESIDUAL
+CURVES
+CORRESPOND-
+ING
+TO
+THE
+FOUR
+COUPLES
+[ϵ1, ϵ2]
+FOR
+THE
+POSE
+[−0.2406, −0.1188, 0.5603, 2.6204, 1.1236, 0.4276]
+AS
+A
+FUNC-
+TION OF q4
+.
+To obtain the last four equations to calculate 𝑞5 and 𝑞6, we
+use the orientation equations of the rotation matrix 4R6. The 𝑟13
+and 𝑟33 components determine 𝑞5:
+𝑞5 = atan2(S5, C5) ,
+(13)
+where:
+𝑆5
+=
+𝑆4(𝑟13𝑆1 −𝑟23𝐶1) −𝐶4(𝑟33𝑆23 + 𝐶23(𝑟13𝐶1 + 𝑟23𝑆1)) ,
+𝐶5
+=
+𝑟33𝐶23 −𝑆23(𝑟13𝐶1 + 𝑟23𝑆1) ,
+and the 𝑟21 and 𝑟22 components determine 𝑞6:
+𝑞6 = atan2(S6, C6) ,
+(14)
+where:
+𝑆6
+=
+𝐶4(𝑟21𝐶1 −𝑟11𝑆1) −𝑟31𝑆23𝑆4
+−
+𝐶23𝑆4(𝑟11𝐶1 + 𝑟21𝑆1) , and
+𝐶6
+=
+𝐶4(𝑟22𝐶1 −𝑟12𝑆1) −𝑟32𝑆23𝑆4
+−
+𝐶23𝑆4(𝑟12𝐶1 + 𝑟22𝑆1) .
+3
+
+
+The solutions for the previous example are given in Table 3, and
+Figure 2 illustrates the corresponding robot postures.
+(a) Posture 1
+(b) Posture 2
+(c) Posture 3
+(d) Posture 4
+(e) Posture 5
+(f) Posture 6
+(g) Posture 7
+(h) Posture 8
+(i) Posture 9
+(j) Posture 10
+(k) Posture 11
+(l) Posture 12
+(m) Posture 13
+(n) Posture 14
+(o) Posture 15
+(p) Posture 16
+FIGURE
+2:
+VISUALIZATION
+OF
+THE
+16
+IN-
+VERSE
+KINEMATIC
+SOLUTIONS
+FOR
+THE
+POSE
+[−0.2406, −0.1188, 0.5603, 2.6204, 1.1236, 0.4276].
+2.2. Validation of a robot trajectory
+For each initial posture, we will execute the trajectory and
+evaluate, at each point, the proximity to the robot’s singularities
+and joint limits. To move the robot, we use the kinematic Jacobian
+matrix J−1, which relates the kinematic twist 0V𝐸(of the end
+effector expressed in the frame attached to the base) to the joint
+velocities vector ̇q (see [14]):
+̇q = J−1(q)0V𝐸.
+(15)
+The 𝑖th column of this Jacobian matrix for a revolute joint can
+be computed from the Direct Kinematic Model (DKM), with 0P𝑖
+being the position vector of frame 𝑖in the robot’s base frame and
+i
+𝑞1
+𝑞2
+𝑞3
+𝑞4
+𝑞5
+𝑞6
+1
+1.108
+2.597
+2.062
+-2.896
+2.690
+0.498
+2
+0.900
+0.953
+0.858
+-2.601
+-0.169
+-0.334
+3
+0.312
+1.050
+0.713
+-1.941
+-0.679
+-1.167
+4
+3.129
+0.259
+0.688
+-1.546
+2.241
+-1.836
+5
+-3.050
+2.077
+1.912
+-1.436
+0.824
+1.165
+6
+-0.393
+2.850
+1.922
+-1.186
+-1.762
+1.817
+7
+-2.230
+0.461
+0.861
+-0.526
+2.983
+-0.318
+8
+-2.226
+2.191
+2.003
+-0.521
+0.150
+0.721
+9
+-2.035
+0.543
+1.080
+0.248
+2.691
+0.500
+10
+-2.240
+2.188
+2.283
+0.538
+-0.168
+-0.332
+11
+-2.827
+2.090
+2.428
+1.198
+-0.677
+-1.165
+12
+-0.013
+2.881
+2.452
+1.593
+2.240
+-1.837
+13
+0.089
+1.063
+1.229
+1.703
+0.826
+1.165
+14
+2.749
+0.290
+1.219
+1.953
+-1.764
+1.817
+15
+0.909
+2.680
+2.280
+2.613
+2.983
+-0.320
+16
+0.913
+0.949
+1.138
+2.618
+0.151
+0.722
+TABLE 3: 16 INVERSE KINEMATIC SOLUTIONS FOR THE POSE
+[−0.2406, −0.1188, 0.5603, 2.6204, 1.1236, 0.4276] GIVEN IN RADI-
+ANS.
+the local vector 𝑧𝑖expressed in the robot’s base frame1:
+0J𝐸𝑖=
+[︃0 ˆ𝑧𝑖(0P𝑛−0P𝑖)
+0𝑧𝑖
+]︃
+.
+(16)
+In our application, we are not concerned with the joint velocities
+but rather with their successive positions. We proceed iteratively
+by approximating the integral using the explicit Euler method. At
+each iteration, we move by a small pose dk (which is a change in
+position and orientation of the end effector), i.e:
+q𝑗+1 ≃q𝑗+ J−1(q𝑗)dk .
+(17)
+The trajectory is represented by a set of points connected by seg-
+ments. Along these segments, change in position and orientation
+are assumed to be uniform. The position increment step 𝑑𝑝is
+chosen to guarantee an acceptable accuracy of motion [15]. This
+implies |dk𝑃| = 𝑑𝑝, where dk𝑃denotes the position component
+of dk. The intensity of the orientation change dk𝜔is defined as
+performing the orientation change over the same number of incre-
+ments as the position along the segment. For a given segment, we
+can introduce p𝑝𝑖+1 −p𝑝𝑖the change of position between pose 𝑝𝑖
+and 𝑝𝑖+1 and R = R𝑝𝑖+1R𝑇
+𝑝𝑖the change of rotation. The number
+of simulation steps 𝑁and the variations in dk are given by:
+N =
+|p𝑝𝑖+1 −p𝑝𝑖|
+𝑑𝑝
+, dk𝑃=
+p𝑝𝑖+1 −p𝑝𝑖
+𝑁
+, and dk𝜔= 𝜃u
+𝑁,
+where 𝜃and u are the representation of the rotation matrix R
+in the form of a rotation angle and a rotation axis. It can be
+computed using Rodrigues formula [16]:
+𝜃= acos
+(︃trace(R) −1
+2
+)︃
+, and u =
+1
+2𝑆𝜃
+⎡⎢⎢⎢⎢⎣
+𝑟32 −𝑟23
+𝑟13 −𝑟31
+𝑟21 −𝑟12
+⎤⎥⎥⎥⎥⎦
+.
+(18)
+1The ‘hat’ notation is (3 × 3) asymmetric tensor associated to (3 × 1) mentioned
+vector. For any vectors 𝑈and 𝑉of R3, ˆ𝑈is defined such that ˆ𝑈𝑉= 𝑈× 𝑉.
+4
+
+
+Along the trajectory, we will assess its feasibility by ensuring
+that none of the robot’s joints exceeds the joint limits given in
+Table 2, that the determinant of the Jacobian matrix does not
+become singular, which would result in the loss of mobility and
+very high joint speeds [17], and that the robot does not self-collide
+(see the next section). Algorithm 1 summarizes the procedure to
+simulate and plan a trajectory.
+Algorithm 1 SIMULATE A TRAJECTORY
+Require: 𝑊T𝑝, 𝑊T0, 6T𝐸
+for 𝑖∈𝑁𝑝𝑜𝑖𝑛𝑡𝑠do
+0T(𝑖)
+6
+= 𝑊T−1
+0 .𝑊T(𝑖)
+𝑝.6T−1
+𝐸
+end for
+postures = IKM(0T(0)
+6 )
+for q0 ∈postures do
+q𝑗= q0
+for 𝑖∈[0, 𝑁𝑝𝑜𝑖𝑛𝑡𝑠−1] do
+[𝑁𝑖𝑛𝑐𝑟, 𝑑𝑘] = 𝑓(0T( 𝑝𝑖)
+6
+, 0T( 𝑝𝑖+1)
+6
+, 𝑑𝑝)
+for _ ∈[0, 𝑁𝑖𝑛𝑐𝑟] do
+q𝑗+1 = q𝑗+ J−1(q𝑗)dk
+𝑑𝑠𝑖𝑛𝑔= det(J(q𝑗+1))
+𝑑𝑙𝑖𝑚= min(dist(q𝑗+1, q𝑙𝑖𝑚𝑖𝑡))
+coll = robot_self_collision(q𝑗+1)
+end for
+end for
+end for
+2.3. Detection of robot self-collisions
+Along the trajectory, the robot may self-collide even if it
+remains within its joint limits, e.g. when the elbow is bent towards
+the base. It is important to determine these configurations, which
+will prevent the trajectory from being executed on the physical
+robot. Moreover, these calculations must be kept as simple as
+possible, to avoid a significant increase in computation times.
+We adopted a method based on the computation of the mini-
+mum distance between two segments. To do this, we implemented
+an algorithm proposed by [18], designed to reduce the number of
+calculations required. This algorithm proceeds as follows:
+1. It begins by extending the segments into straight lines and
+identifying the points that minimize the distance between
+them. This is done using the parametric representation of
+each line to compute the distance. The partial derivative is
+zero for the minimum distance.
+2. If these points do not lie on the segments, the first point
+is moved to the nearest extremity, and the nearest corre-
+sponding point on the other line is then computed.
+3. If the second point is not on the segment, it is shifted to
+its nearest extremity, and a new corresponding point is
+determined on the first line.
+Remark, in the case of parallel lines, select one end of the first
+segment and go directly to step 3.
+The developed method is based on the successive computa-
+tion of the minimum distances between robot segments. First,
+the coordinates of the segment extremities are obtained using the
+DKM, which provides the positions of the joint centres and the
+end effector. The algorithm then proceeds iteratively: for each
+segment, it computes the minimum distance to other segments
+that are not successive (and have not yet been evaluated). The
+robot’s segments are modeled as capsules, and the radius of each
+capsule is subtracted to obtain the final minimum distance. If one
+of these distances is smaller than or equal to zero, the robot is in
+collision. The whole process is summarized in the algorithm 2.
+Algorithm 2 ROBOT SELF-COLLISIONS
+Require: q
+P = DKM(q)
+for 𝑖∈[0, 𝑁−2] do
+for 𝑗∈[𝑖+ 2, 𝑁] do
+Seg𝑖= (P𝑖, P𝑖+1)
+Seg𝑗= (P𝑗, P𝑗+1)
+dist𝑚𝑖𝑛= min_distance_segments(Seg𝑖, Seg𝑗)
+if dist𝑚𝑖𝑛≤𝑅caps𝑖+ 𝑅caps𝑗then
+return True
+end if
+end for
+end for
+return False
+3. OPTIMIZATION OF THE ROBOT’S POSITION
+Using the developed simulator, we can assess the feasibility
+of a trajectory for a given robot configuration, defined by the posi-
+tion and orientation of its base and TCP. This allows us to explore
+various configurations and give them a score. In our application,
+the robot base is mounted on a mobile support, controlled by the
+user. Our goal is to assist him in selecting the optimal placement.
+As the positioning accuracy is approximate, we prioritize an ap-
+proach that is robust to these inaccuracies rather than focusing
+solely on singularities and joint limits. Specifically, our aim is
+to identify the centre of the largest inscribed circle within the
+trajectory’s feasibility region.
+3.1. Exploring configuration spaces with a PSO algorithm
+The search space is potentially vast, it is not conceivable to
+exhaustively evaluate all possible configurations in a production
+environment as the simulation time of a configuration is too high.
+To overcome this constraint, we have used a PSO algorithm[19] to
+efficiently explore the search space. The aim is first to investigate
+the whole space, then to concentrate on areas of interest, i.e. those
+where the trajectory is feasible. Particle swarm optimization is
+inspired by the collective behavior of birds in flight and schools of
+fish. This algorithm relies on a population of particles exploring
+the search space to identify an optimal solution. Each particle
+represents a candidate solution and is characterized by:
+1. An xi position: corresponds to a potential solution to the
+problem.
+Note that the orientation angle 𝜓(see (2) is
+chosen so that the robot faces the workpiece.
+2. A velocity vi: controlling the particle’s displacement in the
+search space.
+5
+
+
+3. A personal history p𝑏𝑒𝑠𝑡𝑖: the best position reached by the
+particle.
+4. A local history l𝑏𝑒𝑠𝑡𝑖: the best position found by particles
+in its neighbourhood at iteration 𝑖.
+At each iteration, the position and velocity of each particle
+are updated according to the following equations2:
+v𝑖+1
+=
+𝑤v𝑖+ 𝑐1r𝑖1 ◦(p𝑏𝑒𝑠𝑡𝑖−x𝑖)
+(19)
++
+𝑐2r𝑖2 ◦(l𝑏𝑒𝑠𝑡𝑖−x𝑖) + 𝑒r𝑖𝑒, and
+x𝑖+1
+=
+x𝑖+ v𝑖+1 ,
+(20)
+where 𝑤, 𝑐1, 𝑐2 and 𝑒areinertia, cognition, social, and exploration
+coefficients respectively, while r𝑖1, r𝑖2 and r𝑖𝑒are random vectors
+of R𝑛uniformly distributed in [0, 1]𝑛. The subset of particles
+forming a neighborhood is defined by a structure called topology.
+Topology defines the way particles communicate with each
+other to share information about the best solutions found. It has
+a significant influence on the convergence rate and exploration
+ability of the algorithm. Static topologies are not suitable for all
+optimization problems [21]. Thus, we used a dynamic topology
+called DCluster [20], which combines two existing approaches:
+Four-clusters and Fitness. The DCluster topology is based on a
+dynamic segmentation of the swarm into several sub-swarms of
+equal size, called clusters. At each iteration, the topology is built
+in four steps:
+1. Evaluate and sort particles according to their score for the
+current position, in ascending order.
+2. Split the sorted swarm into several clusters of equal size,
+where the last cluster contains the best particles.
+3. Fully connect particles in the same cluster, to create
+strongly connected subgraphs.
+4. Create a central cluster, composed of the worst-performing
+particles, and connect each of them to the worst particle in
+a higher cluster.
+This topology implies a specific swarm size given by the following
+equation:
+𝑆= 𝑁× (𝑁+ 1) ,
+(21)
+where 𝑁is the number of particles per cluster and 𝑆the total num-
+ber of particles. This structure promotes efficient exploration of
+the search space by slowing down the propagation of information
+between clusters, thus reducing the risk of premature convergence
+towards a local optimum.
+In our specific problem, the function to minimise corre-
+sponds to the percentage of the reference trajectory that could
+not be completed. This percentage is evaluated in terms of the
+number of segments covered. In contrast to conventional PSO
+applications, the minimum value is known, and the optimal so-
+lution is not necessarily reduced to a single point, but rather to a
+set of surfaces. Consequently, the objective is not to converge on
+2The ◦notation is the Hadamard product i.e. element-wise product of vectors
+or matrices [20].
+a single solution, but to explore the whole space before focusing
+on the boundaries of the feasible zones. To encourage this ex-
+ploration, we have introduced an exploratory factor 𝑒, see (19).
+Moreover, because we know in advance the space to be explored,
+we have adopted a different approach to conventional PSO algo-
+rithms. The particles are initially distributed uniformly along the
+boundaries of the space, forming a circle. The initial velocity is
+directed towards the center of the trajectory. This strategy aims to
+maximize coverage of the search space and to avoid missing any
+zones of interest. The algorithm 3 synthesizes the PSO method
+used to explore the parameter space.
+Algorithm 3 PARTICLE SWARM OPTIMISATION ALGO-
+RITHM
+Initialize particle positions x0 uniformly on the search space
+boundary
+Set corresponding velocities v0 towards the trajectory center.
+Evaluate 𝑓(x0)
+for each iteration 𝑖do
+Sort particles by fitness 𝑓(x𝑖) in ascending order and divide
+them into 𝑁clusters of equal size
+Fully connect particles within each cluster
+Connect each particle from the worst cluster to the worst
+particle of a superior cluster
+for each particle do
+l𝑏𝑒𝑠𝑡𝑖
+=
+p𝑏𝑒𝑠𝑡𝑖,𝑘
+where
+𝑃𝑘
+=
+argmin
+(︂
+𝑓(p𝑏𝑒𝑠𝑡𝑖, 𝑗), 𝑃𝑗∈neighborhood
+)︂
+v𝑖+1 = 𝑤v𝑖+𝑐1r𝑖1◦(p𝑏𝑒𝑠𝑡𝑖−x𝑖)+𝑐2r𝑖2◦(l𝑏𝑒𝑠𝑡𝑖−𝑥𝑖)+𝑒r𝑖𝑒
+x𝑖+1 = x𝑖+ v𝑖+1
+end for
+for each particle do
+Evaluate 𝑓(x𝑖)
+if 𝑓(x𝑖) ≤𝑓(p𝑏𝑒𝑠𝑡𝑖) then
+p𝑏𝑒𝑠𝑡𝑖= x𝑖
+end if
+end for
+end for
+3.2. Clustering and determination of the largest inscribed
+circle
+The PSO algorithm allows us to efficiently explore the search
+space and identify areas of trajectory feasibility. We can then
+analyse these areas to determine the center of the largest inscribed
+circle. After filtering the point cloud to retain only the relevant
+points, we draw the polytopes delimiting these regions. To do this,
+we use the 𝛼-shape algorithm [22], which extracts the envelope of
+a 2D point cloud. Unlike the classic convex hull method, 𝛼-shape
+offers more flexibility by avoiding convex over-approximations
+and by adapting better to the real geometry of the data. This can
+be done by controlling the level of concavity with a parameter 𝛼.
+The method also identifies several clusters of points, representing
+different regions accessible to the robot, as well as any holes in
+the point cloud, which may represent under-explored areas or real
+regions of infeasibility.
+The algorithm proposed in this paper is based on the follow-
+ing principle: a sphere of radius 𝛼explores the space containing
+6
+
+
+the cloud points. Two points are connected by an edge in the 𝛼-
+shape if there is a disk of radius 𝛼containing them on its boundary
+without including any other points inside. The set of edges then
+forms the polytope delimiting the point cloud. A method based
+on Delaunay triangulation [23] can be:
+1. Construct the Delaunay triangulation for all points 𝑆.
+2. For each simplex, calculate its circumscribed radius 𝑟.
+3. Include the simplex in the 𝛼-complex if 𝑟≤𝛼.
+4. The resulting 𝛼-complex boundary forms the 𝛼-shape.
+Once the polytopes have been determined for each cluster, we
+can then proceed to determine the largest circle inscribed in each
+polytope.
+To do this, we use an approach based on Voronoi
+diagrams [24]:
+1. Calculate the Voronoi diagram of the polygon.
+2. Identify diagram nodes inside the polygon.
+3. For each internal node, measure the minimum distance to
+the polygon’s edges.
+4. Select the node with the maximum distance, defining the
+center of the largest inscribed circle, with this distance
+corresponding to the radius.
+In order to obtain a Voronoi diagram representing the whole
+polygon and not just its vertices, we discretize the polygon edges.
+Note that this method can also be applied to non-convex polygons
+with holes. Clusters with a maximum radius of less than 0.05
+m are not taken into account, as the margins are too small to be
+placed by a user.
+4. EXPERIMENTATIONS
+This section presents the results obtained for an industrial
+plasma cutting application. Specifically, it focuses on a trajectory
+resulting from the intersection of two cylinders. This application
+can be found, for example, in the fields of shipbuilding, boiler
+making, or metal infrastructures, for the assembly of piping net-
+works or tubular structures. The objective is to cut the larger
+diameter tube so that the second tube can be fitted into it, ensur-
+ing a precise fit for subsequent welding operations. The trajectory
+is shaped like a horse saddle and will be referred to as “saddle”
+in the remainder of this document. In addition to this base trajec-
+tory, a first lead-in is used to allow time to pierce the thickness of
+the tube and reach the circle tangent, thus ensuring a clean cut and
+avoiding geometrical imperfections related to the cutting process.
+The path positions depend on the diameters of the two tubes and
+the angle of inclination between them. The path orientation, on
+the other hand, depend on a 𝛼bevel angle (determined according
+to the requirements of the welding process) and the presence or
+absence of a camera in the cutting axis.
+In this section, we consider an example where the diameter
+of the larger tube is 1 m and the smaller tube is 0.3m, the larger
+tube is vertical and the smaller is perpendicular. The TCP frame
+6T𝐸used corresponds to the pose [0.038, 0, 0.409, 𝜋/4,0,-𝜋/2].
+(a) Workpiece
+(b) Trajectory
+FIGURE 3: WORKPIECE AND ITS ASSOCIATED SADDLE-SHAPED
+TRAJECTORY.
+Figure 3 shows the final workpiece and a visualization of the tra-
+jectory to be performed. For a given tube configuration i.e., the
+radius of the cylinders and their relative orientation. The choice
+of angles can significantly influence the trajectory’s feasibility
+zones. As an example, Figure 4 shows three different configu-
+rations of chamfer angles 𝛽and camera used: (a) 15° chamfer,
+without camera in axis; (b) 45° chamfer, without camera in axis,
+and (c) 15° chamfer, with camera in axis. This last property al-
+lows the user to control the execution of the trajectory and adapt it
+in terms of position and speed in real-time. Each point in Figure 4
+represents the percentage of the trajectory that can be achieved
+before reaching a non-feasibility factor, such as a singularity, a
+joint limit, or a collision, for the best-associated posture. The blue
+dots represent the points where the entire trajectory is achievable.
+Figure 4 shows the different feasibility zones in the x-y plane for
+a height 𝑧= −0.12m from the center of the trajectory (center
+of the circle). The trajectory is projected onto the plane in red
+and the cylinder is represented by the grey circle. Note that the
+robot cannot be placed in this area. The results obtained high-
+light the difficulties the user may face when placing the robot. In
+fact, feasibility zones are highly dependent on the trajectory to
+be achieved, and a simple modification of a parameter can lead
+to a drastic change in their shape and size.
+The computation
+times required to exhaustively simulate all combinations are not
+compatible with online programming. The approach developed
+in this article, based on a PSO algorithm, enables us to efficiently
+explore the entire search space and concentrate on the boundaries
+of feasibility zones.
+We have applied this algorithm to the examples presented
+above. Figure 5 illustrates the set of combinations explored by
+the PSO algorithm for previous examples. The blue dots rep-
+resent configurations where the trajectory was entirely feasible,
+while a gradient from green to yellow indicates the score of the
+cost function in ascending order. In these examples, the parame-
+ters of the PSO algorithm used are: 𝑁= 4, 𝑖𝑡𝑒𝑟= 50, 𝑤= 0.8,
+𝑐1 = 0.35, 𝑐2 = 0.15, and 𝑒= 0.2. For comparison, simulation
+times are less than 3 minutes (1000 configurations tested), while
+they can reach 1 hour for exhaustive exploration (≃20, 000 con-
+figurations tested). In each simulation, the particles first explored
+the entire space before focusing on the areas of interest.
+From the positions explored, retaining only those for which
+7
+
+
+(a) β = 15o
+(b) β = 45o
+(c) β = 15o and camera in axis
+FIGURE 4: PERCENTAGE OF FEASIBLE TRAJECTORY FOR DIF-
+FERENT SADDLE-SHAPED TRAJECTORIES.
+the trajectory is feasible, we can construct the 𝛼-shape and com-
+pute the largest inscribed circles.
+Figure 6 shows the results
+obtained for the previous configurations. For these examples, we
+(a) β = 15o
+(b) β = 45o
+(c) β = 15o and camera in axis
+FIGURE 5: EXPLORATION WITH THE PSO ALGORITHM ON THE
+PREVIOUS EXAMPLES: GRADIENT FROM GREEN TO YELLOW IN-
+DICATES THE SCORE IN ASCENDING ORDER WHEN BLUE IS THE
+MINIMAL SCORE.
+8
+
+
+used a parameter 𝛼= 0.05m. In each case, the main cluster was
+correctly identified, and the largest inscribed circle corresponds
+closely to the one that would have been obtained using exhaus-
+tive discretization (see Figure 4). The center and radius of this
+circle provide valuable assistance to the user in the placement of
+the robot, indicating both the optimum position and the tolerance
+margin available. For example, in case (c), the algorithm returns
+the point x=-1.37m, y=-0.66m and with a margin of 0.18m. The
+positions returned by the algorithm were tested on the physical
+Fanuc robot. In each case, the trajectory was achieved without
+any problems.
+Note that for the second example, the second
+cluster was used because the first one was behind the workpiece.
+5. CONCLUSIONS
+In this study, we have developed an innovative approach
+to optimizing the placement of robotic arms, using the Fanuc
+CRX10iA/L robot as a case study.
+The trajectory simulation
+incorporates motion constraints, singularities, joint limits, and
+robot self-collision detection to ensure feasibility and efficiency.
+By integrating kinematic simulation, a particle swarm optimiza-
+tion algorithm, and feasibility zone identification using the 𝛼-
+shape algorithm, we have developed an efficient and robust
+method for optimizing robot placement.
+Experimental results have convincingly demonstrated that
+our approach not only effectively identifies feasibility zones but
+also provides a robust criterion for handling initial placement un-
+certainties. Its industrial application to a plasma cutting task has
+confirmed the method’s relevance, significantly reducing calibra-
+tion time and improving the reproducibility of robot-executed
+trajectories. Moreover, cutting under real shop conditions was
+successfully executed using the Weez-U welding mobile base, as
+illustrated in Figure 7.
+Future directions for this study include integrating the
+workspace into the simulation to account for complex parts a robot
+may need to manipulate. Additionally, extending this approach
+to other optimization parameters will assist robotic integrators in
+application design, particularly in selecting a robust TCP. Finally,
+optimizing computation times by translating the Python code into
+a lower-level language and parallelizing simulations would enable
+the exploration of more parameter dimensions without excessive
+computational costs. This would also allow fast optimal robot
+positioning, enhancing its usability in online programming.
+ACKNOWLEDGEMENT
+This research was supported by ANRT CIFRE grant n°2023
+/1565 which funded the first author’s doctoral studies.
+REFERENCES
+[1] Nicolas Gautier, Yves Guillermit, Yazid Sebsadji, Mathieu
+Porez, and Damien Chablat. Comparison of robot mor-
+phologies and base positioning for welding applications.
+In International Design Engineering Technical Conferences
+and Computers and Information in Engineering Conference,
+volume 88414, page V007T07A026. American Society of
+Mechanical Engineers, 2024.
+(a) β = 15o
+(b) β = 45o
+(c) β = 15o and camera in axis
+FIGURE 6: CLUSTERS CALCULATED WITH THE α-SHAPE ALGO-
+RITHM AND THEIR LARGEST INSCRIBED CIRCLES ON THE PRE-
+VIOUS EXAMPLES.
+9
+
+
+FIGURE 7: OPTIMIZING ROBOT POSITIONING FOR PLASMA CUT-
+TING IS AN INDUSTRIAL APPLICATION.
+[2] Domenico Spensieri, Johan S Carlson, Robert Bohlin, Jonas
+Kressin, and Jane Shi. Optimal robot placement for tasks
+execution. Procedia Cirp, 44:395–400, 2016.
+[3] Khalil Zbiss, Amal Kacem, Mario Santillo, and Alireza
+Mohammadi. Automatic optimal robotic base placement
+for collaborative industrial robotic car painting. Applied
+Sciences, 14(19):8614, 2024.
+[4] Saša Stradovnik and Aleš Hace. Workpiece placement opti-
+mization for robot machining based on the evaluation of fea-
+sible kinematic directional capabilities. Applied Sciences,
+14(4):1531, 2024.
+[5] George-Christopher Vosniakos and Elias Matsas. Improv-
+ing feasibility of robotic milling through robot placement
+optimisation. Robotics and Computer-Integrated Manufac-
+turing, 26(5):517–525, 2010.
+[6] Huiwen Zhang, Kai Mi, and Zhĳun Zhang. Base placement
+optimization for coverage mobile manipulation tasks. arXiv
+preprint arXiv:2304.08246, 2023.
+[7] Manish Saini, Melvin Paul Jacob, Minh Nguyen, and Nico
+Hochgeschwender.
+Planning robot placement for object
+grasping. arXiv preprint arXiv:2405.16692, 2024.
+[8] W Khalil and E Dombre. Modeling, identification and con-
+trol of robots hermes. Penton., Paris et Londre, 2002.
+[9] Wisama Khalil and J Kleinfinger. A new geometric nota-
+tion for open and closed-loop robots. In Proceedings. 1986
+IEEE International Conference on Robotics and Automa-
+tion, volume 3, pages 1174–1179. IEEE, 1986.
+[10] Philippe Wenger and Damien Chablat. A review of cuspidal
+serial and parallel manipulators. Journal of Mechanisms
+and Robotics, 15(4):040801, 2023.
+[11] Durgesh Haribhau Salunkhe, Tobias Marauli, Andreas
+Müller, Damien Chablat, and Philippe Wenger. Kinematic
+issues in 6r cuspidal robots, guidelines for path planning and
+deciding cuspidality. The International Journal of Robotics
+Research, page 02783649241293481, 2024.
+[12] Steffan Lloyd, Rishad A Irani, and Mojtaba Ahmadi. Fast
+and robust inverse kinematics of serial robots using halley’s
+method. IEEE Transactions on Robotics, 38(5):2768–2780,
+2022.
+[13] Hamed Montazer Zohour, Bruno Belzile, and David
+St-Onge.
+Kinova gen3-lite manipulator inverse kine-
+matics:
+optimal polynomial solution.
+arXiv preprint
+arXiv:2102.01217, 2021.
+[14] Lorenzo Sciavicco, Luigi Villani, Bruno SICILIANO, and
+Giuseppe ORIOLO. Robotics: modelling, planning and
+control. Springer, 2010.
+[15] Richard P Paul. Robot manipulators: mathematics, pro-
+gramming, and control: the computer control of robot ma-
+nipulators. Richard Paul, 1981.
+[16] Kuo Kan Liang. Efficient conversion from rotating matrix
+to rotation axis and angle by extending rodrigues’ formula.
+arXiv preprint arXiv:1810.02999, 2018.
+[17] Tsuneo Yoshikawa. Manipulability of robotic mechanisms.
+The international journal of Robotics Research, 4(2):3–9,
+1985.
+[18] Vladimir J Lumelsky.
+On fast computation of distance
+between line segments.
+Information Processing Letters,
+21(2):55–61, 1985.
+[19] Russell Eberhart and James Kennedy.
+A new optimizer
+using particle swarm theory. In MHS’95. Proceedings of
+the sixth international symposium on micro machine and
+human science, pages 39–43. Ieee, 1995.
+[20] Abbas El Dor, David Lemoine, Maurice Clerc, Patrick
+Siarry, Laurent Deroussi, and Michel Gourgand. Dynamic
+cluster in particle swarm optimization algorithm. Natural
+Computing, 14:655–672, 2015.
+[21] James Kennedy and Rui Mendes. Population structure and
+particle swarm performance. In Proceedings of the 2002
+Congress on Evolutionary Computation. CEC’02 (Cat. No.
+02TH8600), volume 2, pages 1671–1676. IEEE, 2002.
+[22] Herbert Edelsbrunner, David Kirkpatrick, and Raimund
+Seidel. On the shape of a set of points in the plane. IEEE
+Transactions on information theory, 29(4):551–559, 1983.
+[23] Boris Delaunay. Sur la sphère vide. a la mémoire de georges
+voronoï. Bulletin of the Russian Academy of Sciences. Math-
+ematical Series, (6):793–800, 1934.
+[24] Burak Beyhan, Cüneyt Güler, and Hidayet Tağa. An algo-
+rithm for maximum inscribed circle based on voronoi dia-
+grams and geometrical properties. Journal of Geographical
+Systems, 22(3):391–418, 2020.
+10

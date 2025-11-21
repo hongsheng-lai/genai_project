@@ -1,0 +1,2485 @@
+IEEE ROBOTICS AND AUTOMATION LETTERS. PREPRINT VERSION. ACCEPTED NOVEMBER, 2025
+1
+Discovering Optimal Natural Gaits of Dissipative Systems
+via Virtual Energy Injection
+Korbinian Griesbauer1, Davide Calzolari1, Maximilian Raff2, C. David Remy2, Alin Albu-Sch¨affer1
+Abstract—Legged robots offer several advantages when na-
+vigating unstructured environments, but they often fall short
+of the efficiency achieved by wheeled robots. One promising
+strategy to improve their energy economy is to leverage their
+natural (unactuated) dynamics using elastic elements. This work
+explores that concept by designing energy-optimal control in-
+puts through a unified, multi-stage framework. It starts with
+a novel energy injection technique to identify passive motion
+patterns by harnessing the system’s natural dynamics. This
+enables the discovery of passive solutions even in systems with
+energy dissipation caused by factors such as friction or plastic
+collisions. Building on these passive solutions, we then employ
+a continuation approach to derive energy-optimal control inputs
+for the fully actuated, dissipative robotic system. The method
+is tested on simulated models to demonstrate its applicability
+in both single- and multi-legged robotic systems. This analysis
+provides valuable insights into the design and operation of elastic
+legged robots, offering pathways to improve their efficiency and
+adaptability by exploiting the natural system dynamics.
+Index Terms—Legged Robots, Natural Machine Motion, Op-
+timization and Optimal Control.
+I. INTRODUCTION
+T
+HE field of robotics is undergoing rapid advancements,
+with a particular emphasis on the development of hu-
+manoid robots that have gathered significant public attention.
+A key area of research focuses on developing robots capable of
+fast, safe, and efficient locomotion, modeled after human-like
+legs. A variety of possible motions enables such systems to
+move themselves forward. These periodic motions are called
+gaits. However, an essential concern is achieving economic
+movement. This goal is typically pursued through the use of
+optimal control [1] or more specifically through methods like
+Differential Dynamic Programming [2].
+Still, several concepts can be investigated to increase the
+energy economy of the systems themselves and simplify the
+Manuscript received: June 4, 2025; Revised October 2, 2025; Accepted
+November 10, 2025. This paper was recommended for publication by Editor
+Olivier Stasse upon evaluation of the Associate Editor and Reviewers’
+comments. This work was supported by the European Research Council (ERC)
+through ERC Advanced Grant M-Runners under Grant 835284.
+1K. Griesbauer, D. Calzolari, and A. Albu-Sch¨affer are with School of
+Computation, Information and Technology, Technical University of Munich
+(TUM), 85748 Garching, Germany, and with the Institute of Robotics and
+Mechatronics, German Aerospace Center (DLR), 82234 Weßling, Germany
+{korbinian.griesbauer,davide.calzolari,alin.albu-
+schaeffer}@dlr.de
+2M.
+Raff
+and
+C.
+D.
+Remy
+are
+with
+the
+Institute
+for
+Adaptive
+Mechanical Systems, University of Stuttgart, 70569 Stuttgart, Germany
+{maximilian.raff,david.remy}@iams.uni-stuttgart.de
+©2025 IEEE. Personal use of this material is permitted. Permission from
+IEEE must be obtained for all other uses, in any current or future media,
+including reprinting/republishing this material for advertising or promotional
+purposes, creating new collective works, for resale or redistribution to servers
+or lists, or reuse of any copyrighted component of this work in other works.
+Virtual Energy
+Injection
+Solve
+Large NLP
+Root Finding
+Problem
+Homotopic
+Continuation
+Optimal
+Actuated Gait
+Actuated
+Quasi-Passive
+Dissipative
+Model
+mB
+mF
+k
+d
+Quasi-Passive
+Model
+fE
+Quasi-Passive
+Gait
+u
+q
+q
+u
+Fig. 1. The presented approach utilizes three main concepts. We first apply
+virtual energy injection to obtain a quasi-passive model. A quasi-passive
+system is not supported by actuation but through a non-physical energy input
+scaled by one scalar parameter. Through root-search, we find a quasi-passive
+gait. The homotopic continuation allows the derivation of a fully actuated
+optimal gait. Overall, this approach leverages the natural dynamics of the
+robotic system, thereby avoiding the need to solve large NLPs with high-
+dimensional decision variables.
+search process. One such concept is the application of elastic-
+ity within the system [3], [4]. Similarly to tendons in animals’
+legs, the springs can store elastic energy during the stance
+phase of running and release it during lift-off [5]. This allows
+the exploitation of nonlinear modes to execute highly efficient
+motions [6], [7]. The elasticity is especially advantageous
+for legged systems, as the springs can absorb impacts to
+protect the motors. Furthermore, springs enable motions that
+are not supported by any actuation, which we call passive.
+Finding passive gaits is typically achieved by simplifying
+the system to exclude damping. The absence of damping
+enables the conservation of energy and the establishment of
+periodic motions, which are similar to the nonlinear modes
+of the mechanical system, without applying actuation [8]. An
+additional model simplification to sustain conservativeness is
+to take the limit of the foot mass going against zero (mF →0),
+such that no energy is lost when the foot’s velocity is brought
+to zero at impact [9]. Conservative models also serve as ideal
+templates for generating energetically optimal gaits, as they
+enable locomotion with zero energy input [10]. However, the
+modeling process leading to energy conservation significantly
+influences the system dynamics, posing the question of how
+to adapt the gaits found for the conservative system to the
+real robot. In particular, the need for vanishing damping
+can introduce unwanted oscillations, while the requirement
+for zero collision mass may alter the system’s degrees of
+arXiv:2511.15513v1  [cs.RO]  19 Nov 2025
+
+
+2
+IEEE ROBOTICS AND AUTOMATION LETTERS. PREPRINT VERSION. ACCEPTED NOVEMBER, 2025
+freedom [11].
+The standard approach for exploiting the elasticity of a
+system remains optimal control [1]. However, there are several
+challenges associated with its implementation. The search
+space for a nonlinear program (NLP) increases drastically with
+the complexity of the system. This is due to the fact that the
+system states, as well as the actuation states, must be explored,
+resulting in a high-dimensional decision variable. Moreover,
+for the solver to produce reliable results, the initial guess
+provided by the user must be reasonably close to the actual
+solution. The identification of entire families of gaits [12]
+in advance may be a prerequisite in this case. This can be
+bypassed by a modular approach.
+In this paper, we seek to bridge between the passive template
+models and active optimal control. This will allow us to apply
+successful tools that exist for the analysis and generation
+of gaits in passive models [13], [14] to a larger class of
+hybrid dynamic systems. The key concept that we introduce
+is quasi-passive models. In such models, an energy source
+that is parameterized with a single parameter γ counteracts
+damping, friction, and other losses. This energy source does
+not necessarily have to be physically realizable and should
+not be thought of as a controller. Its only purpose is to coun-
+teract energy dissipation to enable periodic locomotion. In a
+subsequent continuously-parameterized optimization process,
+this input is gradually reduced and replaced by an actuation
+profile, which is physically feasible. Through this approach,
+we are able to leverage the natural dynamics of the system for
+efficient gait generation. The concept of quasi-passive models
+includes passive dynamic walkers on a slope [15], [16]. In
+these systems, the energy source is provided by the slope γ
+since it defines an external force (gravity) pulling the robot
+down the ramp.
+This work can be seen as a generalization of [16], where
+families of gaits of zero actuation under the influence of
+gravity are found and connected to their optimally actuated
+counterparts. Similarly, Raff et al. [17] employ a simplified
+energetically conservative model to identify optimally actuated
+gaits through a model homotopy and numerical continuation
+on the optimality. The methods presented in [17] lay the
+foundation for our conceptual framework. Continuation is
+also useful to find entire families of gaits along solution
+manifolds, a process that is typically accomplished using
+energetically conservative models [12], [18]. The novel energy
+input introduced in our work is motivated by the periodic
+motion concept in [19], where the influence of damping onto
+nonlinear modes of a system is discussed.
+We contribute to the state of the art in efficient locomotion
+with elastic legged systems with the following:
+1) A novel strategy to counteract energy losses in elastic
+locomotion using a virtual input, which is parameterized
+with a single parameter (Sec. III-B).
+2) A modular approach to find optimally actuated gaits
+for elastic legged models including damping and other
+losses. The framework consists of a root-search with
+direct collocation and a homotopic continuation on the
+first-order optimality (Sec. V).
+3) A proof of concept simulated on two legged systems.
+The examples include a one- and a two-legged model
+with different actuation (Sec. VI and VII).
+II. CONTEXT AND PROBLEM STATEMENT
+In the following, we present a formal description of the
+gait optimization problem including a definition of the class
+of hybrid dynamical systems, and our notion of periodicity.
+A. Hybrid Dynamics of Legged Systems
+We model a legged system as a mechanical rigid multi-
+body system using a floating-base description. This system is
+subject to unilateral contact without sliding, similarly to the
+systems presented in [17]. The vector q ∈Q ⊂Rnq describes
+the configuration of the system with nq degrees of freedom
+within the configuration space Q. The state of the system is
+given with the vector x = (q, ˙q) ∈TQ ⊂R2nq, where TQ
+is the tangent bundle of Q. The system is operated with an
+input u ∈Rnu, where nu is the number of actuated joints. We
+obtain the differential-algebraic equation of the form
+M(q)¨q = n(q, ˙q) + J(q)⊤u + Wi(q)λi,
+(1a)
+gi(q) = 0,
+(1b)
+with mass matrix M and generalized forces n. The input
+vector is mapped by the selection matrix J⊤. Active contacts
+are expressed in (27) as holonomic bilateral constraints gi,
+where Wi(q)⊤:= ∂gi/∂q is the corresponding constraint
+Jacobian with constraint forces λi. For subsequent use, we
+rewrite the equations of motion (1a) as first-order differential
+equation
+˙x = fi(x, u).
+(2)
+The set of active constraints in (27) depends on the current
+phase i ∈I, where I is a finite set of contact configurations. In
+case of touch-down or lift-off, phase transitions occur. These
+are triggered by event functions ej
+i(x) = 0, where ej
+i ∈C2.
+We project the state from phase i to j with a discrete map
+∆j
+i(x) =
+
+q
+ I −M−1Wj(W⊤
+j M−1Wj)−1W⊤
+j
+ ˙q
+
+.
+(3)
+Thus, we can map the states right before and after the event ej
+i
+with x+ = ∆j
+i(x−) [20]. We assume the existence of a hybrid
+trajectory x(t) passing through a predefined order of phases
+consisting of continuous (1) and discrete (28) dynamics.
+Further, we assume that the sequence of phases remains fixed
+under local changes within x(t). With this assumption, we can
+separate the hybrid trajectory and, particularly, its input space
+into m ∈N phases.
+For each phase i, we parameterize the input ui(t, x, ξi),
+with ui : R × TQ × Uξ,i →Rnu, where ξi ∈Uξ,i is a
+suitable parameterization of a time- and/or state-based control
+law. Importantly, we assume a parameterization that fulfills
+ui(t, x, 0) ≡0 for all i ∈I, t ∈R, and x ∈TQ. Note that
+the dependencies of ui indicate the possibility of a feedforward
+(dependency on t) as well as a feedback (dependency on x)
+control input. The shape of the hybrid trajectory x(t) is only
+affected by the initial state x0 of the system and the input
+
+
+GRIESBAUER et al.: DISCOVERING OPTIMAL NATURAL GAITS OF DISSIPATIVE SYSTEMS
+3
+parameters ξ ∈Uξ, with Uξ = Sm
+i=1 Uξ,i, collecting ξi over
+all m phases. Henceforth, we indicate the influence on the
+trajectory with the dependencies x(t; x0, ξ).
+B. Gaits and the Implied Periodicity
+We consider gaits as periodic motions with period time
+T
+> 0. In these trajectories, one full period is called a
+stride. To account for aperiodic states (e.g., horizontal po-
+sition in forward motion), we introduce a periodicity ma-
+trix P ∈R2nq×2nq to select periodic states. It also facilitates
+symmetric gait search by permuting state order within the
+periodicity condition. With this matrix, we define periodicity
+as P x(T) = x0. Additionally, we define the two C2 functions
+ρ : TQ →R and O : TQ × R × R →R. The first
+introduces an anchor constraint ρ(x(T)) = 0, which describes
+the requirement for the end of a stride, for example, touch-
+down of the foot. With the second, we can use the implicit
+function O(x(t; x0, ξ), T, ¯O) = 0 to limit the motion to an
+operating point ¯O. For example, a desired average speed for
+a gait. All constraints can be put together to define a gait by
+the roots of the function h(x(t; x0, ξ), T, ¯O) = 0:
+h(·) =
+
+
+P x(T; x0, ξ) −x0
+ρ
+ x(T; x0, ξ)
+
+O
+ x(t; x0, ξ), T, ¯O
+
+
+
+(4)
+where x0 = x(t = 0).
+C. Optimally Actuated Gaits
+The overall objective of this paper is to find optimal control
+inputs for such periodic gaits. To this end, we define a cost
+function c : TQ×Uξ×R →R that we seek to minimize. As we
+are interested primarily in energetically economic motions, we
+can make the following assumptions about this cost function:
+1) it is at least twice differentiable in all variables, i.e.,
+c ∈C2,
+2) it is of zero value if u ≡0, i.e., c(x0, ξ = 0, T) = 0,
+and
+3) locally positive-definite in ∂2c
+∂ξ2 (x(·))|ξ=0.
+A constrained optimization problem is defined by coupling the
+energetic cost function c with the gait constraints (4):
+min
+a
+c(a)
+subject to
+h(a, ¯O) = 0,
+(5)
+with the decision variable a⊤= [x⊤
+0 , ξ⊤, T].
+III. PASSIVE AND QUASI-PASSIVE SYSTEMS
+A. Passive Gaits
+We refer to the subset of solutions of (4) with no actuation
+(i.e., (x(t; x0, 0), T, ¯O) ∈h−1(0)) as the set of passive
+gaits. Apart from isolated solutions in specifically design
+mechanisms1, the existence of passive motions on level ground
+generally requires that the underlying system is energetically
+conservative, as in [12]. This can be formalized via the total
+1Which exhibit, for example, perfect ground speed matching to eliminate
+collision losses [21].
+energy in the system E : TQ →R, which must be constant
+for energetically conservative systems. That is, it holds:
+E
+ x(t; x0, ξ = 0)
+
+= const.,
+∀t, x0.
+(6)
+It has been demonstrated that such passivity can be a very
+valuable tool in gait generation. In particular, one can use
+numerical continuation methods to systematically find one-
+dimensional manifolds of passive solutions to (4), which form
+families of connected periodic motions [12]. If parameterized
+by the operating point ¯O, these families can form a useful
+library of different gaits.
+B. Quasi-Passivity
+Naturally, real robotic systems are dissipative and undergo
+energy losses during their motion:
+˙E
+ x(t; x0, ξ = 0)
+
+≤0,
+∀t, x0
+(7)
+Without compensation, this loss of energy in the system
+prevents periodicity for the states Px, and thus makes finding
+gaits impossible without using actuation ξ ̸= 0.
+In order to employ the above mentioned ideas to dissipative
+systems with friction and impacts, we will compensate the dis-
+sipation via a virtual energy injecting input fE(x, γ) ∈R2nq,
+with:
+˙E
+ fE(x, γ)
+ !
+≥0,
+∀x
+(8a)
+where ˙E : R2nq →R represents the power that is inserted
+into the system. One should note that such an input must
+not necessarily be realizable on a physical robot. This virtual
+input term is inserted additively into the equations of motion,
+extending (2) to:
+˙x = fi(x, ui) + fE(x, γ).
+(8b)
+For ui ≡0, we refer to such systems as being quasi-passive.
+The central idea of this work is to use quasi-passivity in non-
+conservative systems to find families of periodic motions that
+are then connected to active optimal solutions. We scale the
+injected amount of energy with one single input parameter
+{γ ∈R|γ > 0} that we carefully tune, such that a desired gait
+can be executed as a periodic orbit in a dissipative system
+despite the absence of actuation ξ = 0. For simplicity, we
+assume that this energy injection is independent of the current
+contact configuration in phase i and thus only depends on the
+state x.
+There exists a number of different ways to achieve such
+energy injection. The most prominent example would be to
+put the legged system onto downward sloping ground, where
+the parameter γ would represent the slope angle. As long
+as the center of gravity is moving monotonically forward,
+the resulting increase in the gravitational potential injects
+energy, which can compensate friction and impact losses. Such
+locomotion on slopes has been studied extensively for so-
+called passive dynamic walkers [15] and has been the base
+for a systematic generation of families of gaits in [16].
+
+
+4
+IEEE ROBOTICS AND AUTOMATION LETTERS. PREPRINT VERSION. ACCEPTED NOVEMBER, 2025
+Here, we seek to generalize this idea by considering differ-
+ent ways to inject energy. For example, one could use the idea
+of [22], by defining:
+fE(x, γ) := γ · ∇E(x) = γ ·
+"
+∂E
+∂q
+⊤
+M(q) ˙q
+#
+,
+(9a)
+where (8a) is fulfilled for any nonnegative γ:
+˙E = ∇E(x)⊤fE(x, γ) = γ · ∥∇E(x)∥2
+2 ≥0.
+(9b)
+Alternatively, we could simply use uniform negative damp-
+ing on all joints as the virtual energy input, with γ being the
+negative damping coefficient:
+fE(x, γ) := γ ·
+
+0
+M(q)−1 ˙q
+
+,
+˙E = γ · ∥˙q∥2
+2 ≥0.
+(10)
+Note that in this formulation the damping force γ ˙q is multi-
+plied by M(q)−1 to yield acceleration values.
+Finally, we can use mass-proportional damping to maintain
+the decoupling of nonlinear normal modes of dissipative
+systems as in [19]. An injection of this form does not have any
+local influence on the natural frequencies or the mode shapes
+of the system:
+fE(x, γ) := γ ·
+
+0
+˙q
+
+,
+˙E = γ · ˙q⊤M(q) ˙q
+|
+{z
+}
+=2Ekin(x)
+≥0.
+(11)
+Again, the mass-scaled damping force γM(q) ˙q has been
+multiplied by M(q)−1 to yield acceleration values.
+With this extension, we are now able to find periodic
+motions for dissipative systems in the total absence of actual
+actuator inputs (ui ≡0 ⇔ξi = 0). To this end, we need to
+determine only one scalar parameter γ, which tunes the virtual
+energy injection and compensates for all losses.
+IV. OPTIMAL ACTUATION VIA HOMOTOPIC
+CONTINUATION
+As mentioned above, quasi-passive gaits are not necessarily
+realizable on physical systems, which may not have actua-
+tion on all joints. We thus need to establish a connection
+between the quasi-passive gaits and optimally actuated gaits.
+Therefore, we introduce the concept of an input homotopy,
+which describes a mapping from a model including virtual
+energy injection to a model with only motor actuation as input.
+This homotopy is employed to map quasi-passive gaits to
+actuated gaits of a physical model using a homotopy parameter
+ε ∈[0, 1]. We scale the virtual input as follows:
+˙x = fi(x, ui) + (1 −ε) · fE(x, γ)
+(12)
+Hence, with ε = 0 the system is fully supported by virtual
+energy injection. A homotopic continuation approach is started
+from a solution (x(t; x0, ξ), T, ¯O) of the gait constraints (4)
+with ε = 0, for which no actuation profile has to be de-
+termined, as ξ = 0 by definition. This can be done with
+less effort using common root-search algorithms, similar to
+[12], [23]. Consequently, for continuation, there is no need for
+initial guesses from the user. Introducing the parameter ε, we
+can redefine the optimization problem (5) as a parameterized
+optimization problem:
+min
+a
+c(a, ε)
+subject to
+h(a, ¯O, ε) = 0.
+(13)
+We can observe that ε = 0 defines a family of optimal
+solutions, for which we have already found one through root-
+search. This quasi-passive solution is our starting point for
+a problem that can be solved by continuation. The resulting
+solution at ε = 1 contains the trajectory x(t; x0, ξ) of a fully
+actuated gait. Also, the control actions are adapted to match
+this gait (ξ ̸= 0). Combining the method of virtual energy
+injection and the continuation via input homotopy allows us
+to find optimally actuated gaits for dissipative systems, where
+the losses are counteracted through the actuator forces.
+V. FRAMEWORK AND IMPLEMENTATION
+The overall concept of our approach to derive active gaits
+for dissipative systems is summarized in Figure 1. We combine
+the different methods into a three-stage approach:
+1) We begin by injecting virtual energy into the model
+of a dissipative system. We use energy injection of the
+form (11), based on the mass-proportional damping ap-
+proach from [19]. This energy injection directly affects
+the nonlinear equations of motion in each dimension,
+regardless of whether physical actuation of each state
+would be possible. This makes it possible to support the
+movement of a system with only one single parameter.
+We can interpret the quasi-passive model (Sec. III-B) as
+(12) with ε = 0.
+2) We then apply a root-finding algorithm to find quasi-
+passive gaits. To this end, we solve the NLPdefined
+by (4) with the additional constraint ξ = 0 while
+simultaneously determining γ. Note that whole families
+of quasi-passive gaits can be found using numerical
+continuation algorithms [12], [16].
+3) Homotopic continuation is applied to obtain an opti-
+mally actuated gait. The given quasi-passive solution
+is continued until the virtual energy injection is fully
+deactivated, i.e., ε = 1 (Sec. IV).
+We
+implement
+this
+framework
+with
+MATLAB
+and
+CasADi [24], a tool for nonlinear optimization and algorithmic
+differentiation. In the following, the applied parameterization,
+root-search, and continuation algorithms are specified.
+A. Direct Collocation
+For the root-search, we choose a direct collocation algo-
+rithm, which allows us to discretize the system dynamics and
+include it as collocation constraints in the NLP. The system
+dynamics is thus approximated as polynomial splines. The
+discretization offers a way to parameterize the control inputs
+ui(t, ξ) as piecewise constant feedforward control. We specify
+the parameterization vector ξi ∈R(nu·N) ⊂Uξ,i, where N
+is the number of discretized time intervals over phase i. We
+define ξi to contain the constant values of ui(t) over every
+time interval ξ⊤
+i = [u⊤
+i,1, u⊤
+i,2, . . . , u⊤
+i,N]. We find the root of
+
+
+GRIESBAUER et al.: DISCOVERING OPTIMAL NATURAL GAITS OF DISSIPATIVE SYSTEMS
+5
+c
+A
+ε = 0
+ε = 1
+ψ(ζ∗, 0)
+r(ψ∗) = 0
+Planar Top View
+ψ(ζ∗, 1)
+Fig. 2.
+Continuation on the first-order optimality. The coordinate system
+indicates the cost c in the vertical and the search space A in the remaining
+dimensions. The continuation starts at the regular point ψ(ζ∗, ε = 0) – a
+solution, which we call quasi-passive. From there, we move along a one-
+dimensional manifold (orange), where the first-order optimality condition
+r(ψ∗) = 0 is fulfilled. Note that we advance in the direction of increasing ε.
+The regular point ψ(ζ∗, ε = 1) marks the result with a locally optimal cost.
+The blue curve shows a path towards ε = 1, which is not optimal.
+(4) and the collocation constraints with the NLP solver IPOPT
+and obtain a quasi-passive gait with the adapted virtual energy
+parameter γ and actuation ξ = 0.
+B. Continuation on First-Order Optimality
+We want to exploit the introduced input homotopy to
+obtain optimally actuated gaits. Thus, we apply a pseudo-
+arclength continuation [25] on the first-order optimality of the
+parameterized optimization problem. To define this optimality,
+the Lagrangian for (13) is specified as
+L(ζ, ¯O, ε) = c(a, ε) + λ⊤h(a, ¯O, ε),
+(14)
+and the first-order optimality condition as
+∂L
+∂a (ζ, ¯O, ε) = ∂c
+∂a(a, ε) + λ⊤∂h
+∂a (a, ¯O, ε) = 0,
+(15)
+where the vector ζ⊤
+= [a⊤, λ⊤] describes an extended
+decision variable. The vector λ ∈Rnh is the Lagrange
+multiplier. We can deduce the uniqueness of λ from vector a
+being a local extremum point of c, when it is subject to the
+constraints h(·) = 0, and from ∂h/∂a having full rank [26].
+Let r : Rnζ+1 →Rnζ be an implicit function, which we
+call homotopy map. A point ψ(ζ∗, ε∗) ∈Rnζ+1 is called a
+regular point of r if ( ∂r
+∂ψ)|ψ=ψ∗has maximal rank nζ. A quasi-
+passive solution (ζ∗, 0) is a regular point of r. Assume that
+both the quasi-passive and the actuated model are connected
+through a one-dimensional manifold – the solution curve ψ –,
+on which the homotopy map r(ψ∗) = 0 is always fulfilled
+as a condition. The curve ψ can be numerically traced with
+predictor-corrector methods [25]. We make a predictor step in
+the tangent space of the curve and correct this step so that
+the condition of the homotopy map is again fulfilled. We start
+from ε = 0 and trace the condition in r into a unique direction,
+where ε is increasing.
+For the predictor the tangent vector p at a regular point
+(ζ∗, ε∗) is uniquely defined by
+R(ζ∗, ε∗) · p = 0,
+(16a)
+∥p∥2 = 1,
+(16b)
+det
+ R(ζ∗, ε∗)
+p⊤
+!
+> 0.
+(16c)
+x
+system states
+γ
+virtual energy parameter
+ξ
+input parameters
+fE
+virtual input term
+a
+decision variable
+ε
+homotopy parameter
+ζ
+extended decision var.
+r
+homotopy map
+h
+constraint function
+p
+tangent vector
+c
+cost function
+ψ
+solution curve
+TABLE I
+NOTATION OF SELECTED QUANTITIES
+The matrix R is the partial derivative of the homotopy map r
+with respect to ζ and ε:
+R(ζ, ε) = ∂r (ζ, ε)
+∂(ζ, ε) .
+(17)
+While we apply automatic differentiation [24] to obtain
+second-order derivatives for R, an analytical description as
+in [27] might be possible, as well.
+To perform continuation on the first-order optimality the
+condition (15) is included in the homotopy map:
+r(ζ, ε) := ∂L ¯
+O
+∂ζ (ζ, ε) =
+
+( ∂c
+∂a)⊤+ ( ∂h
+∂a )⊤λ
+h(·)
+
+.
+(18)
+The subscript notation L ¯
+O(ζ, ε) indicates a fixed operating
+point ¯O in (22). We start the predictor-corrector method from
+a quasi-passive gait, which is a regular point of r by definition,
+as ξ = 0, and we defined c(x0, ξ = 0, T) = 0 in Sec. II-C.
+We deform the solution in the direction of positive ε while
+remaining at local minima. At ψ(ζ∗, 1) an optimally actuated
+solution with ξ∗̸= 0 is computed without any virtual support.
+To prove that the regular point is also a strict minimizer,
+we need the second-order optimality condition as a sufficient
+condition:
+y⊤
+ 
+∂2c
+∂a2 (a, ε) + λ⊤∂2h
+∂a2 (a, ¯O, ε)
+!
+y > 0,
+(19)
+∀y
+∈Y , where we define the tangent space in a∗as
+Y = {y : (∂h/∂a)|a=a∗y = 0} and a∗is part of the regular
+point ζ∗with fixed ¯O. For conditions (15) and (42) it is
+essential that the equality constraints h in (5) are regular to
+find strict local minima [26].
+Figure 2 depicts a schematic of the continuation approach.
+An algorithm of the complete procedure of continuation on
+the first-order optimality can be found in [17]. The presented
+method is applicable to a variety of legged systems. Its
+complexity scales quadratically with nq and the complete
+number of grid points m · N. In the following sections, we
+present the results of the implemented approaches on two
+compliant and dissipative systems2.
+VI. EXAMPLE: PRISMATIC MONOPOD
+We apply our methodology to a prismatic monopod model,
+similar to the one proposed in [28]. The model is composed of
+a main body with mass mB and inertia jB. The variables x and
+z describe the horizontal and vertical positions of the CoM,
+respectively. The main body’s pitch angle is denoted by ϕ. The
+leg is mounted on a rotational joint positioned on the main
+2A detailed mathematical description of the examples and the implemen-
+tation of the approach is given in arxiv.org/abs/xxxx.xxxxx.
+
+
+6
+IEEE ROBOTICS AND AUTOMATION LETTERS. PREPRINT VERSION. ACCEPTED NOVEMBER, 2025
+x
+z
+g
+ϕ
+x, z
+α
+l
+mF
+mB, jB
+mL, jL
+kL, dL
+kH, dH
+Fig. 3. The prismatic monopod model contains a main body with mass mB
+and inertia jB, a leg with mass mL and inertia jL and a foot as point mass
+mF. There is a radial spring with stiffness kH and damping dH at the hip joint,
+as well as a linear spring with stiffness kL and damping dL between the leg
+and foot. The configuration of the system is described by q = [x z ϕ α l]⊤.
+body’s CoM. The joint angle between the main body and leg
+is α. The two parts are connected with a torsional spring with
+stiffness kH and damping dH. The spring is uncompressed
+for α = 0. The leg has mass mL and inertia jL and is
+connected to a foot with a translational linear spring. The foot
+is at radial position l relative to the CoM of the main body.
+The generalized coordinates are thus q = [x, z, ϕ, α, l]⊤, with
+nq = 5. The translational spring is uncompressed at l = l0
+and has stiffness kL and damping dL. Parallel to both springs,
+there are actuators that produce the torques u = [uα, ul]⊤.
+The foot is modeled as a point mass with mass mF. It is
+important to mention that mF > 0 since a non-zero foot mass
+almost entirely prevents energetic conservativeness even with
+dH, dL = 0. Figure 10 shows the system and its components.
+All values are normalized with respect to leg length l0, total
+mass m0, and gravity g.
+A. Quasi-Passive Gait
+We utilize the direct collocation approach with N = 10
+per phase to find quasi-passive gaits. Note that damping and
+collision losses are included in the motion of the system.
+Virtual energy injection is used to achieve a quasi-passive
+motion, i.e., we reach the same total energy at the end of
+a stride as in the beginning. Thus, the continuation parameter
+is set to ε = 0, and the parameter, which controls the amount
+of virtual energy input, is initialized to γinit = 0.01. Over the
+root-search, this parameter changes to a value γ > 0, such that
+the losses through damping and impacts are compensated.
+We start the root-search for a hopping forward gait with
+average speed ¯˙x = 0.3√l0g. As an initial guess, we propose
+a non-periodic motion, which fulfills the correct sequence of
+events (lift-off →touch-down). Figure 4 depicts the trajec-
+tories of the individual states. Figure 6 shows snapshots of
+the resulting motion. We can observe a forward motion of the
+monopod. The main body leans to the left and swings over
+the stride to compensate for the rotation of the leg, which
+swings back in stance and forth in flight. The main body moves
+horizontally forward with the given average speed. At the end
+of the stride, all states reach their initial value again, thus, the
+orbit is periodic. Note that it is possible to utilize continuation
+to identify families of gaits on different operating points, from
+where the homotopic continuation can be initialized.
+Continuous States
+0
+0.5
+1
+1.5
+−0.2
+0
+0.2
+0.4
+0.6
+0.8
+1
+1.2
+Prismatic Monopod: Quasi-Passive Gait
+x
+z
+ϕ
+α
+l
+0
+0.5
+1
+1.5
+−0.6
+−0.4
+−0.20
+0.2
+0.4
+0.6
+0.81
+Time [
+p
+l0/g]
+˙x
+˙z
+˙ϕ
+˙α
+˙l
+Fig. 4.
+The continuous states of the hopping forward gait of the prismatic
+monopod model, including virtual energy injection. The operating point
+constraint is set to the average speed ¯˙x = 0.3√l0g. The gray area marks
+the stance phase. The main body swings over a stride and compensates the
+back and forward motion of the leg.
+Input Torques
+Continuous States
+0
+0.5
+1
+1.5
+−0.2
+0
+0.2
+0.4
+0.6
+0.8
+1
+1.2
+Prismatic Monopod: Actuated Gait
+x
+z
+ϕ
+α
+l
+0
+0.5
+1
+1.5
+−0.6
+−0.4
+−0.20
+0.2
+0.4
+0.6
+0.81
+˙x
+˙z
+˙ϕ
+˙α
+˙l
+0
+0.5
+1
+1.5
+−0.4
+−0.2
+0
+0.2
+0.4
+0.6
+Time [
+p
+l0/g]
+uα
+ul
+Fig. 5.
+Actuated hopping forward gait of the prismatic monopod as result
+of homotopic continuation. The cost function is c = ξ⊤ξ. The gray area
+marks the stance phase. The continuous states and velocities are similar to
+the respective quasi-passive gait but show small differences, such as in the
+absolute angle of the main body. The plot on the bottom shows the actuation
+profile of the parallel elastic actuators for each grid point.
+Fig. 6. Snapshots of the quasi-passive hopping forward gait of the prismatic
+monopod (top, Sec. VI) and of the bounding gait of the sagittal quadruped
+(bottom, Sec. VII).
+
+
+GRIESBAUER et al.: DISCOVERING OPTIMAL NATURAL GAITS OF DISSIPATIVE SYSTEMS
+7
+0
+0.2
+0.4
+0.6
+0.8
+1
+0
+0.5
+1
+1.5
+ε
+Prismatic Monopod: Homotopic Continuation
+tstance
+tflight
+c
+µmin
+Fig. 7.
+Evolving values over the homotopic continuation of the hopping
+forward gait of the prismatic monopod with cost c = ξ⊤ξ. The values
+correspond to a quasi-passive solution at ε = 0 and evolve to the actuated
+solution at ε = 1. The flight phase duration tflight decreases over the
+continuation. The cost c starts from zero at the quasi-passive solution and
+increases over the continuation to compensate for the missing virtual energy
+injection. This is contrary to other optimization approaches, where the cost
+decreases from non-optimal values to its optimum, while in our approach
+gaits are always optimal. The smallest eigenvalue µmin of the second-order
+optimality condition is always positive, which proves that the solutions are
+always a minimum.
+B. Actuated Gait
+We take the quasi-passive gait (ε = 0) obtained from
+root-search with direct collocation and apply continuation
+on the first-order optimality until we find an actuated gait
+(ε = 1) including the actuation profile ξ ̸= 0. Note that the
+virtual energy injection parameter γ is constant throughout the
+procedure. The virtual energy injection is canceled out with the
+continuation variable ε →1. The operating point ¯O continues
+to define the respective gait over the continuation. The control
+input for the actuation of the prismatic monopod is the force ul
+acting on the leg length l and the torque uα acting on the joint
+angle α. For homotopic continuation, we define the actuator
+forces squared as cost function: c = ξ⊤ξ.
+Figure 7 shows how the problem behaves over the continua-
+tion with ε = 0 →1. The cost function c starts at zero, as there
+is zero actuation at the quasi-passive solution. With increasing
+ε and the adapting actuation profile, the cost function is forced
+to increase to values c > 0. When reaching the state of no
+virtual energy injection at ε = 1, the actuation profile has
+changed its values to support the motion of the prismatic
+monopod optimally with respect to the cost function c, such
+that it can perform the desired forward gait at average speed
+¯˙x = 0.3√l0g. The actuated solution, which primarily inserts
+energy into the system during the stance phase (by pushing
+off the ground), consequently results in an extended stance
+phase. Figure 5 depicts the derived actuation profile and the
+approximated active gait on the prismatic monopod. In Figure
+7 we can observe that the second-order optimality condition
+(42) is fulfilled over the whole continuation, since its smallest
+eigenvalue is positive µmin > 0 ∀ε, i.e., the solution is minimal.
+VII. EXAMPLE: SAGITTAL QUADRUPED
+To cover systems with increasing complexity we apply a
+sagittal quadruped model with nq = 7. The general coordi-
+nates of the system are q = [x, z, ϕ, αhu, αhl, αfu, αfl]⊤. The
+sagittal quadruped model uses series elastic actuation; thus the
+control inputs are the motor positions u = [uhu, uhl, ufu, ufl].
+The model structure is depicted in Figure X-C.
+x
+z
+g
+x, z
+ϕ
+−αhu
+αhl
+αfl
+−αfu
+mB, jB
+Fig. 8. The sagittal quadruped model contains a main body with mass mB
+and inertia jB, and two legs (hind and front) consisting of an upper and
+lower leg, as well as a foot as point mass. In each leg there are two radial
+springs with stiffness and damping at each the hip and the knee joint. The
+configuration of the system is described by q = [x z ϕ αhu αhl αfu αfl]⊤.
+A. Quasi-Passive Gait
+The desired gait for this system is bounding forward, which
+results in a sequence of four different phases. The number of
+grid points per phase is set to N = 10. We start the root-
+search with a fixed energy level E(x(t = 0)) = 1.3 m0gl0 as
+operating point, and a freely chosen motion as initial guess
+with phase sequence touch-down front→lift-off hind→lift-off
+front→touch-down hind. Figure 6 includes snapshots of the
+resulting motion.
+B. Actuated Gait
+An extension onto multi-legged systems does not alter the
+homotopic continuation framework. We continue to use one
+single energy injection parameter γ and one single homotopy
+parameter ε. We choose the cost function c = ξ⊤ξ and
+apply continuation until ε = 1. Note, that we have set
+additional constraints, such that the motors can only set non-
+zero positions, if the respective leg is in contact with the
+ground. This avoids unnecessary motion of the legs in flight.
+The obtained actuated gait without virtual energy injection is
+shown in Figure 9.
+VIII. CONCLUSION
+We present a new, modular approach to obtain quasi-passive
+gaits for dissipative systems that are not dependent on complex
+actuation profiles, but on one single energy input parameter.
+The underlying structure consists of a root-finding framework
+in combination with virtual energy injection. This energy
+injection only depends on the velocities of the system and
+is thus similar to a positive damping force, which acts like an
+external force on the robot. A passive gait search algorithm is
+complemented by an effective way to derive actuation profiles
+for the real dissipative system that is no longer dependent
+on virtual energy injection. This approach uses continuation
+and an input homotopy to convert the virtually supported
+passive gait into an actuated gait with an actuation profile of
+arbitrary shape. A cost function is defined for the actuation
+derivation, which influences the resulting gait and motor
+profile. The results validate the concept on different systems
+with increasing complexity.
+The proposed approach is able to bypass a variety of
+problems associated with simplified modeling in legged lo-
+comotion. Energy losses caused by impacting foot masses
+
+
+8
+IEEE ROBOTICS AND AUTOMATION LETTERS. PREPRINT VERSION. ACCEPTED NOVEMBER, 2025
+Input Motor Pos.
+Continuous States
+0
+0.5
+1
+1.5
+2
+−1
+−0.5
+0
+0.5
+1
+1.5
+Sagittal Quadruped: Actuated Gait
+x
+z
+ϕ
+αhu
+αhl
+αfu
+αfl
+0
+0.5
+1
+1.5
+2
+−4.5
+−3
+−1.5
+0
+1.5
+3
+4.5
+˙x
+˙z
+˙ϕ
+˙αhu
+˙αhl
+˙αfu
+˙αfl
+0
+0.5
+1
+1.5
+2
+−0.2
+−0.1
+0
+0.1
+0.2
+0.3
+Time [
+p
+l0/g]
+uhu
+uhl
+ufu
+ufl
+Fig. 9.
+Actuated bounding gait of the sagittal quadruped as result of
+homotopic continuation. The cost function is c = ξ⊤ξ. The light gray areas
+mark single support, while the dark gray area marks double support. On the
+bottom, the motor trajectory is depicted. The actuation allows only non-zero
+positions, if the respective leg is in contact with the ground.
+or high-frequency oscillations in non-dissipative systems, as
+it might occur in [17], pose no problem in our framework.
+Instead, we keep dissipative terms and counteract with virtual
+energy injection scaled with a single parameter, regardless of
+the system’s complexity or its number of legs. This constitutes
+a central advantage over optimal control, for which large NLPs
+need to be defined and solved [1]. As quasi-passive gaits are
+identified rapidly, the shape of the gait can be examined and
+modified in an early stage of the approach. Virtual energy
+injection of the form (11) enables identification of efficient
+quasi-passive motions close to the natural frequencies of
+the system [19]. The continuation into a deployable active
+gait without the global search contributes to the approach’s
+simplicity. This is possible for both single- and multi-legged
+systems using one homotopy parameter. The resulting actuated
+solution remains close to the initial quasi-passive gait.
+There are multiple items for which further investigation
+in future work will be worthwhile. For the virtual energy
+injection, a specific kind of injection was chosen out of
+many possibilities. This choice certainly influences the shape,
+stability, robustness and other properties of resulting quasi-
+passive gaits and their associated active gait. For future works
+we want to explore different injection possibilities and put
+one to another into relation via continuation. Furthermore, for
+proper bipedal motion, inequality constraints must be included
+in the homotopic continuation approach. Another significant
+challenge is the implementation of a stabilizing controller,
+which is essential for applying the identified optimal active
+gaits to hardware.
+REFERENCES
+[1] P. M. Wensing, M. Posa, Y. Hu, A. Escande, N. Mansard, and A. D.
+Prete, “Optimization-based control for dynamic legged robots,” IEEE
+Transactions on Robotics, vol. 40, pp. 43–63, 2024.
+[2] H. Li and P. M. Wensing, “Hybrid systems differential dynamic program-
+ming for whole-body motion planning of legged robots,” IEEE Robotics
+and Automation Letters, vol. 5, no. 4, pp. 5448–5455, 2020.
+[3] W. Xi, Y. Yesilevskiy, and C. D. Remy, “Selecting gaits for economical
+locomotion of legged robots,” The International Journal of Robotics
+Research, vol. 35, no. 9, pp. 1140–1154, 2016.
+[4] A. Werner, W. Turlej, and C. Ott, “Generation of locomotion trajectories
+for series elastic and viscoelastic bipedal robots,” in 2017 IEEE/RSJ
+International Conference on Intelligent Robots and Systems (IROS).
+IEEE, 2017, pp. 5853–5860.
+[5] R. M. Alexander, Principles of Animal Locomotion.
+Princeton Univer-
+sity Press, 2003.
+[6] D. Calzolari, C. Della Santina, A. M. Giordano, and A. Albu-Sch¨affer,
+“Single-leg forward hopping via nonlinear modes,” in 2022 American
+Control Conference (ACC).
+IEEE, 2022, pp. 506–513.
+[7] C. Della Santina, D. Lakatos, A. Bicchi, and A. Albu-Sch¨affer, “Using
+nonlinear normal modes for execution of efficient cyclic motions in ar-
+ticulated soft robots,” in Experimental Robotics: The 17th International
+Symposium.
+Springer, 2021, pp. 566–575.
+[8] Z. Gan, Y. Yesilevskiy, P. Zaytsev, and C. D. Remy, “All common bipedal
+gaits emerge from a single passive model,” Journal of The Royal Society
+Interface, vol. 15, no. 146, p. 20180455, 2018.
+[9] M. Garcia, A. Chatterjee, A. Ruina, and M. Coleman, “The simplest
+walking model: stability, complexity, and scaling,” Journal of Biome-
+chanical Engineering, no. 120, 1998.
+[10] R. J. Full and D. E. Koditschek, “Templates and anchors: neuromechan-
+ical hypotheses of legged locomotion on land,” Journal of experimental
+biology, vol. 202, no. 23, pp. 3325–3332, 1999.
+[11] A. M. Johnson, S. A. Burden, and D. E. Koditschek, “A hybrid systems
+model for simple manipulation and self-manipulation systems,” The
+International Journal of Robotics Research, vol. 35, no. 11, pp. 1354–
+1392, may 2016.
+[12] M. Raff, N. Rosa, and C. D. Remy, “Connecting gaits in energetically
+conservative legged systems,” IEEE Robotics and Automation Letters,
+vol. 7, no. 3, pp. 8407–8414, 2022.
+[13] C. D. Remy, K. Buffinton, and R. Siegwart, “Stability analysis of passive
+dynamic walking of quadrupeds,” The International Journal of Robotics
+Research, vol. 29, no. 9, pp. 1173–1185, 2010.
+[14] ——, “A matlab framework for efficient gait creation,” in 2011
+IEEE/RSJ International Conference on Intelligent Robots and Systems.
+IEEE, 2011, pp. 190–196.
+[15] T. McGeer, “Passive dynamic walking,” The international journal of
+robotics research, vol. 9, no. 2, pp. 62–82, 1990.
+[16] N. Rosa, B. Katamish, M. Raff, and C. D. Remy, “An approach
+for generating families of energetically optimal gaits from passive
+dynamic walking gaits,” in 2023 IEEE/RSJ International Conference on
+Intelligent Robots and Systems (IROS).
+IEEE, 2023, pp. 8551–8557.
+[17] M. Raff, N. Rosa, and C. D. Remy, “Generating families of optimally
+actuated gaits from a legged system’s energetically conservative dynam-
+ics,” in 2022 IEEE/RSJ International Conference on Intelligent Robots
+and Systems (IROS).
+IEEE, 2022, pp. 8866–8872.
+[18] L. Boffa, A. Sesselmann, and M. A. Roa, “Quadrupedal template model
+for parametric stability analysis of trotting gaits,” in 2021 IEEE/RSJ
+International Conference on Intelligent Robots and Systems (IROS).
+IEEE, 2021, pp. 916–922.
+[19] M. Krack, “Nonlinear modal analysis of nonconservative systems:
+Extension of the periodic motion concept,” Computers & Structures,
+vol. 154, pp. 59–71, 2015.
+[20] B. Brogliato, Nonsmooth Mechanics: Models, Dynamics and Control.
+Springer, 2016.
+[21] A. Chatterjee, R. Pratap, C. K. Reddy, and A. Ruina, “Persistent passive
+hopping and juggling is possible even with plastic collisions,” The
+International Journal of Robotics Research, vol. 21, no. 7, pp. 621–
+634, 2002.
+[22] J.-A. Sepulchre and R. S. MacKay, “Localized oscillations in conserva-
+tive or dissipative networks of weakly coupled autonomous oscillators,”
+Nonlinearity, vol. 10, no. 3, p. 679, 1997.
+[23] N. Rosa and K. M. Lynch, “A topological approach to gait generation
+for biped robots,” IEEE Transactions on Robotics, vol. 38, no. 2, pp.
+699–718, 2021.
+
+
+GRIESBAUER et al.: SUPPLEMENT: DISCOVERING OPTIMAL NATURAL GAITS OF DISSIPATIVE SYSTEMS
+9
+[24] J. A. E. Andersson, J. Gillis, G. Horn, J. B. Rawlings, and M. Diehl,
+“CasADi – A software framework for nonlinear optimization and opti-
+mal control,” Mathematical Programming Computation, vol. 11, no. 1,
+pp. 1–36, 2019.
+[25] E. L. Allgower and K. Georg, Introduction to numerical continuation
+methods.
+SIAM, 2003.
+[26] D. G. Luenberger and Y. Ye, Linear and nonlinear programming.
+Springer, 1984, vol. 2.
+[27] S. Singh, R. P. Russell, and P. M. Wensing, “Analytical second-
+order derivatives of rigid-body contact dynamics: Application to multi-
+shooting ddp,” in 2023 IEEE-RAS 22nd International Conference on
+Humanoid Robots (Humanoids).
+IEEE, 2023, pp. 1–8.
+[28] C. D. Remy, “Optimal exploitation of natural dynamics in legged
+locomotion,” Ph.D. dissertation, ETH Zurich, 2011.
+
+
+10
+ARXIV, NOVEMBER 2025
+Supplement to RA-L Publication: Discovering Optimal Natural Gaits
+of Dissipative Systems via Virtual Energy Injection
+Korbinian Griesbauer1, Davide Calzolari1, Maximilian Raff2, C. David Remy2, Alin Albu-Sch¨affer1
+Abstract—This article acts as supplementary material for the
+IEEE Robotics and Automation Letters publication with the
+title “Discovering Optimal Natural Gaits of Dissipative Systems
+via Virtual Energy Injection”. This paper presents the detailed
+mathematical formulation of our approach, along with implemen-
+tation details and simulation results, which were omitted from
+the Letters publication due to space constraints.
+IX. INTRODUCTION
+We structure this article as follows: In Section X we provide
+a detailed description of the shown models. This includes
+equations of motions (EoM), constraints, event functions and
+mapping between phases. Each subsection is dedicated to one
+model. We also include the segmented monopod model, which
+is not entirely described in the main document. In Section
+XI we show how exactly we apply direct collocation and
+implement it in MATLAB and CasADi [24]. Section XII gives
+an overview of the continuation approach and shows results
+of the segmented monopod model.
+X. EQUATIONS OF MOTION
+In the following, we present the EoM of the examples.
+A. Prismatic Monopod
+The model is composed of a main body with mass mB
+and inertia jB. The variables x and z describe the horizontal
+and vertical positions of the CoM, respectively. The main
+body’s pitch angle is denoted by ϕ. The leg is mounted on a
+rotational joint positioned on the main body’s CoM. The joint
+angle between the main body and leg is α. The two parts
+are connected with a torsional spring with stiffness kH and
+damping dH. The spring is uncompressed for α = 0. The leg
+has mass mL and inertia jL and is connected to a foot with a
+translational linear spring. The foot is at radial position l rela-
+tive to the CoM of the main body. The generalized coordinates
+are thus q = [x, z, ϕ, α, l]⊤, with nq = 5. The translational
+spring is uncompressed at l = l0 and has stiffness kL and
+damping dL. Parallel to both springs, there are actuators that
+produce the torques u = [uα, ul]⊤. The foot is modeled as a
+point mass with mass mF. Figure 10 shows the structure of
+the prismatic monopod model. Table III contains the values of
+all parameters.
+1K. Griesbauer, D. Calzolari, and A. Albu-Sch¨affer are with School of
+Computation, Information and Technology, Technical University of Munich
+(TUM), 85748 Garching, Germany, and with the Institute of Robotics and
+Mechatronics, German Aerospace Center (DLR), 82234 Weßling, Germany
+{korbinian.griesbauer,davide.calzolari,alin.albu-
+schaeffer}@dlr.de
+2M.
+Raff
+and
+C.
+D.
+Remy
+are
+with
+the
+Institute
+for
+Adaptive
+Mechanical Systems, University of Stuttgart, 70569 Stuttgart, Germany
+{maximilian.raff,david.remy}@iams.uni-stuttgart.de
+ϕ
+x, z
+α
+l
+x
+z
+g
+mF
+mB, jB
+mL, jL
+kL, dL
+kH, dH
+Fig. 10.
+The prismatic monopod model contains a main body with mass
+mB and inertia jB, a leg with mass mL and inertia jL and a foot as point
+mass mF. There is a radial spring with stiffness kH and damping dH at
+the hip joint, as well as a linear spring with stiffness kL and damping dL
+between the leg and foot. The configuration of the system is described by
+q = [x z ϕ α l]⊤.
+We derive the EoM using Lagrangian mechanics. First, we
+define the potential energy of each part (base B, leg L, foot F)
+and of the springs S:
+VB = mBgz
+(20a)
+VL = mLgz
+(20b)
+VF = mFg
+ z −l cos(ϕ + α)
+
+(20c)
+VS = 1
+2
+ kH(−α)2 + kL(l0 −l)2
+(20d)
+The kinetic energy of each part is given by
+TB = 1
+2
+ mB ˙x2 + mB ˙z2 + jB ˙ϕ2
+(21a)
+TL = 1
+2
+ mL ˙x2 + mL ˙z2 + jL(κ)2
+(21b)
+TF =1
+2mF
+ ˙x + sin(κ)˙l + cos(κ)κl
+2+
+1
+2mF
+ ˙z −cos(κ)˙l + sin(κ)κl
+2
+(21c)
+where κ = ˙ϕ + ˙α. We define the Lagrangian
+Lag =
+X
+T −
+X
+V
+(22)
+and the EoM of the system
+d
+dt
+∂Lag
+∂˙q
+
++ ∂Lag
+∂q
+= 0.
+(23)
+We can bring the given EoM into the form
+M(q)¨q = n(q, ˙q).
+(24)
+In the case of the prismatic monopod we have parallel actua-
+tion. Thus, the actuation is added to the EoM as given torques
+uα and ul. Note that the virtual input term fE is added to the
+
+
+GRIESBAUER et al.: SUPPLEMENT: DISCOVERING OPTIMAL NATURAL GAITS OF DISSIPATIVE SYSTEMS
+11
+no.
+phase
+1
+flight
+2
+stance
+event function
+event
+e2
+1
+touch-down
+e1
+2
+lift-off
+TABLE II
+PHASES AND EVENTS OF THE MONOPOD MODELS.
+Parameter
+Value
+Unit
+total mass
+m0
+1
+·
+uncompressed leg length
+l0
+1
+·
+gravitational constant
+g
+1
+·
+mass main body
+mB
+0.7
+m0
+mass leg
+mL
+0.2
+m0
+mass foot
+mF
+0.1
+m0
+inertia main body
+jB
+0.4
+m0l2
+0
+inertia leg
+jL
+0.004
+m0l2
+0
+stiffness rotational spring
+kH
+1
+m0gl0/rad
+damping rotational spring
+dH
+0.02
+m0
+q
+l3
+0g3/rad
+stiffness linear spring
+kL
+20
+m0g/l0
+damping linear spring
+dL
+0.85
+m0
+p
+g/l0
+TABLE III
+PARAMETERS OF THE PRISMATIC MONOPOD MODEL.
+EoM as in the main document, Eq. (12). For the computation
+of the constraint Jacobian Wi we need to define constraints
+for each phase.
+g1 = 0
+(25a)
+g2 =
+
+x + l sin(ϕ + α)
+z −l cos(ϕ + α)
+
+(25b)
+The constraint Jacobian is given by W⊤
+i := ∂gi/∂q. Table II
+shows the numbering of the phases, as well as the event
+functions. Next, we define the event functions necessary for
+the hybrid dynamics
+e2
+1(x) = −z + l sin(ϕ + α)
+(26a)
+e1
+2(x) = −λ2,2
+(26b)
+where λ2,2 is the entry of the contact forces in z-direction:
+λ2 =
+ W⊤
+2 (M−1W2)
+−1 −W⊤
+2 (M−1n) −˙W⊤˙q
+
+(27)
+If an event function crosses zero in positive direction, the event
+is triggered. We project from phase i to j with a discrete map
+∆j
+i(x) =
+
+q
+ I −M−1Wj(W⊤
+j M−1Wj)−1W⊤
+j
+ ˙q
+
+. (28)
+Thus, we can map the states right before and after the event ej
+i
+with x+ = ∆j
+i(x−) [20].
+B. Segmented Monopod
+In nature, most legged animals developed articulated legs for
+increased versatility. We apply a segmented monopod model,
+which is comparable to legs of this type. It consists of a main
+body with mass mB and inertia jB. The horizontal and vertical
+positions of its CoM and the pitch angle of the body are again
+x, z, and ϕ. The upper leg is attached to the main body with
+joint angle α1. The torsional spring connecting both parts has
+stiffness k1 and damping d1. The angle at which the spring is
+ϕ
+x, z
+−α1
+x
+z
+g
+mF
+mB, jB
+mL1, jL1
+kL1, dL1, α01
+kL2, dL2, α02
+α2
+xJ, zJ
+xL1, zL1
+xL2, zL2
+mL2, jL2
+Fig. 11. The segmented monopod model consists of a main body with mass
+mB and inertia jB, an upper leg with mass mL1 and inertia jL1, a lower leg
+with mass mL2 and inertia jL2, and a foot as point mass mF. The positions
+of the CoMs of each segment are defined relative to the segment’s joint. There
+are two rotational springs with stiffness kL1, kL2 and damping dL1, dL2 at
+joint 1 and 2, respectively. Both springs 1 and 2 are uncompressed at α01, α02
+relative to the vertical of the main body. The configuration of the system is
+described by q = [x z ϕ α1 α2]⊤.
+uncompressed is defined as α01 relative to a vertical through
+the main body. The upper leg has mass mL1, inertia jL1, and
+length l1. The lower leg is connected to the main body with
+a torsional linear spring with stiffness k2 and damping d2.
+At angle α02 relative to a vertical through the main body
+the spring is uncompressed, just as the first torsional spring.
+The foot is a point mass mF. The general coordinates of
+the system are q = [x, z, ϕ, α1, α2]⊤, with nq = 5. There
+are actuators mounted in series with the springs with motor
+positions u = [uα1, uα2]⊤. Figure 11 shows the structure
+of the segmented monopod model. Again, we normalize all
+values with respect to m0, g, and l0 = l1 + l2. Table IV
+contains the values of all parameters of the model.
+We can note the position vectors of each part of the system
+(base B, upper leg L1, lower leg L2, foot F, springs S):
+rB = [x, z]⊤
+(29a)
+rL1 =
+
+x + xJcϕ −zJsϕ + xL1cϕα1 −zL1sϕα1
+z + xJsϕ + zJcϕ + xL1sϕα1 + zL1cϕα1
+
+(29b)
+rL2 =
+
+
+x + xJcϕ −zJsϕ + l1sϕα1+
++xL2cϕα1α2 −zL2sϕα1α2
+z + xJsϕ + zJcϕ −l1cϕα1+
++xL2sϕα1α2 + zL2cϕα1α2
+
+
+(29c)
+rF =
+x + xJcϕ −zJsϕ + l1sϕα1 + l2sϕα1α2
+z + xJsϕ + zJcϕ −l1cϕα1 −l2cϕα1α2
+
+(29d)
+where cij and sij denote cos(i+j) and sin(i+j), respectively.
+Again, we define the potential energy of the system with help
+of the position vectors:
+VB = mBgrB,2
+(30a)
+VL1 = mL1grL1,2
+(30b)
+VL2 = mL2grL2,2
+(30c)
+VF = mFgrF,2
+(30d)
+VS = 1
+2k1
+ uα1 + α01 −α1
+2+
+1
+2k2
+ uα2 + α02 −α1 −α2
+2
+(30e)
+
+
+12
+ARXIV, NOVEMBER 2025
+x
+z
+g
+x, z
+ϕ
+−αhu
+αhl
+αfl
+−αfu
+mB, jB
+Fig. 12. The sagittal quadruped model contains a main body with mass mB
+and inertia jB, and two legs (hind and front) consisting of an upper and
+lower leg, as well as a foot as point mass. In each leg there are two radial
+springs with stiffness and damping at each the hip and the knee joint. The
+configuration of the system is described by q = [x z ϕ αhu αhl αfu αfl]⊤.
+Note that the segmented monopod model has series elastic
+actuation. Thus, VS contains the motor positions uα1 and uα2.
+The kinetic energy of each part is given by
+TB = 1
+2
+ mB ˙x2 + mB ˙z2 + jB ˙ϕ2
+(31a)
+TL1 = 1
+2
+ drL1
+dt
+⊤
+mL1
+drL1
+dt
+!
++ 1
+2jL1( ˙ϕ + ˙α1)2
+(31b)
+TL2 = 1
+2
+ drL2
+dt
+⊤
+mL2
+drL2
+dt
+!
++ 1
+2jL2( ˙ϕ + ˙α1 + ˙α2)2
+(31c)
+TF = 1
+2
+ drF
+dt
+⊤
+mF
+drF
+dt
+!
+(31d)
+We repeat to compute (22), (23), and (24) with the new values
+and receive the EoM for the segmented monopod. We define
+the constraints for each phase:
+g1 = 0
+(32a)
+g2 = rF
+(32b)
+Table II contains the numbering of phases and the event func-
+tions, which are equal to the ones of the prismatic monopod
+model. We define the event functions
+e2
+1(x) = −rF,2
+(33a)
+e1
+2(x) = −λ2,2
+(33b)
+where λ2 are the contact forces (Eq. (27)). If an event function
+crosses zero in positive direction, the event is triggered. The
+projection from phase i to j in Eq. (28) holds true.
+C. Sagittal Quadruped
+To cover systems with increasing complexity we apply a
+sagittal quadruped model with nq = 7. The model can be
+seen as extension of the segmented monopod, since both
+hind and front legs share the same properties as the leg of
+the segmented monopod model. The general coordinates of
+the system are q = [x, z, ϕ, αhu, αhl, αfu, αfl]⊤. The motors
+are mounted in series with the springs with motor positions
+u = [uhu, uhl, ufu, ufl]. The model structure is depicted in
+Figure X-C. Table VI contains the values of all parameters of
+the model.
+The model consists of seven parts: base B, hind upper
+leg hu, hind lower leg hl, hind foot hf, front upper leg fu,
+Parameter
+Value
+Unit
+total mass
+m0
+1
+·
+zero length
+l0
+0.24
+·
+gravitational constant
+g
+1
+·
+mass main body
+mB
+0.8399
+m0
+mass upper leg
+mL1
+0.0821
+m0
+mass lower leg
+mL2
+0.0780
+m0
+mass foot
+mF
+1 · 10−10
+m0
+inertia main body
+jB
+0.0146
+m0l2
+0
+inertia upper leg
+jL1
+0.0044
+m0l2
+0
+inertia lower leg
+jL2
+1.759 · 10−4
+m0l2
+0
+stiffness spring joint 1
+k1
+1.2695
+m0gl0/rad
+damping spring joint 1
+d1
+0.1390
+m0
+q
+l3
+0g3/rad
+angle uncompressed spring 1
+α01
+rad
+stiffness spring joint 2
+k2
+1.3340
+m0gl0/rad
+damping spring joint 2
+d2
+0.0360
+m0
+q
+l3
+0g3/rad
+angle uncompressed spring 2
+α02
+0.35
+rad
+upper leg length
+l1
+0.5
+l0
+lower leg length
+l2
+0.5
+l0
+horizontal position joint 1
+w.r.t. CoM of main body
+xJ
+0.0
+l0
+vertical position joint 1
+w.r.t. CoM of main body
+zJ
+0.0
+l0
+horizontal position CoM of
+upper leg w.r.t. joint 1
+xL1
+0.0
+l0
+vertical position CoM of
+upper leg w.r.t. joint 1
+zL1
+-0.1375
+l0
+horizontal position CoM of
+lower leg w.r.t. joint 2
+xL2
+-0.0833
+l0
+vertical position CoM of
+upper leg w.r.t. joint 2
+xL2
+-0.1667
+l0
+TABLE IV
+PARAMETERS OF THE SEGMENTED MONOPOD MODEL.
+front lower leg fl, and front foot ff. In the following, we define
+the position vectors of the system:
+rB = [x, z]⊤
+(34a)
+rhu =
+x + xJhcϕ −zJsϕ + xucϕαhu −zusϕαhu
+z + xJhsϕ + zJcϕ + xusϕαhu + zucϕαhu
+
+(34b)
+rhl =
+
+
+x + xJhcϕ −zJsϕ + lusϕαhu+
++xlcϕαhuαhl −zlsϕαhuαhl;
+z + xJhsϕ + zJcϕ −lucϕαhu+
++xlsϕαhuαhl + zlcϕαhuαhl
+
+
+(34c)
+rhf =
+
+x + xJhcϕ −zJsϕ + lusϕαhu + llsϕαhuαhl
+z + xJhsϕ + zJcϕ −lucϕαhu −llcϕαhuαhl
+
+(34d)
+rfu =
+x + xJfcϕ −zJsϕ + xucϕαfu −zusϕαfu
+z + xJfsϕ + zJcϕ + xusϕαfu + zucϕαfu
+
+(34e)
+rfl =
+
+
+x + xJfcϕ −zJsϕ + lusϕαfu+
++xlcϕαfuαfl −zlsϕαfuαfl;
+z + xJfsϕ + zJcϕ −lucϕαfu+
++xlsϕαfuαfl + zlcϕαfuαfl
+
+
+(34f)
+rff =
+x + xJfcϕ −zJsϕ + lusϕαfu + llsϕαfuαfl
+z + xJfsϕ + zJcϕ −lucϕαfu −llcϕαfuαfl
+
+(34g)
+where cij and sij denote cos(i+j) and sin(i+j), respectively.
+We utilize the position vectors to define the potential energy
+
+
+GRIESBAUER et al.: SUPPLEMENT: DISCOVERING OPTIMAL NATURAL GAITS OF DISSIPATIVE SYSTEMS
+13
+no.
+phase
+1
+flight
+2
+single-support hind leg
+3
+single-support front leg
+4
+double-support
+TABLE V
+PHASES OF THE SAGITTAL QUADRUPED MODEL.
+of each part k:
+Vk = mkgrk,2
+(35a)
+VS = 1
+2k
+ (uhu + α0hu −αhu)2
++ (uhl + α0hl −αhu −αhl)2
++ (ufu + α0fu −αfu)2
++ (ufl + α0fl −αfu −αfl)2
+(35b)
+The sagittal quadruped model is equipped with series elastic
+actuators. Therefore, u is part of the potential energy of the
+springs. We define the kinetic energy of each part k
+Tk = 1
+2
+ drk
+dt
+⊤
+mk
+drk
+dt
+!
++ 1
+2jkω2
+k
+(36)
+where ωk is the rotational velocity of the part k. Note that the
+feet are point masses and do not feature rotational velocity.
+With Equations (22), (23), and (24) we receive the EoM
+of the sagittal quadruped. Table V shows the numbering of
+the phases. The constraints of each phase are defined in the
+following
+g1 = 0
+(37a)
+g2 = rhf
+(37b)
+g3 = rff
+(37c)
+g4 =
+rhf
+rff
+
+(37d)
+The event functions for the sagittal quadruped model are
+similar to Eq. (33). For lift-offs we observe the respective
+z-direction of the contact forces. For touch-downs we observe
+the height of the feet over the ground.
+XI. ROOT-SEARCH WITH DIRECT COLLOCATION
+We apply direct collocation to (main document, Eq. (4)). For
+this, we use CasADi [24], a tool for nonlinear optimization and
+algorithmic differentiation. The function nlpsol allows to
+set the solver IPOPT, as well as the struct nlp, that we want
+to solve. This struct contains a decision variable a, a vector
+containing the residual parameters, a cost function, which here
+is set to zero, and the constraint vector. In the following, we
+describe the content of the constraint vector.
+For each model we set up a FlowMap (containing the
+continuous flow), a JumpSet (containing the event functions),
+and a JumpMap (containing the discrete mapping between
+phases). This is done with the SX symbolics of CasADi.
+The first constraint we set is the derivation violation of
+the Hermite-Simpson approximation for the direct collocation
+framework. We apply the compressed form of the collocation
+constraints and compare the approximated dynamics at the
+Parameter
+Value
+Unit
+total mass
+m0
+1
+·
+zero length
+l0
+0.16
+·
+gravitational constant
+g
+1
+·
+mass main body
+mB
+0.8797
+m0
+mass upper leg
+mu
+0.0430
+m0
+mass lower leg
+ml
+0.0172
+m0
+mass foot
+mF
+0
+m0
+inertia main body
+jB
+0.7744
+m0l2
+0
+inertia upper leg
+jr
+8.9826 · 10−4
+m0l2
+0
+inertia lower leg
+jl
+3.6201 · 10−4
+m0l2
+0
+stiffness rotational joints
+k
+0.9472
+m0gl0/rad
+damping rotational joints
+d
+0.038
+m0
+q
+l3
+0g3/rad
+angle uncompr. spring (up)
+α0u
+-0.4
+rad
+angle uncompr. spring (low)
+α0l
+0.4
+rad
+upper leg length
+lu
+0.5
+l0
+lower leg length
+ll
+0.5
+l0
+horizontal pos. joint hu
+w.r.t. CoM of main body
+xJh
+-0.9375
+l0
+horizontal pos. joint fu
+w.r.t. CoM of main body
+xJf
+0.9375
+l0
+vertical pos. joints (up)
+w.r.t. CoM of main body
+zJ
+-0.2012
+l0
+horizontal position CoM of
+upper leg w.r.t. upper joint
+xu
+0.0010
+l0
+vertical position CoM of
+upper leg w.r.t. upper joint
+zu
+-0.2110
+l0
+horizontal position CoM of
+lower leg w.r.t. lower joint
+xl
+0
+l0
+vertical position CoM of
+lower leg w.r.t. lower joint
+zl
+-0.2398
+l0
+TABLE VI
+PARAMETERS OF THE SAGITTAL QUADRUPED MODEL.
+center of a grid interval to the actual system dynamics. This
+is repeated for all intervals. Note that discrete jumps between
+phases have to be considered using the JumpMap.
+Next, we consider the periodicity constraints, which we set
+for each desired periodic state. The event search constraints
+are used to guarantee that at each end of a phase there is
+the correct event function fulfilled. The last constraint is the
+operating point constraint, which sets either an average speed
+or a certain energy level as constraint for a gait.
+All constraints are gathered in nlpsol and the lower and
+upper bound for the constraints is set to zero. The decision
+variable a contains the initial states of the gait x0, the energy
+injection parameter γ, the time points of the events tevent,
+and the values of the states at each grid point xgrid. To
+receive an initial guess for these values, we try different
+initial states of a gait until the correct sequence of phases
+is reached in simulation. The NLP solver gives back an
+approximated quasi-passive, periodic gait with adapted energy
+injection parameter γ.
+Tables VII-IX contain the initial guesses and results after
+root-search for the initial states of the quasi-passive gait for
+each of the three exemplary models.
+XII. HOMOTOPIC CONTINUATION
+Algorithm 1 shows the implementation of homotopic con-
+tinuation on the first-order optimality. We start with modifying
+the decision variable a given from direct collocation. Since we
+do not want to change the virtual energy injection parameter γ,
+but the homotopy parameter ε, we remove γ from a. Thus, γ
+stays constant over the continuation. To receive a non-zero
+
+
+14
+ARXIV, NOVEMBER 2025
+States
+Initial
+Guess
+Result
+Unit
+horizontal position
+x
+0
+0
+l0
+vertical position
+z
+1.0000
+0.9713
+l0
+absolute rotation
+ϕ
+0
+0.0676
+rad
+angle rotational joint
+α
+0
+0.1723
+rad
+length of leg
+l
+1.0000
+0.9999
+l0
+horizontal velocity
+˙x
+0
+0.3835
+√l0g
+vertical velocity
+˙z
+-0.5500
+-0.5740
+√l0g
+abs. rot. velocity
+˙ϕ
+0
+0.0082
+rad/√l0g
+rot. velocity joint
+˙α
+0
+-0.2443
+rad/√l0g
+velocity leg length
+˙l
+-0.5500
+-0.6487
+√l0g
+virtual energy injection
+γ
+0.0100
+0.4466
+·
+TABLE VII
+HOPPING FORWARD GAIT OF THE PRISMATIC MONOPOD MODEL WITH
+VIRTUAL ENERGY INJECTION.
+States
+Initial
+Guess
+Result
+Unit
+horizontal position
+x
+0
+0
+l0
+vertical position
+z
+0.9613
+0.8995
+l0
+absolute rotation
+ϕ
+-0.1234
+0.2877
+rad
+angle joint 1
+α1
+-0.2000
+-0.1806
+rad
+angle joint 2
+α2
+0.5500
+0.5283
+rad
+horizontal velocity
+˙x
+0.0364
+0.4652
+√l0g
+vertical velocity
+˙z
+-0.7500
+-0.4227
+√l0g
+abs. rot. velocity
+˙ϕ
+0
+0.4881
+rad/√l0g
+rot. vel. joint 1
+˙α1
+-2.8275
+-2.9334
+rad/√l0g
+rot. vel. joint 2
+˙α2
+5.5042
+4.3100
+rad/√l0g
+virtual energy injection
+γ
+0.0100
+0.8356
+·
+angle uncompr. spring 1
+α01
+-0.2000
+-0.1761
+rad
+TABLE VIII
+HOPPING FORWARD GAIT OF THE SEGMENTED MONOPOD MODEL WITH
+VIRTUAL ENERGY INJECTION.
+actuation profile, we add the input parameters ξ to the decision
+variable (line 1).
+We set up the cost function c for the respective system and
+define CasADi functions for the homotopy map
+r(ζ, ε) := ∂L ¯
+O
+∂ζ (ζ, ε) =
+
+( ∂c
+∂a)⊤+ ( ∂h
+∂a )⊤λ
+h(·)
+
+.
+(38)
+and its partial derivative
+R(ζ, ε) = ∂r (ζ, ε)
+∂(ζ, ε) .
+(39)
+States
+Initial
+Guess
+Result
+Unit
+horizontal position
+x
+0
+0
+l0
+vertical position
+z
+1.2407
+1.1248
+l0
+absolute rotation
+ϕ
+0.1237
+0.0015
+rad
+hind upper joint
+αhu
+-0.3656
+-0.3989
+rad
+hind lower joint
+αhl
+0.7371
+0.7943
+rad
+front upper joint
+αfu
+-0.3521
+-0.3657
+rad
+front lower joint
+αfl
+0.7398
+0.7997
+rad
+horizontal velocity
+˙x
+0.3173
+0.4112
+√l0g
+vertical velocity
+˙z
+-1.2092
+-0.4870
+√l0g
+abs. rot. velocity
+˙ϕ
+-0.4806
+0.2990
+rad/√l0g
+rot. vel. hind upper
+˙αhu
+-1.7800
+-2.7939
+rad/√l0g
+rot. vel. hind lower
+˙αhl
+4.3786
+3.9662
+rad/√l0g
+rot. vel. front upper
+˙αfu
+-0.4504
+0.2260
+rad/√l0g
+rot. vel. front lower
+˙αfl
+0.1995
+-0.3944
+rad/√l0g
+virtual energy injection
+γ
+0.0100
+0.6910
+·
+TABLE IX
+BOUNDING GAIT OF THE SAGITTAL QUADRUPED MODEL WITH VIRTUAL
+ENERGY INJECTION.
+which is done by using the jacobian function of CasADi.
+The initial value for the Lagrange multiplier λ is computed as
+follows
+λ∗= −
+∂h
+∂a
+−⊤
+a=a∗
+ ∂c
+∂a
+⊤
+a=a∗
+(40)
+This allows the computation of the initial tangent vector p∗:
+R(ζ∗, ε∗) · p = 0,
+(41a)
+∥p∥2 = 1,
+(41b)
+det
+ R(ζ∗, ε∗)
+p⊤
+!
+> 0.
+(41c)
+With the definition of the orientation dhom in direction of
+increasing ε (line 5) we can start the continuation. First,
+a predictor step in the direction of the tangent vector is
+done (line 8). This allows the computation of a new tangent
+vector ppred. Note that a step size adaption can be an useful
+implementation here [25]. A Newton corrector step (line 11) is
+applied as long as r is larger as a given tolerance (10−6). We
+repeat this procedure until ε = 1. To ensure that the result
+is a local minimum we check the second-order optimality
+condition as sufficient condition
+y⊤
+ 
+∂2c
+∂a2 (a, ε) + λ⊤∂2h
+∂a2 (a, ¯O, ε)
+!
+y > 0,
+(42)
+Algorithm 1: Continuation on First-Order Optimality
+Input: Quasi-passive gait x∗
+0, t∗
+event, x∗
+grid, ¯O, ϵ∗= 0,
+step size δ, cost c
+Output: Actuated gait {x0, tevent, xgrid, ξ}solution, ε = 1
+1 remove γ from a, add ξ to a
+2 ψ∗= (ζ∗, ε∗) with ζ∗= (a∗, λ∗)
+3 uniquely solve for λ∗
+// (40)
+4 compute initial tangent vector p∗
+// (41)
+5 dhom ←sign(p∗(end))
+6 ψ ←ψ∗, p ←p∗, ε ←ε∗
+7 while ε < 1 do
+8
+ψpred ←ψ + δdhomp
+// predictor step
+9
+compute ppred at ψpred
+// (41)
+10
+while max(r) > tolerance do
+11
+ψ ←ψ −
+R(ψ)
+pT
+−1
+·
+r(ψ)
+0
+
+// corrector step
+12
+return ψcorr, pcorr
+13
+end
+14
+ψ ←ψcorr, p ←pcorr, ε ←εcorr
+15 end
+16 check second-order optimality condition of ψ = (ζ, 1)
+// (42)
+After continuation, the decision variable contains the initial
+states x0 of the optimally actuated gait, the time points of
+events tevent, the values of the states at each grid point of
+the actuated gait xgrid, and the actuation parameters ξ, which
+define the actuation profile of the gait.
+In the following, the results for an optimally actuated gait
+of the segmented monopod are shown. This complements the
+two examples shown in the main document.
+
+
+15
+Continuous States
+0
+0.4
+0.8
+1.2
+1.6
+2
+2.4
+−0.8
+−0.4
+0
+0.4
+0.8
+1.2
+1.6
+Segmented Monopod: Quasi-Passive Gait
+x
+z
+ϕ
+α1
+α2
+0
+0.4
+0.8
+1.2
+1.6
+2
+2.4
+−3
+−2
+−1
+0
+1
+2
+3
+4
+5
+Time [
+p
+l0/g]
+˙x
+˙z
+˙ϕ
+˙α1
+˙α2
+Fig. 13. The continuous states of the segmented monopod model for a hopping
+forward gait with virtual energy injection. The operating point constraint is
+the average speed ¯˙x = 0.3√l0g. The gray area marks the stance phase.
+The springs are compressed over the stance phase and swing back to their
+uncompressed position in the flight phase. All states return to their initial
+values with the impact at the end of the stride.
+A. Example: Actuated Gait of Segmented Monopod
+We start with the direct collocation approach to find quasi-
+passive gaits. We set the number of grid points to N = 18 per
+phase. For the operating point constraint we set a hopping
+forward gait with average speed ¯˙x = 0.3√l0g. Figure 13
+depicts the resulting approximated trajectory of the states.
+We apply the concept of homotopic continuation and derive
+an actuation profile for actuated gaits on this model. We choose
+the cost function c = ξ⊤ξ. The segmented monopod model
+uses series elastic actuation; thus the control inputs are the
+motor positions uα1 and uα2 at joint 1 and 2.
+We apply homotopic continuation on the quasi-passive gait
+and find an actuated gait without virtual energy injection.
+The obtained motor trajectory is shown in Figure 14. It is
+observable that during the stance phase, the motor supports
+the bending and pushing-off motion of the leg. Overall, the
+applied methods lead to an optimally actuated gait, i.e., the
+computed input is locally minimal with respect to the defined
+cost function, which is verified with (42). This allows the
+system to move forward efficiently.
+Input Motor Pos.
+Continuous States
+0
+0.5
+1
+1.5
+2
+−0.4
+0
+0.4
+0.8
+1.2
+Segmented Monopod: Actuated Gait
+x
+z
+ϕ
+α1
+α2
+0
+0.5
+1
+1.5
+2
+−3
+−2
+−1
+0
+1
+2
+3
+4
+˙x
+˙z
+˙ϕ
+˙α1
+˙α2
+0
+0.5
+1
+1.5
+2
+−0.3
+−0.2
+−0.1
+0
+0.1
+0.2
+Time [
+p
+l0/g]
+uα1
+uα2
+Fig. 14. Actuated hopping forward gait of the segmented monopod as result
+of homotopic continuation. The cost function is c = ξ⊤ξ. The gray area
+marks the stance phase. On the bottom, the motor trajectory is depicted. Note
+that the segmented monopod employs series elastic actuation.

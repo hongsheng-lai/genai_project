@@ -1,0 +1,652 @@
+Exact Analytical Results for the 1D Ising Chain with
+Periodic Impurity Fields
+M. Telfah∗, A. Obeidat
+Department of Physics, Jordan University of Science and Technology, Irbid, Jordan
+Abstract
+We present an exact analytical solution for the one-dimensional Ising model
+in the presence of an external magnetic field applied periodically to every
+k-th site. The problem is handled using the symmetrized transfer matrix ap-
+proach, we derive a compact closed-form expression for the system’s eigen-
+values for arbitrary period k.
+From the resulting free energy, we obtain
+exact expressions for the magnetization and zero-field susceptibility.
+Ex-
+plicit results are presented for k = 1, k = 2, and k = 3 which is considered
+a novel result. We further analyze the spin-spin correlation functions, de-
+riving the correlation length and the set of position-dependent correlation
+strength prefactors, Aij. The framework highlights how impurity spacing
+suppresses thermodynamic responses, with susceptibility scaling as χ ∼β/k
+for large k, offering insights into diluted magnetic systems and serving as
+a benchmark for quasiperiodic modulations. The correlation strengths ex-
+hibit a strong anisotropy, revealing a complex, non-local structure of spin
+fluctuations. These results provide a complete and rigorous benchmark for
+understanding the effects of periodic modulation in 1D systems.
+Keywords:
+Exact Results, Defects, Correlation Functions, Numerical
+Simulations
+1. Introduction
+The one-dimensional (1D) Ising model is one of the most fundamental
+examples in statistical physics for understanding interacting spin systems. It
+describes a chain of classical spins interacting with their neighbors, and its
+∗E-mail: mmtelfah24@sci.just.edu.jo (Malek Telfah)
+arXiv:2511.15399v1  [cond-mat.stat-mech]  19 Nov 2025
+
+
+exact solution was first achieved by Ernst Ising a century ago [1]. In its sim-
+plest form—a ring of N spins σi = ±1 with nearest-neighbour coupling J and
+a uniform longitudinal field h—it is exactly solvable via the transfer-matrix
+method [2]. This method reduces the problem of summing over all configu-
+rations to the simpler algebraic problem of finding the largest eigenvalue of
+a small matrix [3]. While the 1D model famously has no finite-temperature
+phase transition, its exact solvability provides a rich testing ground for fun-
+damental concepts of statistical mechanics [4].
+Despite this simplicity, the 1D Ising chain remains an important starting
+point for extensions that incorporate spatial inhomogeneity, modulated ex-
+ternal fields, or impurity sites. The study of such impurities is a vast field, as
+they can fundamentally alter a system’s behavior [5]. Disorder can affect the
+stability of symmetry-broken low-temperature phases [6], and even a single
+defect can, in some cases, destroy the properties of the system [7]. Even
+in quantum analogs, such as the transverse-field Ising model, impurities are
+known to tune critical fluctuations [8]. Such generalizations provide solv-
+able reference points beyond the homogeneous case and show how deviations
+from uniformity affect a system’s thermodynamic and correlation properties.
+These modified models bridge the gap between perfect crystalline order and
+complete disorder, and have connections to a wide range of topics, including
+random-field models [9, 10] and quasiperiodic systems [11]. While the homo-
+geneous (k = 1) and dimerized (k = 2) chains are well-understood problems
+[12], a general and consistent framework for arbitrary k has been less clear,
+underscoring the need for a complete and rigorous solution for general k.
+In the present paper, we provide this complete and rigorous solution. We
+employ the symmetrized transfer matrix formalism to derive the exact, gen-
+eral eigenvalues for an arbitrary period k. From this, we obtain the general
+free energy, magnetization, and zero-field susceptibility. We present the well-
+known results for k = 1 and k = 2 as a verification of our general method,
+and provide the first explicit closed-form solutions for the trimerized (k = 3)
+case. We then provide a detailed analysis of the spin-spin correlation func-
+tions, deriving the correlation length and the full set of position-dependent
+correlation strength prefactors, Aij. Our analysis reveals a rich physical be-
+havior, including a non-monotonic correlation length in the presence of a
+field and a strong anisotropy in the correlation strengths. These exact re-
+sults provide a complete benchmark for the physics of periodic modulation
+in 1D spin systems.
+Moreover, such models of periodic modulation are not just of theoretical
+2
+
+
+interest. They have direct relevance to real experimental conditions. In ul-
+tracold atomic systems, for example, optical superlattices and site-selective
+addressing techniques allow for the engineering of systems where every k-th
+site experiences a different local potential, making the present model di-
+rectly realizable [13, 14]. Similarly, in spintronics and materials science, pe-
+riodic nanostructure engineering is a practical method for tuning magnetic
+anisotropy in nanomagnetic arrays [15].
+2. Methodology
+In this section, we outline the transfer matrix approach used to solve the
+model [2, 3]. We begin by defining the mathematical framework, including
+the Hamiltonian, and then derive the transfer matrices and their eigenvalues.
+The partition function and thermodynamic quantities derived from these
+eigenvalues are discussed in the subsequent section.
+2.1. Mathematical Model
+We consider a one-dimensional chain of N Ising spins σi = ±1 (i =
+1, . . . , N) with periodic boundary conditions (σN+1 = σ1). The Hamiltonian
+is given by [1]:
+H = −J
+N
+X
+i=1
+σiσi+1 −h
+X
+j∈I
+σj,
+(1)
+where J > 0 is the ferromagnetic nearest-neighbor coupling constant, h is
+the external magnetic field strength, and I denotes the set of impurity sites
+where the field is applied. These impurity sites are periodically spaced every
+k lattice spacings, such that the field acts only on sites j = mk+1 for integer
+m. This setup interpolates between the uniform field case (k = 1) and dilute
+impurity limits (large k).
+Symmetrizing the Hamiltonian by splitting the field between the two
+bonds around each ith site:
+H = −
+N
+X
+i=1
+
+Jσiσi+1 + hi
+2 σi + hi+1
+2 σi+1
+
+(2)
+Where hj = h for an impurity site (j ∈I), and zero otherwise.
+The
+partition function is
+Z =
+X
+{σ}
+exp(−βH)
+(3)
+3
+
+
+where β = 1/(kBT) is the inverse temperature, and the sum is over all 2N
+spin configurations. To solve this exactly, we employ the transfer matrix
+method, which exploits the chain’s linear structure and periodicity.
+2.1.1. Transfer Matrices and the Eigenvalue Problem
+The partition function Z (eq.3) can be written as the trace of a product of
+transfer matrices, where each matrix carries the statistical weight from one
+site to the next. Defining the matrix element at site i:
+⟨σi|Ti|σi+1⟩= exp
+
+βJσiσi+1 + β hi
+2 σi + β hi+1
+2 σi+1
+
+(4)
+Because σi are Ising spins, Ti is a 2x2 matrix:
+Ti =
+ 
+eβJeβ
+hi+hi+1
+2
+e−βJeβ
+hi−hi+1
+2
+e−βJe−β
+hi−hi+1
+2
+eβJe−β
+hi+hi+1
+2
+!
+= D(β hi
+2 )T0D(β hi
+2 )
+(5)
+Here we use:
+T0 =
+ eβJ
+e−βJ
+e−βJ
+eβJ
+
+,
+D(x) =
+ex
+0
+0
+e−x
+
+(6)
+Notice that D(0) = 1 for zero field and D(t/2) = diag(et/2, e−t/2) for
+impurity site (t = βh).
+Given the periodicity, we group the chain into unit cells of k sites, each
+starting with an impurity site followed by k −1 non-impurity sites. The
+transfer matrix for one unit cell is then
+Pk = D(t/2)T k
+0 D(t/2)
+(7)
+For a chain with N = Mk sites, the partition function becomes Z = Tr(P M
+k ).
+To evaluate Pk, we first require a general expression for the n-th power
+of the non-field matrix T0. Defining a = eβJ, b = e−βJ:
+T0 =
+a
+b
+b
+a
+
+with eigenvalues
+λ±
+0 = a ± b
+This is symmetric and diagonalizable, so we can use T n
+0 = UΛnU −1 where
+U =
+1
+√
+2
+1
+1
+1
+−1
+
+is a unitary matrix of the eigenvectors of T0, and the result
+is:
+4
+
+
+T n
+0 =
+un
+vn
+vn
+un
+
+where
+un = (a + b)n + (a −b)n
+2
+, vn = (a + b)n −(a −b)n
+2
+(8)
+So Pk is given by:
+Pk =
+ uket
+vket
+uke−t
+vke−t
+
+(9)
+The characteristic equation det(Pk −λI) = 0 then gives the eigenvalues
+λ±
+k = uk cosh(βh) ±
+q
+u2
+k sinh2(βh) + v2
+k.
+(10)
+These eigenvalues fully determine the partition function in the thermo-
+dynamic limit, from which thermodynamic quantities follow.
+3. Thermodynamic quantities
+The thermodynamic quantities are derived in the usual way from the
+partition function which is now written as Z = Tr(P M
+k ) = (λ+
+k )M + (λ−
+k )M.
+In the thermodynamic limit (M →∞) larger eigenvalue dominates and the
+partition function is simply Z ≈(λ+
+k )M.
+Starting with the free energy per site is f = −1
+Nβ ln(Z) :
+f = −1
+kβ ln(λ+
+k )
+(11)
+The average magnetization per site (over the entire chain) is given by:
+m = −∂
+∂hf = 1
+kβ
+∂
+∂h ln(λ+
+k )
+m =
+uk sinh(βh)
+k
+q
+u2
+k sinh2(βh) + v2
+k
+(12)
+And the zero-field susceptibility χ(0) = ∂m
+∂h |h=0 :
+5
+
+
+χ = βuk
+kvk
+= β
+k
+1 + tanhk(βJ)
+1 −tanhk(βJ)
+
+(13)
+With the definitions of uk and vk given in 2.1.1.
+These are the exact solutions for general spacing k derived analytically.
+For large k, corresponding to the case of diluted fields, tanhk →0 and the
+susceptibility obeys Curie - like law:
+χ ∼β
+k
+4. Exact Solutions for Special Cases
+Having derived the general expressions for the magnetization m and zero-
+field susceptibility χ(0) in terms of uk and vk, we now specialize to small
+periods k = 1, 2, 3. These cases serve as benchmarks: k = 1 recovers the
+uniform-field 1D Ising model, k = 2 models a dimerized chain with alter-
+nating impurities, and k = 3 provides the first explicit closed-form results
+for a trimerized configuration, highlighting the framework’s utility for higher
+periods. For each, we compute uk and vk explicitly and substitute into the
+general formulas, yielding simplified expressions.
+4.1. Case k = 1: Uniform Field
+For k = 1, every site experiences the field, so u1 = a, v1 = b. Substituting
+into the general magnetization formula gives
+m =
+sinh(βh)
+q
+sinh2(βh) + e−4βJ
+,
+(14)
+which matches the standard 1D Ising result under uniform field. The zero-
+field susceptibility simplifies to
+χ(0) = βe2βJ.
+(15)
+This case exhibits the strongest response, with χ(0) diverging exponen-
+tially as T →0, reflecting cooperative alignment.
+6
+
+
+4.2. Case k = 2: Dimerized Chain
+For k = 2, impurities alternate, yielding u2 = a2 + b2, v2 = 2ab = 2. The
+magnetization becomes
+m =
+sinh(βh)
+2
+q
+sinh2(βh) + sech2(2βJ)
+,
+(16)
+and the susceptibility is
+χ(0) = β
+2 cosh(2βJ).
+(17)
+This represents slower divergence than the exponential in k = 1 case.
+4.3. Case k = 3: Trimerized Chain
+For k = 3, impurities occur every third site, with u3 = a(a2 + 3b2),
+v3 = b(3a2 + b2). Substituting yields the novel closed-form magnetization
+m =
+sinh(βh)
+r
+sinh2(βh) + e−12βJ
+
+1+3e4βJ
+1+3e−4βJ
+2,
+(18)
+and susceptibility
+χ(0) = β
+3 e6βJ
+1 + 3e−4βJ
+1 + 3e4βJ
+
+.
+(19)
+This expression for k = 3 is new and demonstrates further suppression.
+However, for weak J or equivalently at high T, the expressions for k = 2 and
+k = 3 tend to that for k = 1 (X(0) ∼βe2βJ) except for the additional factor
+of 1/k reflecting the fact that m represents the average magnetization over
+all the chain not only over the impurity sites (mimp)
+To visualize these results, Figure 1 shows mimp versus h at fixed interme-
+diate temperature (βJ = 1.5), where larger k reduces the slope near h = 0
+and saturation value. Figure 2 plots χ(0) versus T, illustrating exponen-
+tial growth at low T but scaled down by ∼1/k. These trends underscore
+how periodicity dilutes the magnetic response, interpolating toward isolated
+impurities for large k.
+7
+
+
+Figure 1: Magnetization m as a function of field h at βJ = 1.5, for k = 1, 2, 3.
+5. Correlations
+In statistical mechanics, correlation functions provide crucial insights into
+the spatial organization of spins, quantifying how fluctuations at one site in-
+fluence another. For the 1D Ising model, these functions are particularly
+important as they reveal the absence of long-range order at finite tempera-
+tures, a hallmark of one-dimensional systems with short-range interactions
+[4, 3]. In our periodic impurity model, correlations acquire an additional
+layer of complexity due to the modulated field, leading to exponentially de-
+caying envelopes modulated by periodic prefactors. This section derives the
+two-point correlation function using the transfer matrix formalism, defines
+the correlation length and strengths, and discusses their physical implica-
+tions. While the uniform case (k = 1) yields pure exponential decay, higher
+k introduces novel oscillatory behaviors, emphasizing the role of impurity
+spacing.
+The two-point correlation function is defined statistically as
+⟨σiσj⟩= 1
+Z
+X
+{σ}
+σiσj exp(−βH),
+(20)
+8
+
+
+Figure 2: Zero-field susceptibility χ(0) as a function of temperature T, for k = 1, 2, 3.
+where the sum runs over all spin configurations, weighted by the Boltzmann
+factor.
+In the matrix formulation, this can be expressed by inserting the spin
+operator S =
+1
+0
+0
+−1
+
+at the positions of the spins. Here, σi is at position
+δi within the m-th unit cell, and σj is at δj within the n-th cell (n ≥m).
+Thus, the numerator in the expression for the correlation is
+⟨σiσj⟩= 1
+Z Tr
+
+(Pk)m−1Aδi(Pk)n−m−1Aδj(Pk)M−n
+,
+(21)
+where Aδ represents the transfer matrix of a unit cell with the spin operator
+inserted at position δ. Specifically,
+Aδ = D(βh/2)T δ−1
+0
+ST k−δ+1
+0
+D(βh/2),
+(22)
+Using the spectral decomposition of Pk,
+Pk = λ+
+k |R+⟩⟨L+| + λ−
+k |R−⟩⟨L−|,
+(23)
+9
+
+
+where |R±⟩and ⟨L±| are the right and left eigenvectors, we insert this into
+the trace expression. This yields four terms:
+⟨σiσj⟩Z = (λ+
+k )M−2⟨L+|Aδi|R+⟩⟨L+|Aδj|R+⟩
+(24)
++ (λ+
+k )m−1(λ−
+k )n−m−1(λ+
+k )M−n⟨L+|Aδi|R−⟩⟨L−|Aδj|R+⟩
++ (λ−
+k )m−1(λ+
+k )n−m−1(λ−
+k )M−n⟨L−|Aδi|R+⟩⟨L+|Aδj|R−⟩
+(25)
++ (λ−
+k )M−2⟨L−|Aδi|R−⟩⟨L−|Aδj|R−⟩
+(26)
+In the thermodynamic limit (M →∞), the terms proportional to (λ−
+k /λ+
+k )M
+and similar vanishing ratios are neglected, leaving
+⟨σiσj⟩= ⟨L+|Aδi|R+⟩⟨L+|Aδj|R+⟩
+(λ+
+k )2
++
+λ−
+k
+λ+
+k
+n−m−1 ⟨L+|Aδi|R−⟩⟨L−|Aδj|R+⟩
+(λ+
+k )2
+.
+(27)
+The first term represents the disconnected part ⟨σi⟩⟨σj⟩, while the second is
+the connected correlation, defining the correlation strength
+Aij = ⟨L+|Aδi|R−⟩⟨L−|Aδj|R+⟩
+(λ+
+k )2
+.
+(28)
+Thus, the connected correlation is Aij
+
+λ−
+k
+λ+
+k
+n−m−1
+.
+With the distance r between spins and for big n and m, (n −m −1) ∼
+n −m = ⌊r/k⌋, the correlation decays as
+G(r) ∼Aij
+λ−
+k
+λ+
+k
+⌊r/k⌋
+.
+(29)
+The correlation length is then
+ξ =
+k
+ln(λ+
+k /λ−
+k ),
+(30)
+measuring the scale over which correlations persist.
+5.1. Analysis of the Correlation Length
+The exponential decay of Gc(i, j) is characterized by the correlation length
+ξk. From the derivation, we identify it as:
+ξk =
+k
+ln(λ+
+k /λ−
+k ).
+(31)
+10
+
+
+The behavior of ξk reveals two distinct physical regimes, as shown in Figure 3.
+In the absence of an external field (h = 0), the correlation length diverges
+as T →0, consistent with the system ordering into its ground state. As
+temperature increases, thermal fluctuations disrupt this order, and ξk decays
+monotonically. Notably, this zero-field correlation length is independent of
+k.
+For any non-zero field (h > 0), the behavior is different. The field creates
+a spectral gap, and ξk is finite at all temperatures. At low T, the field freezes
+the system, suppressing fluctuations and sending ξk →0. As T increases,
+thermal energy activates fluctuations, causing ξk to grow to a maximum,
+before thermal disorder dominates at high T and ξk decays again. This non-
+monotonic behavior is a classic signature of a gapped 1D system. As seen in
+Figure 3, this peak is more pronounced and occurs at a lower temperature
+for larger k.
+Figure 3: Correlation length ξk vs. Temperature (T in J/kB) for h = 0.5J. This shows
+the characteristic peak for h > 0.
+The field’s stiffening effect is also visible in Figure 4. At any fixed tem-
+perature, increasing the field strength suppresses fluctuations, causing ξk to
+decay monotonically. Interestingly, for a non-zero field, the correlation length
+is larger for larger k.
+11
+
+
+Figure 4: Correlation length ξk vs. Field Strength (h/J) at T = 1.5J/kB. For h > 0,
+correlations persist over longer distances for larger k.
+5.2. Analysis of Correlation Strength and Anisotropy
+The prefactor Aij quantifies the strength of the correlation between spe-
+cific sites. From our derivation, it is defined as:
+Aij = ⟨L+|Aδi|R−⟩⟨L−|Aδj|R+⟩
+(λ+
+k )2
+.
+(32)
+This prefactor depends strongly on the intra-cell positions δi and δj, a phe-
+nomenon known as correlation anisotropy.
+The physical behavior of all prefactors, shown for k = 3 in Figure 5,
+mirrors that of the correlation length. They peak at an intermediate tem-
+perature, confirming that the correlation strength is maximized in the regime
+where thermal fluctuations are present but not yet dominant. Similarly, all
+prefactors decay monotonically as the field h increases, as the field suppresses
+the fluctuations they describe. The prefactor Aij is inherently asymmetric
+because the operator Aδ that measures the spin at a non-impurity site is not
+symmetric.
+The most important finding is the strong anisotropy. As seen in Figure 5,
+the magnitudes of the prefactors vary significantly. For k = 3, the prefactors
+12
+
+
+|A21|, |A31|, and |A32| are clearly dominant over the "diagonal" correlations
+like |A11| and |A33|.
+This reveals the microscopic path of correlations: a
+fluctuation at an impurity site (δ = 1) is not most strongly correlated with
+the next impurity site, but rather with fluctuations at the non-field sites
+immediately preceding the next impurity. This complex, non-local structure
+is a direct consequence of the periodic modulation.
+Figure 5: The full matrix of correlation strengths |Aij| vs. Temperature for k = 3, at fixed
+field strengths.
+All prefactors exhibit a peak, but their magnitudes vary significantly,
+demonstrating strong anisotropy.
+6. Conclusion
+We have presented a complete and exact solution for the one-dimensional
+Ising model with a periodically applied impurity field of period k. By em-
+ploying a bond-symmetric transfer matrix formalism, we derived the exact
+eigenvalues and, from them, the general expressions for the system’s thermo-
+dynamics and correlation functions.
+13
+
+
+Our analysis highlights several key physical features. The periodic im-
+purity field, as a tunable parameter, systematically suppresses the system’s
+overall magnetic response, as seen in both the magnetization and the zero-
+field susceptibility.
+The susceptibility, χk(0), scales as 1/k in the large-k
+dilute limit, confirming physical intuition.
+The correlation properties reveal a richer structure. We have shown that
+the zero-field correlation length ξk(0) is independent of k, indicating that the
+intrinsic scale of thermal fluctuations is not affected by the periodic placement
+of the field sites. However, in a non-zero field, the system becomes gapped,
+and ξk exhibits a non-monotonic dependence on temperature, a hallmark of
+1D systems with a finite excitation gap.
+Furthermore, our analysis of the correlation strength prefactors Aij demon-
+strates a strong, position-dependent anisotropy. The dominant correlations
+are not necessarily between the impurity sites themselves, but often involve
+non-field sites, revealing a complex, non-local pathway for spin fluctuations.
+This work provides a rigorous and complete benchmark solution, offering
+a solid foundation for understanding the effects of periodic modulation in
+low-dimensional magnetic systems.
+References
+[1] E. Ising,
+Beitrag zur Theorie des Ferromagnetismus,
+Z. Physik 31,
+253–258 (1925). 10.1007/BF02980577
+[2] H. A. Kramers and G. H. Wannier, Statistics of the Two-Dimensional
+Ferromagnet. Part I, Phys. Rev. 60, 252–262 (1941). 10.1103/Phys-
+Rev.60.252
+[3] R. J. Baxter, Exactly Solved Models in Statistical Mechanics, Academic
+Press, London (1982).
+[4] C. Domb,
+On the theory of cooperative phenomena in crystals,
+Adv. Phys. 9, 145–361 (1960). 10.1080/00018736000101199
+[5] T. Vojta, Impurities and defects in Mott systems, phys. status solidi b
+241, 2148–2158 (2004). 10.1002/pssb.200404798
+[6] T. Vojta and R. Sknepnek,
+Disorder in Quantum Many-Body Sys-
+tems,
+Annu. Rev. Condens. Matter Phys. 10,
+233–252 (2019).
+10.1146/annurev-conmatphys-031218-013433
+14
+
+
+[7] H. Zad and S. A. Ziabari, Effect of a single point defect on thermo-
+dynamic properties of 2D Ising model, Physica E 124, 114455 (2020).
+10.1016/j.physe.2020.114455
+[8] X. Huang and Z. Yang,
+Impurity effects of transverse Ising model
+with multi-impurity,
+Solid State Commun. 204,
+28–32 (2015).
+10.1016/j.ssc.2014.12.007
+[9] Y. Imry and S.-k. Ma, Random-Field Instability of the Ordered State
+of Continuous Symmetry,
+Phys. Rev. Lett. 35, 1399–1401 (1975).
+10.1103/PhysRevLett.35.1399
+[10] D. S. Fisher, Random fields, random anisotropies, nonlinear σ mod-
+els, and dimensional reduction, Phys. Rev. B 31, 7233–7236 (1985).
+10.1103/PhysRevB.31.7233
+[11] S. Aubry and G. Andr’e, Analyticity breaking and Anderson localization
+in incommensurate lattices, Ann. Israel Phys. Soc. 3, 133–164 (1980).
+[12] M. Plischke and B. Bergersen, Equilibrium Statistical Physics, World
+Scientific, Singapore (2006).
+[13] D. Jaksch and P. Zoller, The cold atom Hubbard toolbox, Ann. Phys.
+315, 52–79 (2005). 10.1016/j.aop.2004.09.010
+[14] I. Bloch, J. Dalibard, and W. Zwerger,
+Many-body physics with ul-
+tracold gases, Rev. Mod. Phys. 80, 885–964 (2008). 10.1103/RevMod-
+Phys.80.885
+[15] R. P. Cowburn, A. O. Adeyeye, and M. E. Welland, Configurational
+Anisotropy in Nanomagnets, Phys. Rev. Lett. 81, 5414–5417 (1998).
+10.1103/PhysRevLett.81.5414
+15

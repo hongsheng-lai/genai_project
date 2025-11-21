@@ -1,0 +1,1154 @@
+A Hybrid-High Order method for fracture modelling
+Alessandra Crippa1,2, Julien Coatl´even2, Daniele A. Di Pietro1, Nicolas Guy2, and
+Soleiman Yousef2
+1Universit´e de Montpellier, IMAG, Montpellier, France, alessandra.crippa@etu.umontpellier.fr,
+daniele.di-pietro@umontpellier.fr
+2IFP Energies Nouvelles, Rueil-Malmaison, France, julien.coatleven@ifpen.fr, nicolas.guy@ifpen.fr,
+soleiman.yousef@ifpen.fr
+November 20, 2025
+Abstract
+In this work, we introduce a new Hybrid High-Order method for the numerical simula-
+tion of fracture propagation based on phase-field models. The proposed method supports
+general meshes made of polygonal/polyhedral elements, which provides great flexibility in
+mesh design and adaptation, and can accommodate large variations of both the displace-
+ment and damage variables thanks to the use of fully discontinuous spaces. The resolution
+of the corresponding algebraic problem is based on a staggered time stepping scheme which
+takes advantage of static condensation for each subproblem. We provide extensive numer-
+ical validation of the method on classical two-dimensional fracture propagation problems,
+including a comparison with a more standard finite element scheme.
+MSC 2020: 65N30, 65N08, 74R10,
+Key words: Fracture modelling, phase-field model, Hybrid High-Order methods, polyhe-
+dral methods
+1
+Introduction
+In this work, we introduce a new Hybrid High-Order (HHO) method for the numerical sim-
+ulation of fracture propagation based on phase-field models. The proposed method supports
+general meshes made of polygonal/polyhedral elements, which provides great flexibility in mesh
+design and adaptation, and can accommodate large variations of both the displacement and
+damage variables thanks to the use of fully discontinuous spaces. The corresponding algebraic
+problem is solved using a staggered time stepping scheme with static condensation for each
+subproblem.
+Cracking is one of the most common failure mechanisms in engineering materials such
+as concrete, ceramics, and composites, affecting structures like wind turbines, dams, ships,
+containers, and buildings. Since the 1960s, several models and numerical methods have been
+developed to simulate fracture mechanics, which can be broadly categorized into discrete and
+continuous.
+Discrete models [38] are quite intuitive in that they represent cracks as explicit disconti-
+nuities in the material, allowing the displacement field to be discontinuous across the crack
+surface. However, such discontinuities can be challenging to handle numerically as they intro-
+duce a strong sensitivity to the mesh. This issue can be mitigated resorting to, e.g., enriched
+1
+arXiv:2511.15345v1  [math.NA]  19 Nov 2025
+
+
+finite elements [7, 37, 36, 47, 48], remeshing [38, 13, 12], or meshless approaches [9]. Other
+difficulties in discrete models include modeling crack initiation, propagation, and branching,
+especially in three-dimensional settings or complex geometries.
+Continuous (smeared) crack models [42], on the other hand, represent cracks as diffused
+zones within the material. The displacement jumps are smeared over a region of small but finite
+width, while material behaviour gradually deteriorates near the crack to model the degradation
+process. This approach avoids the complexities associated with tracking discrete crack surfaces,
+and thus the need to correspondingly modify or locally adapt the mesh. Continuous models
+are typically based on Continuum Damage Mechanics [31], where internal damage variables
+represent the degradation of material properties due to microcrack formation and growth.
+Continuous models have been widely used to model concrete fractures, for instance in [43, 39]
+using standard Finite Element Methods (FEM), in [40, 8, 45] using FEM with embedded
+discontinuities, or in [48] using extended FEM. A well-known limitation of these models is
+their strong sensitivity to the mesh orientation, which can lead to non-physical results.
+The starting point of the present paper are phase-field fracture/damage models, a particular
+class of continuous models introduced in [27, 14].
+These models introduce a scalar crack
+phase-field to represent the state of the material, whose evolution is governed by a partial
+differential equation rather than being postulated a priori.
+Phase-field models enable the
+simulation of complex crack patterns and provide a mathematically consistent framework to
+account for crack nucleation, propagation, and branching without the need for explicit crack-
+surface tracking. In [27, 15], based on Griffith’s theory [28], fracture propagation was conceived
+as a competition between crack surface energy and bulk elastic energy stored in the material.
+Later contributions [35, 34] introduced a more mechanically oriented and thermodynamically
+consistent formulation, additionally accounting for the irreversibility of crack evolution. So far,
+most numerical studies of phase-field models for fracture mechanics have relied on the Finite
+Element Method (FEM); a non-exhaustive list includes [34, 35, 30, 2, 41, 46]. In the most
+complex situations, however, FEM displays critical limitations in terms of supported meshes,
+and extended versions can lead to poorly-conditioned algebraic systems.
+We devise here what is, to the best of our knowledge, the first HHO discretization of
+phase-field models.
+Originally introduced in [26, 25], HHO methods can be regarded as a
+generalization of the classical Crouzeix–Raviart finite element to general polygonal/polyhedral
+meshes and arbitrary order [22]; see [21, 18] for a comprehensive introduction and also [20] for
+a related method. Their distinctive advantage is the support of general polygonal/polyhedral
+elements, which makes it possible, e.g., to treat in a seamless way transition elements in stan-
+dard meshes, to use non-conforming local mesh refinement to increase resolution and mesh
+agglomeration [4] to reduce the computational cost. Being constructed from spaces of broken
+polynomial polynomials on the mesh and its skeleton, HHO methods can also naturally accom-
+modate large variations in the solution. All of the above features make them particularly suited
+for fracture modelling. The method proposed in the present work uses as a starting point: for
+the mechanical equilibrium, the classical HHO discretizations of linear elasticity [25], modified
+to incorporate a damage-dependent weight function; for the evolution of the crack phase-field,
+the HHO method for scalar diffusion-advection-reaction proposed in [23], adapted to incorpo-
+rate a history term. Since we cannot expect the exact solution to be regular, we focus on low
+polynomial orders, which additionally results in smaller and more manageable algebraic prob-
+lems. Time stepping relies on a staggered algorithm, where the mechanical equilibrium and
+damage-field evolution subproblems are solved independently, combined with suitable strate-
+gies for the history field update. For both subproblems, we additionally use static condensation
+to further reduce the numerical costs.
+2
+
+
+Notice that this is not the first time that polyhedral methods have been applied to fracture
+modelling. In [1], the authors propose a Virtual Element discretization of a phase-field model
+analogous to the one considered here; see [5, 6] for an introduction to the Virtual Elements.
+While this method shares several features with ours, it hinges on an entirely different set of
+degrees of freedom, which resemble (but don’t coincide with) those of conforming Lagrange
+finite elements, and is first-order accurate for both variables; we also refer to the more recent
+contributions [16, 33, 17, 32, 44], all focusing on nodal Virtual Elements. From the engineering
+point of view, a potential advantage of our method is that, where no damage is present, it yields
+equilibrated tractions [24], and thus more physical solutions. Another potential advantage is
+linked to the fact that the pattern of the resulting algebraic problems is smaller, since only
+elements sharing a face (as opposed to a vertex) are connected.
+The rest of the paper is organized as follows. In Section 2 we briefly recall the phase-
+field model along with various definitions of the history field. The HHO scheme is defined in
+Section 3, while the staggered time stepping scheme used for the solution of the corresponding
+algebraic problem makes the object of Section 4. Finally, a comprehensive numerical validation
+is provided in Section 5, including a comparison with a more standard FEM scheme.
+2
+Continuous setting
+Let Ω⊂R3 be a bounded domain corresponding to a medium in which a fracture propa-
+gates. We denote by ∂Ωits boundary with outward unit normal vector n. The boundary is
+decomposed as ∂Ω= ∂ΩD ⊔∂ΩN, where ∂ΩD and ∂ΩN are two non-overlapping portions where
+displacement (Dirichlet) or normal stress (Neumann) conditions are respectively enforced. We
+assume small deformations, so that the infinitesimal strain tensor corresponding to a displace-
+ment field u : Ω→R3 is ε = ε(u) = ∇su, with ∇s denoting the symmmetric part of the
+gradient applied to vector-valued fields.
+Throughout the rest of the paper, when dealing with a function ψ of time and space, at any
+time t for which ψ is defined, we let ψ(t) := ψ(t, ·) denote the function of space only obtained
+fixing the first argument at t. We also use the shortcut notation ˙ψ to denote the time derivative
+of ψ.
+Denoting by tF the final time, the fracture propagation problem with phase-field approach
+is formulated as follows: Given a prescribed boundary displacement uD : (0, tF] × ∂ΩD →R3,
+an initial history field H0 : Ω→R, and an initial crack phase-field ϕ0 : Ω→[0, 1] satisfying
+∇ϕ0 · n = 0 on ∂Ω, find the displacement field u : (0, tF] × Ω→R3 and the crack phase-field
+ϕ : [0, tF] × Ω→R such that, for t ∈(0, tF],
+−∇· σ(ε(t), ϕ(t)) = 0
+in Ω,
+(1a)
+−∆ϕ(t) + ϕ(t)
+ℓ2
++
+η
+Gcℓ
+˙ϕ(t) = 2(1 −ϕ(t))
+ℓGc
+H(t)
+in Ω,
+(1b)
+u(t) = uD(t)
+on ∂ΩD,
+(1c)
+σ(ε(t), ϕ(t)) · n = 0
+on ∂ΩN,
+(1d)
+∇ϕ(t) · n = 0
+on ∂Ω,
+(1e)
+completed with the initial conditions
+ϕ(0, ·) = ϕ0,
+H(0) = H0.
+(1f)
+3
+
+
+The stress tensor σ(ε, ϕ) is defined by degrading the elastic stress according to the crack
+phase-field variable, in order to reflect the fact that the stress vanishes in the fractured region:
+σ(ε, ϕ) := g(ϕ) σ0(ε).
+Above, denoting by λ and µ the Lam´e coefficients, σ0(ε) denotes the standard linear isotropic
+elasticity stress tensor expressed in terms of the elastic energy ψ0 as
+σ0(ε) := ∂ψ0(ε)
+∂ε
+= 2µ ε + λ tr(ε) I where ψ0(ε) := λ
+2
+
+tr(ε)
+2 + µ ε : ε,
+(2)
+with g denoting a degradation function satisfying g(0) = 1 and g(1) = 0. We adopt the common
+choice g(ϕ) = (1 −ϕ)2. In (1b), Gc is the critical energy release rate from Griffith’s theory and
+ℓis a length-scale parameter controlling the width of the diffused crack zone. The term η ˙ϕ
+introduces a viscous regularization with no particular physical meaning, and can be omitted if
+rate-independent evolution is desired by setting η = 0.
+Remark (The role of time). The system (1) is formulated under quasi-static assumptions. In
+this setting, the variable t does not represent a physical time, but rather a measure of the
+progression of the applied load. For this reason, it is often referred to as a pseudo-time, and a
+pseudo-time or time increment simply corresponds to a loading step.
+The first equation (1a) expresses a macroscopic equilibrium condition. Equation (1b) is
+the crack phase-field evolution equation, a micro-balance governing the fracture evolution in
+which the right-hand side is the driving force. The fracture irreversibility is enforced through
+the history field H, defined as
+H(t) := max
+τ∈[0,t] ψ0(ε(τ)),
+(3)
+which ensures, in particular, that H is non-decreasing in time. Using this definition of H leads
+to the so-called isotropic formulation, where both tensile and compressive components of the
+strain energy equally contribute to fracture growth.
+This model may, however, yield unphysical crack propagation under compression due to
+interpenetration. To better capture realistic fracture behaviors, it is customary to distinguish
+tensile (denoted with the superscript “+”) and compressive (denoted with the superscript “−”)
+contributions to the elastic energy:
+ψ0(ε) = ψ+
+0 (ε) + ψ−
+0 (ε),
+(4)
+and to use only the tensile part in the fracture driving force,
+H(t) = max
+τ∈[0,t] ψ+
+0 (ε(τ)).
+(5)
+This choice defines the hybrid formulation. Different criteria exist for performing the split (4).
+One possibility consists in using the following spectral decomposition of the strain tensor:
+ε =
+3
+X
+a=1
+εa na ⊗na,
+where εa (a = 1, 2, 3) are the principal strains and na the corresponding principal directions.
+Defining
+ε+ :=
+3
+X
+a=1
+ε⊕
+a na ⊗na and ε−:=
+3
+X
+a=1
+ε⊖
+a na ⊗na,
+4
+
+
+with α⊕:= |α|+α
+2
+and α⊖:= |α|−α
+2
+respectively denoting the positive and negative parts of α,
+the spectral decomposition (SP) of the elastic energy reads [35]:
+ψ+
+0 (ε) := λ
+2
+ [tr ε]⊕2 + µ ε+ : ε+ and ψ−
+0 (ε) := λ
+2
+ [tr ε]⊖2 + µ ε−: ε−.
+(6)
+Notice that both contributions are non-negative. The evaluation of this energy requires com-
+puting the eigenstructure of the strain tensor, which makes the procedure more computationally
+demanding. An alternative is the volumetric–deviatoric decomposition (VD) of [3]:
+ψ+
+0 (ε) := 1
+2K
+ [tr ε]⊕2 + µ (ε′ : ε′),
+ψ−
+0 (ε) := 1
+2K
+ [tr ε]⊖2 ,
+(7)
+where ε′ := ε −1
+3 tr(ε)I is the deviatoric component of the strain tensor, and K = λ + 2
+3µ is
+the bulk modulus.
+Problem (1) with the isotropic definition of the history field (3) is referred to as the isotropic
+formulation, as the crack is equally driven by both energy components, whereas the version
+using (5) is referred to as the hybrid formulation, which better distinguishes fracture behav-
+ior under tension and compression. The term hybrid reflects the intermediate nature of this
+model, which lies between the isotropic formulation and the fully anisotropic one, where the
+tension–compression split is also applied to the equilibrium equation, a case not considered
+here.
+Remark (Two-dimensional case). The model described above is formulated in three dimensions.
+In the numerical experiments of Section 5, we consider the two-dimensional case obtained under
+the plane strain assumption, namely ε13 = ε23 = ε33 = 0. In what follows, we stick to the
+three-dimensional terminology for the sake of simplicity.
+3
+HHO Scheme
+We consider a computational mesh Mh = Th ∪Fh covering the domain Ω. The mesh is made
+of non-overlapping elements T ∈Th, each having a polyhedral shape, and of (planar) polygonal
+faces F ∈Fh, which can be either internal or located on the boundary. Additional details on
+the assumptions and properties of such general meshes can be found in [21, Chapter 1].
+3.1
+Discrete spaces
+The vector-valued HHO space used for the displacement field is spanned by vector of local
+functions attached to cells and faces:
+V 1
+h :=
+n
+vh = ((vT )T∈Th, (vF )F∈Fh) :
+vT ∈P1(T)3 for all T ∈Th and vF ∈P1(F)3 for all F ∈Fh
+o
+,
+where, for X ∈Mh mesh cell or face, P1(X) is spanned by the restriction to X of linear
+polynomials in the space variables. Notice that, contrary to finite elements, we do not define
+here a global space of functions over Ω, but rather work directly on the values of the degrees
+of freedom, which correspond to polynomial moments of degree up to one over each X ∈Mh.
+Similarly, the scalar HHO space used for the space discretization of the crack phase-field is
+defined as
+V 0
+h :=
+n
+ϕh = ((ϕT )T∈Th, (ϕF )F∈Fh) :
+ϕT ∈P0(T) for all T ∈Th and ϕF ∈P0(F) for all F ∈Fh
+o
+,
+5
+
+
+with P0(X) spanned by constant functions over X ∈Mh. For future use, for any ϕh ∈V 0
+h, we
+denote by ϕh the broken polynomial function on Ωobtained patching cell values, i.e.,
+(ϕh)|T := ϕT for all T ∈Th.
+(8)
+Remark (Choice of the polynomial degrees). Given the nature of problem (1), one cannot
+expect, in general, high regularity for the exact solution. This advocates for the use of low
+polynomial orders for both the displacement field and the crack phase-field. Moreover, in the
+context of nonlinear problems, low-order schemes often translate into algebraic problems that
+are easier to solve numerically. Notice that the space for displacements is taken of degree 1 in-
+stead of 0 as this is required for the stability of the standard HHO formulation for elasticity [25];
+see also [11, 21] on this subject. Using the space of degree 0 would require specific modifications
+to recover stability. One possibility is to add additional stabilization terms, which results in
+a method with a larger stencil [10]. Alternatively, stability can also be achieved without en-
+larging the stencil by defining the HHO space on suitable subfaces, provided that unisolvency
+for rigid-body motions is preserved [19], though this comes at the price of a larger number of
+degrees of freedom.
+In what follows, given a cell T ∈Th, we will respectively denote by V 1
+T and V 0
+T the
+restrictions of V 1
+h and V 0
+h to T, obtained collecting the components associated with T and
+its faces. Hence, for example, ϕT ∈V 0
+T denotes the vector (ϕT , (ϕF )F∈FT ), with FT ⊂Fh
+collecting the faces of T.
+3.2
+Discretization of the mechanical equilibrium equation
+The mechanical equilibrium equation (1a) features a linear elastic response weighted by a degra-
+dation function depending on the crack phase-field ϕ. The starting point for our formulation
+is therefore the standard HHO scheme for elasticity [25].
+3.2.1
+Strain reconstruction operator
+To discretize the stress tensor, we introduce an affine strain reconstruction designed by mim-
+icking discrete integration-by-parts formulas. Specifically, let T ∈Th be a mesh element and
+let P1(T; R3×3
+Sym) denote the space of symmetric matrix-valued fields with linear polynomial
+components, i.e.,
+P1(T; R3×3
+Sym) :=
+
+
+τ =
+
+
+a
+b
+c
+b
+d
+e
+c
+e
+f
+
+: a, b, c, d, e, f ∈P1(T)
+
+
+.
+Given vT = (vT , (vF )F∈FT ) ∈V 1
+T , the strain reconstruction E1
+T vT ∈P1(T; R3×3
+Sym) is defined
+mimicking an integration by parts formula:
+Z
+T
+E1
+T vT : τ = −
+Z
+T
+vT · ∇· τ +
+X
+F∈FT
+Z
+F
+vF · (τnTF )
+for all τ ∈P1(T; R3×3
+Sym),
+where nTF denotes the normal vector to F pointing out of T. Crucially, this strain reconstruc-
+tion is one order higher than the one obtained by applying the symmetric gradient operator to
+the element component vT , making the resulting scheme comparable to a P2 FEM in terms of
+accuracy. The associated divergence reconstruction operator is then naturally defined setting
+D1
+T vT := tr
+ E1
+T vT
+
+.
+6
+
+
+3.2.2
+Global discrete function ah
+We are now ready to define the global discrete function ah : (V 1
+h × V 0
+h) × V 1
+h →R such that,
+for all uh, vh ∈V 1
+h and all ϕh ∈V 0
+h,
+ah((uh, ϕh), vh) :=
+X
+T∈Th
+g(ϕT ) aT (uT , vT ),
+with, for all T ∈Th,
+aT (uT , vT ) :=
+Z
+T
+
+2µ E1
+T uT : E1
+T vT + λ D1
+T uT D1
+T vT
+
++ 2µ sT (uT , vT ).
+(9)
+Notice that, when ϕT = 0 for all T ∈Th (unfractured medium), ah reduces to the standard HHO
+bilinear form for linear elasticity. The local bilinear form (9) is composed of two contributions,
+respectively in charge of consistency and stability. The stabilization term sT is designed so
+that:
+(S1) aT vanishes only when one of its arguments corresponds to the interpolation of a rigid-
+body motion;
+(S2) sT vanishes whenever the exact displacement is a quadratic function.
+In order to fulfill these properties, sT must have a very specific dependence on its arguments,
+which requires the introduction of a reconstructed quadratic displacement field. Denoting by
+P2(T) the space of quadratic polynomials on T, for a given vT = (vT , (vF )F∈FT ) ∈V 1
+T , we
+define p2
+T vT ∈P2(T)3 such that its symmetric gradient is the projection of E1
+T on symmetric
+gradients of quadratic polynomials
+Z
+T
+ ∇sp2
+T vT −E1
+T vT
+
+: ∇sw = 0
+for all w ∈P2(T)3,
+(10a)
+and we fix rigid-body motions additionally requiring that
+Z
+T
+p2
+T vT =
+Z
+T
+vT ,
+Z
+T
+∇ssp2
+T vT = 1
+2
+X
+F∈FT
+Z
+F
+(vF ⊗nTF −nTF ⊗vF ) ,
+(10b)
+with ∇ss denoting the skew-symmetric part of the gradient applied to vector-valued fields. This
+quadratic displacement field can be equivalently characterized as providing the best approxi-
+mation of E1
+T vT in ∇sP2(T)3:
+p2
+T vT =
+arg min
+w ∈P2(T)3 satisfying (10b)
+1
+2∥∇sw −E1
+T vT ∥2
+L2(T)3×3.
+It can be proved that properties (S1)–(S2) can only be fulfilled if sT is a least-squares penal-
+ization of the following quantities:
+δ1
+T vT := π1
+T (p2
+T vT −vT ),
+δ1
+TF vT := π1
+F (p2
+T vT −vF )
+for all F ∈FT ,
+where, for X ∈Mh, given a smooth-enough displacement field v on X, π1
+Xv is the polynomial
+in P1(X)3 providing the best approximation of v in the L2-norm. Examples of stabilization
+are
+sT (uT , vT ) =
+X
+F∈FT
+h−1
+F
+Z
+F
+ δ1
+TF uT −δ1
+T uT
+
+·
+ δ1
+TF vT −δ1
+T vT
+
+or
+sT (uT , vT ) = h−2
+T
+Z
+T
+δ1
+T uT · δ1
+T vT +
+X
+F∈FT
+h−1
+F
+Z
+F
+δ1
+TF uT · δ1
+TF vT ,
+where hT denotes the diameter of T and hF the diameter of F.
+7
+
+
+3.3
+Discretization of the crack phase-field evolution equation
+The crack phase-field equation (1b) can regarded as an evolutive diffusion–reaction equation for
+the crack phase-field. Linear standalone equations of this kind have been extensively studied,
+and the corresponding HHO discretizations are well-established. We specifically use here as a
+starting point the method of [23] (see also [21, Chapter 3]), which is modified to accommodate
+the specific fracture driving terms arising in our model.
+3.3.1
+Local reconstructions
+As in the mechanical problem, we introduce a higher-order polynomial reconstruction operator
+for the crack phase-field. Specifically, for any cell T ∈Th, given ϕT = (ϕT , (ϕF )F∈FT ) ∈V 0
+T ,
+the affine phase-variable reconstruction p1
+T ϕT , obtained in a similar spirit as the displacement
+reconstruction (10), is such that
+p1
+T ϕT = ϕT + ∇p1
+T ϕT ·
+ x −¯xT
+
+with ∇p1
+T ϕT = 1
+|T|
+X
+F∈FT
+|F| ϕF nTF ,
+with xT denoting the center of mass of T, |T| its volume, and |F| the area of F.
+3.3.2
+Global discrete function bh
+Given a bounded function H : Ω→R, we define bh(H ; ·, ·) : V 0
+h × V 0
+h →R such that, for all
+ϕh, χh ∈V 0
+h,
+bh(H ; ϕh, χh) :=
+X
+T∈Th
+Z
+T
+
+∇p1
+T ϕT · ∇p1
+T χT +
+ 1
+ℓ2 +
+2
+ℓGc
+H
+
+ϕT χT
+
++
+X
+T∈Th
+jT (ϕT , χT ). (11)
+The first contribution in (11) accounts for the diffusion and reaction contributions, whereas the
+second one is a stabilizing term in the same spirit as in the mechanical equilibrium problem,
+obtained setting, for all T ∈Th,
+jT (ϕT , χT ) :=
+X
+F∈FT
+1
+hT |F|
+ Z
+F
+(p1
+T ϕT −ϕF )
+ Z
+F
+(p1
+T χT −χF )
+
+.
+3.3.3
+Discrete history field variable
+Let T ∈Th be a mesh element.
+The time-dependent quantity HT represents the discrete
+counterpart of the history field (3), i.e., the maximum of the elastic energy density over time.
+At a point in time t, for the isotropic formulation, we set
+HT (t) := max
+τ∈[0,t] ψ0(E1
+T uT (τ)),
+with ψ0 defined by (2), while, for the hybrid formulation, we let
+HT (t) := max
+τ∈[0,t] ψ+
+0 (E1
+T uT (τ)),
+where ψ+
+0 is given by (6) or (7), depending on the selected decomposition. At the global level,
+we then define the function of time Hh : [0, tF] × Ω→R such that, for t ∈[0, tF],
+(Hh(t))|T := HT (t)
+for all T ∈Th.
+8
+
+
+3.4
+Space semi-discrete problem
+We define the following subspaces of V 1
+h respectively incorporating non-homogeneous and ho-
+mogeneous boundary conditions on ∂ΩD:
+V 1
+h,D :=
+
+vh ∈V 1
+h :
+vF = π1
+F uD
+for all F ∈Fh such that F ⊂∂ΩD
+	
+,
+V 1
+h,0 :=
+
+vh ∈V 1
+h :
+vF = 0
+for all F ∈Fh such that F ⊂∂ΩD
+	
+.
+Notice that uD is a function of time, and so is therefore V 1
+h,D. Hence, vh ∈V 1
+h,D means that
+vh is a function of time with values in V 1
+h and such that the boundary condition is satisfied
+at each time t ∈(0, tF]. The space semi-discrete problem, counterpart of (1), reads as follows:
+Find uh ∈V 1
+h,D and ϕh : [0, tF] →V 0
+h such that, for t ∈(0, tF],
+ah((uh(t), ϕh(t)), vh) = 0
+for all vh ∈V 1
+h,0,
+(12a)
+Z
+Ω
+η
+ℓGc
+˙ϕh(t) χh + bh(Hh(t); ϕh(t), χh) =
+Z
+Ω
+2
+ℓGc
+Hh(t) χh
+for all χh ∈V 0
+h,
+(12b)
+where the functions ϕh and χh in (12b) are defined from ϕh and χh according to (8), completed
+with the initial conditions
+ϕh(0) =
+  1
+|T|
+Z
+T
+ϕ0
+
+T∈Th
+,
+ 1
+|F|
+Z
+F
+ϕ0
+
+F∈Fh
+!
+,
+HT (0) = 1
+|T|
+Z
+T
+H0 for all T ∈Th.
+4
+Staggered time stepping scheme
+Problem (12) is a strongly non-linear system of ordinary differential equations the solution of
+which requires carefully tailored resolution strategies. We describe hereafter the one used in
+the numerical simulations of Section 5.
+4.1
+Time discretization and non-linear iterations
+The time discretization hinges on a uniform partition of size τ > 0 of the time interval [0, tF]:
+0 = t0 < t1 < . . . < tN = tF with tn+1 −tn = τ for n = 0, . . . , N −1.
+At each time step tn, for n = 1, . . . , N, we let V 1,n
+h,D := V 1
+h,D(tn) and denote by (un
+h, ϕn
+h, Hn
+T )
+the approximation of (uh(tn), ϕ(tn), Hh(tn)). The non-linear algebraic system to advance from
+time step tn to time step tn+1 is solved by means of the iterative method described hereafter.
+We initialize the crack phase-field and history field using the values at the previous time step:
+ϕn+1,0
+h
+= ϕn
+h,
+Hn+1,0
+h
+= Hn
+h.
+Subsequently, for each non-linear iteration m = 0, 1, . . ., we compute the updated discrete
+fields un+1,m+1
+h
+, ϕn+1,m+1
+h
+, and Hn+1,m+1
+h
+from the fields ϕn+1,m
+h
+and Hn+1,m
+h
+available from
+the previous iteration as follows:
+1. Mechanical equilibrium problem.
+First, we obtain un+1,m+1
+h
+∈V 1,n+1
+h,D
+from the
+known crack phase-field ϕn+1,m
+h
+by solving the mechanical equilibrium equation
+ah((un+1,m+1
+h
+, ϕn+1,m
+h
+), vh) = 0
+for all vh ∈V 1
+h,0;
+(13)
+9
+
+
+2. History field update. Next, for all T ∈Th, we update the history field Hn+1,m+1
+T
+using
+un+1,m+1
+T
+, un+1,m
+T
+, and, possibly, Hn+1,m
+T
+.
+3. Crack phase-field evolution problem. Finally, we solve the crack phase-field evolu-
+tion equation to obtain ϕn+1,m+1
+h
+∈V 0
+h, using the updated Hn+1,m+1
+h
+and a backward
+Euler scheme:
+Z
+Ω
+η
+ℓGc
+ϕn+1,m+1
+h
+τ
+χh + bh(Hn+1,m+1
+h
+; ϕn+1,m+1
+h
+, χh)
+=
+Z
+Ω
+ 2
+ℓGc
+Hn+1,m+1
+h
++
+η
+ℓGc
+ϕn
+h
+τ
+
+χh
+for all χh ∈V 0
+h.
+(14)
+We exit the non-linear iterations when the relative increment of both the displacement field and
+crack phase-field between two consecutive iterations is under a user-defined threshold. Some
+remarks are of order.
+Remark (The case of volumetric-deviatoric energy split). When using the volumetric–deviatoric
+energy split (7) for the tensile and compressive parts of the strain energy, both subproblems (13)
+and (14) are linear.
+Remark (Static condensation). In both subproblems, the global systems are solved using static
+condensation: the cell unknowns are locally eliminated, yielding condensed systems that involve
+only face unknowns. Once the global problem is solved, the cell unknowns are recovered solving
+an inexpensive equation. This procedure significantly reduces the computational cost.
+4.2
+History field update
+Let a cell T ∈Th, a time step n, and a non-linear iteration m be given. We discuss here the
+history field update in Step 2 of the algorithm presented in Section 4.1. We assume that we
+have stored the value εn+1,m
+T
+∈P1(T; R3×3
+Sym) of the strain reconstruction corresponding to the
+largest elastic energy attained so far.
+Given a function f : T →R, let fmax denote its maximum over the quadrature nodes of T.
+The value of the discrete strain tensor associated with the largest energy is then updated as
+εn+1,m+1
+T
+=
+
+
+
+E1
+T un+1,m+1
+T
+if ψ∗, max
+0
+(E1
+T un+1,m+1
+T
+) > Hn+1,m, max
+T
+,
+εn+1,m
+T
+otherwise,
+where ψ∗
+0 denotes either ψ0 for the isotropic formulation or ψ+
+0 for the hybrid one. Notice that
+another option consists in replacing Hn+1,m, max
+T
+with Hn, max
+T
+in the above equation. Finally,
+the cell history field is updated setting
+Hn+1,m+1
+T
+= ψ∗
+0(εn+1,m+1
+T
+).
+Remark (Update at quadrature nodes). The above strategy to update the history field yields
+a polynomial Hn+1,m+1
+T
+within each cell, which can facilitate the transfer of this quantity
+between meshes when local mesh refinement is used. An alternative consists in first replacing
+the integrals in (14) with quadratures and then storing and updating the history field at each
+quadrature node. In the numerical experiments we performed, both strategies essentially yields
+the same results.
+10
+
+
+uright
+uleft
+Mode I
+uleft
+Mode II
+: homogeneous Neumann conditions
+: Dirichlet conditions
+Figure 1: Domain and boundary conditions for the traction and shear test.
+5
+Numerical simulations
+We tested the proposed scheme on two standard benchmark problems in fracture mechanics.
+Both the isotropic and the hybrid formulations were implemented, and for the hybrid one we
+considered both the spectral (6) and the volumetric-deviatoric (7) energy decompositions. Our
+implementation is based on the open source HArDCore library1.
+5.1
+Traction test
+The first benchmark corresponds to the so-called mode I tensile test. We consider a square
+domain of 1 mm side length containing an initial vertical notch of length 0.5 mm, as shown in
+Figure 1. A zero displacement is imposed on the right side, while on the left side a monotonically
+increasing displacement is enforced in the direction normal to the edge, pointing outward. The
+prescribed displacement starts from zero and increases linearly with an increment of 1×10−5 mm
+per time step for the first 500 steps, and then with a smaller increment of 1×10−6 mm per time
+step to better capture the sudden crack propagation. The domain is discretized using a refined
+family of uniform conforming triangular meshes, and the phase-field regularization length is set
+to ℓ= 0.0075 mm. The Lam´e parameters are µ = 80.77 kN mm−2 and λ = 121.15 kN mm−2,
+while the critical energy release rate is set to Gc = 2.7 × 10−3 kN mm−1.
+The evolution of the crack phase-field ϕ at different time steps is shown in Figure 2 for
+the three formulations implemented with the HHO method: isotropic, hybrid-VD (with energy
+decomposition (7)), and hybrid-SP (with energy decomposition (6)). The three formulations
+exhibit very similar behavior in this test, with a crack propagating straight from the initial
+notch to the top boundary, as expected from physical experiments and the literature.
+A mesh convergence study was also performed. Figure 3 shows the load–displacement curves
+obtained with a family of uniform triangular meshes of size h ∈{0.0177 mm, 0.0088 mm, 0.0044 mm}
+for the hybrid–VD formulation. The horizontal axis represents the magnitude of the prescribed
+displacement uleft at each time step applied on the left boundary, while the vertical axis reports
+the magnitude of the average reaction force computed on the same boundary. A convergence
+1https://github.com/jdroniou/HArDCore
+11
+
+
+t = 60
+t = 70
+t = 85
+t = 100
+Figure 2: Evolution of the crack phase-field for different formulations (from top to bottom:
+isotropic, hybrid–VD, hybrid–SP) at increasing time steps, using a uniform mesh with element
+size h = 0.01 mm
+Figure 3: Load-displacement curves for the traction test with different mesh sizes using the
+hybrid–VD formulation.
+12
+
+
+Figure 4: Load-displacement curves for the traction test with different mesh sizes using HHO
+(order k = 1, l = 0) and P2-P1 finite elements.
+trend can be observed as the mesh is refined, with the curves tending to stabilize for mesh sizes
+smaller than h = 0.01 mm .
+In Figure 4 we compare the load-displacement curves obtained with our HHO scheme with
+those obtained using Lagrange P2-P1 finite elements on a family of triangular meshes. The
+FEM simulations are performed with the FreeFEM++ software [29]. For HHO, we consider
+three uniform triangular meshes with sizes h ∈{0.02 mm, 0.01 mm, 0.005 mm}.
+For FEM,
+we reuse the same uniform mesh with h = 0.005 mm used for HHO and, in addition, three
+non-uniform meshes generated adaptively with FreeFem++, featuring minimum element sizes
+respectively equal to 1 × 10−4 mm, 1 × 10−5 mm, and 1 × 10−6 mm. We can observe that both
+methods tend to converge to the same solution as the mesh is refined, but with HHO showing a
+faster convergence despite the fact that the simulations are carried out on non-adaptive meshes.
+We also tested our scheme on a hexagonal mesh, which is shown in Figure 5. The results
+are consistent with those obtained on triangular meshes, and confirm that the method behaves
+similarly across different mesh topologies.
+Remark (Initial notch). To model an initial notch in the domain, we considered two different
+approaches. In the tests with triangular meshes (see Figures 2, 3, 4, 7, 9, 10), the discontinuity
+is modeled by introducing a physical cut in the mesh, obtained by duplicating the nodes along
+the notch line (highlighted in blue in Figure 6a). While this approach is straightforward, it
+requires the mesh to conform exactly to the notch geometry, which can be problematic for
+complex geometries.
+The second approach removes this problem by using an initial history field H0 with high
+values along the notch line, thus effectively simulating a pre-existing crack without altering
+the mesh topology, as shown in Figure 6b. This method offers greater flexibility, since the
+mesh no longer needs to match the notch geometry. It requires, however, careful calibration of
+the initial history field to correctly represent the notch. We used this approach for tests with
+polygonal meshes (see Figure 5).
+13
+
+
+t = 0
+t = Tend
+Figure 5: Crack phase-field in mode I with HHO scheme on hexagonal meshes
+(a) Initial notch represented by a physical dis-
+continuity in the mesh, doubling the nodes
+along the notch line.
+(b) Initial notch represented by a high value of
+the initial history field H0.
+Figure 6: Two approaches to model the initial notch.
+14
+
+
+t = 70
+t = 100
+t = 130
+t = 200
+Figure 7: Crack phase-field ϕ at different time steps for the mode II test. Top row: hybrid-VD
+formulation, bottom row: hybrid-SP energy decomposition.
+5.2
+Shear test
+The second benchmark corresponds to the mode II shear loading test. We consider the same
+domain as in the traction test, but with a displacement applied on the left boundary in the
+upward direction, as shown on the right in Figure 1. The prescribed displacement increases
+monotonically, starting from zero and incremented linearly by 1 × 10−5 mm at each time step.
+We use triangular meshes locally refined where the crack is expected to propagate (see Figure 8).
+The Lam´e parameters λ and µ, the critical energy release rate Gc, and the regularization length
+ℓare the same as in the traction test. Also in this case, several simulations are performed to
+investigate the convergence of the method and to compare the results obtained with the HHO
+scheme to those reported in the literature using other discretization methods. In Figure 7 we
+show the evolution of ϕ at different time steps for hybrid-VD and hybrid-SP formulations.
+The load–displacement curves for the hybrid–VD formulation obtained with a family of
+locally refined meshes similar to the one depicted in Figure 8 with minimum element sizes in
+{0.008 13 mm, 0.003 90 mm, 0.001 85 mm}, are shown in Figure 9. As in the traction test, the
+horizontal axis represents the magnitude of the prescribed displacement uleft at each loading
+increment, applied on the left boundary, while the vertical axis reports the magnitude of the
+average reaction force computed on the same boundary. A convergence trend can be observed
+as the mesh is refined, with the curves tending to stabilize for mesh sizes smaller than 0.004 mm.
+Notice that, for the coarsest mesh, the mesh size is larger than ℓ, which can justify the significant
+difference with respect to the two finest meshes.
+In Figure 10 we provide a comparison with Lagrange P2-P1 FEM discretization on a family
+of locally refined triangular meshes. For HHO we consider the same meshes as for the previous
+convergence test, similar to the one shown in Figure 8, while for FEM we use three non-
+uniform meshes generated adaptively with FreeFem++, featuring minimum element sizes in
+{1×10−3 mm, 1×10−4 mm, 1×10−5 mm}. We can observe that both methods tend to converge
+to the same solution as the mesh is refined and, once again, HHO appears to reach the exact
+solution faster than FEM.
+15
+
+
+Figure 8: Locally refined mesh used for the shear test, with minimum element size 0.008 13 mm.
+Figure 9: Load-displacement curves for the shear test with different mesh sizes using the
+hybrid–VD formulation.
+16
+
+
+Figure 10: Load-displacement curves for the shear test with different mesh sizes using HHO
+(order k = 1, l = 0) and P2-P1 finite elements.
+References
+[1] F. Aldakheel, B. Hudobivnik, A. Hussein, and P. Wriggers. Phase-field modeling of brittle
+fracture using an efficient virtual element scheme. Computer Methods in Applied Mechanics
+and Engineering, 341:443–466, 2018.
+[2] M. Ambati, T. Gerasimov, and L. De Lorenzis. A review on phase-field models of brittle
+fracture and a new fast hybrid formulation. Computational Mechanics, 55:383–405, 2015.
+[3] H. Amor, J.-J. Marigo, and C. Maurini. Regularized formulation of the variational brittle
+fracture with unilateral contact: Numerical experiments. Journal of the Mechanics and
+Physics of Solids, 57(8):1209–1229, 2009.
+[4] F. Bassi, L. Botti, A. Colombo, D. A. Di Pietro, and P. Tesini.
+On the flexibility of
+agglomeration based physical space discontinuous Galerkin discretizations.
+Journal of
+Computational Physics, 231(1):45–65, 2012.
+[5] L. Beir˜ao da Veiga, F. Brezzi, L. D. Marini, and A. Russo. The hitchhiker’s guide to the vir-
+tual element method. Mathematical models and methods in applied sciences, 24(08):1541–
+1573, 2014.
+[6] L. Beir˜ao Da Veiga, F. Brezzi, L. D. Marini, and A. Russo. The virtual element method.
+Acta Numerica, 32:123–202, 2023.
+[7] T. Belytschko and T. Black. Elastic crack growth in finite elements with minimal remesh-
+ing. International Journal for Numerical Methods in Engineering, 45(5):601–620, 1999.
+[8] T. Belytschko, J. Fish, and B. E. Engelmann. A finite element with embedded localization
+zones. Computer Methods in Applied Mechanics and Engineering, 70(1):59–89, 1988.
+17
+
+
+[9] T. Belytschko, Y. Y. Lu, and L. Gu. Element-free galerkin methods. International Journal
+for Numerical Methods in Engineering, 37(2):229–256, 1994.
+[10] M. Botti, D. A. Di Pietro, and A. Guglielmana.
+A low-order nonconforming method
+for linear elasticity on general meshes.
+Computer Methods in Applied Mechanics and
+Engineering, 354:96–118, 2019.
+[11] M. Botti, D. A. Di Pietro, and P. Sochala. A Hybrid High-Order method for nonlinear
+elasticity. SIAM Journal on Numerical Analysis, 55(6):2687–2717, 2017.
+[12] P.-O. Bouchard, F. Bay, and Y. Chastel.
+Numerical modelling of crack propagation:
+automatic remeshing and comparison of different criteria. Computer Methods in Applied
+Mechanics and Engineering, 192(35–36):3887–3908, 2003.
+[13] P.-O. Bouchard, F. Bay, Y. Chastel, and I. Tovena. Crack propagation modelling using an
+advanced remeshing technique. Computer Methods in Applied Mechanics and Engineering,
+189(3):723–742, 2000.
+[14] B. Bourdin, G. A. Francfort, and J.-J. Marigo. Numerical experiments in revisited brittle
+fracture. Journal of the Mechanics and Physics of Solids, 48(4):797–826, 2000.
+[15] B. Bourdin, G. A. Francfort, and J.-J. Marigo.
+The variational approach to fracture.
+Journal of Elasticity, 91(1–3):5–148, 2008.
+[16] H. Choi, H. Chi, and K. Park. Virtual element method for mixed-mode cohesive fracture
+simulation with element split and domain integral.
+International Journal of Fracture,
+240(1):51–70, 2023.
+[17] I. Chrysikou and S. P. Triantafyllou. Phase field fracture over quadtrees using the virtual
+element method. In B. L. A. Pichler, C. Hellmich, and P. Preinstorfer, editors, Proceedings
+of the 12th International Conference on Fracture Mechanics of Concrete and Concrete
+Structures (FraMCoS-12), pages MS08–2:4. FraMCoS Association, 2025.
+[18] M. Cicuttin, A. Ern, and N. Pignet. Hybrid high-order methods. A primer with application
+to solid mechanics. SpingerBriefs in Mathematics. Springer Cham, 2021.
+[19] J. Coatl´even. Network element methods for linear elasticity. Comptes Rendus. M´ecanique,
+351(S1):331–356, 2023.
+[20] B. A. De Dios, K. Lipnikov, and G. Manzini. The nonconforming virtual element method.
+ESAIM: Mathematical Modelling and Numerical Analysis, 50(3):879–904, 2016.
+[21] D. A. Di Pietro and J. Droniou. The Hybrid High-Order method for polytopal meshes,
+volume 19 of Modeling, Simulation and Application. Springer International Publishing,
+2020.
+[22] D. A. Di Pietro and J. Droniou. From Finite Elements to Hybrid High-Order methods,
+2025. https://arxiv.org/abs/2503.00425.
+[23] D. A. Di Pietro, J. Droniou, and A. Ern. A discontinuous-skeletal method for advection-
+diffusion-reaction on general meshes. SIAM Journal on Numerical Analysis, 53(5):2135–
+2157, 2015.
+18
+
+
+[24] D. A. Di Pietro and A. Ern. Equilibrated tractions for the Hybrid High-Order method.
+Comptes Rendus de l’Acad´emie des Sciences, S´erie I, 353:279–282, 2015.
+[25] D. A. Di Pietro and A. Ern. A hybrid high-order locking-free method for linear elasticity
+on general meshes. Computer Methods in Applied Mechanics and Engineering, 283:1–21,
+2015.
+[26] D. A. Di Pietro, A. Ern, and S. Lemaire. An arbitrary-order and compact-stencil discretiza-
+tion of diffusion on general meshes based on local reconstruction operators. Computational
+Methods in Applied Mathematics., 14(4):461–472, 2014.
+[27] G. A. Francfort and J.-J. Marigo. Revisiting brittle fracture as an energy minimization
+problem. Journal of the Mechanics and Physics of Solids, 46(8):1319–1342, 1998.
+[28] A. A. Griffith. Vi. the phenomena of rupture and flow in solids. Philosophical Transactions
+of the Royal Society of London. Series A, Containing Papers of a Mathematical or Physical
+Character, 221(582–593):163–198, 1921.
+[29] F. Hecht. New development in FreeFem++. Journal of Numerical Mathematics, 20(3-
+4):251–265, 2012.
+[30] T. Heister, M. F. Wheeler, and T. Wick. A primal-dual active set method and predictor-
+corrector mesh adaptivity for computing fracture propagation using a phase-field approach.
+Computer Methods in Applied Mechanics and Engineering, 290:466–495, 2015.
+[31] D. Krajcinovic. Damage mechanics. Elsevier, 1996.
+[32] Y. Leng, L. Svolos, I. Boureima, G. Manzini, J. N. Plohr, and H. M. Mourad. Arbitrary
+order virtual element methods for high-order phase-field modeling of dynamic fracture.
+International Journal for Numerical Methods in Engineering, 126(1):e7605, 2025.
+[33] T.-R. Liu, F. Aldakheel, and M. Aliabadi. Virtual element method for phase field mod-
+eling of dynamic fracture.
+Computer Methods in Applied Mechanics and Engineering,
+411:116050, 2023.
+[34] C. Miehe, M. Hofacker, and F. Welschinger. A phase field model for rate-independent
+crack propagation: Robust algorithmic implementation based on operator splits. Computer
+Methods in Applied Mechanics and Engineering, 199(45–48):2765–2778, 2010.
+[35] C. Miehe, F. Welschinger, and M. Hofacker. Thermodynamically consistent phase-field
+models of fracture: Variational principles and multi-field FE implementations. Interna-
+tional Journal for Numerical Methods in Engineering, 83(10):1273–1311, 2010.
+[36] N. Mo¨es and T. Belytschko. Extended finite element method for cohesive crack growth.
+Engineering Fracture Mechanics, 69(7):813–833, 2002.
+[37] N. Mo¨es, J. Dolbow, and T. Belytschko. A finite element method for crack growth without
+remeshing. International Journal for Numerical Methods in Engineering, 46(1):131–150,
+1999.
+[38] D. Ngo and A. C. Scordelis. Finite element analysis of reinforced concrete beams. Journal
+Proceedings, 64(3):152–163, 1967.
+19
+
+
+[39] J. Oliver, M. Cervera, S. Oller, and J. Lubliner. Isotropic damage models and smeared
+crack analysis of concrete. In Proc. SCI-C Computer Aided Analysis and Design of Con-
+crete Structures, volume 945958. Pineridge Press, Swansea, UK, 1990.
+[40] M. Ortiz, Y. Leroy, and A. Needleman.
+A finite element method for localized failure
+analysis. Computer Methods in Applied Mechanics and Engineering, 61(2):189–214, 1987.
+[41] R. H. Peerlings, R. de Borst, W. M. Brekelmans, and J. de Vree. Gradient enhanced
+damage for quasi-brittle materials. International Journal for Numerical Methods in Engi-
+neering, 39(19):3391–3403, 1996.
+[42] Y. R. Rashid. Ultimate strength analysis of prestressed concrete pressure vessels. Nuclear
+Engineering and Design, 7(4):334–344, 1968.
+[43] J. G. Rots.
+Smeared and discrete representations of localized fracture.
+International
+Journal of Fracture, 51(1):45–59, 1991.
+[44] S. Sharma, Himanshu, and A. Ramaswamy. Fine to coarse mesh transition in phase-field
+fracture simulations using the virtual element method. Finite Elements in Analysis and
+Design, 249:104371, 2025.
+[45] J. C. Simo, J. Oliver, and F. Armero. An analysis of strong discontinuities induced by
+strain-softening in rate-independent inelastic solids. Computational Mechanics, 12(5):277–
+296, 1993.
+[46] C. V. Verhoosel and R. de Borst. A phase-field model for cohesive fracture. International
+Journal for Numerical Methods in Engineering, 96(1):43–62, 2013.
+[47] G. N. Wells and L. Sluys. A new method for modelling cohesive cracks using finite elements.
+International Journal for Numerical Methods in Engineering, 50(12):2667–2682, 2001.
+[48] J.-Y. Wu, F.-B. Li, and S.-L. Xu. Extended embedded finite elements with continuous
+displacement jumps for the modeling of localized failure in solids. Computer Methods in
+Applied Mechanics and Engineering, 285:346–378, 2015.
+20

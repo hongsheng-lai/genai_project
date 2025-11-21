@@ -1,0 +1,619 @@
+Assessing Power Flow Controllability via Variable
+Line Reactance
+Eric Haag, Yuhao Chen, Giri Venkataramanan, and Manish K. Singh
+Department of Electrical & Computer Engineering, University of Wisconsin–Madison
+Emails: {erhaag, yuhao.chen,}@wisc.edu, giri@engr.wisc.edu, manish.singh@wisc.edu
+Abstract—The rapid growth of large data center loads and
+inverter-based generation is increasing the stress on transmission
+networks, while expanding grid capacity at the required pace
+remains challenging. Power flow controllers (PFCs) that adjust
+effective line reactances to redistribute flows are often viewed as
+an interim solution to improve transmission network utilization.
+Traditional flexibility metrics and analysis approaches for PFCs
+focus on a limited number of operating points and contingencies.
+Towards gaining system-wide insights, this paper introduces a
+framework to quantify network flow controllability—the extent to
+which line flows can be reshaped through reactance adjustments.
+We derive analytical results demonstrating that installing PFCs
+on all lines enables complete controllability of feasible flow
+patterns. Building on these, we conduct empirical studies on the
+IEEE 39-bus system to examine how controllability varies with
+the number of PFCs and their reactance adjustment range. These
+analyses employ a mixed-integer linear program to optimize the
+siting and sizing of PFCs. Finally, we validate findings under
+AC power flow physics using an optimization routine that steers
+flows toward desired setpoints.
+Index Terms—DC power flow, grid-enhancing technologies, line
+reactance control, network flow, power flow control.
+I. INTRODUCTION
+The recent upsurge in large data center loads and continued
+increase in inverter-based resource (IBR)-connected generation
+have directed societal attention to the stress power grids
+and their operators are experiencing. While the need for
+increased power transmission capabilities is widely acknowl-
+edged, achieving the pace required to keep up with load growth
+is prohibitively challenging. Grid-enhancing technologies are
+gaining attention as quickly deployable interim solutions that
+maximize the utilization of existing transmission infrastruc-
+ture [1], [2]. Broadly speaking, while system operators regulate
+bus power injections across a network, the line flows are
+determined by power flow (PF) physics. Therefore, it is
+frequently observed that the maximum power transfer from
+a source to a sink is limited by a single (or a few) lines being
+at their limits. Significant available power-transfer capacity on
+numerous power lines is rendered unusable in such cases.
+Flexible Alternating Current Transmission System (FACTS)
+technologies enabling control of line power flows have long
+been studied and developed. However, the costs and capabil-
+ities of available solutions have not been compelling enough
+This work was partially supported by the U.S. NSF under grant 2453151.
+Support from members of the Wisconsin Electric Machines and Power
+Electronics Consortium at the University of Wisconsin-Madison is gratefully
+acknowledged.
+for large-scale deployments, particularly to enable network-
+wide flow control. With the increase in stress on transmis-
+sion infrastructure, there is a renewed interest in PF control
+technologies. Abstracting away implementation details, PF
+controllers (PFCs) on AC lines operate by varying the effective
+line reactance or by introducing a phase shift [3]. FACTS
+devices and phase-shifting transformers allow these variations,
+to some extent. Among these, power electronic devices that
+control line reactances offer the least complex approach to
+realize PFC, particularly in light of recent and emerging
+advances in power semiconductor devices with ac switching
+capability, converter topological features and versatility in
+control [4]–[9].
+While the operation of an individual PFC is reasonably
+understood, system-level implications are often difficult to
+characterize [10], [11]. The transmission capacity enhance-
+ment benefits of PFCs are usually evaluated for specific
+systems, use cases, and operating scenarios [12]. The cur-
+rently used metrics, such as loadability margin or total
+transfer capability, are valuable to for providing situational
+insights under conceivable, actable uncertainty in potential
+contingencies, operating conditions, and load-change direction
+vectors [13], [14]. However, these metrics obscure the true
+potential of PFCs and do not provide the systemic insights
+needed when uncertainty in load growth and generation in-
+stallations is too high for scenario-based studies. Deviating
+from the conventional approaches, this work aims to directly
+quantify the flow controllability offered by PFCs. We first
+derive analytical insights on what flow configurations can be
+achieved by varying line reactances within a DC PF model.
+After obtaining strongly positive analytical results on flow
+controllability enabled by installing PFCs on all lines, we
+proceed to empirical investigations using the IEEE 39-bus
+system in more practical settings. Continuing with the DC
+PF model, we examine the interplay among the number of
+PFCs installed in a network, the level of reactance control per
+PFC, and the achievable range of line flow alterations. These
+analyses were carried out using a mixed-integer linear program
+formulated for siting and sizing of PFCs. Finally, we validate
+our findings under AC PF physics using an optimal operation
+routine that adjusts the line reactances to steer AC power
+flows towards desired setpoints. Our analytical and empirical
+findings provide comprehensive system-level insights and set
+the stage for advanced analysis for optimal siting, sizing, and
+operation of reactance control-based PFCs.
+arXiv:2511.15685v1  [math.OC]  19 Nov 2025
+
+
+Notation: Lower- (upper-) case boldface letters denote
+column vectors (matrices). The inequalities are understood
+element-wise. Vector en is the n-th canonical vector. Operators
+| · | and ⊙represent set cardinality and entry-wise vector
+products. Operator dg() yields a diagonal matrix by placing
+its vector argument as the main diagonal.
+II. ANALYTICAL INVESTIGATIONS
+In this section, we use the classical DC PF model to provide
+analytical insights into the controllability of power flows by
+varying line reactances. The formal proof of the presented
+results is deferred to an extended version of this manuscript
+due to space limitations. The single-phase equivalent of a
+connected power network with N buses can be represented
+by a connected graph G = (N, E), whose nodes correspond
+to buses, and edges e = (m, n) ∈E to transmission lines,
+with cardinality |E| = E. We review some graph-theoretic
+preliminaries next that will facilitate the ensuing analysis.
+A. Graph-theoretic preliminaries
+Given an undirected graph G = (N, E), one can assign
+arbitrary edge directions to define the E × N edge-node
+incidence matrix defined as
+Ae,k :=
+
+
+
+
+
++1
+, k = m
+−1
+, k = n
+0
+, otherwise
+∀e = (m, n) ∈E.
+(1)
+Property 1: For a connected network, the incidence matrix
+defined in (1) satisfies A1 = 0 and rank(A) = N −1.
+A radial topology corresponds to networks with no cycles.
+For such networks, E = N −1. Hence, the related matrix
+A has full row rank per Property 1. In a meshed graph, a
+sequence of adjacent edges that starts and ends at the same
+node is called a cycle. The number of independent cycles
+in a graph is given by C = E −N + 1. For a cycle C,
+one can define an indicator vector nC ∈{0, ±1}E such that
+nC
+e = 0 if an edge e is not included in cycle C; nC
+e = 1 if
+edge e is directed along the cycle direction, and nC
+e = −1,
+otherwise. It holds that A⊤nC = 0, translating to the fact that
+purely cyclic network flows do not involve nodal injections
+or withdrawals. Let matrix N ∈RE×C be constructed by
+stacking the indicator vectors for the C independent cycles of
+a meshed network. It then holds that null(A⊤) = range(N).
+B. DC PF model-based flow controllability results
+Denote the bus active power injections by p ∈RN, and
+line active power flows by f ∈RE. Given the vector of line
+reactances, x ∈RE, the DC PF equations can be stated as
+A⊤f = p,
+(2a)
+dg(x)f = Aθ,
+(2b)
+where θ is the N-length vector of bus voltage angles. Equa-
+tion (2a) models the power balance at each bus, and Eq. (2b)
+relates the voltage angle differences across a line to the power
+flows. Given the voltage angle at a reference bus, and power
+injections satisfying 1⊤p = 0, the DC power flow model
+is known to admit a unique solution in (f, θ). However, the
+above is often stated in the context of networks with fixed
+line reactances xe > 0 for all edges e. Since we are deviating
+from the conventional setting of fixed positive reactances, it is
+worth re-examining the properties of the DC PF model (2). The
+following result dictates the uniqueness of DC PF solutions
+when the requirement xe > 0 is relaxed.
+Proposition 1: Given network parameters (A, x), balanced
+power injections p such that 1⊤p = 0, and a reference angle
+θr for some r ∈N, a unique solution (f, θ) to (2) exists
+if and only if one of the following conditions is satisfied:
+P1.1. The power network is radial.
+P1.2. For a meshed network, the matrix N⊤dg(x)N is
+invertible.
+We will next provide results related to the following central
+question on power-flow controllability:
+Q1) Given (p, f) satisfying (2a), does there always exist an
+(x, θ) that satisfies (2b)?
+Since the power injections appear only in (2a), the previous
+question essentially investigates the solvability of (2b) written
+differently as
+dg(f)
+−A
+|
+{z
+}
+E×(E+N)
+x
+θ
+
+= 0.
+(3)
+From Property 1, we note that (x = 0, θ = α1) is a
+trivial solution to (3) for any constant scalar α. Moreover,
+given that (3) constitutes an under-determined system of linear
+equations, the solution set coinciding with the nullspace of
+dg(f)
+−A
+has a dimension of at least N. Therefore, the
+answer to Q1) is trivially yes. Since transmission lines are
+typically inductive, a significant level of compensation would
+be needed to get to xe ≤0. Therefore, a pertinent follow-up
+question is
+Q2) Given line flows f, does there always exist an x > 0 and
+a vector θ that satisfy (3)?
+For radial power systems, the above question readily admits
+a strong affirmative answer.
+Proposition 2: For radial power systems, given any vector
+f, and any x, ∃θ satisfying (3).
+The above result follows from observing that E = N −1
+for radial networks, resulting in linearly independent rows of
+A, since rank(A) = N −1. Therefore, a solution for θ can
+be obtained by solving Aθ = dg(f)x for any (f, x). One
+can therefore pick x > 0 to align with the pursuit of Q2).
+However, the positive answer for radial systems has limited
+significance, as the notion of flow control is nuanced only for
+meshed networks. The next result provides a necessary and
+sufficient condition for answering Q2) with a positive.
+Proposition 3: For meshed power systems, given any vector
+f, a solution (x, θ) to (3) with x > 0 exists if and only if for
+all n ∈null(A⊤) one of the following conditions hold:
+P3.1. f ⊙n = 0
+P3.2. ∃i, j such that e⊤
+i (f ⊙n) > 0 and e⊤
+j (f ⊙n) < 0
+The above conditions are not limiting, as they merely state
+that there cannot be cyclic flows in the network.
+
+
+III. EMPIRICAL INVESTIGATIONS
+The analytical results in Section II establish a strong
+promise of redistributing power flows on transmission lines by
+varying the line reactances. While insightful, the findings raise
+further questions, such as what level of line reactance control
+is required to manipulate power flow patterns adequately, and
+how effectively power flows can be controlled when account-
+ing for the detailed AC power flow physics. To empirically
+investigate these aspects, we first generated a dataset of desired
+line flow scenarios for the IEEE 39-bus system. Next, we
+formulated a DC PF-based formulation for siting and sizing
+of reactance control capabilities for a subset of lines such that
+the entire scenario set can be realized. Finally, we conducted
+empirical studies aiming at realizing the same set of flow
+scenarios via line reactance control under AC PF constraints.
+A. Flow scenario set generation
+We obtained the nominal (re)active power demands (pd
+◦, qd
+◦)
+for the IEEE 39-bus system [15]. Using entry-wise scaling
+pd
+s = pd
+◦⊙up
+s and qd
+s = qd
+◦⊙uq
+s, S demand scenarios were
+generated. The entries of up
+s and uq
+s were each independently
+drawn from uniform random distributions on the intervals
+[0.2, 2] and [0.9, 1.1], respectively. To mimic a setup in which
+approximate grid dispatch could be carried out by relaxing
+the DC PF physics (2b) and merely respecting resource and
+network-flow constraints (2a), we solve the following optimal
+power flow problem for all S demand instances.
+min
+(pg
+s)⊤Qpg
+s
+(P1)
+s.to A⊤fs = pg
+s −pd
+s,
+(4a)
+pg ≤pg
+s ≤¯pg,
+(4b)
+−¯f ≤fs ≤¯f,
+(4c)
+where the cost coefficients Q, generation limits (pg, ¯pg),
+and line limits ¯f were obtained from the MATPOWER case
+file [15]. After disregarding infeasible instances, we remove
+scenarios that violate the conditions identified in Proposi-
+tion 3 since these instances would not be realizable with
+any positive value of line reactances. Thus obtained dataset
+{pd
+s, qd
+s, pg
+s, fs}S
+s=1 will be used in the ensuing analysis with
+a special focus on flows fs. The reasoning is that the flows
+obtained from the above procedure are representative of desir-
+able flow patterns on the grid. However, our analysis approach
+will apply to an arbitrary set of desired flow configurations.
+We next assessed how distinct the desired flow config-
+urations {fs} are from the flows expected from DC PF.
+Specifically, we solved (2) for all the scenarios using the
+nominal line reactances, denoted as x◦, and setting the net
+power injection p as pg
+s −pd
+s to obtain the DC PF solutions
+{f ◦
+s }S
+s=1. We then sorted the scenarios in increasing order of
+∥fs −f ◦
+s ∥2
+2, providing the intuition that, as one parses through
+the dataset, they encounter flow configurations that become
+increasingly difficult to realize by varying the line reactances.
+B. DC PF based siting and sizing of reactance control
+Let the maximum and minimum possible reactance values
+for all lines be stacked in vectors ¯x and x, respectively. Let
+d ∈{0, 1}E capture reactance controller placement such that
+de = 1 indicates presence of some level of reactance control
+while de = 0 implies no reactance control, i.e., x◦
+e = ¯xe = xe.
+The optimal siting and sizing task for reactance controllers to
+ensure the realizability of flows {fs}S′
+s=1 can be formulated as
+min 1⊤(¯x −x)
+(P2)
+over {xs, θs}S′
+s=1, d, x, ¯x
+s.to dg(fs)xs = Aθs, ∀s
+(5a)
+x ≤xs ≤¯x, ∀s
+(5b)
+0 ≤¯x −x◦≤x◦⊙d,
+(5c)
+0 ≤x◦−x ≤x◦⊙d,
+(5d)
+1⊤d ≤K, d ∈{0, 1}E,
+(5e)
+where S′ ≤S is the number of scenarios considered, K
+is the budget for the number of reactance controllers. The
+upper bounds in (5c)–(5d) limit the reactance control range to
+±100%, eliminating the possibility of negative line reactances.
+Using (P2), we studied the interplay between the difficulty
+of flow scenarios considered and the number and capacity of
+reactance controllers needed. Since the dataset is sorted in
+increasing order of difficulty surrogate ∥fs −f ◦
+s ∥2
+2, we solved
+(P2) for S′ = 5, 50, 100, 2000, and 5000 scenarios. For each
+S′, we first solved (P2) with K = 46, the total number of
+lines in the IEEE 39-bus system, and recorded the optimal
+total control capability requirement 1⊤(¯x −x) in per unit.
+Then we re-solved (P2) for decreasing values of K until
+the problem becomes infeasible. This analysis provides the
+minimum number of controllers needed for each S′, denoted as
+Kmin(S′), and the corresponding value of 1⊤(¯x−x). Figure 1
+summarizes our findings for the above analysis.
+Fig. 1.
+The trendline shows the minimum number of lines with adjustable
+reactance needed to realize S′ flow scenarios. The bar graphs provide total
+reactance-adjustment capacity 1⊤(¯x −x) required when all 46 lines or just
+Kmin lines have reactance control capability.
+Aligning with expectations, Fig. 1 indicates that the mini-
+mum number of reactance controllers required increases with
+
+
+Fig. 2.
+Distributions of negative (γe,down) and positive (γe,up) reactance-
+adjustment capacity needed per line for different numbers of scenarios S′.
+Despite allowing K = 46, several lines did not need reactance adjustment.
+Those lines are omitted from this figure.
+the number and difficulty of flow patterns to be realized.
+Interestingly, all flow patterns could be realized with reactance
+controllers placed on 30 out of 46 lines. Further analytical
+investigation revealed that reactance controllers are never
+needed on lines that are not in any cycles, referred to as bridges
+in graph terminology; a result that follows from extension
+of Proposition 2. The test system had 11 bridges. Thus, the
+generated flow patterns were rich enough to require controllers
+on 30 out of 35 non-bridge lines. When evaluating the total
+reactance control capability across all lines, Fig. 1 shows the
+expected increase with the increasing number of scenarios.
+However, a potentially surprising observation was made when
+comparing the total control capability required with K = 46
+versus K = Kmin. Specifically, for any value of S′, the total
+control capability 1⊤(¯x −x) does not increase significantly
+when one decreases the allowable number of controllers.
+Further analytical and empirical analysis is needed to uncover
+the underlying reasons for this observation.
+We next studied the optimally allocated reactance control
+capability on individual lines for K = 46 and while varying
+S′ using the relative reactance adjustment metrics
+γe,down = xe −x◦
+e
+x◦e
+,
+γe,up = ¯xe −x◦
+e
+x◦e
+.
+The frequency distribution of the optimal adjustments is shown
+in Fig. 2. For a line e, positive adjustments depict γe,up
+values while γe,down corresponds to negative adjustments.
+The expectation that increasing S′ would require a broader
+range of control capabilities carries through for S′ up to
+2000. However, another surprising observation is made for
+S′ = 5000: the solution of (P2) almost abandons reactance-
+increase capabilities, and rather attains flow controllability by
+optimally reducing the reactance of individual lines over wider
+ranges. Analyzing the shift in solution in the extreme case of
+S′ = 5000 motivates further research.
+C. AC PF based evaluation of power flow control capabilities
+Our empirical tests under DC PF modeling strengthened the
+analytical findings by demonstrating that desired flow patterns
+can be realized on a power network by varying the reactances
+for a subset of lines. Recall that the dataset of flow pattern was
+generated by solving (P1), which is a relaxation of DC OPF,
+that does not account for losses or reactive power demands and
+flows. The flows themselves are therefore infeasible under AC
+PF settings [16]. Nevertheless, in this section, we evaluate how
+close the AC power flows can be brought to the flow scenarios
+fs by varying line reactances. To contextualize the results we
+solved DC and AC PF for the nominal loads, generation,
+and network parameters in the test system and found that
+the average of line flow discrepancies |f AC
+e
+−f DC
+e
+|/ ¯fe was
+approximately 1.14%. So a mismatch in the AC power flows,
+after adjusting the line reactances, and desired setpoints fs in
+that numerical range shall be considered a perfect realization.
+We abstractly represent the sending-end active power flow
+vector using the AC power flow mapping as f AC
+s
+(x) =
+ACPF(pd
+s, qd
+s, pg
+s; x), where the power demands and gen-
+erator active power setpoints are selected from our dataset,
+and generator voltage setpoints are set to 1 p.u., and one
+generator bus is set as the slack bus. With the nominal line
+reactances, solving AC PF for all S scenarios yielded a flow
+mismatch |f AC
+s,e (x◦) −fs,e|/ ¯fe, averaged over E lines and S
+scenarios, as 8.81%. We then investigated the extent to which
+the mismatch can be reduced if the reactances for all 46 lines
+could be controlled. Setting K = 46 in (P2) provides us,
+among other things, the optimal reactance vector xDC
+s
+for each
+scenario, where we have added the superscript to emphasize
+that xDC
+s
+is deemed optimal under DC PF settings. We carried
+out the ensuing analysis for 50 scenarios that were chosen to
+represent a varying level of difficulty. The selected instances
+correspond to s = 1, 101, . . . , 4901. Recall that, if one sets
+the line reactances to xDC
+s
+, the power injections (pg
+s −pd
+s)
+would result in the line flows being precisely equal to fs
+under DC PF. Under AC PF, however, the average mismatch
+|f AC
+s,e (xDC
+s
+)−fs,e|/ ¯fe, while dropping from 8.81% at nominal
+reactance, remains at 4.21%. The reduction in mismatch is
+appreciable since the reactance adjustment was calculated by
+(P2) without accounting for AC PF physics.
+For evaluating the added improvement in power flow con-
+trol by adjusting line reactances explicitly under AC PF
+considerations, we solved the following optimization routine
+independently for selected scenarios
+min
+x ∥f AC
+s
+(x) −fs∥2
+2+w∥x −xDC
+s
+∥2
+2
+(P3)
+s.to
+f AC
+s
+(x) = ACPF(pd
+s, qd
+s, pg
+s; x),
+(6a)
+x ≥0,
+(6b)
+where the weight w is used to balance the regularization term
+that injects useful prior information xDC
+s
+available from solv-
+
+
+ing (P2). Despite the nonconvexity of (P3), it can be efficiently
+solved by developing gradient-based methods such as the ones
+reported in [17]. Since numerical tractability was not our
+emphasis, we solved (P3) for the selected 50 scenarios using
+the nonlinear least-squares minimization function lsqnonlin
+from MATLAB Optimization Toolbox. Since the function can
+only handle linear constraints, we augmented the cost function
+to model the AC PF bus power balance mismatches, thereby
+relaxing (6a). The AC PF mismatch penalty term was weighted
+such that the active and reactive power mismatch at all buses
+was less than 10−5 p.u. Note that as w →∞, the minimizer
+of (P3) denoted as x⋆
+s(w) would become equal to xDC
+s
+. Small
+values of w, on the other hand, allow aggressive changes in
+line reactances to minimize the AC line power flow mismatch.
+Fig. 3.
+Average (over lines) mismatch between desired line flow values fs
+and realized line flows under AC PF for varying values of line reactance.
+Mismatches at nominal reactance, DC setpoint from (P2), and setpoints from
+(P3) for varying w are plotted. Each trendline represents one scenario, while
+the bold line provides the average over all 50 scenarios.
+Figure 3 shows the percentage mismatch in line flows
+averaged over the 46 lines and 50 scenarios, when the AC
+power flow f AC
+s
+was computed for the nominal line reactance
+x◦, reactance setpoint from (P2) xDC
+s
+, and the reactance values
+obtained from (P3) for different values of w. We observed that
+by reducing w, and hence allowing (P3) to deviate from the
+reactances suggested by the DC setup, the average branch flow
+mismatch could be lowered to 1.8%, which can be deemed as
+a near-perfect match.
+IV. CONCLUSION AND FUTURE WORK
+This work has put forth a comprehensive analytical and
+empirical investigation into the system-wide impact of varying
+transmission line reactances towards power flow control. Un-
+der simplified DC PF settings, it has been shown that arbitrary
+flow patterns that do not constitute circulating power flows can
+be realized on a power network if all line reactances are con-
+trollable, even if restricted to be inductive. Empirical tests with
+the DC PF model further reveal that a significant level of flow
+controllability is achievable with controllers placed on fewer
+lines. Graph-theoretic insights are obtained on determining
+which lines would not benefit from flow controllers. Numerical
+tests under AC PF settings corroborate the validity of our
+analytical and empirical findings obtained using the simplified
+DC PF model, and demonstrate the capability of obtaining
+desired line flow patterns while accounting for detailed AC
+power flow. This work lays down the algorithmic framework
+for enabling future research on optimal siting, sizing, and
+operation of power flow controllers while reporting several
+observations that warrant further investigation.
+REFERENCES
+[1] U.S. Department of Energy, “Grid enhancing technologies: A case study
+on ratepayer impact,” U.S. Department of Energy, Washington, DC,
+Tech. Rep., 2022.
+[2] M. S.-A. Omid Mirzapour, Xinyang Rui, “Grid-enhancing technologies:
+Progress, challenges, and future research directions,” Electric Power
+Systems Research, vol. 230, p. 110304, 2024.
+[3] J. Gentle, S. M. S. Alam, M. Sun, Z. Priest, A. D. Rosso, D. Schweer,
+and S. Guggilam, “Implementation and operation of power flow control
+solutions for transmission systems,” Idaho National Laboratory and
+EPRI, Technical Report INL/RPT-24-78148, 2024.
+[4] Y. Guo, Y. Qin, M. Xiao, M. Porter, Q. Song, D. Popa, L. Efthymiou,
+K. Cheng, I. Kravchenko, L. Shao, H. Wang, F. Udrea, and Y. Zhang,
+“Enhancement-mode gan monolithic bidirectional switch with break-
+down voltage over 3.3 kv,” IEEE Electron Device Lett., vol. 46, no. 4,
+pp. 556–559, 2025.
+[5] J. Liu, H. Kim, A. J. Young, Y. Jiao, E. Persson, Z. Xiao, B. Pandya,
+T. M. Jahns, and M. Imam, “Gan bidirectional switches: Device technol-
+ogy, applications, and future prospects,” IEEE Trans. Power Electron.,
+pp. 1–14, 2025.
+[6] R. P. Kandula, A. Iyer, R. Moghe, J. E. Hernandez, and D. Divan, “Power
+router for meshed systems based on a fractionally rated back-to-back
+converter,” IEEE Trans. Power Electron., vol. 29, pp. 5172–5180, 2014.
+[7] J. C. Rosas-Caro, J. M. Ramirez, and F. Z. Peng, “Simple topologies for
+ac-link flexible ac transmission systems,” in IEEE Bucharest PowerTech,
+2009, pp. 1–8.
+[8] F. Mancilla-David and G. Venkataramanan, “Modeling and control of the
+static synchronous series compensator under different operating modes,”
+in IEEE Power Electronics Specialists Conference, 2007, pp. 2443–2449.
+[9] F. Mancilla-David, S. Bhattacharya, and G. Venkataramanan, “A com-
+parative evaluation of series power-flow controllers using dc- and ac-link
+converters,” IEEE Trans. Power Delivery, vol. 23, pp. 985–996, 2008.
+[10] J. Zhao, T. Zheng, and E. Litvinov, “A unified framework for defining
+and measuring flexibility in power system,” IEEE Trans. Power Syst.,
+vol. 31, pp. 339–347, 2016.
+[11] J. Li, F. Liu, Z. Li, C. Shao, and X. Liu, “Grid-side flexibility of power
+systems in integrating large-scale renewable generations: A critical
+review on concepts, formulations and solution approaches,” Renewable
+and Sustainable Energy Reviews, vol. 93, pp. 272–284, 2018.
+[12] X. Zhang, K. Tomsovic, and A. Dimitrovski, “Security constrained
+multi-stage transmission expansion planning considering a continuously
+variable series reactor,” IEEE Trans. Power Syst., vol. 32, pp. 4442–
+4450, 2017.
+[13] Y. Ou and C. Singh, “Improvement of total transfer capability using
+TCSC and SVC,” in Power Engineering Society Summer Meeting.
+Conference Proceedings, vol. 2, 2001, pp. 944–948.
+[14] ——, “Assessment of available transfer capability and margins,” IEEE
+Trans. Power Syst., vol. 17, pp. 463–468, 2002.
+[15] R. D. Zimmerman, C. E. Murillo-Sanchez, and R. J. Thomas, “MAT-
+POWER: steady-state operations, planning and analysis tools for power
+systems research and education,” IEEE Trans. Power Syst., vol. 26, pp.
+12–19, 2011.
+[16] K. Baker, “Solutions of DC OPF are never AC feasible,” in Proc. ACM
+International Conference on Future Energy Systems, ser. e-Energy ’21.
+New York, NY, USA: Association for Computing Machinery, 2021, p.
+264–268.
+[17] B. Taheri and D. K. Molzahn, “Ac-informed dc optimal transmission
+switching problems via parameter optimization,” IEEE Trans. Power
+Syst., vol. 40, no. 6, pp. 5422–5433, 2025.

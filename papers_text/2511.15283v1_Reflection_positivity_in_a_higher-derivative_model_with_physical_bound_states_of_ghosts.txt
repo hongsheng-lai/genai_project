@@ -1,0 +1,1056 @@
+Reflection positivity in a higher-derivative model with physical
+bound states of ghosts
+Manuel Asoreya1,
+Gastão Kreinb2,
+Miguel Pardina a3,
+and
+Ilya L. Shapiroc4
+a Centro de Astropartículas y Física de Altas Energías, Departamento de Física Teórica.
+Universidad de Zaragoza, E-50009 Zaragoza, Spain
+b Instituto de Física Teórica, Universidade Estadual Paulista, Rua Dr. Bento Teobaldo
+Ferraz, 271 - Bloco II, 01140-070 São Paulo, SP, Brazil
+c Departamento de Física, ICE, Universidade Federal de Juiz de Fora
+Campus Universitário, Juiz de Fora, 36036-900, MG, Brazil
+Abstract
+The inclusion of higher derivatives is a necessary condition for a renormalizable
+or superrenormalizable local theory of quantum gravity. On the other hand,
+higher derivatives lead to classical instabilities and a loss of unitarity at the
+quantum level. A standard way to detect such issues is by examining the re-
+flection positivity condition and the existence of a Källén–Lehmann spectral
+representation for the two-point function. We demonstrate that these require-
+ments for a consistent quantum theory are satisfied in a theory we have recently
+proposed. This theory is based on a six-derivative scalar field action featuring a
+pair of complex-mass ghost fields that form a bound state. Our results support
+the interpretation that physical observables can emerge from ghost dynamics
+in a consistent and unitary framework.
+Keywords:
+Quantum gravity, Higher derivatives, Ghosts, Bound states, Re-
+flection positivity, Källén-Lehmann representation
+MSC: 81T17, 81T10, 83C45
+1E-mail address: asorey@unizar.es
+2E-mail address: gastao.krein@unesp.br
+3E-mail address: mpardina@unizar.es
+4E-mail address: ilyashapiro2003@ufjf.br
+arXiv:2511.15283v1  [hep-th]  19 Nov 2025
+
+
+1
+Introduction
+Quantum gravity theories involving higher-derivative fields often suffer from instabilities
+at the classical level, which are related to the well-known Ostrogradski instabilities [1].
+In their quantum counterparts, these theories typically contain one-particle states with
+negative kinetic energy, known as ghosts.
+The presence of such particles can produce
+undesirable features, such as appearing at infinite times in incoming and outgoing states [2].
+Unfortunately, it is unavoidable to introduce higher-derivative terms into the action of
+gravity in quantum theory [4], or even at the semiclassical level, where the gravitational field
+is a classical background for quantum matter fields [3]. Because of the utmost importance
+of the subject in quantum gravity, numerous remarkable attempts have been made to solve
+the problem of ghosts using different approaches. Notably, starting from [5, 6], several
+studies have explored the possibility that ghosts in renormalizable quantum gravity with
+four derivatives might acquire masses with an imaginary component and, hence, become
+unstable due to loop corrections. In such scenarios, the ghost mode decays in the distant
+future, rendering the S-matrix unitary. Alternatively, there was an interesting proposal [8]
+to construct a theory in which massive ghosts are considered alongside the massless and
+healthy (i.e., stable) graviton.
+However, both ideas can hardly be implemented in the
+minimal renormalizable quantum gravity with four derivatives because in this theory there
+is not enough room for hosting a consistent subsector of composite of ghost fields.
+On the other hand, resolving the problem of ghosts may be simpler in superrenormaliz-
+able quantum gravity models that incorporate six or more derivatives [7]. The mass spec-
+trum in such models may contain real-mass ghosts accompanied by other massive, healthy
+(normal) states.
+Alternatively, there might exist ghost states with complex-conjugate
+masses. In both scenarios, one can envision a realization of Hawking’s idea [8], where
+he speculated that complex-conjugate ghost states might be accommodated in a consistent
+quantum theory, provided they remain off-shell and do not contribute to the asymptotic
+Hilbert space. In the complex-mass scenario, quantum corrections are unnecessary to ob-
+serve the emergence of the imaginary components of the masses, as described in one of
+the pioneering papers by Salam and Strathdee [6]. Within the six-derivative (or higher)
+quantum gravity framework, the complex-mass poles in the propagator are present already
+at tree level and persist under loop corrections [9].
+An appealing feature of superrenormalizable theories with complex-mass ghosts is the
+possibility that such ghosts do not appear in the asymptotic spectrum but instead form
+physical bound states, an idea reminiscent of early proposals in the context of QCD [10]
+and in modern QCD-inspired approaches [11]. However, implementing such a mechanism
+in quantum gravity is substantially more difficult due to the nonpolynomial nature of the
+2
+
+
+interactions and the presence of higher-derivative couplings, which make the dynamics
+more intricate than in typical QCD models. In spite of this, we recently introduced a toy
+model [12] that mimics certain features of higher-derivative quantum gravity and exhibits
+a bound state formed by complex-conjugate ghost fields. Related approaches exploring
+similar ghost-confinement mechanisms have also appeared in [22,23]. In the present work,
+we address the question of whether the toy model of forming bound states that was con-
+structed as an example in Ref. [12] is a consistent quantum field theory.
+Consistent quantum field theories are constrained by a set of basic and fundamental
+principles; see, e.g., [13–16] and also [26] for a recent discussion concerning higher derivative
+quantum gravity. Among the most relevant principles, one can list the Wightman axioms
+in Minkowski space, and in the Euclidean formalism, the Osterwalder–Schrader reflection
+positivity condition and the existence of a Källén–Lehmann spectral representation for the
+two-point function. Together with certain additional regularity conditions, these require-
+ments ensure the construction of the physical Hilbert space and the quantum fields from the
+Euclidean Schwinger functions via the Osterwalder–Schrader theorem [13]. The physical
+significance of these conditions has been thoroughly discussed in the aforementioned refer-
+ences, in particular, in the books [13,15]. Reflection positivity guarantees the positivity of
+the inner product in the reconstructed Hilbert space, while the Källén–Lehmann represen-
+tation, applicable to both Wightman and Schwinger two-point functions, encodes unitarity
+through the positivity of the spectral density. Analyticity, in turn, embodies causality by
+enforcing locality and relativistic propagation. Taken together, these conditions guarantee
+unitarity, causality, and the probabilistic interpretation of the theory in accordance with
+the principles of quantum mechanics. In the present work, we consider the Källén-Lehmann
+representation for the bound state and the Osterwalder–Schrader condition of reflection
+positivity in the corresponding quantum theory.
+The paper is organized as follows. The next section, Sec. 2, is a technical part of the
+introduction, as we discuss the link between reflection positivity and the Källén-Lehmann
+representation for the Euclidean two-point function. In Sec. 3 we analyze the reflection
+positivity condition in the model developed in Ref. [12].
+Sec. 4 discusses the Källén-
+Lehmann representation. Finally, in Sec. 5 we draw our conclusions.
+2
+Reflection positivity from Källén-Lehmann representation
+Let us start by analyzing the existing relation between reflection positivity and the positiv-
+ity of the spectral representation. In particular, we shall show that if a two-point Schwinger
+correlation function S2(x−y) satisfies the Källén-Lehmann representation, it automatically
+verifies reflection positivity. Reflection positivity implies the positivity of the product in
+3
+
+
+the Hilbert space [26]
+⟨θf, S2f⟩=
+Z
+d4x d4y (θf)(x) S2(x −y) f(y) ≥0 ,
+(1)
+for any continuous function f ∈C0(R4
++) with compact support in the positive time half-
+space (y0 > 0) of R4, where θ is the time-reversal transformation defined by (θf)(x0, x) =
+f ∗(−x0, x). Assuming a Källén-Lehmann representation for the two-point function
+S2(p2) =
+Z ∞
+0
+ds ρ(s)
+p2 + s ,
+ρ(s) ≥0 ,
+(2)
+which, after a Fourier transform, reads
+S2(x −y) =
+Z ∞
+0
+ds ρ(s) ∆s(x −y) ,
+∆s(x) =
+Z
+d4p
+(2π)4
+eip·x
+p2 + s
+(3)
+in a position space representation. Thus, the reflection positivity definition (1) factorizes
+as
+⟨θf, S2f⟩=
+Z ∞
+0
+ds ρ(s) Is
+(4)
+where
+Is =
+Z
+d4x d4y (θf)(x) ∆s(x −y) f(y) .
+(5)
+Since f(y) = f(y0, y) has support only at the half space y0 > 0, which means it is only
+non-vanishing for y0 > 0. (here and in what follows, this means the function is defined
+to be non-zero in the given region) , and (θf)(x0, x) = f ∗(−x0, x) only for x0 < 0, we set
+x0 = −t′ and y0 = t with t, t′ ≥0, such that
+Is =
+Z ∞
+0
+dt
+Z ∞
+0
+dt′
+Z
+d3x d3y f ∗(t′, x) ∆s((−t′, x) −(t, y)) f(t, y) .
+(6)
+After a Fourier transformation of the propagator kernel, we have
+∆s((−t′, x) −(t, y)) =
+Z
+d3p
+(2π)3eip·(x−y)
+Z dp0
+2π
+e−ip0(t+t′)
+p2
+0 + ω2 ,
+=
+Z
+d3p
+(2π)3 eip·(x−y) 1
+2ω e−ω(t+t′) ,
+ω =
+p
+p2 + s ,
+(7)
+4
+
+
+where clearly ω > 0. Inserting (7) back to (6) leads to
+Is =
+Z
+d3p
+(2π)3
+1
+2ω
+Z ∞
+0
+dt
+Z ∞
+0
+dt′ e−ω(t+t′)
+Z
+d3x d3y f ∗(t′, x)eip·xf(t, y)e−ip·y
+=
+Z
+d3p
+(2π)3
+1
+2ω
+Z ∞
+0
+dt′ e−ωt′ Z
+d3x f ∗(t′, x)eip·x
+ Z ∞
+0
+dt e−ωt
+Z
+d3y f(t, y)e−ip·y
+
+=
+Z
+d3p
+(2π)3
+1
+2ω
+
+Z ∞
+0
+dt e−ωt
+Z
+d3x f(t, x)e−ip·x
+
+2
+≥0 .
+(8)
+Since we have factorized the dot product into a manifestly positive norm, and the Källén-
+Lehmann hypothesis requires ρ(s) ≥0, we have
+⟨θf, S2f⟩=
+Z ∞
+0
+ds ρ(s) Is ≥0.
+(9)
+This means that the Källén-Lehmann representation with positive spectral density implies
+Osterwalder-Schrader reflection positivity. It should be remarked that the two-point cor-
+relation function satisfies the reflection positivity condition (1), even after the removal of
+possible UV divergences, whenever they are associated with local counterterms. The rea-
+son is that subtracting a polynomial term in p2 from the two-point function contributes
+as derivatives of a Dirac’s delta function in position space. Thus, this operation may add
+only contact terms that contribute solely at coincident points x = y, which are outside
+the support R4
++ of the f functions. Therefore, reflection positivity is also preserved by the
+renormalized two-point correlation functions.
+3
+Reflection positivity in the bound state model of complex ghosts
+Let us now consider the reflection positivity condition in the model with a bound state
+formed by a pair of complex-mass ghost-like elementary quantum states [12]. The starting
+point of the model is a six-derivative scalar action with one healthy massless particle and
+two particles with complex-conjugate masses. By using Gaussian integration in the free
+theory, one can find an equivalent action with three two-derivative scalar fields. Ignoring
+the massless part and introducing an interaction term, we arrive at the action
+Sgh =
+Z
+d4x
+n i
+2φ1
+ −∂2 + m2
+φ1 −i
+2φ2
+ −∂2 + m∗2
+φ2 −U(φ1, φ2)
+o
+,
+(10)
+where we choose the interaction of the form
+U(φ1, φ2) = 1
+4 λ12 φ2
+1φ2
+2 .
+(11)
+5
+
+
+Here λ12 > 0 is the coupling constant corresponding to the interaction of the two fields.
+Let us now explore the composite operator made of the product Oφ1φ2(x) of two ghosts
+with complex-conjugate masses
+Oφ1φ2(x) = φ1(x)φ2(x) .
+(12)
+The respective correlation function C(x, y) defines the nature of a possible bound state,
+C(x, y) = C(x −y) = ⟨Oφ1φ2(x) Oφ1φ2(y)⟩
+=
+1
+Zgh
+Z
+Dφ1Dφ2 Oφ1φ2(x) Oφ1φ2(y) e−Sgh .
+(13)
+Using the first order two-point function GB(p)
+GB(p) =
+Z
+d4k
+(2π)4 Dφ1(p −k) Dφ2(k) .
+(14)
+with the elementary propagators
+Dφ1(p) =
+i
+p2 + m2
+and
+Dφ2(p) =
+−i
+p2 + m∗2 ,
+(15)
+we arrive at the momentum representation of the resumed two-point correlation function
+(13) in the form
+C(p) = GB(p)
+∞
+X
+n=0
+
+λ12 GB(p)
+n =
+GB(p)
+1 −λ12 GB(p) .
+(16)
+Thus, the fundamental features of (13) depend on the expression for the first order two-
+point function (14). This integral can be written in explicit form
+GB(p) =
+Z
+d4k
+(2π)4
+1
+
+(p −k)2 + m2 
+k2 + m∗2 .
+(17)
+Our purpose is to explore whether the correlation functions of the composite operator
+satisfy Osterwalder–Schrader reflection positivity. In the next section, we will derive an
+explicit, renormalized Källén–Lehmann representation for (17), which, by the results of the
+previous section, establishes its reflection positivity. Here, however, we provide a direct
+and independent proof that does not rely on the Källén–Lehmann representation. Consider
+∆m(k) =
+1
+k2 + m2 =
+1
+k2
+0 + k2 + m2 ,
+∆m(x) =
+Z
+d4k
+(2π)4eik·x∆m(k) ,
+(18)
+the free propagator in momentum space, and its Fourier transform to the coordinate space.
+Since GB(p) is a convolution of two free propagators in momentum space, its corresponding
+6
+
+
+Fourier transform to position space GB(x) is the pointwise product and thus we need to
+apply the reflection positivity test (1) to the function
+GB(x −y) = ∆m(x −y)∆m∗(x −y) .
+(19)
+Using the well-known Fourier integral
+Z dk0
+2π
+eik0x0
+k2
+0 + k2 + m2 = e−ωk|x0|
+2 ωk
+,
+ωk =
+√
+k2 + m2 ,
+(20)
+the Euclidean free propagator then has the representation
+∆m(x) =
+Z
+d3k
+(2π)3
+1
+2ωk
+eik·x e−ωk|x0| .
+(21)
+Reflection positivity requires the positivity of the product in Hilbert space
+⟨θf, GBf⟩=
+Z
+d4x d4y (θf)(x) GB(x −y) f(y) ≥0 .
+(22)
+Since f has support in x0 > 0, the reflected function θf has support only in x0 < 0. Thus,
+in the integral (22), it is always satisfied that x0 < 0, y0 > 0. Therefore
+|x0 −y0| = −(x0 −y0) = −x0 + y0 = |x0| + y0 ,
+because for x0 < 0 we have |x0| = −x0. Now, expanding the bilinear form of reflection
+positivity (22) and inserting GB(x −y) explicitly (19), we have
+⟨θf, GBf⟩=
+Z
+d3k
+(2π)3
+1
+2ωk
+Z
+d3q
+(2π)3
+1
+2ω∗
+q
+×
+Z
+x0<0
+d4x
+Z
+y0>0
+d4y f ∗(−x0, x) f(y) ei(k+q)·(x−y) e−(ωk+ω∗
+q)(|x0|+y0).
+(23)
+Now let us change the variables u0 = −x0 > 0 and u = (u0, x) with u = x. Then clearly
+f ∗(−x0, x) = f ∗(u) and |x0| = u0, so the bilinear form (23) becomes
+⟨θf, GBf⟩=
+Z
+d3k
+(2π)3
+1
+2ωk
+Z
+d3q
+(2π)3
+1
+2ω∗
+q
+×
+Z
+u0>0
+d4u
+Z
+y0>0
+d4y f ∗(u) f(y) ei(k+q)·u e−i(k+q)·y e−(ωk+ω∗
+q)(u0+y0).
+(24)
+Let us introduce the auxiliary function
+Fk,q =
+Z
+y0>0
+d4y f(y) e−(ωk+ω∗
+q)y0 e−i(k+q)·y
+(25)
+7
+
+
+and its complex conjugate
+F ∗
+k,q =
+Z
+u0>0
+d4u f ∗(u) e−(ω∗
+k+ωq)u0 ei(k+q)·u .
+(26)
+Hence, using the modulus F ∗
+k,qFk,q = |Fk,q|2, the bilinear form can be expressed as
+⟨θf, GBf⟩=
+Z
+d3k
+(2π)3
+1
+2ωk
+Z
+d3q
+(2π)3
+1
+2ω∗
+q
+Fk,q
+2 ≥0 .
+(27)
+Since we have been able to write the reflection positivity bilinear form as an integral of
+absolute squares with a positive measure, the first order two-point function GB(x −y)
+satisfies the reflection positivity property. Note that in the derivation, it is crucial that
+the two masses are complex conjugates (to end up with conjugate frequency factors) and
+have positive real parts so that the Fourier time-integrals yield decaying exponentials. One
+might be worried about the fact that the first order two-point function integral (17) is
+divergent at large momentum. Since this UV divergence is logarithmic, the simplest way
+to renormalize it is via a momentum subtraction scheme, as was done in [12].
+Let us now define the first order renormalized two-point function as
+G′
+B(p) = GB(p) −GB(p0) ,
+(28)
+where the subtraction is done at p0 and therefore GB(p0) is a constant independent of p.
+In position coordinate space, this renormalized two-point function reads
+G′
+B(x) = GB(x) −GB(p0) δ(4)(x) .
+(29)
+It is easy to see that the subtracted first order two-point function G′
+B(x) also satisfies
+reflection positivity, since by the definition (22) we explicitly have
+⟨θf, G′
+Bf⟩= ⟨θf, GBf⟩−GB(p0)
+Z
+d4x d4y (θf)(x) δ(4)(x −y) f(y) .
+(30)
+The delta function reduces the last integral to
+Z
+d4x (θf)(x)f(x) ,
+but (θf)(x) = f ∗(−x0, x) has support only where x0 < 0, while f(x) has support only
+where x0 > 0. Since the supports are disjoint, the delta integral contribution vanishes;
+thus,
+⟨θf, G′
+Bf⟩= ⟨θf, GBf⟩,
+and so reflection positivity is preserved for the renormalized first order two-point function.
+The crucial point is that subtracting a constant in momentum space corresponds to adding
+8
+
+
+a contact term proportional to δ(4)(x) in position space. This contact term does not con-
+tribute to the Osterwalder–Schrader condition for test functions supported in the positive-
+time half-space. Thus, reflection positivity is preserved even after renormalization. More
+generally, subtracting a polynomial in p corresponds to adding derivatives of delta func-
+tions in position space; such contact terms are also invisible to the Osterwalder–Schrader
+conditions. This is a consequence of the principle that adding local contact terms does not
+change the physical correlation functions away from coincident points.
+4
+Renormalized Källén-Lehmann representation
+Let us now show that the Euclidean first order two-point function integral (17) also admits
+a Källén-Lehmann spectral representation, we need to establish the following relationship
+GB(p2) =
+Z ∞
+0
+ds ρ(s)
+p2 + s .
+(31)
+Here, ρ(s) ≥0 must be a positive spectral density function to ensure the unitarity and
+causality of the theory. Is it clear that if GB(p2) diverges, just as (17) does, then it is impos-
+sible to accomplish such a relation directly. It is usual in such cases to use a suitably sub-
+tracted spectral representation to deal with finite quantities. This subtracted/renormalized
+Källén-Lehmann representation can be derived by taking the derivative of (31) with respect
+to p2 and then integrating from p2
+0 to p2, i.e.,
+GR
+B(p2) = GB(p2) −GB(p2
+0) =
+Z ∞
+0
+ds ρ(s)
+
+1
+p2 + s −
+1
+p2
+0 + s
+
+,
+(32)
+where now GR
+B(p2) is finite. There are several ways of showing that GR
+B(p2) has a spectral
+representation with positive spectral density. One way starts from the original first order
+two-point function expression (17). After analytic continuation to Minkowski spacetime,
+we can use Cutkosky cut rules. In this case, the result is almost immediate [17]. The
+other way, which we detail here, is based on a method that was used in [18] for the case
+of purely imaginary masses. Here, we will apply it to the more general case of complex
+masses. We start by considering the derivative of (17) with respect to p2, expressed in
+terms of Feynman parameters (the overall factor 1/(4π)2 is omitted for simplicity)
+dGB(p2)
+dp2
+= −
+1
+Z
+0
+dx
+x(1 −x)
+x(1 −x)p2 + (1 −x)m2 + xm∗2
+= −
+1
+Z
+0
+dx
+
+p2 + (1 −x)m2 + xm∗2
+x(1 −x)
+−1
+= −
+1
+Z
+0
+dx
+
+p2 −i(2x −1)m2
+I + im2
+R
+x(1 −x)
+−1
+,
+(33)
+9
+
+
+where we have defined m2 = m2
+R+im2
+I. Next, we perform the following change of variables:
+α = (2x −1)m2
+I + im2
+R
+x(1 −x)
+=
+
+
+
+x = 0
+→
+α0 = −(1 −i θm)∞
+x = 1
+→
+α1 = +(1 + i θm)∞
+with
+θm = m2
+R
+m2
+I
+.
+(34)
+This means that the integration over α is along an infinite line tilted at an angle θm with
+respect to the real-α line. The integral in (33) then becomes
+dGB(p2)
+dp2
+= −
+α1
+Z
+α0
+dx
+dα
+
+dα
+p2 −iα
+= −i
+α1
+Z
+α0
+dα
+2α
+α −2m2
+I +
+p
+α2 + 4(m2
+I)2 −4im2
+Rα
+(p2 −iα)2
+,
+(35)
+where the second term in the integrand is x = x(α). Note that when solving x in terms of
+α, the root with the minus sign in front of the square root is not the appropriate one, as
+it does not yield the limiting values x = 0 and x = 1. We are working in Euclidean space
+p2 ≥0; therefore, the integral in (35) does not have poles in the upper half-plane but has
+a square root branch cut starting from a threshold value αthr. This threshold value is the
+value of α for which the square root in the integrand acquires an imaginary part; in the
+upper half plane, it is given by
+αthr = i
+
+2m2
+R + 2
+q
+(m2
+R)2 + (m2
+I)2
+
+.
+(36)
+This means that one can transform (35) into an integral over a contour Γ in the upper half
+plane. The integral over the contour at infinity vanishes because the integrand behaves as
+1/|α|2 for large α. Moreover, the integral over the term (α −2m2
+I)/2α vanishes because of
+Cauchy’s theorem. Therefore, one is left with two integrals (in opposite directions) along
+each side of the cut. To perform the integral over the square root more easily, we change
+the variable again, α = is, so that
+αthr −→s0 = 2m2
+R + 2
+q
+(m2
+R)2 + (m2
+I)2 ,
+(37)
+and
+dGB(p2)
+dp2
+= i
+Z
+Γ
+ds
+1
+(p2 + s)2
+p
+−s2 + 4(m2
+I)2 + 4m2
+Rs
+2s
+= i
+Z ∞
+s0
+ds
+1
+(p2 + s)2
+i
+p
+s2 −4(m2
+I)2 −4m2
+Rs
+2s
++ i
+Z s0
+∞
+ds
+1
+(p2 + s)2
+−i
+p
+s2 −4(m2
+I)2 −4m2
+Rs
+2s
+= −
+Z ∞
+s0
+ds
+s (p2 + s)2
+q
+s2 −4(m2
+I)2 −4m2
+Rs .
+(38)
+10
+
+
+This last expression confirms the well-known result that the integral of a function with
+a branch cut is twice the imaginary part of that function. Now, integrating over p2 and
+recovering the overall factor, we obtain
+GR
+B(p2) = GB(p2) −GB(p2
+0) =
+Z ∞
+s0
+ds
+p
+s2 −4(m2
+I)2 −4m2
+Rs
+(4π)2s
+
+1
+p2 + s −
+1
+p2
+0 + s
+
+, (39)
+where GB(p2
+0) is a finite real number corresponding to the subtraction, which is crucial for
+taming the UV divergence. Is it clear now, comparing (39) and (32), that the first order
+two-point function integral (17) satisfies a renormalized Källén-Lehmann representation
+with a manifestly non-negative spectral density given by
+ρ(s) = Θ(s −s0)
+p
+s2 −4(m2
+I)2 −4m2
+Rs
+(4π)2s
+≥0 .
+(40)
+In Minkowski space, this corresponds, up to a π factor, to the discontinuity of the first order
+two-point function GB(p2 = −τ + iϵ) along its branch cut, where it develops an imaginary
+part. An easy proof of this general statement can be seen directly from the Källén-Lehmann
+representation (31) of a correlator F(p2) and by using the Sokhotski–Plemelj identity:
+lim
+ϵ→0+ Im[F(p2 = −τ −iϵ)] = lim
+ϵ→0+
+1
+2i
+h
+F(−τ −iϵ) −F(−τ + iϵ)
+i
+=
+lim
+ϵ→0+
+1
+2i
+Z ∞
+0
+ds ρ(s)
+
+1
+−τ −iϵ + s −
+1
+−τ + iϵ + s
+
+=
+1
+2i
+Z ∞
+0
+ds ρ(s) (2πiδ(τ −s)) = πρ(τ) .
+(41)
+Once a renormalized Källén-Lehmann representation is obtained for the renormalized
+first order two-point function GR
+B(p2), it is straightforward to obtain such a representation
+for the resumed two-point correlation function CR(p2) defined in (16) with the first order
+renormalized function GB(p2). Using the same method that was used to derive the Källén-
+Lehmann decomposition of GB(p2), we can obtain the spectral function for CR(p2) by
+computing its imaginary part in Minkowski space, as in (41). From the definition of the
+correlator, we have
+lim
+ϵ→0+ Im
+
+CR(p2 = −τ −iϵ)
+
+=
+lim
+ϵ→0+ Im
+
+GR
+B(−τ + iϵ)
+1 −λ12GR
+B(−τ + iϵ)
+
+=
+Im[GR
+B(−τ)]
+(1 −λ12Re[GR
+B(−τ)])2 + (λ12Im[GR
+B(−τ)])2 = πρC(τ) ,
+(42)
+where ρC(s) corresponds to the spectral density of the continuum part (above the branch
+cut) of the resumed correlator CR(p2).
+An explicit expression for ρC(τ) above (42) is
+obtained from the real and imaginary parts of the renormalized expression in Minkowski
+11
+
+
+space, derived by analytic continuation of the first order correlation function, where we
+have fixed m2 = 1 + i and p0 = 1 for concreteness:
+Re
+
+GR
+B(−τ)
+
+= Re
+(
+−
+1
+32π2 τ
+ 
+π(−τ −1) −τ log 2
++ 4
+p
+(4 −τ)τ + 4
+
+tan−1
+ −τ + 2
+√
+2 + 2
+p
+(4 −τ)τ + 4
+
+−tan−1
+
+2 −τ
+p
+(4 −τ)τ + 4
+!)
+, (43)
+where
+Im[GR
+B(−τ)]
+= πΘ(s −(2 + 2
+√
+2))
+√
+τ 2−4−4τ
+(4π)2τ
+.
+(44)
+Of course, this is not the whole spectral density for the correlator, since by the defi-
+nition of CR(p2) we also have an isolated contribution from the pole associated with the
+ghost condensate bound state of mass M. The complete renormalized Källén-Lehmann
+representation of the resumed two-point correlation function is then
+CR(p2) =
+Z ∞
+0
+ds ρ(s)
+
+1
+p2 + s −
+1
+p2
+0 + s
+
+,
+(45)
+with
+ρ(s) = RC δ(s −M2) + ρC(s) Θ(s −s0) ≥0 ,
+RC = −
+1
+λ2
+12Re[ d
+dsGB(−s)|s=M2] .
+(46)
+Here RC is the residue corresponding to the bound state, and s0 is the threshold of a
+physical branch cut.
+Note that for the noninteracting theory, λ12 = 0, we obtain the
+spectral function of the first order two-point function, as it should. Also, the value of s0,
+given by (37), can be rewritten as
+s0 = 2m2
+R + 2
+q
+(m2
+R)2 + (m2
+I)2 = m2 + m∗2 + 2
+√
+m2m∗2
+=
+√
+m2 +
+√
+m∗2
+2
+= (m + m∗)2 ,
+(47)
+which generalizes the well-known result of the branch cut for real masses. Using the results
+of the first section, as we have obtained a renormalized Källén-Lehmann representation for
+the resumed two-point function correlator, we can claim that it also satisfies reflection
+positivity, since only a momentum independent subtraction (contact term) is needed to
+handle the UV divergence.
+5
+Conclusions
+We have investigated the consistency of a six-derivative scalar field theory featuring a bound
+state formed by a pair of ghost fields with complex-conjugate masses that we have proposed
+12
+
+
+in [12]. We examined whether this model satisfies two fundamental consistency conditions
+for a quantum field theory: Osterwalder–Schrader reflection positivity and the existence of
+a renormalized Källén–Lehmann spectral representation with a positive spectral density.
+We have shown that both conditions are satisfied by the two-point function of the composite
+(bound state) operator, indicating that physical observables can consistently emerge from
+the underlying ghost dynamics in such a theory. In fact a quantum field theory is not
+completely defined until one specifies which are their physical fields. In the present case
+they are the composite local fields
+Oφ1φ2(x) = φ1(x)φ2(x) ,
+Our main goal is to explore the possibility of forming bound states in higher (six or
+more) derivative models of quantum gravity, where ghost-like states with complex-mass
+poles naturally appear. For this reason, it would be interesting to extend the simplest
+toy model Ref. [12] endowed with a mechanism of confining ghosts into bound states by
+including more general types of interactions, e.g., those with derivatives, which are typical
+for quantum gravity models. One can foresee that the methods of proving the consistency
+of the theory with bound states, which we used here for the relatively simple scalar model
+with the single quartic interaction term (11), may eventually be used for more sophisticated
+models of quantum gravity involving ghosts in a controlled way.
+Acknowledgements
+G.K. acknowledges discussions with David Dudal on spectral representations of bound
+states of particles with complex masses.
+This work was supported by Spanish Grants
+no. PGC2022-126078NB-C21 funded by MCIN/AEI/10.13039/501100011033, Diputación
+General de Aragón-Fondo Social Europeo (DGA-FSE) Grant no. 2020-E21-17R of the
+Aragon Government; and the European Union, NextGenerationEU Recovery and Re-
+silience Program on Astrofísica y Física de Altas Energías, CEFCA-CAPA-ITAINNOVA
+(M.A.); Conselho Nacional de Desenvolvimento Científico e Tecnológico (CNPq) grants
+nos. 305122/2023-1 (I.Sh.), 313254/2025-7 (G.K.); Fundação de Amparo à Pesquisa do
+Estado de São Paulo (FAPESP), grant no. 2018/25225-9 (G.K.).
+References
+[1] M.V. Ostrogradski, Memoires sur les equations differentielles relatives au probleme
+des isoperimetretres, Mem. Acad. St. Petersburg 6 (1850) 385.
+13
+
+
+[2] M.J.G. Veltman, Unitarity and causality in a renormalizable field theory with unstable
+particles, Physica 29 (1963) 186.
+[3] R. Utiyama and B.S. DeWitt, Renormalization of a classical gravitational field inter-
+acting with quantized matter fields, J. Math. Phys. 3 (1962) 608.
+[4] K.S. Stelle, Renormalization of higher derivative quantum gravity, Phys. Rev. D16
+(1977) 953.
+[5] E. Tomboulis, 1/N expansion and renormalization in quantum gravity, Phys. Lett.
+B70 (1977) 361; B97 (1980) 77; Unitarity in Higher derivative quantum gravity,
+Phys. Rev. Lett. 52 (1984) 1173.
+[6] A. Salam and J. Strathdee, Remarks on high-energy stability and renormalizability of
+gravity theory, Phys. Rev. D18 (1978) 4480.
+[7] M. Asorey, J.L. López and I.L. Shapiro, Some remarks on high derivative quantum
+gravity, Int. Journ. Mod. Phys. A12 (1997) 5711, hep-th/9610006.
+[8] S.W. Hawking, Who’s afraid of (higher derivative) ghosts? (Preprint-86-0124, Cam-
+bridge, 1985).
+[9] L. Modesto and I.L. Shapiro, Superrenormalizable quantum gravity with complex
+ghosts, Phys. Lett. B755 (2016) 279, arXiv:1512.07600.
+[10] N. Nakanishi, A possible field-theoretical model of quark confinement, Prog. Theor.
+Phys. 54 (1975) 1213.
+[11] C.
+D.
+Roberts,
+Symmetry
+12,
+no.9,
+1468
+(2020)
+doi:10.3390/sym12091468
+[arXiv:2009.04011 [hep-ph]].
+[12] M. Asorey, G. Krein, M. Pardina and I.L. Shapiro, Normal bound states out of massive
+complex ghosts degrees of freedom in superrenormalizable quantum gravity theories,
+JHEP 01 (2025) 113, arXiv:2408.16514.
+[13] K. Osterwalder and R. Schrader, Axioms for Euclidean Green’s functions, Commun.
+Math. Phys. 31 (1973) 83; Axioms for Euclidean Green’s functions II, Commun. Math.
+Phys. 42 (1975) 281.
+[14] J. Glimm and A Jaffe,
+Quantum Physics, (Springer: Berlin-Heidelberg, Germany,
+1981).
+14
+
+
+[15] S. Weinberg, The Quantum Theory of Fields - Volume 1, (Cambridge University Press:
+Cambridge, UK, 1995).
+[16] M. Asorey, A concise introduction to Quantum Field Theory, Int. J. Geom. Meth.
+Mod. Phys. 16 (2018) supp01, 1940005 and From Classical Mechanics to Quantum
+Field Theory: A tutorial, M. Asorey, E. Ercolessi and V. Moretti, World Scientific,
+Singapore (2019).
+[17] David Dudal and Marcelo S.Guimaraes, On the computation of the spectral density of
+two-point functions: complex masses, cut rules and beyond, Phys. Rev. D83 (2011)
+045013, arXiv:1012.1440,
+[18] L. Baulieu, D. Dudal, M. Guimaraes, M.Q. Huber, S.P. Sorella, N. Vandersickel, and
+D. Zwanziger, Gribov horizon and i-particles: About a toy model and the construction
+of physical operators, Phys. Rev. D82 (2011) 025021, arXiv:0912.5153.
+[19] B. Holdom and J. Ren, QCD analogy for quantum gravity, Phys. Rev. D93 (2016)
+124030, arXiv:1512.05305.
+[20] M. Frasca, A. Ghoshal and N. Okada, Confinement and renormalization group equa-
+tions in string-inspired nonlocal gauge theories, Phys. Rev. D104 (2021) 096010,
+arXiv:2106.07629.
+[21] M. Frasca, A. Ghoshal and A.S. Koshelev, Confining the complex ghosts out, Phys.
+Lett. B841 (2023) 137924, arXiv:2207.06394.
+[22] J. Liu, L. Modesto and G. Calcagni, Quantum field theory with ghost pairs, JHEP 02
+(2023) 140, arXiv:2208.13536.
+[23] G. P. de Brito, Quadratic gravity in analogy to quantum chromodynamics: Light
+fermions in its landscape, Phys. Rev. D109 (2024) 086005, arXiv:2309.03838.
+[24] E.T. Tomboulis, Nonlocal and quasilocal field theories, Phys. Rev. D92 (2015)
+125037, arXiv:1507.00981, Superrenormalizable gauge and gravitational theories, hep-
+th/9702146.
+[25] T. Biswas, A. Conroy, A.S. Koshelev, A. Mazumdar, Generalized ghost-free quadratic
+curvature gravity, Class. Quant. Grav. 31 (2014) 015022 [Erratum: Class. Quant.
+Grav. 31 (2014) 159501], arXiv:1308.2319.
+[26] M. Asorey, L. Rachwal, I.L. Shapiro, Unitary issues in some higher derivative field
+theories, Galaxies 6 (2018) 1, 23, arXiv:1802.01036.
+15
+
+
+[27] N.V. Krasnikov, Nonlocal gauge theories, Theor. Math. Phys. 73 (1987) 1184.
+[28] L. Baulieu, D. Dudal, M.S. Guimaraes, M.Q. Huber, S.P. Sorella, N. Vandersickel, and
+D. Zwanziger, Gribov horizon and i-particles: about a toy model and the construction
+of physical operators, Phys. Rev. D 82 (2010) 025021, arXiv:0912.5153.
+[29] M.A.L. Capri, D. Dudal, M.S. Guimaraes, L.F. Palhares, and S.P. Sorella, Physical
+spectrum from confined excitations in a Yang-Mills-inspired toy model, Int. J. Mod.
+Phys. A 28 (2013) 1350034, arXiv:1208.5676.
+[30] S.P. Sorella, Gluon confinement, i-particles and BRST soft breaking, J. Phys. A 44
+(2011) 135403, arXiv:1006.4500.
+16

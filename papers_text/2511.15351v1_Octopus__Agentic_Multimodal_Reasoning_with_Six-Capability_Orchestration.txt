@@ -1,0 +1,1757 @@
+Octopus: Agentic Multimodal Reasoning with Six-Capability
+Orchestration
+Yifu Guo1∗
+Zishan Xu2∗
+Zhiyuan Yao3∗
+Yuquan Lu1
+Jiaye Lin4
+Sen Hu5
+Zhenheng Tang6
+Yingchao Li7†
+Huacan Wang8†
+Ronghao Chen5†
+1Sun Yat-sen University
+2Shanghai Jiaotong University
+3Zhejiang University
+4Tsinghua University
+5Peking University
+6The Hong Kong University of Science and Technology
+7University of Washington
+8University of Chinese Academy of Sciences
+∗Equal contribution
+†Corresponding authors
+(a) Octopus (Agentic Multimodal Reasoning with Six-Capability Orchestration)
+Spatial
+Gen
+Percept
+Logic
+Transform
+Aug
+Six Multimodal Reasoning Capabilities
+User Request
+Answer
+Output the
+Final Result
+Step 1
+Step 2
+Step 3
+Step 4
+Capabilities
+Capacity
+Selection
+Pick One
+Suitable Tool
+Output
+Reasoning Result
+(b) Existing Paradigms
+Programmatic Visual Manipulation
+Tool-Driven Visual Exploration
+Direct Inference
+Intrinsic Visual Imagination
+Input
+Output
+Tool Call
+Input
+Output
+Code
+Execution
+Input
+Output
+Vision
+Aided
+Input
+Output
+Thought
+MLLM
+MLLM
+MLLM
+MLLM
+Input for
+Reasoning
+Figure 1. Overview of (a) our proposed Octopus and (b) existing multimodal reasoning paradigms. Octopus dynamically selects one of
+the six core capabilities at each reasoning step and invokes its corresponding tool to solve the subproblem, enabling flexible and adaptive
+multimodal reasoning.
+Abstract
+Existing multimodal reasoning models and frameworks
+suffer from fundamental architectural limitations: most lack
+the human-like ability to autonomously explore diverse rea-
+soning pathways—whether in direct inference, tool-driven
+visual exploration, programmatic visual manipulation, or
+intrinsic visual imagination. Consequently, they struggle
+to adapt to dynamically changing capability requirements
+in real-world tasks.
+Meanwhile, humans exhibit a com-
+plementary set of thinking abilities when addressing such
+tasks, whereas existing methods typically cover only a sub-
+set of these dimensions. Inspired by this, we propose Oc-
+topus: Agentic Multimodal Reasoning with Six-Capability
+Orchestration, a new paradigm for multimodal agentic rea-
+soning. We define six core capabilities essential for multi-
+modal reasoning and organize a comprehensive evaluation
+benchmark, Octopus-Bench, accordingly. Octopus is ca-
+pable of autonomously exploring during reasoning and dy-
+namically selecting the most appropriate capability based
+on the current state. Experimental results show that Octo-
+pus achieves the best performance on the vast majority of
+tasks in Octopus-Bench, highlighting the crucial role of ca-
+arXiv:2511.15351v1  [cs.AI]  19 Nov 2025
+
+
+pability coordination in agentic multimodal reasoning.
+1. Introduction
+In
+recent
+years,
+multimodal
+large
+language
+models
+(MLLMs) have exhibited rapid progress across a diverse
+range of tasks, largely driven by advances in step-by-step
+reasoning, mathematical derivation, and structured planning
+within language models [11–13, 21, 33, 34, 42, 45, 54].
+As illustrated in Figure 1(b), existing multimodal rea-
+soning systems have evolved along several representative
+paradigms. Direct inference using MLLMs [6, 29, 61] typi-
+cally treats the visual information as static during reasoning,
+lacking mechanisms for active manipulation or iterative re-
+finement. Tool-driven and programmatic approaches [39]
+partially address this limitation by employing predefined
+tools to solve decomposed subproblems. However, their
+performance is constrained by the limited scale of avail-
+able tools, the lack of systematic organization, and the chal-
+lenges associated with debugging and validating generated
+code. Meanwhile, internal visual imagination methods [9]
+aim to enhance the model’s exploratory capacity, but in the
+absence of effective coordination with other reasoning ca-
+pabilities, their applicability remains restricted to specific
+domains such as path planning.
+In stark contrast, humans demonstrate not only strong
+autonomy in visual reasoning tasks [41] but also a rich
+repertoire of cognitive capabilities that jointly support ef-
+fective problem solving.
+Human reasoning is inherently
+multi-faceted: individuals flexibly engage perception, spa-
+tial understanding, logical deduction, abstraction, and imag-
+ination depending on the evolving needs of the task. This
+means that human problem solving is governed not by a sin-
+gle, universal mechanism, but by the dynamic orchestration
+of diverse capabilities.
+Such autonomy manifests in the ability to adaptively se-
+lect, combine, and refine capabilities across different stages
+of a task. For example, when tackling a visual problem,
+a person may begin by identifying fine-grained visual ele-
+ments (e.g., endpoints or obstacles), then infer geometric or
+path constraints, and subsequently use visual annotation or
+mental simulation to validate ambiguous steps. The essence
+of human visual reasoning thus lies in the interplay between
+self-directed decision-making and the strategic deployment
+of distinct cognitive abilities [22]. Large reasoning mod-
+els (LRMs), trained through autonomous reinforcement-
+style procedures, have recently shown emergent behaviors
+such as self-verification, reflection, and long-chain rea-
+soning [28].
+These behaviors mirror, at a coarse level,
+the agentic and capability-driven processes seen in hu-
+mans—precisely the type of unified mechanism we aim to
+instill in multimodal agents.
+Building on recent agentic reasoning frameworks such
+as Search-o1 [27], we introduce Octopus: Agentic Mul-
+timodal Reasoning with Six-Capability Orchestration, an
+agentic framework designed to operationalize this human-
+like flexibility, as illustrated in Figure 1(a). Octopus allows
+a model to dynamically invoke and compose different visual
+and cognitive abilities along the reasoning trajectory. To
+achieve this, we first systematically decompose multimodal
+reasoning into six fundamental capabilities. For example,
+Octopus can leverage its perceptual capability to capture
+visual information, employ the augmentation capability to
+highlight and annotate images, and utilize the generative ca-
+pability to maintain its internal imagination space. Based on
+this decomposition, we build our framework and organize a
+comprehensive benchmark to evaluate these crucial agentic
+multimodal reasoning abilities.
+In summary, our main contributions are as follows:
+• We systematically define six fundamental capabilities that
+underlie multimodal reasoning, and on this basis, we con-
+struct a comprehensive benchmark to evaluate the capa-
+bility of multimodal large models and agentic systems.
+• We propose a capability-based multimodal agentic rea-
+soning paradigm that emphasizes autonomous switching
+between different capabilities along the reasoning trajec-
+tory.
+• On our curated benchmark, our approach achieves the
+best performance on most tasks, highlighting the critical
+role of capability Orchestration in enhancing agentic rea-
+soning.
+2. Related Work
+Direct Inference by Multimodal/Vision LLMs.
+Recent
+large vision–language models (LVLMs) integrate early-
+stage visual encoders and language models through joint
+training to form more comprehensive multimodal reason-
+ing systems.
+Models such as GPT-4V [52], Gemini
+2.5 [10], Qwen2.5-VL [4],LLaVA-OneVision [25] and the
+InternVL [7, 17] series have demonstrated strong unified
+cross-modal understanding capabilities. More recently, sev-
+eral studies have extended the Chain-of-Thought (CoT) [45]
+paradigm to multimodal contexts, prompting models to en-
+hance reasoning with both textual and visual inputs [57].
+However, direct-reasoning models typically treat the im-
+age as a static, one-shot input, leaving the visual informa-
+tion neither actively manipulable nor dynamically updatable
+during inference. The reasoning process still occurs primar-
+ily within the linguistic domain, resulting in a substantial
+semantic gap between visual structures, spatial constraints,
+and symbolic reasoning. This limits the model’s perfor-
+mance on tasks requiring fine-grained visual operations or
+long-horizon visual reasoning.
+
+
+FROZENLAKE
+Color
+Spot_Difference
+Graph_Connectivity
+Graph_Isomorphism
+Graph_Maxflow
+Math_Breakpoint
+Math_Convexity
+Visual-Navigation
+Instrument
+Winner_Id
+Plane Geometry
+Solid Geometry
+Algebraic Reasoning
+Nested_Circle
+Arithmetic
+Combinatorics
+Counting
+How many blue floats are there?
+How many colors?
+OCR
+Which pair of lines are perpendicular?
+Relation-of-Line
+Metric Geometry
+Grid
+Dot_Shape
+Topology
+Arithmetic Reasoning
+Logical Reasoning
+Edge-Count
+Object_ 
+Localization
+Rotation
+Visual-Tiling
+Word_Search
+Relative_Dept
+h
+Which point is closer to the camera?
+Percept
+Aug
+Transform
+Gen
+Logic
+Spatial
+Functions
+illusion
+which one is the missing part?
+Jigsaw
+Tangram 
+Math_Parity
+Descriptive 
+Geometry
+Tool
+Tool
+Tool
+Tool
+Tool
+Tool
+Octopus
+Figure 2. Capability-centric organization of Octopus-Bench. This benchmark enables comprehensive assessment of multimodal rea-
+soning capability. The innermost circle represents the six fundamental multimodal reasoning capabilities. The middle ring contains the
+corresponding tool modules that operationalize each capability. The outer ring shows the diverse sub-tasks in our benchmark used to
+evaluate each capability dimension.
+Tool-Driven Visual Exploration.
+To improve visual rea-
+soning, prior work often relies on predefined external
+tools—such as detectors, segmenters, OCR systems, zoom-
+ing, cropping, or search strategies [19, 20, 49, 60]. The
+model typically acts as a controller that invokes these tools
+via prompts or plugins and builds reasoning cues from
+their outputs. However, these approaches usually depend
+on small, functionally limited toolsets that lack system-
+atic organization, and most follow a single-step invocation
+paradigm. Consequently, the model cannot iteratively inte-
+grate diverse tools during inference to construct richer rea-
+soning trajectories. In contrast, we develop a substantially
+larger and systematically organized tool ecosystem cover-
+ing dozens of visual capabilities mapped to six core cogni-
+tive competencies. Our framework further supports multi-
+round, iterative tool composition, enabling agentic, multi-
+step visual reasoning beyond one-shot tool scheduling.
+Programmatic Visual Manipulation.
+Some works [3,
+38, 39] enable models to perform visual operations such as
+cropping, annotation, and geometric computation by gener-
+ating executable code, offering greater flexibility than fixed
+tool calls. However, these methods typically rely on a sin-
+gle LMM to directly generate full programs, causing the
+overall reasoning quality to be heavily constrained by the
+model’s code-generation capability.
+When the generated
+code contains errors, the system lacks robust fallback mech-
+anisms, often leading to complete reasoning failure. More-
+over, these approaches generally rely solely on program
+generation for visual manipulation and struggle to lever-
+age existing high-precision visual tools in a complementary
+manner. In contrast, we treat code generation as one callable
+capability, implemented through dedicated code-generation
+modules, and decompose complex visual tasks into finer-
+grained substeps to improve execution reliability.
+Intrinsic Visual Imagination.
+A recent line of work, in-
+cluding Thinking with Generated Images [9], Visual Plan-
+ning [50] and Visualization-of-Thought [48], explores the
+use of image generation to emulate human spatial imagina-
+tion. While promising, these approaches are often restricted
+to specific domains such as navigation path visualization or
+geometric structure synthesis. Moreover, their generated-
+image reasoning processes cannot be seamlessly integrated
+with other cognitive abilities, limiting their generalization
+across diverse multimodal reasoning scenarios. In contrast,
+our framework treats visual creation as one of six core ca-
+pabilities and orchestrates it jointly with spatial understand-
+ing, logical programming, and other abilities. This design
+ensures that visual generation functions not as an isolated
+stage but as an integrated component of the overall reason-
+ing trajectory.
+
+
+3. Method
+3.1. Capability Mechanisms
+In existing multimodal reasoning research, models typically
+rely on a limited set of tool sets or code-execution modules
+to enhance their visual understanding. However, such ap-
+proaches remain limited in capability coverage and fail to
+comprehensively capture the essential processes underlying
+multimodal reasoning. To address this gap, we systemati-
+cally define six fundamental capabilities that together form
+a complete visual reasoning capability space.
+These six capability mechanisms decompose multimodal
+reasoning into a set of composable atomic skills. Multi-
+modal tasks inherently require the integration of informa-
+tion from both modalities and dynamic switching between
+capabilities during reasoning. For instance, in a geomet-
+ric proof task, humans rely on Spatial & Geometric Under-
+standing understand spatial relations and record symbolic
+derivations on draft. Similarly, our Octopus framework em-
+ploys corresponding capability-specific tools to handle such
+problems in a human-like manner—using bounding-box an-
+notation and distance computation to perceive geometric re-
+lationships, and applying logical programming for precise
+symbolic calculation.
+• Fine-grained Visual Perception:
+Accurately extracts
+structured visual information—such as text, object loca-
+tions, or local attributes—to ground downstream reason-
+ing. This includes capabilities like retrieving pixel-level
+cues or matching visual–text semantics (e.g., OCR for text
+extraction, grounding_dino for object localization).
+• Visual Augmentation & Marking: Externalizes inter-
+mediate reasoning by adding interpretable visual cues
+onto the image, helping the agent highlight salient evi-
+dence or clarify logical steps (e.g., highlight for region
+emphasis, arrow for directional annotation).
+• Spatial & Geometric Understanding: Performs rea-
+soning over geometric structures, spatial relations, and
+topological constraints, which is essential for geome-
+try problems or diagram interpretation (e.g.,geometry_-
+calculator
+for
+computing
+areas
+and
+perimeters,
+geom_perp_intersect for computing perpendicular
+intersections).
+• Logical Programming Reasoning: Executes structured
+symbolic operations through programmatic logic, en-
+abling precise computation or algorithmic reasoning
+beyond natural language (e.g., using code_agent to
+run mathematical expressions or implement geometric
+solvers).
+• Visual Transformation & Editing: Modifies visual con-
+tent to simplify problem structure or isolate relevant
+components, supporting stepwise multimodal reasoning
+(e.g., crop to focus on regions of interest, sam for
+segmentation-based decomposition).
+• Visual Creation & Generation: Produces new visual
+artifacts—such as sketches or simplified diagrams—that
+serve as intermediate reasoning aids or creative outputs
+(e.g., generate_image for synthetic image creation,
+simplify_image for structural abstraction).
+3.2. Problem Formulation
+We study a challenging multimodal reasoning task, where
+solving a question requires combining several kinds of rea-
+soning over both the image and text modalities. Formally,
+each instance provides two main inputs: a task instruction
+QT and an image Iinput. The model operates within a uni-
+fied multimodal reasoning space and generates a sequence
+of reasoning steps Ri throughout the inference process. Un-
+der this framework, Octopus is endowed with six cognitive
+capabilities, drawn from the capability set that governs how
+the model selects and applies different forms of multimodal
+reasoning.
+Ci ∈{Cpercept, Caug, Cspatial, Clogic, Ctransform, Cgen}, (1)
+which collectively correspond to the six core dimensions of
+multimodal reasoning.
+At the i-th step, the agent maintains a state Ei, which
+demonstrates the current visual and textual evidence. The
+reasoning and capability histories up to step i −1 are
+R<i = {R0, R1, . . . , Ri−1},
+C<i = {C0, C1, . . . , Ci−1},
+(2)
+where C<i encodes the different solution strategies that the
+agent has attempted so far.
+Given the current state and history, the agent chooses the
+next reasoning operator Ri and its concrete action ai ac-
+cording to a policy π:
+Ri = arg max
+R
+π(R | Iinput, QT , C<i, R<i, Ei−1) .
+(3)
+After extracting the selected capability Ci from the reason-
+ing trace Ri, the agent executes Ci to update the multimodal
+state
+(Ci, Ei−1) −→Ei.
+(4)
+By iteratively applying this procedure within the multi-
+modal reasoning space, the model integrates visual and tex-
+tual evidence and progressively moves toward the final an-
+swer.
+3.3. Agentic Reasoning and Capability Orchestra-
+tion
+Octopus demonstrates a significant advantage in its au-
+tonomous exploration of both inter-task diversity.
+Un-
+like many existing agent methods —which may perform
+well on specific task types but inherently constrain the
+exploration space—Octopus enables the model to flexibly
+
+
+Algorithm 1 Agentic Reasoning with Capability Orchestra-
+tion in Octopus
+Require: Task instruction QT , input image Iinput, Multi-
+modal reasoning model M
+1: State Initialization:
+2: C ←∅, R ←∅
+3: E ←{Iinput, QT }, i ←0
+4: Main Reasoning Loop
+5: while i < max_turn do
+6:
+i ←i + 1
+7:
+// Agentic Reasoning
+8:
+Ri ←M(Ei−1, C<i, R<i, QT )
+9:
+R ←R ∪{Ri}
+10:
+if Ri ends with </answer> then
+11:
+break
+12:
+end if
+13:
+// Choose Capability
+14:
+Ci ←Extract(Ri, <cap> , </cap> )
+15:
+C ←C ∪{Ci}
+16:
+Tool ←Extract(Ri, <tool_call> , </tool_call> )
+17:
+// Update State
+18:
+obs ←Excute(tool)
+19:
+E ←Ei−1 ∪{obs}
+20: end while
+21: return Extract(R, <answer> , </answer> )
+adapt its reasoning strategies according to varying task re-
+quirements.
+From the perspective of the overall reason-
+ing space, this autonomy allows Octopus to pursue di-
+verse reasoning trajectories through dynamic combinations
+of capabilities.
+As illustrated in Algorithm 1, Octopus
+performs agentic reasoning through dynamic capability or-
+chestration.
+Concretely, during the main reasoning pro-
+cess, given the current state and the historical reasoning
+trajectory—including previously selected capabilities and
+intermediate results—Octopus first produces an internal
+thought segment, encapsulated within the special tokens
+<think> ... </think> , which expresses its latent deliber-
+ation for the current step. Based on this internal reasoning,
+the model then analyzes the ongoing context to determine
+which capability is most appropriate for the current sub-
+problem.The selected capability is explicitly marked within
+the reasoning chain Ri using <cap> ... </cap> , which first
+determines the cognitive skill the model intends to ap-
+ply.
+Based on this chosen capability, Octopus then se-
+lects an appropriate tool from the corresponding capability-
+aligned toolset. The specific tool is identified through the
+<tool_call> ... </tool_call> annotation, and its execu-
+tion output is incorporated back into the multimodal reason-
+ing context for subsequent steps.
+This two-stage procedure—first selecting a capabil-
+ity, then choosing a tool conditioned on that capabil-
+ity—parallels how humans decompose multimodal tasks:
+people typically determine the type of cognitive capability
+a problem requires, before selecting the concrete action that
+can best accomplish it.
+Finally, when the model concludes the task, the final
+solution is emitted within the designated answer tokens
+<answer> ... </answer> .
+This process can be formally expressed as:
+Ri = M
+ Ei−1, C<i, R<i, QT
+
+,
+(5)
+where Ei−1 denotes the reasoning context up to step i −1,
+C<i and R<i represent the previously invoked capabilities
+and reasoning results, and QT denotes the task objective.
+4. Experiment
+4.1. Octopus-Bench
+We evaluate our method on Octopus-Bench, a capability-
+centric evaluation suite constructed by resampling and re-
+organizing instances from several widely used multimodal
+reasoning benchmarks.
+The overview of Octopus-Bench
+is depicted in Figure 2. Its sources include BLINK [16],
+TIR-Bench [26], IsoBench [15], Geometry3K [31], Math-
+Verse [56], WeMath [37], Math-Vision [43] and Math-
+Vista [32]. We additionally conduct supplementary experi-
+ments on COMT [8], V ∗Bench [47], and MMVP [40].
+To construct Octopus-Bench, we sample and reorganize
+instances from the above benchmarks and annotate each in-
+stance with one or more of our six capability dimensions:
+fine-grained perception, visual augmentation and marking,
+spatial and geometric understanding, logical programming
+reasoning, visual transformation and editing, and visual cre-
+ation and generation.
+We further include several visual
+navigation and visual tiling tasks—such as FrozenLake-
+style visual navigation [53]—to compensate for the under-
+representation of interactive, long-horizon scenarios in ex-
+isting benchmarks. Octopus-Bench thus provides a unified
+capability-oriented lens for evaluating multimodal reason-
+ing models, enabling consistent model comparison across
+capability dimensions as well as fine-grained analysis of
+how an agent allocates and orchestrates its six capabilities
+across tasks of varying difficulty.
+4.2. Implementation Details
+Backbone and Tool Models.
+We build Octopus on top
+of the off-the-shelf GPT-4o model [35], which serves as
+the unified backbone for planning, capability selection, and
+high-level reasoning. We use Claude 4.5 Sonnet [2] as the
+primary driver for our code tool, serving as the core model
+for programmatic and symbolic reasoning. For fine-grained
+visual perception, our observation tool is powered by Gem-
+ini 2.5 Flash [18], which we use for operations such as
+
+
+Model
+Sim
+Fore
+IQ
+Refl
+Count
+Depth
+Spatial
+Jigsaw
+VisCorr
+SemCorr
+ArtStyle
+FunCorr
+Local
+MultiV
+Avg
+Closed-source MLLMs
+GPT-4o [1]
+65.4
+79.55
+30
+38.8
+51.7
+74.2
+69.2
+55.3
+75.0
+54.0
+82.9
+39.2
+56.0
+60.2
+59.39
+Gemini-2.5-Pro [10]
+55.9
+45.5
+27.3
+46.3
+65.00
+50
+67.1
+54.0
+37.2
+22.1
+49.5
+32.3
+46.4
+41.4
+45.71
+Claude-3.5-Sonnet [36]
+64.2
+74.3
+26.2
+41.3
+47.4
+53.2
+71.7
+41.8
+59.7
+39.6
+76.8
+31.5
+51.7
+49.2
+52.04
+Open-source MLLMs
+Qwen2VL-7B [44]
+53.33
+38.64
+16.9
+33.58
+73.33
+57.26
+79.72
+54.0
+33.72
+31.65
+51.28
+18.46
+54.1
+45.11
+45.79
+Qwen2.5-VL-72B [4]
+59.2
+71.3
+22.2
+49.2
+57.7
+62.8
+79.6
+12.6
+25.4
+32.6
+41.4
+29.7
+49.6
+56.4
+46.41
+Qwen2.5-VL-32B [4]
+41.2
+62.4
+17.5
+41.6
+49.7
+60.5
+65.7
+8.6
+20.5
+27.5
+35.3
+21.5
+39.5
+41.2
+38.05
+Qwen2.5-VL-7B [4]
+79.26
+34.85
+8.1
+25.37
+65.00
+65.32
+83.22
+56.67
+40.12
+24.46
+58.97
+19.23
+41.8
+43.61
+46.14
+LLaVA-v1.5-7B [30]
+46.3
+28.0
+24.0
+36.6
+43.4
+52.4
+61.5
+11.3
+25.6
+23.0
+47.9
+21.5
+48.8
+49.6
+37.14
+LLaVA-v1.5-13B [30]
+46.3
+27.3
+28.0
+45.5
+50.0
+53.2
+67.8
+58.0
+29.1
+32.4
+47.9
+20.8
+47.2
+41.4
+42.49
+LLaVA-1.6-M-7B [24]
+21.2
+38.2
+3.3
+29.4
+31.6
+47.6
+42.3
+20.4
+9.4
+2.4
+15.6
+10.2
+21.4
+24.6
+22.69
+LLaVA-Next-72B [24]
+47.1
+69.3
+15.4
+44.5
+52.2
+52.4
+71.5
+10.5
+21.9
+32.3
+32.2
+23.3
+42.5
+45.3
+40.03
+General Training Models
+DeepEyes-7B [59]
+63.64
+39.4
+13.6
+31.1
+61.2
+83.9
+87.2
+56.8
+60.5
+38.2
+41.4
+21.9
+51.2
+51.6
+50.1
+DeepSketcher-7B [55]
+58.24
+27.3
+29.8
+39.4
+62.3
+61.3
+86.3
+54.1
+51.2
+32.4
+37.9
+31.2
+73.3
+60.7
+50.4
+VTS-V [5]
+85.19
+71.21
+30.3
+40.30
+67.50
+79.84
+85.31
+75.33
+82.56
+56.83
+80.34
+53.08
+68.85
+52.63
+66.4
+Multimodal Reasoning Frameworks
+GPT-4o + Sketchpad [20]
+84.2
+79
+22.8
+33.1
+66.7
+83.9
+81.1
+70.7
+80.8
+58.3
+77.19
+42.1
+65.4
+45.6
+63.64
+GPT-4o + CoT [1]
+63.70
+62.88
+23.11
+41.04
+65.00
+73.39
+82.52
+62.0
+82.56
+57.55
+82.05
+57.69
+60.66
+53.38
+61.97
+GPT-4o + SoM [51]
+63.70
+60.32
+20.65
+36.32
+43.33
+68.55
+76.22
+49.33
+83.72
+52.52
+80.92
+47.69
+59.84
+56.40
+61.6
+GPT-4o + PyVision [58]
+76.2
+72.1
+20.3
+34.2
+67.9
+79.3
+82.1
+66.3
+79.1
+57.2
+75.2
+40.2
+63.2
+46.2
+61.4
+GPT-4o + MMFactory [14]
+75.30
+84.80
+28.7
+35.10
+61.70
+79.84
+81.80
+75.30
+85.50
+58.3
+83.0
+55.40
+59.00
+60.20
+68.86
+GPT-4o + Octopus
+90.21
+86.1
+34.1
+51.3
+75.3
+85.1
+90.2
+78.1
+84.42
+58.1
+85.2
+54.2
+70.8
+62.1
+71.8
+Table 1. Results on the Octopus-BLINK, which evaluates MLLMs on 14 fine-grained visual perception and reasoning categories. We
+report accuracy (%) for closed-source MLLMs, open-source MLLMs, multimodal reasoning frameworks, and generally trained models,
+along with the overall average (Avg).
+Octopus
+VTS-V
+DeepSketcher-7B
+Sketchpad
+PyVision
+Gemini-2.5-Pro
+DeepEyes-7B
+Percept
+Gen
+Aug
+Spatial
+Transform
+Logic
+Figure 3. Capability comparison on Octopus-Bench. Octopus
+shows the most balanced and consistently strong performance.
+OCR, and region-level captioning. All these models are ac-
+cessed via their official APIs without any additional fine-
+tuning or task-specific training; our contributions lie en-
+tirely in the paradigm design and capability orchestration.
+Capability and Tool Specification. We encode the six ca-
+pability dimensions and their associated tools directly in the
+system prompt. Each capability is given a concise natural-
+language description and a list of admissible tools, and the
+agent is instructed to (i) first select a capability, (ii) plan a
+sequence of tool calls within that capability, and (iii) sum-
+marize intermediate observations before producing the final
+Figure 4. Ablation study of individual capabilities on Octopus-
+Blink and Octopus-TIR.
+answer. This protocol is implemented via a unified prompt-
+ing template with explicit markers for internal reasoning,
+capability selection, tool invocations, and final responses.
+Inference Configuration. We use a unified inference con-
+figuration across all benchmarks and models.
+We allow
+long-context reasoning by capping the effective context
+length at roughly 60% of the maximum context window
+supported by GPT-4o, and we permit up to 10 reasoning
+turns. Decoding uses a temperature of τ = 0.3 and top-p of
+p = 1.0, yielding effectively near-deterministic behaviour
+across runs. Closed-source baselines are run with their of-
+ficial or recommended settings whenever available, and we
+align decoding hyperparameters with our agent as much as
+possible to ensure a fair comparison.
+
+
+Model
+All
+Color
+Pro
+OCR
+SR
+Maze
+Math
+WS
+LL-VQA
+IR
+SD
+JG
+VS
+RG
+Closed-source MLLMs
+GPT-4o
+17.2
+26.4
+23.2
+10.8
+10.6
+20.3
+16.1
+0.7
+26.9
+8.5
+19.2
+6.4
+35.1
+20.3
+Gemini-2.5-Pro
+30.3
+44.2
+22.3
+25.4
+34.2
+24.6
+31.3
+12.3
+42.5
+20.3
+28.1
+10.7
+58.4
+30.7
+Claude-3.5
+15.4
+21.3
+22.5
+14.4
+16.2
+16.3
+12.2
+2.1
+30.5
+2.2
+15.3
+5.1
+31.4
+15.4
+Open-source MLLMs
+Qwen2.5-VL-72B
+20.2
+37.1
+15.4
+33.2
+24.3
+35.1
+23.5
+3.3
+32.3
+13.1
+14.2
+0.2
+26.3
+12.3
+Qwen2.5-VL-32B
+19.3
+26.4
+19.3
+25.3
+10.4
+18.2
+23.5
+2.1
+14.2
+15.3
+13.4
+5.2
+48.2
+13.1
+Qwen2.5-VL-7B
+16.2
+21.1
+11.4
+48.3
+14.3
+15.4
+24.2
+0.1
+22.1
+11.2
+24.3
+0.1
+21.2
+9.2
+LLaVA-Next-72B
+11.3
+20.3
+16.1
+3.2
+8.2
+11.2
+15.3
+0.1
+10.1
+11.2
+16.3
+0.1
+23.3
+12.1
+LLaVA-1.6-M-7B
+11.2
+27.1
+8.3
+3.1
+16.1
+4.1
+17.2
+0.0
+14.2
+6.2
+18.1
+0.1
+23.4
+12.1
+General Training Models
+DeepEyes-7B
+17.3
+22.0
+6.7
+41.7
+19.9
+16.7
+19.8
+1.2
+16.0
+3.8
+19.9
+3.9
+50.8
+12.0
+DeepSketcher-7B
+17.8
+22.0
+7.0
+42.0
+20.5
+17.0
+24.0
+1.1
+15.9
+4.0
+20.5
+4.1
+51.0
+12.3
+Multimodal Reasoning Frameworks
+GPT-4o + Sketchpad
+29.8
+51.2
+27.5
+61.0
+55.6
+16.3
+24.9
+9.2
+33.1
+18.4
+35.1
+8.1
+56.8
+45.3
+GPT-4o + PyVision
+29.2
+52.1
+25.9
+60.2
+53.1
+15.1
+24.3
+9.5
+31.0
+17.0
+34.8
+7.9
+54.2
+44.0
+GPT-4o + Octopus
+33.4
+47.7
+25.2
+68.5
+48.8
+27.6
+34.1
+15.6
+45.2
+23.7
+31.2
+13.3
+61.6
+33.8
+Table 2. Results on Octopus-TIR, which evaluates multimodal models on 13 visual reasoning and perception tasks (Color, Pro, OCR, SR,
+Maze, Math, WS, LL-VQA, IR, SD, JG, VS, RG). We report accuracy (%) for closed-source MLLMs, open-source MLLMs, multimodal
+reasoning frameworks, and generally trained models, with All denoting the average over all tasks.
+Figure 5. Ablation study on the capacity selection mechanism
+across five different language models.
+4.3. Main Results
+We systematically evaluate the proposed Octopus paradigm
+on Octopus-Bench and its constituent sub-benchmarks.
+As shown in Table 1, on the Octopus-BLINK bench-
+mark, our method achieves the best overall performance
+to date: across 14 fine-grained visual perception and rea-
+soning subtasks, GPT-4o+Octopus obtains an average ac-
+curacy of 71.8%, significantly outperforming existing mul-
+timodal frameworks and general-purpose MLLMs. Com-
+pared with the strongest baseline (GPT-4o+MMFactory,
+68.86%), our approach achieves a +2.94% improvement.
+On Octopus-TIR(Table 2), our method again delivers the
+best overall result: GPT-4o+Octopus reaches 33.4% on the
+All metric, surpassing all closed-source/open-source mod-
+els and multimodal reasoning frameworks. Relative to GPT-
+Model
+Isobench
+Geometry3K
+Mathverse
+Wemath
+Mathvista
+Mathvision
+GPT-4o
+77.5
+20.1
+42.1
+39.2
+49.1
+55.5
+Gemini-2.5-Pro
+78.2
+26.3
+44.3
+41.6
+52.2
+62.3
+Claude-3.5
+70.3
+37.2
+41.5
+40.9
+42.1
+53.7
+Qwen2.5-VL-72B
+69.3
+19.2
+39.2
+41.5
+33.8
+35.6
+Qwen2.5-VL-32B
+69.7
+14.3
+31.4
+36.6
+29.3
+32.5
+Qwen2.5-VL-7B
+50.3
+8.4
+29.9
+34.6
+23.1
+27.2
+LLaVA-Next-72B
+46.2
+5.6
+21.4
+27.9
+19.6
+25.1
+LLaVA-1.6-M-7B
+51.3
+16.5
+38.8
+37.9
+34.2
+31.4
+VILASR-7B [46]
+-
+-
+29.4
+23.7
+57.6
+25.0
+DeepEyes-7B
+25.1
+46.3
+42.2
+38.9
+70.1
+26.6
+Bagel-Zebra-CoT-7B [23]
+-
+-
+48.8
+28.0
+64.7
+28.2
+Mirage-7B [53]
+-
+-
+27.3
+16.7
+63.7
+28.6
+DeepSketcher-7B
+42.1
+42.7
+43.2
+37.1
+69.1
+32.3
+GPT-4o+Octopus
+79.2
+48.2
+49.2
+43.1
+75.3
+65.4
+Table 3. Results on Octopus-Math. We report accuracy (%) on
+IsoBench [15], Geometry3K [31], MathVerse [56], WeMath [37],
+MathVista [32], and Math-Vision [43]. GPT-4o + Octopus denotes
+our capability-orchestrated framework built on GPT-4o.
+4o+Sketchpad (29.8%) and GPT-4o+PyVision (29.2%), our
+approach improves performance by +3.6 and +4.2 %, re-
+spectively. On Octopus-Math benchmark (Table 3), Octo-
+pus also achieves strong performance across all six datasets,
+including IsoBench (79.2), Geometry3K (48.2), and Math-
+Vista (75.3). Furthermore, Figure 3 presents a compari-
+son across the six capability dimensions on Octopus-Bench,
+showing that Octopus exhibits a more balanced and robust
+performance than other models. Overall, our capability-first
+design and structured tool planning consistently enhance di-
+verse multimodal tasks, demonstrating the effectiveness and
+generality of our unified capability orchestration.
+
+
+As a professional maze solver, your task is to analyze a grid-based map and devisean action plan that enables a player to reach the goal from the 
+starting point without falling into any holes, using the fewest possible moves…….Please provide your action plan. 
+Query
+Step 1
+Output
+Pick
+Step 2
+Pick
+{ "grid_size": { "width": 6, "height": 6 },
+"obstacles": 
+[ { "x": 1, "y": 0 }, 
+{ "x": 1, "y": 1 }, 
+{ "x": 2, "y": 1 }, 
+{ "x": 3, "y": 3 }, 
+{ "x": 5, "y": 3 }, 
+{ "x": 3, "y": 4 },
+{ "x": 3, "y": 5 } ], 
+"goal": { "x": 2, "y": 3, "type": "gift" },
+"agent": { "x": 5, "y": 4, "type": "elf" }}
+Step 3
+Pick
+Output
+Shortest path: 
+[(5, 4), (4, 4), (4, 3), (4, 2), (3, 2), (2, 2), (2, 3)]
+\boxed{L,U,U,L,L,D}
+Answer
+Select Capacity
+Select Capacity
+{ "grid_size": { "width": 6, "height": 6 },
+"obstacles": 
+[ { "x": 1, "y": 0 }, 
+{ "x": 1, "y": 1 }, 
+{ "x": 2, "y": 1 }, 
+{ "x": 3, "y": 3 }, 
+{ "x": 5, "y": 3 }, 
+{ "x": 3, "y": 4 },
+{ "x": 3, "y": 5 } ], 
+"goal": { "x": 2, "y": 3, "type": "gift" },
+"agent": { "x": 5, "y": 4, "type": "elf" }}
+Select Capacity
+Output
+As a professional maze solver, your task is to analyze a grid-based map and devisean action plan that enables a player to reach the goal from the 
+starting point without falling into any holes, using the fewest possible moves…….Please provide your action plan. 
+Query
+Step 1
+Output
+Pick
+Step 2
+Pick
+{ "grid_size": { "width": 6, "height": 6 },
+"obstacles": 
+[ { "x": 1, "y": 0 }, 
+{ "x": 1, "y": 1 }, 
+{ "x": 2, "y": 1 }, 
+{ "x": 3, "y": 3 }, 
+{ "x": 5, "y": 3 }, 
+{ "x": 3, "y": 4 },
+{ "x": 3, "y": 5 } ], 
+"goal": { "x": 2, "y": 3, "type": "gift" },
+"agent": { "x": 5, "y": 4, "type": "elf" }}
+Step 3
+Pick
+Output
+Shortest path: 
+[(5, 4), (4, 4), (4, 3), (4, 2), (3, 2), (2, 2), (2, 3)]
+\boxed{L,U,U,L,L,D}
+Answer
+Select Capacity
+Select Capacity
+{ "grid_size": { "width": 6, "height": 6 },
+"obstacles": 
+[ { "x": 1, "y": 0 }, 
+{ "x": 1, "y": 1 }, 
+{ "x": 2, "y": 1 }, 
+{ "x": 3, "y": 3 }, 
+{ "x": 5, "y": 3 }, 
+{ "x": 3, "y": 4 },
+{ "x": 3, "y": 5 } ], 
+"goal": { "x": 2, "y": 3, "type": "gift" },
+"agent": { "x": 5, "y": 4, "type": "elf" }}
+Select Capacity
+Output
+Figure 6. Case study of Octopus. In a visual maze-solving task, Octopus follows a capability-first workflow: Step 1 simplifies the raw
+map, Step 2 extracts grid-level semantics, and Step 3 computes the optimal path through logical reasoning. The final solution emerges
+from integrating multimodal evidence across these steps.
+4.4. Additional Study
+4.4.1. Necessity of the Six Capabilities
+Octopus highlights the importance of comprehensive capa-
+bility coverage in multimodal reasoning. As shown in Fig-
+ure 4, on both Octopus-BLINK and Octopus-TIR, remov-
+ing any single capability leads to a noticeable performance
+drop of approximately 5–10%. An interesting observation
+is that removing the logic capability causes the most severe
+degradation. This suggests that when tasks involve complex
+reasoning patterns that cannot be resolved through simple
+combinations of existing visual tools, the logic capability
+enables Octopus to perform rigorous analysis in the com-
+putation and code space, thereby playing a critical role in
+achieving high-quality reasoning.
+Moreover, as shown in Figure 5, when we disable capa-
+bility selection and allow the agent to choose tools directly
+from the full tool set, performance drops to a certain ex-
+tent. This indicates that the capability-first strategy effec-
+tively mimics how humans decompose tasks in the reason-
+ing space, leading to more stable and structurally coherent
+decision-making.
+4.4.2. Sensitive Study
+We additionally evaluate how different MLLMs perform
+when used as the backbone of our unified model. As shown
+in Figure 5, Octopus exhibits consistently stable perfor-
+mance across various reasoning backbone model choices,
+demonstrating the robustness of our method with respect to
+the underlying MLLM.
+4.5. Case Study
+Figure 6 illustrates a representative example from Octopus-
+Bench, where the Octopus is asked to solve a grid-based
+maze and produce the shortest safe action sequence. The
+agent progressively selects different capabilities to decom-
+pose the task. The process begins with the Generate capa-
+bility, which is used to transform the raw maze image into a
+clean and structured grid representation. Then, using fine-
+grained perception, the agent extracts structured informa-
+tion such as obstacles, the agent’s location, and the goal po-
+sition. Finally, the agent invokes logical programming rea-
+soning to compute the shortest collision-free path through
+code execution, yielding a coordinate-level trajectory.
+Based on this computed path, the agent generates the fi-
+nal action plan, producing the optimal movement sequence
+(e.g. L,U,U,L,L,L,D). This case demonstrates how Octopus
+integrates different capabilities to solve multi-step naviga-
+tion tasks in a mutlimodal reasoning space.
+5. Conclusion
+In this work, we propose Octopus, a new agentic rea-
+soning paradigm for multimodal reasoning tasks.
+We
+
+
+systematically define six fundamental capabilities essential
+for multimodal reasoning and further construct a com-
+prehensive
+evaluation
+benchmark—Octopus-Bench—to
+assess the capability coverage of existing MLLMs and
+agent frameworks.
+Our framework enables models to
+autonomously
+select
+the
+most
+appropriate
+capability
+at each reasoning step, forming human-like reasoning
+trajectories through dynamic composition and adaptive
+decision-making. Experimental results on Octopus-Bench
+demonstrate that Octopus significantly outperforms state-
+of-the-art MLLMs and agent framwork. We call for future
+research in multimodal reasoning to move beyond tool-
+driven approaches toward capability-level coordination,
+paving the way for next-generation intelligent systems that
+are more generalizable, interpretable, and autonomous.
+References
+[1] Josh Achiam, Steven Adler, Sandhini Agarwal, Lama Ah-
+mad, Ilge Akkaya, Florencia Leoni Aleman, Diogo Almeida,
+Janko Altenschmidt, Sam Altman, Shyamal Anadkat, et al.
+Gpt-4 technical report.
+arXiv preprint arXiv:2303.08774,
+2023. 6
+[2] Anthropic. Claude sonnet 4.5 system card, 2025. System
+card. 5
+[3] Rabiul Awal, Mahsa Massoud, Aarash Feizi, Zichao Li,
+Suyuchen Wang, Christopher Pal, Aishwarya Agrawal,
+David Vazquez, Siva Reddy, Juan A Rodriguez, et al. Web-
+mmu: A benchmark for multimodal multilingual website un-
+derstanding and code generation. In Proceedings of the 2025
+Conference on Empirical Methods in Natural Language Pro-
+cessing, pages 25129–25156, 2025. 3
+[4] Shuai Bai, Keqin Chen, Xuejing Liu, Jialin Wang, Wenbin
+Ge, Sibo Song, Kai Dang, Peng Wang, Shijie Wang, Jun
+Tang, et al. Qwen2. 5-vl technical report. arXiv preprint
+arXiv:2502.13923, 2025. 2, 6
+[5] Tianyi Bai, Zengjie Hu, Fupeng Sun, Jiantao Qiu, Yizhen
+Jiang, Guangxin He, Bohan Zeng, Conghui He, Binhang
+Yuan, and Wentao Zhang.
+Multi-step visual reasoning
+with visual tokens scaling and verification. arXiv preprint
+arXiv:2506.07235, 2025. 6
+[6] Hao Chen, Anjiao Zhang, Zhiyu Yao, Shuai Yang, Jiawei
+Zhao, Jie Yu, Kekai Zhang, Q. Li, Zhao Sun, and Jia Jia.
+Shikra: Unleashing multimodal llm’s referential dialogue
+magic. arXiv preprint arXiv:2306.15195, 2023. 2
+[7] Zhe Chen, Jiannan Wu, Wenhai Wang, Weijie Su, Guo Chen,
+Sen Xing, Muyan Zhong, Qinglong Zhang, Xizhou Zhu,
+Lewei Lu, et al. Internvl: Scaling up vision foundation mod-
+els and aligning for generic visual-linguistic tasks. In Pro-
+ceedings of the IEEE/CVF conference on computer vision
+and pattern recognition, pages 24185–24198, 2024. 2
+[8] Zihui Cheng, Qiguang Chen, Jin Zhang, Hao Fei, Xiaocheng
+Feng, Wanxiang Che, Min Li, and Libo Qin. Comt: A novel
+benchmark for chain of multi-modal thought on large vision-
+language models. In Proceedings of the AAAI Conference on
+Artificial Intelligence, pages 23678–23686, 2025. 5
+[9] Ethan Chern, Zhulin Hu, Steffi Chern, Siqi Kou, Jiadi Su,
+Yan Ma, Zhijie Deng, and Pengfei Liu. Thinking with gen-
+erated images. arXiv preprint arXiv:2505.22525, 2025. 2,
+3
+[10] Gheorghe Comanici, Eric Bieber, Mike Schaekermann, Ice
+Pasupat, Noveen Sachdeva, Inderjit Dhillon, Marcel Blis-
+tein, Ori Ram, Dan Zhang, Evan Rosen, et al. Gemini 2.5:
+Pushing the frontier with advanced reasoning, multimodality,
+long context, and next generation agentic capabilities. arXiv
+preprint arXiv:2507.06261, 2025. 2, 6
+[11] Enjun Du, Xunkai Li, Tian Jin, Zhihan Zhang, Rong-Hua
+Li, and Guoren Wang.
+Graphmaster: Automated graph
+synthesis via LLM agents in data-limited environments.
+In Advances in Neural Information Processing Systems 39
+(NeurIPS 2025), 2025. 2
+[12] Enjun Du, Siyu Liu, and Yongqi Zhang. Graphoracle: A
+foundation model for knowledge graph reasoning.
+arXiv
+preprint arXiv:2505.11125, 2025.
+[13] Enjun Du, Siyi Liu, and Yongqi Zhang. Mixture of length
+and pruning experts for knowledge graphs reasoning. In Pro-
+ceedings of the 2025 Conference on Empirical Methods in
+Natural Language Processing (EMNLP 2025), pages 432–
+453, 2025. 2
+[14] Wan-Cyuan Fan, Tanzila Rahman, and Leonid Sigal. Mm-
+factory:
+A universal solution search engine for vision-
+language tasks, 2024. 6
+[15] Deqing Fu, Ghazal Khalighinejad, Ollie Liu, Bhuwan Dhin-
+gra, Dani Yogatama, Robin Jia, and Willie Neiswanger.
+Isobench: Benchmarking multimodal foundation models on
+isomorphic representations, 2024. 5, 7
+[16] Xingyu Fu, Yushi Hu, Bangzheng Li, Yu Feng, Haoyu Wang,
+Xudong Lin, Dan Roth, Noah A Smith, Wei-Chiu Ma, and
+Ranjay Krishna. Blink: Multimodal large language models
+can see but not perceive. In European Conference on Com-
+puter Vision, pages 148–166. Springer, 2024. 5
+[17] Zhangwei Gao, Zhe Chen, Erfei Cui, Yiming Ren, Weiyun
+Wang, Jinguo Zhu, Hao Tian, Shenglong Ye, Junjun He,
+Xizhou Zhu, et al. Mini-internvl: a flexible-transfer pocket
+multi-modal model with 5% parameters and 90% perfor-
+mance. Visual Intelligence, 2(1):32, 2024. 2
+[18] gemini team. Gemini 2.5: Pushing the frontier with advanced
+reasoning, multimodality, long context, and next generation
+agentic capabilities. arXiv, 2025. 5
+[19] Yifu Guo, Yuquan Lu, Wentao Zhang, Zishan Xu, Dexia
+Chen, Siyu Zhang, Yizhe Zhang, and Ruixuan Wang. De-
+coupling continual semantic segmentation, 2025. 3
+[20] Yushi Hu, Weijia Shi, Xingyu Fu, Dan Roth, Mari Osten-
+dorf, Luke Zettlemoyer, Noah A Smith, and Ranjay Krishna.
+Visual sketchpad: Sketching as a visual chain of thought for
+multimodal language models. Advances in Neural Informa-
+tion Processing Systems, 37:139348–139379, 2024. 3, 6
+[21] Takeshi Kojima, Shixiang Shane Gu, Machel Reid, Yutaka
+Matsuo, and Yusuke Iwasawa. Large language models are
+zero-shot reasoners. In Advances in Neural Information Pro-
+cessing Systems, pages 22199–22213, 2022. 2
+[22] Maithilee Kunda, Keith McGreggor, and Ashok K Goel. A
+computational model for solving problems from the raven’s
+
+
+progressive matrices intelligence test using iconic visual rep-
+resentations. Cognitive Systems Research, 22:47–66, 2013.
+2
+[23] Ang Li, Charles Wang, Deqing Fu, Kaiyu Yue, Zikui Cai,
+Wang Bill Zhu, Ollie Liu, Peng Guo, Willie Neiswanger,
+Furong Huang, Tom Goldstein, and Micah Goldblum. Zebra-
+cot: A dataset for interleaved vision language reasoning,
+2025. 7
+[24] Bo Li, Kaichen Zhang, Hao Zhang, Dong Guo, Renrui
+Zhang, Feng Li, Yuanhan Zhang, Ziwei Liu, and Chunyuan
+Li. Llava-next: Stronger llms supercharge multimodal capa-
+bilities in the wild, 2024. 6
+[25] Bo Li, Yuanhan Zhang, Dong Guo, Renrui Zhang, Feng Li,
+Hao Zhang, Kaichen Zhang, Peiyuan Zhang, Yanwei Li, Zi-
+wei Liu, and Chunyuan Li. Llava-onevision: Easy visual task
+transfer, 2024. 2
+[26] Ming Li, Jike Zhong, Shitian Zhao, Haoquan Zhang, Shao-
+heng Lin, Yuxiang Lai, Chen Wei, Konstantinos Psounis, and
+Kaipeng Zhang. Tir-bench: A comprehensive benchmark for
+agentic thinking-with-images reasoning, 2025. 5
+[27] Xiaoxi Li, Guanting Dong, Jiajie Jin, Yuyao Zhang, Yujia
+Zhou, Yutao Zhu, Peitian Zhang, and Zhicheng Dou. Search-
+o1: Agentic search-enhanced large reasoning models, 2025.
+2
+[28] Jiaye Lin, Yifu Guo, Yuzhen Han, Sen Hu, Ziyi Ni, Licheng
+Wang, Mingguang Chen, Hongzhang Liu, Ronghao Chen,
+Yangfan He, Daxin Jiang, Binxing Jiao, Chen Hu, and Hua-
+can Wang. Se-agent: Self-evolution trajectory optimization
+in multi-step reasoning with llm-based agents, 2025. 2
+[29] Haotian Liu, Chunyuan Li, Qingyang Wu, and Yong Jae Lee.
+Visual instruction tuning. Advances in Neural Information
+Processing Systems, 36, 2023. 2
+[30] Shilong Liu, Hao Cheng, Haotian Liu, Hao Zhang, Feng Li,
+Tianhe Ren, Xueyan Zou, Jianwei Yang, Hang Su, Jun Zhu,
+Lei Zhang, Jianfeng Gao, and Chunyuan Li.
+Llava-plus:
+Learning to use tools for creating multimodal agents, 2023.
+6
+[31] Pan Lu, Ran Gong, Shibiao Jiang, Liang Qiu, Siyuan Huang,
+Xiaodan Liang, and Song-Chun Zhu. Inter-gps: Interpretable
+geometry problem solving with formal language and sym-
+bolic reasoning, 2021. 5, 7
+[32] Pan Lu, Hritik Bansal, Tony Xia, Jiacheng Liu, Chunyuan Li,
+Hannaneh Hajishirzi, Hao Cheng, Kai-Wei Chang, Michel
+Galley, and Jianfeng Gao. Mathvista: Evaluating mathemat-
+ical reasoning of foundation models in visual contexts, 2023.
+5, 7
+[33] Xianzhen Luo, Jinyang Huang, Wenzhen Zheng, Qingfu
+Zhu, Mingzheng Xu, Yiheng Xu, Yuantao Fan, Libo Qin, and
+Wanxiang Che. How many code and test cases are enough?
+evaluating test cases generation from a binary-matrix per-
+spective, 2025. 2
+[34] OpenAI.
+Openai o1 system card.
+arXiv preprint
+arXiv:2412.16720, 2024. 2
+[35] OpenAI, Aaron Hurst, et al. Gpt-4o system card, 2024. 5
+[36] Anthropic PBC. Claude 3.5 sonnet, 2024. Accessed: 2025-
+11-13. 6
+[37] Runqi Qiao, Qiuna Tan, Guanting Dong, Minhui Wu, Chong
+Sun, Xiaoshuai Song, Zhuoma GongQue, Shanglin Lei, Zhe
+Wei, Miaoxuan Zhang, Runfeng Qiao, Yifan Zhang, Xiao
+Zong, Yida Xu, Muxi Diao, Zhimin Bao, Chen Li, and Hong-
+gang Zhang. We-math: Does your large multimodal model
+achieve human-like mathematical reasoning?, 2024. 5, 7
+[38] Juan A. Rodriguez, Abhay Puri, Shubham Agarwal, Issam H.
+Laradji, Pau Rodriguez, Sai Rajeswar, David Vazquez,
+Christopher Pal, and Marco Pedersoli. Starvector: Gener-
+ating scalable vector graphics code from images and text. In
+Proceedings of the IEEE/CVF Conference on Computer Vi-
+sion and Pattern Recognition (CVPR), pages 16175–16186,
+2025. 3
+[39] Dídac Surís, Sachit Menon, and Carl Vondrick. Vipergpt:
+Visual inference via python execution for reasoning. In Pro-
+ceedings of the IEEE/CVF international conference on com-
+puter vision, pages 11888–11898, 2023. 2, 3
+[40] Shengbang Tong, Zhuang Liu, Yuexiang Zhai, Yi Ma, Yann
+LeCun, and Saining Xie.
+Eyes wide shut? exploring the
+visual shortcomings of multimodal llms. In Proceedings of
+the IEEE/CVF Conference on Computer Vision and Pattern
+Recognition, pages 9568–9578, 2024. 5
+[41] Mihir Vaishnav and Tanel Tammet.
+Cognitive paradigms
+for evaluating vlms on visual reasoning task. arXiv preprint
+arXiv:2501.13620, 2025. 2
+[42] Huacan Wang, Ziyi Ni, Shuo Zhang, Shuo Lu, Sen Hu,
+Ziyang He, Chen Hu, Jiaye Lin, Yifu Guo, Ronghao Chen,
+Xin Li, Daxin Jiang, Yuntao Du, and Pin Lyu. Repomaster:
+Autonomous exploration and understanding of github repos-
+itories for complex task solving, 2025. 2
+[43] Ke Wang, Junting Pan, Weikang Shi, Zimu Lu, Mingjie
+Zhan, and Hongsheng Li. Measuring multimodal mathemat-
+ical reasoning with math-vision dataset, 2024. 5, 7
+[44] Peng Wang, Shuai Bai, Sinan Tan, Shijie Wang, Zhihao Fan,
+Jinze Bai, Keqin Chen, Xuejing Liu, Jialin Wang, Wenbin
+Ge, et al. Qwen2-vl: Enhancing vision-language model’s
+perception of the world at any resolution.
+arXiv preprint
+arXiv:2409.12191, 2024. 6
+[45] Jason Wei, Xuezhi Wang, Dale Schuurmans, Maarten
+Bosma, Fei Xia, Ed Chi, Quoc V Le, Denny Zhou, et al.
+Chain-of-thought prompting elicits reasoning in large lan-
+guage models. Advances in neural information processing
+systems, 35:24824–24837, 2022. 2
+[46] Junfei Wu, Jian Guan, Kaituo Feng, Qiang Liu, Shu Wu,
+Liang Wang, Wei Wu, and Tieniu Tan. Reinforcing spatial
+reasoning in vision-language models with interwoven think-
+ing and visual drawing, 2025. 7
+[47] Penghao Wu and Saining Xie. V?: Guided visual search as
+a core mechanism in multimodal llms. In Proceedings of
+the IEEE/CVF Conference on Computer Vision and Pattern
+Recognition, pages 13084–13094, 2024. 5
+[48] Wenshan Wu, Shaoguang Mao, Yadong Zhang, Yan Xia,
+Li Dong, Lei Cui, and Furu Wei.
+Mind’s eye of llms:
+visualization-of-thought elicits spatial reasoning in large lan-
+guage models. Advances in Neural Information Processing
+Systems, 37:90277–90317, 2024. 3
+[49] Yixuan Wu, Yizhou Wang, Shixiang Tang, Wenhao Wu,
+Tong He, Wanli Ouyang, Philip Torr, and Jian Wu.
+Det-
+
+
+toolchain: A new prompting paradigm to unleash detection
+ability of mllm. In European Conference on Computer Vi-
+sion, pages 164–182. Springer, 2024. 3
+[50] Yi Xu, Chengzu Li, Han Zhou, Xingchen Wan, Caiqi Zhang,
+Anna Korhonen, and Ivan Vuli´c. Visual planning: Let’s think
+only with images. arXiv preprint arXiv:2505.11409, 2025. 3
+[51] Jianwei Yang, Hao Zhang, Feng Li, Xueyan Zou, Chunyuan
+Li, and Jianfeng Gao. Set-of-mark prompting unleashes ex-
+traordinary visual grounding in gpt-4v, 2023. 6
+[52] Zhengyuan Yang, Linjie Li, Kevin Lin, Jianfeng Wang,
+Chung-Ching Lin, Zicheng Liu, and Lijuan Wang. The dawn
+of lmms: Preliminary explorations with gpt-4v(ision), 2023.
+2
+[53] Zeyuan Yang, Xueyang Yu, Delin Chen, Maohao Shen, and
+Chuang Gan.
+Machine mental imagery: Empower multi-
+modal reasoning with latent visual tokens. arXiv preprint
+arXiv:2506.17218, 2025. 5, 7
+[54] Shunyu Yao, Jeffrey Zhao, Dian Yu, Nan Du, Izhak Shafran,
+Karthik R Narasimhan, and Yuan Cao. React: Synergizing
+reasoning and acting in language models. In The eleventh
+international conference on learning representations, 2022.
+2
+[55] Chi Zhang, Haibo Qiu, Qiming Zhang, Zhixiong Zeng, Lin
+Ma, and Jing Zhang. Deepsketcher: Internalizing visual ma-
+nipulation for multimodal reasoning, 2025. 6
+[56] Renrui Zhang, Dongzhi Jiang, Yichi Zhang, Haokun Lin,
+Z. J. Guo, Pengshuo Qiu, Aojun Zhou, Pan Lu, Kai-Wei
+Chang, Peng Gao, and Hongsheng Li. Mathverse: Does your
+multi-modal llm truly see the diagrams in visual math prob-
+lems?, 2024. 5, 7
+[57] Zhuosheng Zhang,
+Aston Zhang,
+Mu Li,
+Hai Zhao,
+George Karypis, and Alex Smola.
+Multimodal chain-of-
+thought reasoning in language models.
+arXiv preprint
+arXiv:2302.00923, 2023. 2
+[58] Shitian Zhao, Haoquan Zhang, Shaoheng Lin, Ming Li, Qi-
+long Wu, Kaipeng Zhang, and Chen Wei. Pyvision: Agentic
+vision with dynamic tooling, 2025. 6
+[59] Ziwei Zheng, Michael Yang, Jack Hong, Chenxiao Zhao,
+Guohai Xu, Le Yang, Chao Shen, and Xing Yu.
+Deep-
+eyes: Incentivizing "thinking with images" via reinforcement
+learning, 2025. 6
+[60] Qiji Zhou, Ruochen Zhou, Zike Hu, Panzhong Lu, Siyang
+Gao, and Yue Zhang. Image-of-thought prompting for visual
+reasoning refinement in multimodal large language models.
+arXiv preprint arXiv:2405.13872, 2024. 3
+[61] Deyao Zhu, Jun Chen, Xiaoqian Shen, Xiang Li, and Mo-
+hamed Elhoseiny.
+Minigpt-4: Enhancing vision-language
+understanding with advanced large language models. arXiv
+preprint arXiv:2304.10592, 2023. 2

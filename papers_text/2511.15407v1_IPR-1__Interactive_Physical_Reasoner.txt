@@ -1,0 +1,1617 @@
+IPR-1: Interactive Physical Reasoner
+Mingyu Zhang1,2,∗
+Lifeng Zhuo1,∗
+Tianxi Tan1,2
+Guocan Xie1
+Xian Nie1
+Yan Li1
+Renjie Zhao1,∗∗
+Zizhu He1
+Ziyu Wang1
+Jiting Cai1,3,∗∗
+Yong-Lu Li1,2,†
+1Shanghai Jiao Tong University
+2Shanghai Innovation Institute
+3Carnegie Mellon University
+sjtuzmy2003@sjtu.edu.cn
+yonglu li@sjtu.edu.cn
+Abstract
+Humans learn by observing, interacting with environments,
+and internalizing physics and causality. Here, we aim to ask
+whether an agent can similarly acquire human-like reason-
+ing from interaction and keep improving with more expe-
+rience. We study this in a Game-to-Unseen (G2U) setting,
+curating 1,000+ heterogeneous games with diverse physical
+and causal mechanisms, and evaluate at three human-like
+levels: Survival, Curiosity, Utility, from primitive intuition
+to goal-driven reasoning. Our analysis reveals complemen-
+tary failures: VLM/VLA agents reason but lack look-ahead
+in interactive settings, while world models imagine but imi-
+tate visual patterns rather than analyze physics and causal-
+ity. We therefore propose IPR (Interactive Physical Rea-
+soner), using world-model rollouts to score and reinforce
+a VLM’s policy, and introduce PhysCode, a physics-centric
+action code aligning semantic intent with dynamics to pro-
+vide a shared action space for prediction and reasoning.
+Pretrained on 1,000+ games, our IPR performs robustly on
+three levels, matches GPT-5 overall, and surpasses it on Cu-
+riosity. We find that performance improves with more train-
+ing games and interaction steps, and that the model also
+zero-shot transfers to unseen games. These results support
+physics-centric interaction as a path to steadily improving
+physical reasoning. Our code will be publicly available.
+1. Introduction
+Humans do not learn physics and causality from labels; we
+earn them through interaction. As experience accumulates
+with age, our prediction sharpens, our reasoning stabilizes,
+and our abilities scale. This motivates a central question for
+embodied AI: what learning paradigm enables human-like
+reasoning to learn through interactive experience, and to
+improve steadily with more interaction?
+We assume that, if an agent is exposed to diverse, inter-
+∗Equal contribution.
+†Corresponding author.
+∗∗Work conducted at Shanghai Jiao Tong University.
+1000 Games
+Unseen
+Games
+Figure 1. Game-to-Unseen (G2U) problem. Humans accumu-
+late interactive experience and rapidly adapt to new games. De-
+spite different visuals and interfaces, many games share underly-
+ing physical/causal mechanisms. We pretrain on 1,000+ visually
+and physically diverse games to test whether an agent can inter-
+nalize these shared mechanisms and generalize to unseen games.
+active worlds and trained to capture shared physical and
+causal mechanisms, rather than domain-specific appear-
+ance or action interfaces, it would scale its physical rea-
+soning ability reliably and transfer to new scenarios. This
+view aligns with prior reasoning works [6, 22, 57]. Large
+VLM/VLA models [11, 52, 53], pretrained on vast cor-
+pora, exhibit basic reasoning abilities and a certain degree
+of transfer; yet in interactive scenarios they lack forward
+prediction visually and often fail when precise anticipation
+of action consequences is required (e.g., timing, contact,
+momentum) (Fig. 2b). World models and other prediction-
+based methods [3, 10, 21] can imagine futures via differen-
+tiable latent dynamics and interactively optimize trajecto-
+ries toward goal-aligned representations, but they tend to
+collapse into target-chasing imitation rather than genuine
+causal reasoning, failing in long-horizon and sparse-reward
+tasks. This naturally raises a question: can we blend the
+open-ended reasoning of VLMs with the predictive ground-
+ing of world models to support interactive reasoning in
+novel environments and yield competence that improves
+steadily with experience?
+1
+arXiv:2511.15407v1  [cs.AI]  19 Nov 2025
+
+
+        Pursue goals.
+Bentham’s utility of life.
+Explore the unknown.
+To know is to live twice.
+Avoid danger, preserve self.
+Better a living dog than a dead lion.
+(a) Three-level evaluation inspired by Maslow’s hierarchy of needs. We organize tasks
+into a pyramid of Survival, Curiosity, and Utility. Survival measures how long the agent
+can stay alive by avoiding risks; Curiosity measures how broadly it visits novel states; and
+Utility measures how well it achieves downstream goals. The three levels progress from
+physical intuition to goal-driven reasoning. Our IPR performs robustly across the entire
+pyramid.
+Control Conflict
+Vision Language Distortion
+Missing Foresight
+Failure Case 1
+Failure Case 2
+Failure Case 3
+(b) Motivating failure cases in control semantics, language
+grounding, and prediction. (1) Control conflict: the same
+key (e.g., UP) triggers different semantics across games (cam-
+era tilt up v.s. character move up), causing console aliasing. (2)
+Vision-language distortion: text-only actions cannot specify
+precise visual magnitudes (e.g., jump height/speed), leading
+to systematic amplitude errors. (3) Missing foresight: with-
+out imagination, the agent cannot anticipate upcoming hazards
+during interaction (e.g., spikes, moving enemies).
+Figure 2. Overview: three-level evaluation pyramid (left) and failure cases of previous VLM-based model (right), motivating our IPR.
+In this way, we propose IPR (Interactive Physical
+Reasoner): a paradigm where world model prediction re-
+inforces a VLM policy to adapt its physical reasoning in
+interactive environments (Fig. 3). A natural obstacle arises
+when naively piping VLM outputs into a predictor: key-
+board induces interface mismatches across games and lan-
+guage distorts visual details (Fig. 2b).
+We therefore in-
+troduce PhysCode, a physics-centric action code that fuses
+action semantics with visual dynamics into a compact dis-
+crete representation. Concretely, we follow a Genie [10]
+style discretization over fused features extracted from video
+frames, optical flow, and action semantics. Each code is en-
+couraged to align with (i) domain-agnostic dynamical prim-
+itives (e.g., momentum change) and (ii) domain-specific vi-
+sual affordances. Instead of issuing raw keys or free-form
+language, the reasoning policy outputs multiple PhysCode
+sequences, which are scored by the world model in the same
+latent space so that the best candidate would be executed
+and its imagined rewards are used to reinforce the policy.
+To evaluate the paradigm at scale, we curate over 1,000
+heterogeneous games spanning visual styles, control inter-
+faces, and physical and causal mechanisms. Games form a
+low-cost, controllable testbed for physical reasoning: they
+afford rich interaction, physics closely resembling the real
+world, and effectively unlimited rollouts. We further orga-
+nize evaluation into three levels inspired by Maslow’s hier-
+archy of needs [24]: Survival, Curiosity, Utility, covering
+a spectrum from physical intuition to goal-directed reason-
+ing (Fig. 2a). The result on three levels verifies two failure
+modes: reasoning-based VLM/VLA lack forward conse-
+quence prediction to explore (Curiosity), while prediction-
+based world models explore broadly yet fail at goal-driven
+tasks (Utility), which motivates our design.
+Across this suite, our IPR remains robust on all three
+levels, while RL-based and prediction-based baselines often
+collapse on one or more of them. Trained under the IPR
+paradigm, an 8B backbone matches GPT-5 overall and even
+surpasses it on curiosity. Moreover, competence scales with
+the number of training games and interaction steps (Fig. 5)
+and zero-shot transfers to novel environments, highlighting
+the potential of interactive learning for physical reasoning
+at scale.
+In general, our contributions are:
+(1) We formulate
+the G2U problem and curate 1,000+ heterogeneous games
+with a hierarchical evaluation (Survival/Curiosity/Utility),
+diagnosing the strengths and weaknesses of prevalent
+prediction-based, RL-based, and VLM-based methods. (2)
+We propose IPR: world-model rollouts score and reinforce
+VLM in the same action space, enabling interactive expe-
+rience to steadily build up physical reasoning ability. (3)
+We introduce PhysCode, a physics-centric action code fus-
+ing action semantics with visual dynamics, bridging WM
+prediction and VLM reasoning.
+2. Related Works
+Action Space Discovery.
+Research on action spaces
+spans hand-designed controls, language-based interfaces,
+and learned latent representations. Early embodied agents
+operated over environment-specific key bindings, torques,
+or joystick signals [8, 16, 30, 42], which offer precise con-
+trol but entangle behavior with platform-specific layouts
+2
+
+
+and hinder cross-domain transfer. A second line adopts lan-
+guage-based action spaces, issuing natural-language com-
+mands or tool calls [1, 13, 45, 51, 52]; while language af-
+fords semantic generality, it abstracts away timing, force,
+and perception–action couplings, often leading to impre-
+cise or under-grounded control [39, 41]. A complemen-
+tary direction learns latent action spaces directly from in-
+teraction data.
+Discrete or continuous latent codes—via
+VQ-VAE [47] or sequence models—have been explored for
+planning, control, and world models [10, 12, 28, 31, 44].
+Recent VLM/VLA systems integrate such latent tokens
+into large multimodal models [23, 40], but these codes of-
+ten remain entangled across domains and lack mechanisms
+to capture shared physical principles versus environment-
+specific affordances.
+Our work addresses this gap by
+learning a physics-centric latent action space that captures
+reusable dynamical patterns across games, instead of bind-
+ing actions to domain-specific visuals and control layouts.
+Agents
+in
+Interactive
+Environments.
+Research
+on
+game-playing agents has largely followed three threads.
+RL-based agents, from DQN and PPO/SAC to large-scale
+systems like AlphaStar and OpenAI Five [16, 29, 32, 42,
+48, 50], learn policies directly from pixels and rewards
+and achieve strong title-specific performance, but remain
+sample-inefficient, brittle to interface changes, and struggle
+with long-horizon credit assignment and cross-game trans-
+fer. Prediction-based (world-model) agents such as World
+Models, PlaNet, the Dreamer family, and Genie [10, 15, 17–
+19] first learn latent dynamics and then plan or optimize
+in imagination, improving exploration and sparse-reward
+learning, yet degrade when learned dynamics or action se-
+mantics drift from the test environment and typically op-
+timize task or pixel losses rather than reasoning quality.
+VLM/VLA-based agents like Gato, RT-2, Voyager, Mine-
+Dojo, and recent VLA frameworks [9, 13, 39, 51] cast act-
+ing as sequence modeling over images, text, and actions
+and excel at zero-shot instruction following, but rely heavily
+on static corpora, heuristic wrappers, and weakly grounded
+forward prediction. Our IPR paradigm aims to inherit the
+strengths of these lines by using a physics-centric latent ac-
+tion space where a world model provides imagination-based
+value estimates and a reasoning VLM policy is reinforced
+through interactive experience in the same latent space.
+Benchmarks and Evaluation.
+Interactive environments
+have long served as testbeds for learning control, explo-
+ration, and generalization: Atari/ALE provided dense step-
+wise rewards for RL training and evaluation [5, 29], while
+later platforms such as Minecraft, VizDoom, and StarCraft
+introduced long-horizon goals, partial observability, and
+sparse rewards [13, 26, 49, 51]. With the rise of VLM/VLA
+agents, web-based benchmarks and browser environments
+have been proposed to test generalization to novel tasks and
+interfaces [36, 56]. Following this line, we evaluate agents
+on a diverse suite of games and adopt simple game-agnostic
+metrics grouped into three levels—survival, curiosity, and
+utility—to provide their preformance from physical intu-
+ition to reasoning and their scaling with experience.
+3. Preliminaries
+3.1. Problem Setting
+We
+consider
+a
+family
+of
+interactive
+environments
+{Em}M
+m=1, each formalized as a POMDP:
+Mm =
+ S, A, Tm, Rm, O, γ; φm
+
+,
+(1)
+where φm are latent physics parameters (e.g., gravity g,
+friction µ, mass M). At time t, the environment emits an
+image xt ∼O(· | st), which we encode as zt = ϕenc(xt);
+the agent executes at ∈A and transitions according to
+st+1 ∼Tm
+ st+1 | st, at; φm
+
+,
+rt = Rm(st, at), (2)
+where physics resides in Tm, and causality in Rm.
+Control may use one of several interfaces A
+∈
+{KEYBOARD, LANGUAGE, LATENT};
+a goal-conditioned
+VLM selects actions in the chosen space via
+a(A)
+t
+∼π(A)
+ω
+ · | zt, promptt
+
+,
+at ≡a(A)
+t
+∈A.
+(3)
+A feature-level world model fθ then rolls out imagined fu-
+tures under selected action sequences in the same action
+space A. Given a horizon H ∈N, initialize ˆzt := zt and
+choose an action sequence {a(A)
+t+k}H−1
+k=0 . The rollout is de-
+fined by
+ˆzt+k+1 = fθ
+ ˆzt+k, a(A)
+t+k
+
+,
+k = 0, 1, . . . , H −1,
+(4)
+where k indexes the step inside the imagined trajectory from
+time t to t + H.
+3.2. PhysCode: Physics-centric Action Code
+Motivated by the issues of raw-key semantic aliasing and
+the distortion of fine-grained visual dynamics when ex-
+pressed in language, we propose PhysCode, a discrete la-
+tent action representation built on a VQ codebook C =
+{vk}K
+k=1.
+At step t, an action is a short code sequence
+aLAT
+t
+= ⟨ct,1:L⟩with embedding obtained by looking up and
+pooling {vct,ℓ}.
+Each code is conditioned on three cues: (i) domain-
+specific visual appearance via DINOv3 [46] features
+ϕimg(xt), (ii) domain-agnostic motion via optical flow [14]
+ϕflow(Flow(xt, xt+1)), and (iii) lightweight semantic hints
+extracted by a T5 encoder [38], with ϕsem(yt) = EncT5(yt).
+Since natural language alone cannot express fine-grained
+dynamics (e.g., impulse magnitude, frictional slip), we rely
+on flow and visual features to carry these details while keep-
+ing semantics as guidance. By design, the resulting codes
+3
+
+
+Encoder
+rollout cortex
+Vision
+Language 
+Model
+critic head
+Ǉ1
+Ǉ2
+Ǉ֑
+ǖ1
+ǖ2
+ǖ֑
+router
+ǖ֩
+DINOv3
+feature
+Optical
+flow
+Semantic
+action
+Encoder
+<think>
+…
+…
+rollout cortex 
+critic head
+prompt
+Game
+Engine
+Next-frame
+DINOv3
+feature
+PhysCode
+… …
+…
+PhysCode
+ǅ֩
+Ǘ֩
+Ǉ֩
+Decoder
+IPR
+Figure 3. IPR training pipeline. Stage 1: PhysCode pre-training. Video clips with optical flow and action semantics are fed to a
+VQ-based latent action model to learn discrete codes (PhysCode) that represent dynamics. Stage 2: Latent-conditioned world model.
+Given current features and PhysCode sequences, a world model is trained to predict future features and rewards under latent actions. Stage
+3: Prediction-reinforced reasoning. A VLM reasons over the scene and generates candidate PhysCode sequences. The world model rolls
+them out in imagination, and the predicted rewards/values are used to select the best actions and to optimize the VLM policy.
+capture physics-relevant intervention primitives that share
+across environments with similar underlying physics and
+separate when physics differ, enabling consistent reuse un-
+der matched physics and discrimination under shifted dy-
+namics.
+4. Method
+In this section, we introduce three components of IPR
+(Fig. 3): (1) learning a physics-centric action code vocab-
+ulary across diverse physical principles and causal mech-
+anisms; (2) training a latent-conditioned world model that
+predicts future features and rewards under sequences of la-
+tent actions; and (3) reinforcing VLM with world model roll-
+out prediction in the interactive environment, using aligned
+latent action code. In inference, the VLM proposes can-
+didate latent actions, queries the world model for short-
+horizon imagination and value estimates to score them, and
+executes the highest-scoring action.
+Inducing the Latent Action Vocabulary.
+Using the cues
+in Sec. 3.2 (DINOv3 appearance ft, ft+∆, optical flow ut,
+and lightweight semantics et), a small gated fusion mod-
+ule forms a fused representation ht.
+A spatio-temporal
+encoder Eψ maps ht to a continuous code zt, which is
+vector-quantized to an index at ∈{1, . . . , K} with code-
+book C = {ck}K
+k=1, and a decoder Dψ predicts the future
+feature ˆft+∆from (ft, cat). We train with a standard VQ-
+VAE objective
+LLA =
+ ˆft+∆−ft+∆
+2
+2
++ β
+sg[zt] −cat
+2
+2 + γ
+zt −sg[cat]
+2
+2,
+(5)
+augmented with modality dropout on flow and a mild gate-
+sparsity regularizer to avoid over-reliance on optional cues.
+Since optical flow is only available during pretraining, it
+acts as privileged information that helps shape a physics-
+centric codebook, while dropout and gate sparsity distill
+this structure into an encoder that, at test time, relies only
+on appearance and semantic cues. At inference, we dis-
+able the flow gate and reuse the same encoder to obtain zt
+and its quantized index at from appearance+semantics only.
+The resulting discrete vocabulary yields temporally predic-
+tive tokens that cluster under matched physics and separate
+under different dynamics, providing a shared interface for
+VLM reasoning and world-model prediction.
+Training the Latent-Level World Model with a Critic.
+With the latent action vocabulary fixed, we train a feature-
+level world model to predict future features conditioned on
+latent actions, replacing raw controls with their PhysCode
+indices. For triples (ft, at, ft+∆), we embed at to eat and
+compute
+( ˆft+∆, Vθ(ft, at)) = Pθ
+ ft, eat
+
+.
+(6)
+We predict in the latent space, since features compress ap-
+pearance variance and rendering noise, making dynamics
+more shareable across games.
+Concretely, we first train
+the world model with a feature-prediction loss Lpred =
+ ˆft+∆−ft+∆
+
+1, and then learn a critic head with a Q-
+learning–style objective Lvalue = ℓQ
+ Vθ(ft, at), yt
+
+, where
+yt is a target value computed from rollout returns via stan-
+dard TD backups.
+4
+
+
+Prediction-Reinforced
+Interactive
+Reasoning.
+We
+strengthen interactive reasoning with prediction: a world
+model imagines rollouts, and a VLM plans in the same
+latent action space. We adopt Qwen3-VL-8B [54] as the
+backbone and extend its tokenizer with PhysCode tokens
+so the VLM can directly emit discrete latent actions while
+preserving its language ability.
+We first align perception and action by supervised train-
+ing on (ft, ct) pairs, where ft is the DINOv3 feature of the
+current frame and ct the latent action learned in Stage 1.
+Given the current context and goal g, the VLM samples
+B candidate PhysCode sequences {a(b)}B
+b=1, and the world
+model runs short-horizon imagined rollouts to assign each a
+predicted return, from which we compute advantages A(b).
+We then update the policy with GRPO [43]:
+LGRPO = 1
+B
+B
+X
+b=1
+A(b) log πϕ(a(b) | ft, g) −β KL
+ πϕ ∥π0
+
+,
+(7)
+In inference, the VLM proposes latent action candidates,
+the world model scores and prunes them via short-horizon
+rollouts, and a router Tenv maps the selected PhysCode to
+environment controls.
+Through repeated interaction un-
+der this prediction-in-the-loop scheme, the experience col-
+lected from imagined and executed trajectories reinforces
+the VLM, improving its physical reasoning in interactive
+environments.
+5. Experiments
+In this section, we aim to answer three questions: (1) Why is
+PhysCode necessary compared with raw keyboard inputs or
+language instructions? (2) How would world model predic-
+tion reinforce VLM reasoning? (3) Would IPR show scaling
+potential to transfer to unseen games?
+5.1. Setup: Datasets, Tasks, and Metrics
+Sources.
+We curate a multi-source benchmark covering
+863 open-source retro titles (via stable-retro [35]),
+134 lightweight HTML/Canvas games, and 3 commercial
+games.
+This breadth exposes agents to heterogeneous
+visuals, action interfaces, and underlying physics/causal
+mechanisms, encouraging models to capture shared physi-
+cal–causal regularities rather than overfit to domain-specific
+biases.
+Diversity axes.
+We characterize each environment along
+seven axes to enable structured generalization analysis: (1)
+Game category, with emphasis on physical interaction (e.g.,
+platformer, shooter, sports); (2) Control interface, such as
+GameBoy–style discrete keys, keyboard–mouse combina-
+tions, and high-dimensional hybrids; (3) Visual complex-
+ity, ranging from low-resolution pixel art to high-fidelity
+platformer
+maze
+shooter
+adventure
+action
+sports
+racing
+simulation
+beat 'em up
+fighting
+RPG
+Genesis
+Controller
+Nes
+Controller
+Sms
+Controller
+Snes
+Controller
+GameBoy
+mouse-key
+primitive
+simple
+medium
+detailed
+complex
+bird-view
+side-view
+ego-view
+combat
+reward
+punishment
+interactive
+collection
+racing
+exploration
+construction
+contact
+projectile
+gravity
+inertia
+elasticity
+breakout
+buoyancy
+friction
+trivial
+simple
+medium
+skilled
+hard
+Game 
+Category
+Control 
+Interface
+Visual 
+Diversity
+View 
+Perspective
+Causality 
+Mechanism
+Physical 
+Principle
+Operation 
+Complexity
+Figure 4. Game data distribution. Our dataset spans over 1,000
+games categorized by game category, control interface, opera-
+tion and visual complexity, physical and causal mechanisms. This
+wide coverage enables agents to experience diverse domains and
+learn transferable physical and causal understanding.
+3D; (4) View perspective, e.g. ego-centric, top-down, and
+side views; (5) Causal mechanism, e.g. damage/health dy-
+namics, collection, punishment; (6) Physical principle, e.g.
+gravity, contact, and inertia; (7) Operational difficulty, ap-
+proximated by the entropy and frequency of human con-
+trol actions, reflecting how precisely and how often players
+must operate to succeed; Fig. 4 summarizes the distribu-
+tions over sources, game types, and these axes; detailed per-
+environment statistics are provided in the supplementary.
+Data collection and preprocessing.
+Across the 1,000-
+game corpus, we record human play at 60 FPS for 4 minutes
+per title and obtain per-game annotations covering physi-
+cal principles, causal mechanisms, action semantics, and
+game instructions.
+We perform a series of preprocess-
+ing, including normalizing time intervals, removing non-
+interactive segments, rebalancing extended idle/no-op pe-
+riods, etc. More details are in the supplementary.
+Hierarchical level design.
+Inspired by Maslow’s hierar-
+chy of needs [24], we treat gameplay as a three-level pro-
+gression: Survival →Curiosity →Utility (Fig. 2a), from
+intuition to reasoning.
+Survival. The objective is to remain alive as long as
+possible, ignoring the original goal and avoiding risks. We
+report survival time normalized per game, H = E[T]/Ttyp,
+where T is episode length (steps) and Ttyp is a per-game ref-
+erence horizon (e.g., median survival under a random pol-
+icy).
+Curiosity. The goal is to visit novel states like a baby
+to uncover regularities in the environment’s dynamics and
+causal mechanisms. Following Magnipy [27], we embed
+frames with a pretrained CLIP visual encoder [37], compute
+5
+
+
+Table 1. PhysCode validation. Left: Joint training across heterogeneous-physics games reveals cross-game conflicts for keyboard/mouse;
+language partially alleviates this via semantics, while PhysCode separates actions by dynamics, reducing interface aliasing and showing
+minimal degradation under physics shifts. Middle: Leave-n-out transfer: training on all but 10 titles and evaluating zero-shot on the
+held-out set, PhysCode transfers more reliably than keyboard or language interfaces. Right: Physics-conditioned transfer: zero-shot
+performance is relatively higher when target environments match the training set’s physical mechanisms, indicating that PhysCode captures
+reusable physical principles rather than game-specific bindings.
+(a) Confusion test for joint training.
+Latent-Predict
+Cosine ↑
+MSE ↓
+L1 ↓
+Ad-hoc
+0.9939
+0.0121
+0.0495
+Keyboard
+0.9894
+0.0211
+0.0772
+Language
+0.9892
+0.0216
+0.0758
+PhysCode
+0.9919
+0.0204
+0.0737
+Pixel-Predict
+FID ↓
+SSIM ↑
+PSNR ↑
+Ad-hoc
+87.83
+0.7062
+23.86
+Keyboard
+110.9
+0.6110
+20.82
+Language
+82.51
+0.6960
+23.52
+PhysCode
+80.35
+0.7240
+23.82
+(b) Leave-n-out transfer.
+Latent-Predict
+Cosine ↑
+MSE ↓
+L1 ↓
+Pre-trained
+0.9856
+0.0230
+0.0846
+Keyboard
+0.9784
+0.0430
+0.1153
+Language
+0.9790
+0.0418
+0.1132
+PhysCode
+0.9798
+0.0403
+0.1212
+Pixel-Predict
+FID ↓
+SSIM ↑
+PSNR ↑
+Pre-trained
+127.3
+0.7438
+22.11
+Keyboard
+315.0
+0.3340
+12.46
+Language
+320.2
+0.1670
+9.389
+PhysCode
+297.0
+0.3533
+13.04
+(c) Physics-conditioned transfer.
+Projectile
+Gravity
+Inertia
+Impulse
+0.8
+0.9
+1.0
+Cosine Similarity
+0.98
+0.99
+1.00
+0.99
+0.98
+0.98
+0.99
+0.97
+0.96
+0.98
+0.82
+0.96
+0.83
+0.90
+0.92
+0.91
+0.93
+0.97
+0.99
+0.97
+Trained on All (Control)
+Only Trained on Projectile
+Only Trained on Gravity
+Only Trained on Inertia
+Only Trained on Impulse
+the trajectory’s multi-scale metric-space magnitude curve
+M(τ), and define the exploration score as the area under
+this curve: E = AUC(M(τ)), where larger E indicates
+broader state-space coverage.
+Utility. Utility measures how well an agent realizes
+Bentham’s utility of life [7]: devoting itself to goal com-
+pletion with higher reward and shorter time. We evaluate
+downstream goals according to the game types (completion,
+score, checkpoint time) and report the human-normalized
+score (HNS) [4] per game:
+HNS =
+m −mrnd
+mhum −mrnd
+,
+(8)
+where m is the agent metric, mrnd the random baseline, and
+mhum human performance.
+5.2. Why is PhysCode Necessary
+We first investigate whether PhysCode is necessary
+compared with raw keyboard/mouse inputs and natural-
+language instructions.
+First, we assess robustness un-
+der mixed-game joint training with heterogeneous physics
+(Tab. 1a), examining which action space best performs in
+diverse physical mechanisms and different console/game
+interfaces. Second, we test transfer (Tab. 1b, Tab. 1c): a
+shared PhysCode learned on source games improves zero-
+shot performance in unseen environments with matched
+physics, demonstrating genuine physics grounding rather
+than interface memorization.
+First, we examine how different action spaces behave
+when trained jointly across a mixture of games with het-
+erogeneous physics (Tab. 1a).
+In this regime, raw key-
+board/mouse inputs exhibit cross-game conflicts (the same
+key triggers different behaviors across environments). Lan-
+guage interfaces partially alleviate this via explicit seman-
+tics.
+PhysCode separates actions by dynamics, reducing
+interface aliasing and showing minimal degradation under
+physics shifts.
+Next, we ask whether sharing the latent space supports
+transfer. In a leave-n-out protocol (Tab. 1b), we train on
+all but 10 games and evaluate zero-shot on the held-out ti-
+tles. We find that PhysCode transfers more reliably than
+keyboard or language instructions.
+Moreover, we condition transfer on the physics of the
+environment.
+We group games by their dominant phys-
+ical mechanism, train under one principle (e.g., gravity),
+and evaluate zero-shot on held-out games with match-
+ing or different mechanisms.
+When targets match the
+training physics, zero-shot performance is typically higher
+(Tab. 1c), with notable exceptions such as inertia, which
+may already be covered by projectile/impulse. This sug-
+gests that PhysCode captures reusable physical mechanisms
+rather than game-specific bindings, even though our coarse
+physics taxonomy does not perfectly align with the agent’s
+internal abstractions.
+5.3. Playing in Diverse Physical Worlds of Games
+We evaluate IPR against prevalent baselines on 200 games,
+chosen to match the full dataset’s distribution of types, ac-
+tion spaces, and physics/causality. The baselines include:
+• RL. We utilize Multitask PPO [55] (policy-based) and
+shared-parameter DQN [34] (value-based) as standard re-
+inforcement learning approaches.
+• VLM. We employ a range of vision-language models, in-
+cluding closed-source models such as GPT-4o and GPT-
+5 [33], as well as open-source models like Qwen3-VL-
+30B-A3B [54].
+• World Model. We compare three different world models:
+DreamerV3 [19] (latent-based), V-JEPA2 [3] (pretrained
+latent-based prediction), and Genie [10] (pixel-based pre-
+diction) (we follow GenieRedux implementation [25]).
+• IL. We apply imitation learning (IL) models, including
+6
+
+
+Table 2. Comprehensive comparison across
+,
+, and
+. Obj: training objective; Mean: normalized score; Avg. Rank: normalized
+average rank (1/(n−1), higher is better); Ratio@Top-3(%): percentage of games where the method is in the top-3.
+Methods
+Survival
+Curiosity
+Utility
+Mean
+Avg. Rank
+Ratio@Top-3(%)
+Mean
+Avg. Rank
+Ratio@Top-3(%)
+Mean
+Avg. Rank
+Ratio@Top-3(%)
+Control Group
+Random
+0.541
+0.450
+3.5
+5.254
+0.363
+5.8
+0.000
+0.559
+1.1
+Human
+0.764
+0.760
+41.9
+5.428
+0.480
+11.7
+1.000
+0.874
+76.1
+Imitation Learning (IL) Group
+ACT-BC
+0.541
+0.474
+5.8
+6.896
+0.476
+13.0
+0.092
+0.487
+5.7
+Qwen3-VL-8B-BC
+0.578
+0.578
+7.0
+6.945
+0.502
+11.8
+0.129
+0.560
+3.4
+Reinforcement Learning (RL) Group
+PPO@survival
+0.571
+0.581
+16.3
+5.453
+0.415
+2.3
+0.259
+0.636
+14.8
+PPO@curiosity
+0.562
+0.566
+11.6
+5.344
+0.373
+3.5
+0.285
+0.659
+19.3
+PPO@utility
+0.554
+0.609
+17.4
+5.419
+0.397
+2.3
+0.268
+0.637
+18.2
+DQN@survival
+0.538
+0.493
+15.1
+7.058
+0.588
+10.6
+0.147
+0.518
+8.0
+DQN@curiosity
+0.562
+0.531
+18.6
+6.841
+0.578
+12.8
+0.159
+0.521
+8.4
+DQN@utility
+0.556
+0.515
+18.6
+6.450
+0.563
+9.3
+0.156
+0.536
+9.1
+World Model Group
+DreamerV3@survival
+0.521
+0.495
+8.1
+7.737
+0.526
+14.0
+0.114
+0.446
+6.8
+DreamerV3@curiosity
+0.538
+0.466
+8.1
+7.843
+0.608
+20.9
+0.138
+0.449
+11.5
+DreamerV3@utility
+0.538
+0.481
+9.3
+7.336
+0.530
+17.6
+0.139
+0.446
+8.7
+V-JEPA2@survival
+0.531
+0.394
+5.8
+7.815
+0.469
+14.0
+0.065
+0.285
+4.0
+V-JEPA2@curiosity
+0.516
+0.343
+0.0
+8.463
+0.610
+22.1
+0.046
+0.246
+4.5
+V-JEPA2@utility
+0.526
+0.369
+1.2
+7.777
+0.412
+15.1
+0.051
+0.293
+4.5
+GenieRedux@survival
+0.539
+0.435
+3.5
+7.937
+0.573
+17.4
+0.090
+0.334
+4.0
+GenieRedux@curiosity
+0.534
+0.421
+3.5
+8.390
+0.675
+20.9
+0.084
+0.293
+3.4
+GenieRedux@utility
+0.540
+0.445
+4.7
+8.067
+0.573
+17.4
+0.085
+0.349
+4.5
+Multimodal Large Language Model (MLLM) Group
+GPT-4o@survival
+0.575
+0.605
+14.0
+4.954
+0.390
+2.2
+0.156
+0.543
+7.0
+GPT-4o@curiosity
+0.521
+0.429
+7.0
+5.800
+0.518
+4.7
+0.124
+0.474
+4.5
+GPT-4o@utility
+0.522
+0.474
+8.1
+5.676
+0.465
+2.3
+0.162
+0.549
+8.0
+GPT-5@survival
+0.619
+0.630
+25.6
+5.181
+0.358
+2.3
+0.199
+0.593
+18.2
+GPT-5@curiosity
+0.529
+0.488
+5.8
+5.621
+0.448
+5.8
+0.148
+0.515
+5.7
+GPT-5@utility
+0.536
+0.460
+5.8
+5.329
+0.427
+2.3
+0.206
+0.606
+13.6
+Qwen3-VL-A30B@survival
+0.544
+0.514
+5.8
+5.690
+0.522
+5.8
+0.149
+0.539
+6.8
+Qwen3-VL-A30B@curiosity
+0.518
+0.450
+7.0
+7.113
+0.600
+11.7
+0.133
+0.500
+4.5
+Qwen3-VL-A30B@utility
+0.545
+0.504
+9.3
+6.214
+0.443
+4.7
+0.146
+0.552
+6.8
+Interactive Physical Reasoner
+IPR (8B)
+0.589
+0.517
+10.4
+7.874
+0.584
+15.6
+0.178
+0.604
+8.9
+(ranking)
+(2/26)
+(8/26)
+(9/26)
+(5/26)
+(6/26)
+(7/26)
+(7/26)
+(5/26)
+(9/26)
+Key Takeaways across
+Survival,
+Curiosity, and
+Utility
+• Prediction-based Methods (WM). Strong at
+, but weaker at
+and
+. Trained on broad exploratory trajec-
+tories, latent rollouts broaden coverage and reveal dynamics, but tend to imitate visually-alike futures rather than
+reliably pursue goals. So prediction is useful as a look-ahead prior for risk and candidate actions.
+• RL-based Methods (PPO, DQN). Strong at
+and
+when rewards are well-shaped, but weaker on
+and tasks
+without explicit goals. Reward gradients enable effective credit assignment under the right signal, yet sparsity and
+partial observability induce instability and interface overfitting—so RL works best as an optimization method.
+• Experience-based Methods (Behavior Cloning). Strong at human-like
+, but weaker on
+and
+. Deliber-
+ately imitate human trajectories and thus excel at low-risk survival, but struggle once tasks require precise control
+or exploration, and their performance depends strongly on the coverage and quality of the demonstrations.
+• Reasoning-based Pretrained VLMs. Strong at goal-conditioned
+and
+; weaker on
+. They excel at
+instruction-driven reasoning but cannot predict consequences in the visual state space, so they work best as high-
+level reasoners that need auxiliary prediction modules for outcome-aware decisions.
+• Interactive Physical Reasoning (Ours). Robust across
+,
+, and
+. We combine the strengths of all three
+paradigms: VLMs provide goal-driven causal reasoning, the world model supplies rollout prediction, and RL
+optimizes decisions using imagined rewards, yielding consistently strong performance across all three levels.
+7
+
+
+Figure 5. G2U zero-shot scaling on 50 held-out games. As the
+number of training games N increases, zero-shot performance on
+,
+, and
+improves steadily on the unseen set TU.
+ACT [58] (end-to-end model) and Qwen3-VL-8B [54]
+(VLM-based model).
+We assess every model on the three hierarchical objec-
+tives, instantiating level-specific training or prompting. Fur-
+ther implementation details are provided in the supplemen-
+tary. The key results are reported in Tab. 2. Takeaways are
+below the table.
+5.4. Zero-shot Transferring to Unseen Games
+To validate our Games-to-Unseen (G2U) setting, we con-
+struct a held-out target set TU of 50 games that are never
+used for training. From the remaining pool, we form strat-
+ified training subsets {SN} of increasing size N, balanced
+by physics and causal mechanisms to control for domain
+bias. For each N, we train our IPR paradigm end-to-end
+on SN and directly evaluate zero-shot on TU without any
+adaptation or reward re-scaling.
+Across all three objectives,
+performance increases
+steadily with N, with the steepest early gains on
+, fol-
+lowed by sustained improvements on
+and
+as more
+diverse interactions are observed. This suggests that train-
+ing in physically and causally related environments helps
+IPR move beyond domain-specific quirks (visual style, con-
+trol interface) and focus on shared physical and causal pat-
+terns (e.g., gravity, contact, momentum). In other words,
+as interactive experience accumulates, IPR behaves more
+human-like: it carries over physical priors and causal ex-
+pectations rather than memorizing domain appearance or
+controls, demonstrating potential to further scale in richer
+interactive domains.
+5.5. Ablations and Analysis
+Does prediction help VLM reasoning?
+Table 3 com-
+pares variants on the same Qwen3-VL-8B backbone. Start-
+ing from the pretrained VLM, naive BC barely changes
+survival (0.62→0.63) but hurts curiosity and utility, sug-
+gesting that low-quality demonstrations can overwrite use-
+ful priors instead of improving control.
+PPO on top of
+the VLM achieves the best survival (1.00) and higher util-
+ity (1.23), but further suppresses curiosity, and combin-
+ing PPO with BC degrades all three metrics, indicating
+Table 3.
+Ablation study results for IPR components of World
+Model prediction and GRPO.
+Method
+Survival
+Curiosity
+Utility
+VLM (pretrained)
+0.62
+2.14
+0.89
+VLM + BC
+0.63
+1.88
+0.87
+VLM + PPO
+1.00
+1.79
+1.23
+VLM + BC + PPO
+0.57
+1.86
+0.77
+IPR
+0.76
+2.77
+1.34
+that RL alone tends to overfit short-term rewards under bi-
+ased data. In contrast, our IPR, which augments the VLM
+with world-model prediction and GRPO updates, attains
+the highest curiosity (2.77) while keeping strong survival
+and utility, showing that prediction-based reinforcement is
+key to strengthening long-horizon physical reasoning rather
+than simply pushing for higher immediate scores.
+6. Discussion
+We study an interactive physical reasoning paradigm in
+which a general-purpose VLM reasons in language, acts
+through a physics-centric latent interface (PhysCode), and
+is reinforced by imagined rewards from a world model, ask-
+ing whether such agents can internalize physical and causal
+regularities from heterogeneous games and show clear scal-
+ing as experience grows.
+From this perspective, latent-
+action world models (e.g. Genie, UniVLA [10, 11]) learn
+discrete action abstractions and latent dynamics for con-
+trollable rollouts; imagination-based control methods (e.g.
+Dreamer, V-JEPA2-AC [2, 20]) optimize policies inside
+learned world models over device-level actions; and large-
+scale VLM-based game agents (e.g. Game-TARS [53])
+scale vision–language–action models with massive human
+demonstrations and auxiliary multimodal tasks. Yet, from a
+physics-centric perspective, these approaches do not explic-
+itly organize actions by shared physical mechanisms across
+hundreds of games or align VLM’s reasoning ability with
+prediction competence in a common latent space. IPR com-
+bines their advantages to study how physical knowledge and
+transfer emerge under the unified Survival-Curiosity-Utility
+evaluation, though it is still limited to game environments
+and short-horizon imagination, leaving real-world transfer
+and longer-horizon reasoning to future work.
+7. Conclusion
+In this work, we introduced IPR, a paradigm that reinforces
+physical reasoning with prediction by coupling a physics-
+centric latent action space (PhysCode) with prediction-
+guided VLM optimization, so that physical and causal reg-
+ularities are distilled directly from interactive consequences
+rather than static corpora. On a curated suite of 1,000+
+heterogeneous games with Survival/Curiosity/Utility evalu-
+ation, IPR yields robust gains over VLM-based, prediction-
+8
+
+
+based, and RL-based baselines, and shows strong zero-
+shot transfer to unseen games (survive the 1001st night).
+These results suggest that a general-purpose VLM, when
+grounded in a physics-organized latent interface and trained
+with imagined rewards, can indeed learn and scale its phys-
+ical reasoning ability purely through interaction, providing
+a step toward interactive agents that acquire reusable phys-
+ical and causal knowledge.
+References
+[1] Michael Ahn, Anthony Brohan, Noah Brown, Yevgen Cheb-
+otar, Omar Cortes, Byron David, Chelsea Finn, Chuyuan Fu,
+Keerthana Gopalakrishnan, Karol Hausman, Alex Herzog,
+Daniel Ho, Jasmine Hsu, Julian Ibarz, Brian Ichter, Alex Ir-
+pan, Eric Jang, Rosario Jauregui Ruano, Kyle Jeffrey, Sally
+Jesmonth, Nikhil J Joshi, Ryan Julian, Dmitry Kalashnikov,
+Yuheng Kuang, Kuang-Huei Lee, Sergey Levine, Yao Lu,
+Linda Luu, Carolina Parada, Peter Pastor, Jornell Quiambao,
+Kanishka Rao, Jarek Rettinghouse, Diego Reyes, Pierre Ser-
+manet, Nicolas Sievers, Clayton Tan, Alexander Toshev, Vin-
+cent Vanhoucke, Fei Xia, Ted Xiao, Peng Xu, Sichun Xu,
+Mengyuan Yan, and Andy Zeng. Do as i can, not as i say:
+Grounding language in robotic affordances, 2022. 3
+[2] Mido Assran, Adrien Bardes, David Fan, Quentin Garrido,
+Russell Howes, Mojtaba, Komeili, Matthew Muckley, Am-
+mar Rizvi, Claire Roberts, Koustuv Sinha, Artem Zholus,
+Sergio Arnaud, Abha Gejji, Ada Martin, Francois Robert
+Hogan, Daniel Dugas, Piotr Bojanowski, Vasil Khalidov,
+Patrick Labatut, Francisco Massa, Marc Szafraniec, Kapil
+Krishnakumar, Yong Li, Xiaodong Ma, Sarath Chandar,
+Franziska Meier, Yann LeCun, Michael Rabbat, and Nico-
+las Ballas. V-jepa 2: Self-supervised video models enable
+understanding, prediction and planning, 2025. 8
+[3] Mido Assran, Adrien Bardes, David Fan, Quentin Garrido,
+Russell Howes, Matthew Muckley, Ammar Rizvi, Claire
+Roberts, Koustuv Sinha, Artem Zholus, et al. V-jepa 2: Self-
+supervised video models enable understanding, prediction
+and planning. arXiv preprint arXiv:2506.09985, 2025. 1,
+6
+[4] Marc G. Bellemare, Yavar Naddaf, Joel Veness, and Michael
+Bowling. The arcade learning environment: An evaluation
+platform for general agents. Journal of Artificial Intelligence
+Research, 47:253–279, 2013. 6
+[5] Marc G Bellemare, Yavar Naddaf, Joel Veness, and Michael
+Bowling. The arcade learning environment: An evaluation
+platform for general agents. Journal of artificial intelligence
+research, 47:253–279, 2013. 3
+[6] Yoshua Bengio and Yann LeCun.
+Scaling learning algo-
+rithms towards AI. In Large Scale Kernel Machines. MIT
+Press, 2007. 1
+[7] Jeremy Bentham.
+An Introduction to the Principles of
+Morals and Legislation. T. Payne and Son, 1789. 6
+[8] Greg Brockman, Vicki Cheung, Ludwig Pettersson, Jonas
+Schneider, John Schulman, Jie Tang, and Wojciech Zaremba.
+Openai gym, 2016. 2
+[9] Anthony Brohan, Noah Brown, Justice Carbajal, Yevgen
+Chebotar, Xi Chen, Krzysztof Choromanski, Tianli Ding,
+Danny Driess, Avinava Dubey, Chelsea Finn, Pete Florence,
+Chuyuan Fu, Montse Gonzalez Arenas, Keerthana Gopalakr-
+ishnan, Kehang Han, Karol Hausman, Alexander Herzog,
+Jasmine Hsu, Brian Ichter, Alex Irpan, Nikhil Joshi, Ryan
+Julian, Dmitry Kalashnikov, Yuheng Kuang, Isabel Leal,
+Lisa Lee, Tsang-Wei Edward Lee, Sergey Levine, Yao Lu,
+Henryk Michalewski, Igor Mordatch, Karl Pertsch, Kan-
+ishka Rao, Krista Reymann, Michael Ryoo, Grecia Salazar,
+Pannag Sanketi, Pierre Sermanet, Jaspiar Singh, Anikait
+Singh, Radu Soricut, Huong Tran, Vincent Vanhoucke, Quan
+Vuong, Ayzaan Wahid, Stefan Welker, Paul Wohlhart, Jialin
+Wu, Fei Xia, Ted Xiao, Peng Xu, Sichun Xu, Tianhe Yu,
+and Brianna Zitkovich. Rt-2: Vision-language-action mod-
+els transfer web knowledge to robotic control, 2023. 3
+[10] Jake Bruce, Michael D Dennis, Ashley Edwards, Jack
+Parker-Holder, Yuge Shi, Edward Hughes, Matthew Lai,
+Aditi Mavalankar, Richie Steigerwald, Chris Apps, et al. Ge-
+nie: Generative interactive environments. In Forty-first Inter-
+national Conference on Machine Learning, 2024. 1, 2, 3, 6,
+8
+[11] Qingwen Bu, Yanting Yang, Jisong Cai, Shenyuan Gao,
+Guanghui Ren, Maoqing Yao, Ping Luo, and Hongyang Li.
+Univla: Learning to act anywhere with task-centric latent ac-
+tions, 2025. 1, 8
+[12] Cheng Chi, Zhenjia Xu, Siyuan Feng, Eric Cousineau, Yilun
+Du, Benjamin Burchfiel, Russ Tedrake, and Shuran Song.
+Diffusion policy: Visuomotor policy learning via action dif-
+fusion, 2024. 3
+[13] Linxi Fan, Guanzhi Wang, Yunfan Jiang, Ajay Mandlekar,
+Yuncong Yang, Haoyi Zhu, Andrew Tang, De-An Huang,
+Yuke Zhu, and Anima Anandkumar.
+Minedojo: Building
+open-ended embodied agents with internet-scale knowledge,
+2022. 3
+[14] Philipp Fischer, Alexey Dosovitskiy, Eddy Ilg, Philip
+H¨ausser, Caner Hazırbas¸, Vladimir Golkov, Patrick van der
+Smagt, Daniel Cremers, and Thomas Brox. Flownet: Learn-
+ing optical flow with convolutional networks, 2015. 3
+[15] David Ha and J¨urgen Schmidhuber. World models. 2018. 3
+[16] Tuomas Haarnoja, Aurick Zhou, Pieter Abbeel, and Sergey
+Levine. Soft actor-critic: Off-policy maximum entropy deep
+reinforcement learning with a stochastic actor, 2018. 2, 3
+[17] Danijar Hafner, Timothy Lillicrap, Ian Fischer, Ruben Ville-
+gas, David Ha, Honglak Lee, and James Davidson. Learning
+latent dynamics for planning from pixels, 2019. 3
+[18] Danijar Hafner, Timothy Lillicrap, Jimmy Ba, and Moham-
+mad Norouzi. Dream to control: Learning behaviors by la-
+tent imagination, 2020.
+[19] Danijar Hafner, Jurgis Pasukonis, Jimmy Ba, and Timothy
+Lillicrap. Mastering diverse domains through world models.
+arXiv preprint arXiv:2301.04104, 2023. 3, 6
+[20] Danijar Hafner, Jurgis Pasukonis, Jimmy Ba, and Timothy
+Lillicrap. Mastering diverse domains through world models,
+2024. 8
+[21] Danijar Hafner, Wilson Yan, and Timothy Lillicrap. Training
+agents inside of scalable world models, 2025. 1
+[22] Jie Huang and Kevin Chen-Chuan Chang. Towards reason-
+ing in large language models: A survey, 2023. 1
+9
+
+
+[23] Jiangyong Huang, Silong Yong, Xiaojian Ma, Xiongkun
+Linghu, Puhao Li, Yan Wang, Qing Li, Song-Chun Zhu,
+Baoxiong Jia, and Siyuan Huang. An embodied generalist
+agent in 3d world, 2024. 3
+[24] William Huitt. Maslow’s hierarchy of needs. Educational
+psychology interactive, 23, 2007. 2, 5
+[25] Naser Kazemi, Nedko Savov, Danda Paudel, and Luc Van
+Gool.
+Learning generative interactive environments by
+trained agent exploration, 2024. 6
+[26] Michał Kempka, Marek Wydmuch, Grzegorz Runc, Jakub
+Toczek, and Wojciech Ja´skowski. Vizdoom: A doom-based
+ai research platform for visual reinforcement learning. In
+2016 IEEE conference on computational intelligence and
+games (CIG), pages 1–8. IEEE, 2016. 3
+[27] Katharina Limbeck, Rayna Andreeva, Rik Sarkar, and Bas-
+tian Rieck. Metric space magnitude for evaluating the diver-
+sity of latent representations. Advances in Neural Informa-
+tion Processing Systems, 37:123911–123953, 2024. 5
+[28] Corey Lynch and Pierre Sermanet. Language conditioned
+imitation learning over unstructured data, 2021. 3
+[29] Volodymyr Mnih, Koray Kavukcuoglu, David Silver, Alex
+Graves, Ioannis Antonoglou, Daan Wierstra, and Martin
+Riedmiller. Playing atari with deep reinforcement learning.
+arXiv preprint arXiv:1312.5602, 2013. 3
+[30] Volodymyr Mnih, Koray Kavukcuoglu, David Silver, An-
+drei A Rusu, Joel Veness, Marc G Bellemare, Alex Graves,
+Martin Riedmiller, Andreas K Fidjeland, Georg Ostrovski,
+et al. Human-level control through deep reinforcement learn-
+ing. nature, 518(7540):529–533, 2015. 2
+[31] Masashi Okada and Tadahiro Taniguchi. Dreaming: Model-
+based reinforcement learning by latent imagination without
+reconstruction, 2021. 3
+[32] OpenAI. Dota 2 with large scale deep reinforcement learn-
+ing, 2019. 3
+[33] OpenAI. Gpt-4o system card, 2024. 6
+[34] Ian Osband, Charles Blundell, Alexander Pritzel, and Ben-
+jamin Van Roy. Deep exploration via bootstrapped dqn. Ad-
+vances in neural information processing systems, 29, 2016.
+6
+[35] Mathieu Poliquin. Stable retro: A maintained fork of ope-
+nai’s gym-retro.
+https://github.com/Farama-
+Foundation/stable-retro, 2025. 5
+[36] Zehan Qi, Xiao Liu, Iat Long Iong, Hanyu Lai, Xueqiao Sun,
+Wenyi Zhao, Yu Yang, Xinyue Yang, Jiadai Sun, Shuntian
+Yao, et al. Webrl: Training llm web agents via self-evolving
+online curriculum reinforcement learning.
+arXiv preprint
+arXiv:2411.02337, 2024. 3
+[37] Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya
+Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sastry,
+Amanda Askell, Pamela Mishkin, Jack Clark, Gretchen
+Krueger, and Ilya Sutskever.
+Learning transferable visual
+models from natural language supervision, 2021. 5
+[38] Colin Raffel, Noam Shazeer, Adam Roberts, Katherine Lee,
+Sharan Narang, Michael Matena, Yanqi Zhou, Wei Li, and
+Peter J. Liu. Exploring the limits of transfer learning with a
+unified text-to-text transformer, 2023. 3
+[39] Scott Reed, Konrad Zolna, Emilio Parisotto, Sergio Gomez
+Colmenarejo, Alexander Novikov, Gabriel Barth-Maron,
+Mai Gimenez, Yury Sulsky, Jackie Kay, Jost Tobias Sprin-
+genberg, et al.
+A generalist agent.
+arXiv preprint
+arXiv:2205.06175, 2022. 3
+[40] Ranjan Sapkota, Yang Cao, Konstantinos I Roumeliotis,
+and Manoj Karkee. Vision-language-action models: Con-
+cepts, progress, applications and challenges. arXiv preprint
+arXiv:2505.04769, 2025. 3
+[41] Manolis Savva, Abhishek Kadian, Oleksandr Maksymets,
+Yili Zhao, Erik Wijmans, Bhavana Jain, Julian Straub, Jia
+Liu, Vladlen Koltun, Jitendra Malik, et al.
+Habitat: A
+platform for embodied ai research.
+In Proceedings of
+the IEEE/CVF international conference on computer vision,
+pages 9339–9347, 2019. 3
+[42] John Schulman, Filip Wolski, Prafulla Dhariwal, Alec Rad-
+ford, and Oleg Klimov. Proximal policy optimization algo-
+rithms. arXiv preprint arXiv:1707.06347, 2017. 2, 3
+[43] Zhihong Shao, Peiyi Wang, Qihao Zhu, Runxin Xu, Junxiao
+Song, Xiao Bi, Haowei Zhang, Mingchuan Zhang, YK Li,
+Yang Wu, et al. Deepseekmath: Pushing the limits of math-
+ematical reasoning in open language models. arXiv preprint
+arXiv:2402.03300, 2024. 5
+[44] Archit Sharma, Michael Ahn, Sergey Levine, Vikash Ku-
+mar, Karol Hausman, and Shixiang Gu.
+Emergent real-
+world robotic skills via unsupervised off-policy reinforce-
+ment learning, 2020. 3
+[45] Mohit Shridhar, Jesse Thomason, Daniel Gordon, Yonatan
+Bisk, Winson Han, Roozbeh Mottaghi, Luke Zettlemoyer,
+and Dieter Fox.
+Alfred:
+A benchmark for interpreting
+grounded instructions for everyday tasks, 2020. 3
+[46] Oriane Sim´eoni, Huy V. Vo, Maximilian Seitzer, Federico
+Baldassarre, Maxime Oquab, Cijo Jose, Vasil Khalidov,
+Marc Szafraniec, Seungeun Yi, Micha¨el Ramamonjisoa,
+Francisco Massa, Daniel Haziza, Luca Wehrstedt, Jianyuan
+Wang, Timoth´ee Darcet, Th´eo Moutakanni, Leonel Sentana,
+Claire Roberts, Andrea Vedaldi, Jamie Tolan, John Brandt,
+Camille Couprie, Julien Mairal, Herv´e J´egou, Patrick La-
+batut, and Piotr Bojanowski. Dinov3, 2025. 3
+[47] Aaron
+van
+den
+Oord,
+Oriol
+Vinyals,
+and
+Koray
+Kavukcuoglu.
+Neural discrete representation learning,
+2018. 3
+[48] Hado van Hasselt, Arthur Guez, and David Silver. Deep re-
+inforcement learning with double q-learning, 2015. 3
+[49] Oriol Vinyals,
+Timo Ewalds,
+Sergey Bartunov,
+Petko
+Georgiev, Alexander Sasha Vezhnevets, Michelle Yeo,
+Alireza Makhzani, Heinrich K¨uttler, John Agapiou, Julian
+Schrittwieser, et al. Starcraft ii: A new challenge for rein-
+forcement learning. arXiv preprint arXiv:1708.04782, 2017.
+3
+[50] Oriol Vinyals, Igor Babuschkin, Wojciech M. Czarnecki,
+Micha¨el Mathieu, Andrew Joseph Dudzik, Junyoung Chung,
+David Choi, Richard Powell, Timo Ewalds, Petko Georgiev,
+Junhyuk Oh, Dan Horgan, Manuel Kroiss, Ivo Danihelka,
+Aja Huang, L. Sifre, Trevor Cai, John P. Agapiou, Max
+Jaderberg, Alexander Sasha Vezhnevets, R´emi Leblond, To-
+bias Pohlen, Valentin Dalibard, David Budden, Yury Sul-
+sky, James Molloy, Tom Le Paine, Caglar Gulcehre, Ziyun
+10
+
+
+Wang, Tobias Pfaff, Yuhuai Wu, Roman Ring, Dani Yo-
+gatama, Dario W¨unsch, Katrina McKinney, Oliver Smith,
+Tom Schaul, Timothy P. Lillicrap, Koray Kavukcuoglu,
+Demis Hassabis, Chris Apps, and David Silver. Grandmaster
+level in starcraft ii using multi-agent reinforcement learning.
+Nature, 575:350 – 354, 2019. 3
+[51] Guanzhi Wang, Yuqi Xie, Yunfan Jiang, Ajay Mandlekar,
+Chaowei Xiao, Yuke Zhu, Linxi Fan, and Anima Anandku-
+mar. Voyager: An open-ended embodied agent with large
+language models. arXiv preprint arXiv:2305.16291, 2023. 3
+[52] Zihao Wang, Shaofei Cai, Anji Liu, Yonggang Jin, Jin-
+bing Hou, Bowei Zhang, Haowei Lin, Zhaofeng He, Zilong
+Zheng, Yaodong Yang, et al. Jarvis-1: Open-world multi-
+task agents with memory-augmented multimodal language
+models.
+IEEE Transactions on Pattern Analysis and Ma-
+chine Intelligence, 2024. 1, 3
+[53] Zihao Wang, Xujing Li, Yining Ye, Junjie Fang, Haoming
+Wang, Longxiang Liu, Shihao Liang, Junting Lu, Zhiyong
+Wu, Jiazhan Feng, Wanjun Zhong, Zili Li, Yu Wang, Yu
+Miao, Bo Zhou, Yuanfan Li, Hao Wang, Zhongkai Zhao,
+Faming Wu, Zhengxuan Jiang, Weihao Tan, Heyuan Yao,
+Shi Yan, Xiangyang Li, Yitao Liang, Yujia Qin, and Guang
+Shi. Game-tars: Pretrained foundation models for scalable
+generalist multimodal game agents, 2025. 1, 8
+[54] An Yang, Anfeng Li, Baosong Yang, Beichen Zhang,
+Binyuan Hui, Bo Zheng, Bowen Yu, Chang Gao, Chengen
+Huang, Chenxu Lv, et al. Qwen3 technical report. arXiv
+preprint arXiv:2505.09388, 2025. 5, 6, 8
+[55] Tianhe Yu, Deirdre Quillen, Zhanpeng He, Ryan Julian,
+Karol Hausman, Chelsea Finn, and Sergey Levine. Meta-
+world: A benchmark and evaluation for multi-task and meta
+reinforcement learning.
+In Conference on robot learning,
+pages 1094–1100. PMLR, 2020. 6
+[56] Zhecheng Yuan, Sizhe Yang, Pu Hua, Can Chang, Kaizhe
+Hu, and Huazhe Xu. Rl-vigen: A reinforcement learning
+benchmark for visual generalization.
+Advances in Neural
+Information Processing Systems, 36:6720–6747, 2023. 3
+[57] Mingyu Zhang, Jiting Cai, Mingyu Liu, Yue Xu, Cewu Lu,
+and Yong-Lu Li. Take a step back: Rethinking the two stages
+in visual reasoning, 2024. 1
+[58] Tony Z Zhao, Vikash Kumar, Sergey Levine, and Chelsea
+Finn.
+Learning fine-grained bimanual manipulation with
+low-cost hardware. arXiv preprint arXiv:2304.13705, 2023.
+8
+11

@@ -1,0 +1,1753 @@
+Robust H∞control and worst-case search in constrained parametric space
+Ervan Kassarian1, Francesco Sanfedino2, Daniel Alazard2, Andrea Marrazza1
+Abstract
+Standard H∞/H2 robust control and analysis tools operate on uncertain parameters assumed to vary independently within
+prescribed bounds. This paper extends their capabilities in the presence of constraints coupling these parameters and restricting
+the parametric space. Focusing on the worst-case search, we demonstrate – based on the theory of upper-C1 functions – the
+validity of using standard, readily available smooth optimization algorithms to address this nonsmooth constrained optimization
+problem. Accordingly, we propose to explore the parametric space with either Monte-Carlo sampling or particle swarm
+optimization, and to subsequently perform local exploitation with Sequential Quadratic Programming to compute Karush-
+Kuhn-Tucker points. This worst-case search then enables robust controller synthesis: as in the state-of-art algorithm for
+standard robust control, identiﬁed worst-case conﬁgurations are iteratively added to an active set on which a non-smooth
+multi-models optimization of the controller is performed. The methodology is illustrated on a satellite benchmark with ﬂexible
+appendages, of order 50 with 43 uncertain parameters. We show that the proposed method largely outperforms Monte-Carlo
+sampling alone, is able to reliably detect even rare worst-case conﬁgurations in minutes on a standard laptop, and that the
+robust controller optimization converges with less than 10 active conﬁgurations. Even in the unconstrained case, the proposed
+framework complements traditional methods, as it scales to plants with many parameters and states and explores the entire
+parametric space, albeit without formal guarantees of global optimality.
+I. INTRODUCTION
+The standard robust structured H∞control problem [1] is formulated as the min-max optimization problem:
+minimize
+K∈K
+max
+δ∈D ||Tzw(s, K, δ)||∞
+(1)
+where Tzw(s, K, δ) is a transfer function between input w and output z, K is the controller to be optimized, K is the set of
+controllers of the chosen structure, and δ is the vector of k uncertain parameters in a parametric space D. A multi-objective
+formulation can also be stated as follows:
+minimize
+K∈K
+max
+δ∈D ||Tz1w1(s, K, δ)||
+subject to
+max
+δ∈D ||Tziwi(s, K, δ)|| ≤1 , 2 ≤i ≤n
+(2)
+where || · || may refer to the H2 or H∞system norm. The channel w1 →z1 corresponds to a ”soft” requirement to be
+minimized, while the other channels wi →zi (i > 1) are ”hard” requirements, that must be inferior to 1 (once normalized)
+but not necessarily minimized.
+In this paper, we mainly focus on the inner maximization problems, namely search for worst-case performance:
+max
+δ∈D ||Tzw(s, K, δ)||
+(3)
+and worst-case stability – stability is implicitly required to ensure ﬁnite norms – treated as in [2]:
+max
+δ∈D α(A(K, δ))
+(4)
+where A(K, δ) is the matrix A of the state-space representation of the closed-loop system, and α(·) denotes the spectral
+abscissa:
+α(M) := max{Re(λ) : λ is an eigenvalue of M} .
+Classically in the literature, D is the hypercube [−1, 1]k after normalization of the uncertain parameters, and Tzw(s, K, δ)
+is modeled under the Linear Fractional Representation (LFR). In this case, the function SYSTUNE of MATLAB’s Robust
+Control Toolbox, relying on the non-smooth optimization of [2], [3], is now widely used in academia and industry to solve
+problems (1) and (2). More speciﬁcally, in [2], problems (3) and (4) are solved with local non-smooth optimization. Indeed,
+the computation of Clarke subdifferentials [4] of the spectral abscissa and of the H∞norm [5] enables a bundle method to
+quickly ﬁnd worst-case conﬁgurations with regard to stability and performance. The control problem (1) is then tackled by
+combining this worst-case search with the non-smooth controller optimization of [3]. This approach relies on the construction
+of an inner approximation Da ⊂D composed of so-called active conﬁgurations. At each iteration, the controller is tuned so
+as to be robust to all current active conﬁgurations. Then, a worst-case search is performed; if the worst-case conﬁguration
+does not satisfy the control requirements, it is added to Da and the algorithm goes back to controller tuning; otherwise,
+1DYCSYT, 10 Avenue Marc P´elegrin, 31400 Toulouse, France.
+2F´ed´eration ENAC ISAE-SUPAERO ONERA, Universit´e de Toulouse, 10 Avenue Marc P´elegrin, Toulouse, 31400, France
+arXiv:2511.15480v1  [eess.SY]  19 Nov 2025
+
+
+the algorithm can terminate. It is shown that this approach is both more reliable and more efﬁcient than gridding the
+parametric space, which quickly becomes intractable when the number of parameters increases. In practice, the optimization
+generally ﬁnishes with a small number of active conﬁgurations. As this approach relies on local searches, robustness is
+generally thoroughly veriﬁed a posteriori. µ-analysis [6] was developed for this purpose, generally based on branch-and-
+bound algorithms [7]. It provides guaranteed deterministic lower and upper bounds of the global optimum; a probabilistic
+variant also exists [8], [9]. Monte-Carlo sampling can also guarantee a probability of robustness within predeﬁned thresholds
+of accuracy and conﬁdence [10]. Another common industrial practice is to grid the parametric space with a limited number
+of samples, typically 100 to 1000 combinations of the parameters bounds. But this approach will miss any worst case
+occurring between grid points and, unlike Monte-Carlo, does not provide any statistical guarantee.
+This paper addresses the case where nonlinear constraints, noted ci(δ) ≤0 and possibly including equality constraints,
+restrict the hypercube:
+D = {δ ∈[−1, 1]k s.t. ci(δ) ≤0, 1 ≤i ≤n}
+(5)
+Our focus is twofold. Firstly, we seek computationally efﬁcient techniques that can be integrated into robust control design,
+alternating between multi-models controller synthesis and worst-case search as in [2], to solve the standard problem (1) and
+its multi-objectives formulation (2) in reasonable time. Secondly, we aim to assess their reliability in consistently detecting
+global worst-case conﬁgurations as a validation tool.
+The robust control and analysis approaches discussed above do not address the constrained case, at least not in their
+current implementations. Nevertheless, quantifying robustness can still be approached with Monte-Carlo sampling; samples
+that do not satisfy the nonlinear constraint are simply discarded. Evaluating the stability or the norm of a linear system at
+a given parametric conﬁguration is relatively fast, and easily parallelizable; moreover, the number of evaluations required
+to provide the desired levels of probability and conﬁdence is independent from the number of parameters [10]. However,
+ﬁnding a worst case, e.g. to address problems (3) or (4), may require numerous function evaluations and lead to a signiﬁcant
+computation time, especially in critical systems for which even rare worst cases must be avoided. This is particularly an
+issue when the robustness analysis iterates with controller design to perform robust tuning.
+In this paper, we demonstrate new properties of the class of upper-C1 functions [11], and in particular the convergence
+of Sequential Quadratic Programming (SQP) [12], a standard constrained optimization algorithm, when applied to such
+functions even though they are not smooth. We deduce that SQP can be applied to the nonsmooth problem (3), and to (4)
+under an additional assumption. Then, relying on built-in MATLAB functions, we propose to explore the parametric space
+with either Particle Swarm Optimization (PSO) [13], tackling the nonlinear constraint through a penalty approach [14], or
+Monte-Carlo sampling (if stochastic guarantees are sought), and subsequently reﬁne the search with SQP to ﬁnd Karush-
+Kuhn-Tucker points of the optimization problem. Then, following the approach of [2], this worst-case search method is then
+combined with multi-models controller optimization [3] to perform robust control. To the best of our knowledge, this is the
+ﬁrst robust H∞control approach that tackles nonlinear constraints on the uncertain parameters.
+We emphasize that the proposed techniques, although studied here in the context of the constrained space (5), may also
+prove valuable in the unconstrained case. Indeed, µ-analysis remains difﬁcult to apply to industrial systems with many
+uncertain parameters – as illustrated in the recent references [15], [16], [17], [18] where systems with 16 to 20 parameters
+required sensitivity-based model reduction to make the problem tractable, at the expense of model ﬁdelity. In particular,
+[19] shows that such µ-analysis can even lead to an overly optimistic worst-case prediction after model reduction. This
+occurs because the formal robustness guarantees apply only to the reduced model and do not extend to the original system,
+thus limiting the practical value of sensitivity-based µ-analysis. By contrast, the proposed approach scales well to plants
+with many states and parameters, and thus can be applied to the full system. Furthermore, the non-smooth optimization
+of [2], implemented in SYSTUNE, is local and sometimes misses worst-case conﬁgurations, whereas the proposed approach
+performs a global exploration of the parametric space, albeit without formal guarantees of global optimality.
+We illustrate the proposed approach on the robust control of a spacecraft with ﬂexible appendage. In such systems,
+uncertainties associated with the mechanical properties of ﬂexible appendages must satisfy a condition of the form (5) or
+otherwise be excluded from robustness analysis (speciﬁcally, the residual mass matrix must remain positive deﬁnite). While
+structured H∞control has become industrial standard practice among satellite integrators for missions with demanding
+control requirements [17], [20], [21], [22], this constraint, and more generally the robustness analysis, is generally handled
+using Monte-Carlo or gridding approaches, which suffer from the aforementioned drawbacks. The proposed methodology
+offers a practical and scalable alternative that can signiﬁcantly reduce engineering effort and computational cost.
+II. CONSTRAINED OPTIMIZATION OF UPPER-C1 FUNCTIONS
+A. Properties of upper-C1 functions
+In this section, we introduce the class of upper-C1 functions and demonstrate favorable properties for their minimization.
+This will be relevant for the robust control problem, which, as we shall see, involves such functions. For readability and
+
+
+since our primary focus is on robust control, proofs that result from adapting existing arguments from the differentiable to
+the upper-C1 functions are only provided in Appendix.
+Deﬁnition 1 (Lower- and upper-C1 functions [11])
+A locally Lipschitz function f : Rn →R is upper-C1 at x ∈Rn if there exists a compact set S, a neighborhood U of x,
+and a function F : U × S →R such that F and ∇xF are jointly continuous in x and s, and such that
+f(x) = min
+s∈S F(x′, s)
+for all x′ ∈U.
+We note I(x) the subset of S that deﬁnes the active functions F(·, s) at x, i.e.:
+I(x) = arg min
+s∈S F(x, s) = {s ∈S, f(x) = F(x, s)} .
+f is lower-C1 if −f is upper-C1, i.e. f can be written as a maximum, similarly to the expression above.
+[2, Sections III.A., II.B., V.A.] shows that minimization of such upper-C1 functions, even when not differentiable
+everywhere, exhibits similar behavior to smooth functions. In particular, the authors show the convergence of their bundle
+method, in the search of the worst-case H∞norm, even when the cutting plane step is reduced to a standard linesearch (as
+in smooth optimization). This work follows [23] that treats of the optimization of lower- and upper-C1 functions. Similar
+considerations are also thoroughly discussed by the same authors in [24]. Similarly, in [25], the Frank-Wolfe algorithm,
+originally designed for smooth functions, is also proven to converge to Clarke-stationnary points when applied to upper-C1
+functions. In the same spirit, we now show that the upper-C1 functions, although not differentiable everywhere, maintain
+some favorable properties for their minimization. Then, we will demonstrate the convergence of one particular smooth
+optimization algorithm when applied to upper-C1 functions.
+In this whole Section, we consider f : Rk →R an upper-C1 function. Let us ﬁrst consider the unconstrained problem:
+minimize
+x∈Rk
+f(x)
+(6)
+Proposition 1 (Descent directions and optimality of upper-C1 functions – Unconstrained case)
+Let a locally Lipschitz function f be upper-C1 at x, and gx ∈∂f(x) any subgradient of f at x. We consider Problem (6).
+a) Descent direction. Any direction −gx, with gx ∈∂f(x) such that ||gx|| ̸= 0, is a descent direction for f(x), and in
+particular it veriﬁes f ′(x, −gx) ≤−||gx||2 < 0 where f ′(x, d) denotes the the directional derivative at x in direction d.
+b) Optimality. If x (locally) minimizes f(x), then ||gx|| = 0 for any gx ∈∂f(x).
+Proof. a) [25, Proposition 2 and equation (6)] shows that the directional derivative of an upper-C1 function f is:
+f ′(x, d) =
+min
+g∈∂f(x)⟨g, d⟩= min
+u∈I(x)⟨∇xF(x, u), d⟩
+(7)
+where ⟨·, ·⟩denotes the scalar product. From equation (7), f ′(x, −gx) = ming∈∂f(x)(−gTgx) ≤−gT
+x gx = −||gx||2 ≤0 and
+the last inequality is strict when ||gx|| ̸= 0.
+b) If x minimizes f, then f ′(x, −gx) ≥0. But, by a), f ′(x, −gx) ≤−||gx||2. Thus, ||gx|| = 0.
+Proposition 1.a) shows that when a smooth optimization algorithm is provided with any subgradient as if it were the
+gradient of a smooth function, progress can still be achieved at points of nonsmoothness, owing to the regularity property of
+upper-C1 functions. Naturally, the selected direction is not necessarily the steepest descent. Proposition 1.b) ensures that an
+optimization algorithm can rely on the same optimality conditions as in the smooth case when picking any subgradient (we
+recall that, for the general case of nonsmooth functions, the optimality condition is 0 ∈∂f(x), which is a weaker condition).
+We shall now demonstrate similar results for the constrained problem:
+minimize
+x∈Rk
+f(x)
+subject to
+ci(x) ≤0 , 1 ≤i ≤n
+(8)
+where the ci are differentiable, and f is upper-C1. We do not consider equality constraints, as they can be written equivalently
+as two inequality constraints. The Karush-Kuhn-Tucker (KKT) conditions of Problem (8) read: there exists gx ∈∂f(x) and
+(ui)1≤i≤n such that:
+gx + Pn
+i=1 ui∇ci(x) = 0
+∀i, ui ≥0, uici(x) = 0, ci(x) ≤0
+(9)
+
+
+We also consider the quadratic problem:
+Q(x, H, gx) :
+minimize
+p∈Rk
+gT
+x p + 1
+2pT Hp
+subject to
+ci(x) + ∇ci(x)T p ≤0 , 1 ≤i ≤n
+(10)
+where H is a symmetric deﬁnite positive matrix and gx ∈∂f(x). The quadratic problem Q(x, H, gx) can be seen as a local
+approximation of the Problem (8) where the matrix H may contain information about the curvature of both objective and
+constraint functions, usually serving as an approximation of the Lagrangian. Q(x, H, gx) is originally introduced in methods
+such as [26] where f is differentiable and ∇f(x) replaces gx.
+Finally, for r ≥0, we introduce the merit function θr as in [26]:
+θr(x) = f(x) + r
+n
+X
+i=1
+ci(x)+
+(11)
+where ci(x)+ = max(0, ci(x)).
+Proposition 2 (Descent directions and optimality of upper-C1 functions – Constrained case)
+Let a locally Lipschitz function f be upper-C1 at x, and gx ∈∂f(x) any subgradient of f at x. Let the ci be continuously
+differentiable. We consider Problem (8).
+a) Descent direction. Let (p, u) be a KKT pair of Q(x, H, gx). If ||p|| ̸= 0 and ||u||∞≤r, then p is a descent direction
+for θr(x), i.e. θ′
+r(x, p) < 0 where θ′
+r(x, d) denotes the the directional derivative at x in direction d.
+b) Optimality. If x (locally) minimizes f(x) subject to n constraints ci(x) ≤0 (Problem (8)), then any gx ∈∂f(x) veriﬁes
+the following KKT conditions: there exists (µi)1≤i≤n such that:
+gx + Pn
+i=1 µi∇ci(x) = 0
+∀i, µi ≥0, µici(x) = 0, ci(x) ≤0
+Proof. a) Cf. Appendix. The proof is a mere adaptation of [26, Theorem 3.1] to the upper-C1 case.
+b) Let us note C = {x, ci(x) ≤0 ∀i}. Since x is a local minimizer of f(x) in C, there exists a ball B(x, r1) of radius r1 > 0
+and of center x such that f(x′) ≥f(x) for all x′ ∈B(x, r1) ∩C. Recall that U is the neighborhood of x of Deﬁnition 1; as
+B(x, r1) and U are both non-empty neighborhoods of x, we can deﬁne r2 > 0 such that B(x, r2) ⊂B(x, r1) ∩U. Let us
+consider any of the functions F(·, s). For all x′ ∈B(x, r2)∩C, we have F(x′, s) ≥f(x′) ≥f(x), where the ﬁrst inequality
+follows from x′ ∈U, and the second from x′ ∈B(x, r1) ∩C. Assuming additionally that F(·, s) is active, i.e. s ∈I(x),
+then F(x, s) = f(x) and we conclude that F(x′, s) ≥F(x, s) for all x′ ∈B(x, r2) ∩C.
+This shows that x locally minimizes all active functions F(·, s) under the constraints ci(x) ≤0. Therefore, these functions
+verify the following KKT conditions: for all s ∈I(x), there exists (λi(s))1≤i≤n such that:
+∇xF(x, s) + Pn
+i=1 λi(s)∇ci(x) = 0
+∀i, λi(s) ≥0, λi(s)ci(x) = 0, ci(x) ≤0
+As shown in [4], [25], the subgradient of an upper-C1 function f at x is the convex hull formed by the gradients of the
+active functions F(·, s):
+∂f(x) = co {∇xF(x, s) : s ∈I(x)}
+Thus, gx ∈∂f(x) can be written as:
+gx =
+p
+X
+j=1
+asj∇xF(x, sj) , sj ∈I(x) ∀j
+where the asj ≥0 are such that Pp
+j=1 asj = 1 (and p is at most the number of parameters plus one). Then, we have:
+gx = −
+p
+X
+j=1
+asj
+n
+X
+i=1
+λi(sj)∇ci(x) = −
+n
+X
+i=1
+
+
+p
+X
+j=1
+asjλi(sj)
+
+∇ci(x) = −
+n
+X
+i=1
+µi∇ci(x)
+where µi := Pp
+j=1 asjλi(sj). For all i: µi ≥0 (because all asj and λi(sj) are ≥0), and µici(x) = 0 (because if ci(x) ̸= 0,
+then all λi(sj) are 0). This proves Proposition 2.b).
+Remark 1. Proposition 1.b) is similar to [25, Proposition 4], where it is shown that ”directional-stationarity”, i.e. the
+assumption that f ′(x, d) ≥0 for any d ∈Rk, implies that all subgradients are 0. Note that directional stationarity does not
+imply that x minimizes f(x); for this, more assumptions would be required, e.g. convexity of the F(·, s) [25, Theorem 10].
+Proposition 2.a) is a generalization of [26, Theorem 3.1], originally for differentiable functions, to upper-C1 functions. To
+
+
+the best of our knowledge, Proposition 2.b) is novel, and can also be seen as a speciﬁc case of the usual KKT conditions
+for upper-C1 functions. It allows optimality to be checked with any subgradient, in contrast to the general nonsmooth case,
+where only the existence of one subgradient satisfying KKT conditions is required.
+B. Convergence of sequential quadratic programming (SQP) for upper-C1 functions
+We now introduce the Sequential Quadratic Programming (SQP) algorithm to solve Problem (8). It is described in
+Algorithm 1, as in [26] except that we replaced the gradient ∇f(x) by any subgradient gx ∈∂f(x) in the quadratic problem
+Q(x, H, gx) (equation (10)). See also [27] for a discussion when the penalty parameter r is variable. We do not detail how
+the quadratic problem in Step 1 or the step size λk in Step 2 may be solved, or how Hk is updated in Step 3, as it does
+not affect the convergence proof (as long as the conditions described in Algorithm 1 are satisﬁed)
+Algorithm 1 Sequential Quadratic Programming (SQP) algorithm [26] for upper-C1 functions
+Initialization: x0 ∈Rk, H0 ∈Rk×k positive deﬁnite, r > 0, λmax > 0.
+Step 1: Find a KKT point pk of the quadratic problem Q(xk, Hk, gxk) deﬁned in equation (10).
+Step 2: Set xk+1 = xk + λkpk for any λk ∈[0, λmax] satisfying:
+θr(xk+1) ≤
+min
+0≤λ≤λmax θr(xk + λpk) + ǫk
+where θr is deﬁned in equation (11), and (ǫk) is a sequence of nonnegative numbers satisfying:
+∞
+X
+i=0
+ǫi < ∞
+Step 3: Update Hk+1 by some scheme that keeps it deﬁnite positive.
+Proposition 3 extends the convergence result of SQP established in [26, Theorem 3.2] for differentiable objective functions
+to the case of upper-C1 objective functions. Besides the upper-C1 condition of f, the same assumptions as in [26, Theorem
+3.2] are considered.
+Proposition 3 (Convergence of SQP for upper-C1 functions)
+Let f be upper-C1 and the ci be continuously differentiable. Assume that the following conditions are satisﬁed:
+(i) there exists α, β > 0 such that, for each k and for any x ∈Rk:
+αxT x ≤xT Hkx ≤βxT x
+(ii) For each k, there exists a KKT point of Q(xk, Hk, gxk) (equation (10)) with a Lagrange multiplier vector uk such
+that ||uk||∞≤r (vector ∞-norm).
+Then, any sequence (xk) generated by Algorithm 1 either terminates at a KKT point of the constrained optimization
+problem (8), or any accumulation point ¯x with
+S0(¯x) = {p : c(¯x) + ∇c(¯x)T p < 0} ̸= ∅
+is a KKT point of Problem (8).
+Proof. Cf. Appendix. The proof follows that of [26, Theorem 3.2] and adapts it to the case where f is not differentiable but
+only upper-C1. In particular, the upper semi-continuity of the Clarke subdifferential allows to maintain the argument linked
+to the continuity of the gradient in the original proof. The existence of an accumulation point of the solutions pk of the
+quadratic problems Q(xk, Hk, gxk) also follows from the submonotonicity of the subgradient of upper-C1 functions [11]
+(cf. Lemma 1 in Appendix).
+Proposition 2.b) establishes that local minima are necessarily KKT points for any subgradient, and Proposition 3 proves
+the convergence to KKT points when using any subgradient. Consequently, the standard SQP algorithm can be applied to
+upper-C1 functions, by providing any subgradient where the gradient is expected.
+Remark 2. The purpose of our arguments for using smooth optimization is not to claim superiority over specialized nonsmooth
+optimization methods. Instead, we emphasize that readily available algorithms (e.g., in MATLAB or Python toolboxes) can
+be applied successfully and produce satisfactory results.
+
+
+III. WORST CASE SEARCH IN CONSTRAINED PARAMETRIC SPACE
+A. Problem formulation
+In this section, the controller K is ﬁxed and, thus, voluntarily omitted in the notations.
+As in [2], worst-case stability is studied by maximizing the spectral abscissa of the closed-loop matrix A(δ). The problem
+(4) can also be written as the following constrained optimization problem:
+minimize
+δ∈Rk
+a(δ) := −α(A(δ))
+subject to
+−1 ≤δi ≤1
+ci(δ) ≤0
+(12)
+Similarly for the performance problem (3), we deﬁne for the H∞norm of a generic transfer function Tzw(s, δ):
+minimize
+δ∈Rk
+h∞(δ) := −||Tzw(s, δ)||∞
+subject to
+−1 ≤δi ≤1
+ci(δ) ≤0
+(13)
+and for the (squared) H2 norm:
+minimize
+δ∈Rk
+h2(δ) := −||Tzw(s, δ)||2
+2
+subject to
+−1 ≤δi ≤1
+ci(δ) ≤0
+(14)
+B. Properties of the objective functions
+In this section, we consider a generic transfer function written as the Linear Fractional Transformation (LFT) [28, Chapter
+10] Tzw(s, δ) = Fu(M(s), ∆), as depicted in Figure 1, where ∆= diag(δiIni) (ni is the number of repetitions of δi). This
+representation will be used to characterize either the internal stability, or the H∞or H2 norm of the transfer from w to z;
+practical problems e.g. (2) can also be addressed after an appropriate partitioning.
+M(s)
+∆
+w
+p
+q
+z
+Fig. 1: LFT representation of Tzw
+The state-space representation of M(s) is written as:
+
+
+
+
+
+
+
+
+
+˙x
+q
+z
+
+=
+
+
+A1
+B1
+B2
+C1
+D11
+D12
+C2
+D21
+D22
+
+
+
+
+x
+p
+w
+
+
+p = ∆q
+⇐⇒
+
+
+
+
+
+
+
+
+
+˙x
+˜q
+z
+
+=
+
+
+A1
+B1
+B2
+C1
+0
+D12
+C2
+D21
+D22
+
+
+
+
+x
+˜p
+w
+
+
+˜p = e∆˜q
+where, in the right equation, the system was rewritten with the change of variable:
+e∆= (I −∆D11)−1∆= ∆(I −D11∆)−1
+(15)
+to have no direct transfer from ˜p to ˜q. This change of variable is the same as in [28, Section 12.3.4], with the uncertainty
+block instead of a feedback controller, and will be useful to study the H2 norm.
+1) H2 norm (function h2):
+Proposition 4 (Differentiability of h2)
+Let us assume D22 = 0, and either D12 = 0 or D21 = 0. Then, h2 is deﬁned and differentiable in
+Ds = {δ ∈D, Tzw(s, δ) is internallystable}
+and its gradient is given in equation (18).
+Proof. The assumption D22 = 0 is necessary to ensure ﬁniteness of the H2 norm in the nominal case ∆= 0. The assumption
+D12 = 0 or D21 = 0 is done for the same reason for ∆̸= 0. The differentiability of h2 in Ds = {δ ∈D, Tzw(s, δ) is stable}
+was shown in [29, Section 3]; it was originally derived for a controller rather than an uncertainty block, but the validity
+
+
+of the result extends straightforwardly to the latter. Let us write the state-space matrices of the transfer from w to z after
+closing the loop between p and q:
+A(δ) = A1 + B1 e∆C1 , B(δ) = B2 + B1 e∆D12 , C(δ) = C2 + D21 e∆C1 , D(δ) = D21 e∆D12 = 0
+(16)
+Then, the squared H2 norm is:
+||Tzw(s, δ)||2
+2 = Tr
+ B(δ)T X(δ)B(δ)
+
+= Tr
+ C(δ)Y (δ)C(δ)T 
+where X(δ) and Y (δ) are solutions of the Lyapunov equations:
+A(δ)T X(δ) + X(δ)A(δ) + C(δ)T C(δ) = 0
+A(δ)Y (δ) + Y (δ)A(δ)T + B(δ)B(δ)T = 0 .
+The derivative of h2 at point δ for the variable e∆, noted h′
+2(e∆)de∆, is obtained from [30, Lemma 3.1] or equivalently [31,
+Section 2.1], also originally derived for a controller and adapted here for the uncertain block e∆:
+h′
+2(e∆)de∆= Tr
+
+∇e∆h2(δ)T de∆
+
+where the gradient ∇e∆h2(δ) is given in the same references:
+∇e∆h2(δ) = −2
+ BT
+1 X(δ) + DT
+21C(δ)
+
+Y (δ)CT
+1 −2BT
+1 X(δ)B(δ)DT
+12 .
+Finally, differentiating equation (15):
+de∆= (I −∆D11)−1d∆
+ I + D11(I −∆D11)−1∆
+
+and using the same notation as in [2]:
+∆i := ∂∆
+∂δi
+,
+(17)
+the derivatives of h2 read:
+∂h2
+∂δi
+= −2Tr
+ ∇e∆h2(δ)T (I −∆D11)−1∆i
+ I + D11(I −∆D11)−1∆
+
+.
+(18)
+2) H∞norm (function h∞):
+Proposition 5 (Regularity of h∞[5], [3], [2])
+a) h∞is locally Lipschitz and thus Clarke subdifferentiable (in the sense of [4]) everywhere in
+Ds = {δ ∈D, Tzw(s, δ) is internally stable} .
+b) h∞is upper-C1 everywhere in Ds.
+c) h∞is differentiable in Ds when only one frequency is active and of multiplicity one; in this case, its gradient is given
+in equation (19).
+Proposition 5.a) is proved in [2, Proposition 1] and follows the work of [5] and [3]. The general subgradient expression is
+provided in these references, but we will not use it in this paper. b) is proved in [2, Proposition 2]. c) immediately follows
+from a), and the expression is also provided in [2, Remark 5]: using the same notations, let us deﬁne Tqw and Tzp as:
+
+∗
+Tqw(s, δ)
+Tzp(s, δ)
+Tzw(s, δ)
+
+=
+ 0
+I
+I
+∆
+
+⋆M(s)
+with ⋆denoting the redheffer star product. The transfer functions Tzw, Tqw and Tzp correspond to the transfer between
+the inputs p, w and outputs q, z of the matrix M(s) as in Figure 1, but after closing the loop with the block ∆. If ω0 is
+the single active frequency, such that the multiplicity of ¯σ(Tzw(jω0, δ)) is 1, h∞is differentiable and, as shown in [2], its
+derivatives read:
+∂h∞
+∂δi
+= −Tr
+ Re(Tqw(jω0, δ)pω0qH
+ω0Tzp(jω0, δ))T ∆i
+
+(19)
+Where pω0 and qω0 are the normalized right and left singular vectors of Tzw(jω0, δ) associated with ¯σ(Tzw(jω0, δ)) (which
+is equal to −h∞(δ)).
+
+
+From the results of Section II and Proposition 5.b), we deduce that we can use smooth optimization, and in particular
+SQP (Algorithm 1), to solve Problem (13). In particular, let us deﬁne the direction dδ such that its components are deﬁned
+as in equation (19) (even when h∞is not differentiable), i.e. the i-th component of dδ reads:
+dδ,i = −Tr
+ Re(Tqw(jω0, δ)pω0qH
+ω0Tzp(jω0, δ))T ∆i
+
+where ω0 is an active frequency – but not necessarily the only one, and the multiplicity of ¯σ(Tzw(jω0, δ)) is not necessarily 1 –
+and pω0 and qω0 are the corresponding normalized right and left singular vectors of Tzw(jω0, δ). Then, dδ is a subgradient
+of h∞(this is straightforward from the expression of the subgradient given in [2, Section IV-1]); by Proposition 2 and
+Theorem 3, it can legitimately be used in SQP as if it were the gradient of a differentiable function.
+Remark 3. Proposition 2.b) is not anecdotal in this application. Indeed, after optimization of the controller, it is frequent
+to have multiple active frequencies. Therefore, it is important for the optimality criterion to be valid at a nonsmooth point,
+even if the function will most often be differentiable during the optimization.
+Remark 4. In contrast, minimizing the lower-C1 function −h∞(δ), i.e. minimizing the H∞norm, would be a more complex,
+genuinely nonsmooth problem. In particular, an unconstrained minimum may occur at a point where many subgradients are
+not zero (as a more simple example, consider f : x →|x|, which is lower-C1). For this problem, nonsmooth techniques in
+the literature include multidirectionnal search [32], gradient sampling [33], or Clarke subdifferential-based [3], [34]. This
+is also pointed out in [2] as a fundamental difference between min-max and min-min (or max-max) programs, the former
+(e.g. minimizing the H∞norm) being genuinely non-smooth while the latter (e.g. maximizing the H∞norm or equivalently
+minimizing h∞) having the favorable properties demonstrated above.
+3) Spectral abscissa (function a):
+The case of the spectral abscissa is slightly less favorable than the H∞norm. We recall that simple eigenvalues (i.e. those
+of multiplicity one) are differentiable [35]. As in [2], we call ”active eigenvalues” all eigenvalues whose real part is equal
+to the spectral abscissa.
+Proposition 6 (Regularity of a [2], [36])
+a) If all active eigenvalues of A(δ) are semi-simple (i.e. their algebraic and geometric multiplicity are equal), then a is
+locally Lipschitz and thus Clarke subdifferentiable at δ.
+b) If all active eigenvalues of A(δ) are simple at δ, then a is upper-C1 at δ.
+c) If A(δ) has only one active eigenvalue and it is simple, then a is differentiable at δ. With the notation of equations (16)
+and (17), the derivative of a with regard to δi reads:
+∂a
+∂δi
+= −Tr
+ ∆T
+i Re((I −D11∆)−1C1viuH
+i B1(I −∆D11)−1)T 
+(20)
+where vi and ui are right and left eigenvectors associated with the active eigenvalue, normalized such that uH
+i vi = 1.
+Proposition 6.a) was established in [2] following the earlier work of [36]. These references build on the study of [37]
+concerning the directional derivatives of the spectral abscissa. b) is also shown in [2], it simply follows from the fact that
+the spectral abscissa is the maximum of the real parts of the eigenvalues, which are differentiable when the eigenvalues are
+simple [35]. For c), the expression (20) is straightforward from the expression of the Clarke subdifferential given in [2].
+Remark 5. Additionally, if there are two active eigenvalues and they are complex conjugate eigenvalues, a is also differentiable
+and the gradient given above remains valid for either of the two eigenvalues [36].
+Remark 6. Although the assumption of semi-simplicity is required for the deﬁnition of the Clarke subdifferential, the
+numerical experiments reported in [2] show that their bundle approach, based on Clarke subdifferentials, performs well
+in practice even without explicitly verifying this assumption.
+Remark 7. As for the H∞norm, minimizing the spectral abscissa is a more complex problem; in the literature, this is
+addressed with bundle methods [38], [39], gradient bundle [40], gradient sampling [33], Clarke subdifferential-based [36].
+In this paper, as for h∞, we rely on the upper-C1 property of a of Proposition 6.b) and on the results of Section II,
+when active eigenvalues are simple. Our numerical experiments are satisfactory; however, the case of non-simple active
+eigenvalues is admittedly a limitation of using smooth optimization algorithms for the worst-case search in stability.
+C. Choice of optimization algorithms
+Problems (12), (13) and (14) are constrained optimization problems involving the nonsmooth functions a, h∞, and the
+differentiable function h2. We propose to use either Particle Swarm Optimization or Monte-Carlo sampling for global
+
+
+exploration of the parametric space, and then Sequential Quadratic Programming for local exploitation. As demonstrated in
+Section II, this procedure will converge to KKT points of the optimization problems.
+1) Sequential Quadratic Programming (SQP):
+SPQ is described in Algorithm 1 and, as discussed in Section II, may be used to minimize upper-C1 functions. In our
+numerical application, we used MATLAB routine FMINCON [41]. In FMINCON, the matrix H serves as an approximation
+of the Hessian matrix of the Lagrangian, iteratively updated with the Broyden-Fletcher-Goldfarb-Shanno (BFGS) method.
+It is worth noting that BFGS was observed to perform well in [36] even for a non-smooth objective function (the spectral
+abscissa).
+2) Particle swarm optimization (PSO):
+PSO is a global optimization method that handles nonsmooth functions. It only relies on the evaluation of the function
+and does not depend on (sub)gradient information or on the regularity properties discussed in Section III-B; thus, it may
+help circumvent limitations encountered when the spectral abscissa fails to be upper-C1, or even Clarke subdifferentiable.
+The nonlinear constraint is treated with a barrier method to penalize non admissible solutions: we reformulate problem (13)
+as:
+minimize
+δ∈Rk
+h∞(δ) + τ max(0, c(δ))
+subject to
+−1 ≤δi ≤1
+and problems (12) and (14) can be treated similarly. The parameter τ can be set to a high value, and iteratively increased
+if necessary until a solution δ∗verifying c(δ∗) ≤0 is found. The bounds on the δi are enforced by projecting the particles
+positions into the admissible space at each iteration. In our numerical testings, we used MATLAB routine PSO described
+in [42]; PSO was used as a method to explore the parametric space (and the choice of parameters was done accordingly, as
+discussed in Section V-C), with local exploitation being performed by a subsequent SQP.
+3) Monte-Carlo (MC) sampling:
+Monte Carlo sampling is applied as follows: randomly pick a sample δ in the unit hypercube (considering for example
+uniform distributions for all parameters); evaluate c(δ): if positive, discard δ, otherwise, evaluate the function a(δ) (respec-
+tively h∞(δ) or h2(δ)); repeat until having N function evaluations. The worst-case δ∗corresponds to the lowest value of a
+(respectively h∞or h2(δ)). In our testings, Monte Carlo will also be followed by SQP for local exploitation.
+In such a worst-case search problem, the number N of function evaluations can be chosen to verify:
+N ≥
+ln(γ)
+ln(1 −ǫ)
+where γ and ǫ serve as conﬁdence and accuracy levels to guarantee the probability [10]:
+P(P(f(δ) > f(δ∗) ≤ǫ) ≥1 −γ
+(21)
+for an objective function f (in our case: a(δ), h∞(δ) or h2(δ)). Note that this bound is independent from the number of
+uncertain parameters, from their variation ranges or distributions.
+IV. ROBUST CONTROL IN CONSTRAINED PARAMETRIC SPACE
+This Section addresses robust controller optimization i.e. problems (1) and (2) in parametric space D given in (5).
+A. Robust controller optimization algorithm
+The Algorithm 2, described in a form that solves the standard H∞control problem (1) – the multi-objectives formulation
+is tackled in Section IV-B – follows the approach proposed in [2] that relies on iteratively constructing a subset Da ⊂D
+of so-called active conﬁgurations as follows. Step 1 optimizes the controller for all current active conﬁgurations. It uses the
+nonsmooth optimization algorithm of [3] implemented in the routine SYSTUNE. Step 2 addresses the worst-case search in
+stability as described in Section III; if a worst-case conﬁguration, i.e. a Karush-Kuhn-Tucker (KKT) point of the optimization
+problem, is found that leads to a spectral abscissa greater than a tolerance αmax, it is added to Da. It is also possible to
+identify multiple KKT points during Step 2. Similarly, Step 3 tackles the worst-case search in performance and adds to Da
+the worst-case conﬁguration(s) that degrade the performance by more than a tolerance ǫ. Finally, Step 4 performs a more
+exhaustive worst-case search, meaning that the optimization parameters are tuned to increase coverage of the parameter space
+and ensure a more thorough exploration of potential worst-case conﬁgurations, while in Steps 2 and 3 they are chosen to
+prioritize fast convergence to KKT points; additional quantitative details are provided in the application of Section V-D. For
+
+
+Steps 2, 3 and 4, the global exploration may be performed either with Particle Swarm Optimization (PSO), or Monte-Carlo
+(MC) if stochastic guarantees are sought; in both cases, a subsequent Sequential Quadratic Programming (SQP) reﬁnes the
+search until ﬁnding a KKT point.
+Algorithm 2 Robust control optimization with constrained uncertainties
+Initialization: Initialize the set of active conﬁgurations as Da = {0}.
+Step 1: Multi-model synthesis.
+Compute optimal controller K∗= arg minK∈K maxδ∈Da ||Tzw(s, K, δ)||∞using nonsmooth optimization (SYSTUNE).
+Step 2: Destabilization.
+Identify one or multiple KKT point(s) for the problem: δ∗= arg maxδ∈D α(A(K∗, δ)) using PSO/MC+SQP.
+If α(A(K∗, δ)) > αmax, add δ∗to Da and go back to step 1.
+Otherwise continue to step 3.
+Step 3: Degrade performance.
+Identify one or multiple KKT point(s) for the problem: δ∗= arg maxδ∈D ||Tzw(s, K∗, δ)||∞using PSO/MC+SQP.
+If a destabilizing δ is found during this optimization, go back to step 2 and start SQP directly from δ.
+Else, if ||Tzw(s, K∗, δ∗)||∞> (1 + ǫ) maxδ∈Da ||Tzw(s, K∗, δ)||∞, add δ∗to Da and go back to step 1.
+Otherwise, go to step 4.
+Step 4: Validation
+Perform exhaustive worst-case search in stability and performance.
+If a conﬁguration δ∗not respecting criteria of step 2 or 3 is found, add δ∗to Da and go back to step 1.
+Otherwise, terminate.
+B. Multi-objective formulation
+Algorithm 2 is presented to address the standard problem formulation (1) involving a single H∞criterion. We note that
+this formulation also directly addresses the multi-objective problem:
+minimize
+K∈K
+max
+1≤i≤nmax
+δ∈D αi||Tziwi(s, K, δ)||∞
+since it is equivalent to a single objective problem (e.g. as in [43], [1]):
+max
+1≤i≤nmax
+δ∈D αi||Tziwi(s, K, δ)||∞= max
+δ∈D ||diag(αiTziwi(s, K, δ))||∞.
+(22)
+In our numerical implementation, we used the expression on the left side of equation (22); indeed, it was faster to compute
+the norm of each requirement, than the norm of the block diagonal system.
+More generally, we consider the multi-objectives problem (2). As explained in [44], the controller optimization of Step 1
+treats it as :
+minimize
+K∈K
+max
+
+max
+δ∈D ||Tz1w1(s, K, δ)|| , η max
+2≤i≤nmax
+δ∈D ||Tziwi(s, K, δ)||
+
+where ||·|| may refer to the H2 or H∞system norm, and where η is adjusted during the optimization with a penalty approach.
+In our worst-case performance searches (in Steps 3 and 4), we use the following normalization, such that the performance
+degradation test of Step 3 (i.e. ||Tzw(s, K∗, δ∗)||∞> (1 + ǫ) maxδ∈Da ||Tzw(s, K∗, δ)||∞, in the single objective case)
+becomes, in the multi-objectives case:
+max
+
+1
+(1 + ǫ1)β max
+δ∈D ||Tz1w1(s, K, δ)|| ,
+1
+(1 + ǫ2) max
+2≤i≤nmax
+δ∈D ||Tziwi(s, K, δ)||
+
+> 1
+(23)
+where β is the soft performance obtained in Step 1:
+β = max
+δ∈Da ||Tz1w1(s, K∗, δ)||
+i.e. the algorithm has converged when the worst-case search degrades the soft requirement by less than 1 + ǫ1, and the hard
+requirements are less than 1+ǫ2. Finally, we point out that, in our implementation, the PSO computes all norms involved in
+equation (23) and determines their maximum; whereas the subsequent SQP only evaluates the transfer function that achieved
+this maximum.
+
+
+V. APPLICATION: A LARGE FLEXIBLE SPACECRAFT
+A. Plant model and uncertain parameters
+The benchmark used in this study is designed to be challenging regarding robustness. We consider a spacecraft composed
+of one rigid body connected to two large ﬂexible solar panels. The clamped-free natural frequencies are 0.20, 0.50, 0.75
+and 0.85 rad/s for each panel. The resulting 8 nominal free-free frequencies are between 0.20 and 4.2 rad/s for the whole
+spacecraft. Uncertainties are considered on various mechanical properties:
+• Each clamped-free frequency exhibits a common 10% across both panels, along with an additional 5% asymmetric
+uncertainty. Modal damping is 0.001 for each clamped-free mode.
+• The mass, center of mass, inertia (MCI) properties of the solar panel are uncertain, as well as the modal participation
+factors of the ﬂexible modes.
+• The angle between the central body and the solar arrays may have any value between −π and +π.
+• The central body also has uncertain MCI properties.
+• We also consider an uncertain stiffness and damping in the rotation of the solar array, as a simple solar array driving
+mechanism (SADM) model.
+In total, there are 43 uncertain parameters δi (normalized such that −1 ≤δi ≤1, without loss of generality) regrouped in a
+vector δ. Noting MP (δ) the mass matrix at attachment point P of a solar panel, and LP (δ) the matrix of modal participation
+factors, the robustness analysis should exclude any conﬁguration δ such that the residual mass matrix deﬁned in equation
+(24) is not positive deﬁnite (indeed, such conﬁgurations do not represent a physical system). Hence the nonlinear constraint:
+Mr(δ) := MP (δ) −LT
+p (δ)Lp(δ) ⪰0
+(24)
+which can also be written under a scalar form:
+c(δ) := α(−Mr(δ)) ≤0 .
+(25)
+The spacecraft model G(s, δ) is built with the multibody approach detailed in [45] and implemented in the Satellite
+Dynamics Toolbox Library (SDTlib) [46], [47]. The block ∆G of the Linear Fractional Representation (LFR) model, such that
+G(s, δ) = Fu(MG(s), ∆G) (upper LFT), has size 204. We emphasize that this model contains all parametric conﬁgurations
+in a continuous manner, deﬁned at each subsystem level based on the physics equations without any interpolation or
+other approximation (besides the linearity assumption). The LFR model of the spacecraft includes all conﬁgurations for
+−1 ≤δi ≤1 even though only ∼22% of them respect the nonlinear constraint (25).
+Remark 8. In addition to providing the analytical expressions of the gradients given in Section III, the LFR representation
+also enables fast model evaluation at given parametric conﬁguration by simply substituting the ∆G block.
+B. Closed loop and control problem
+The benchmark focuses on the attitude control of the satellite described above to follow a reference r. The control input u
+of the plant G(s, δ) is the torque applied to the satellite (e.g. by reaction wheels, thrusters...) and the output vector contains
+the 3 angle measurements polluted by some noise n. The closed loop is represented in Figure 2, where d(s) represents
+avionics: a 2-nd order Pade approximation of a 0.125s delay, and a 2-nd order low-pass ﬁlter with a cut-off frequency of
+10 rad/s representing reaction wheel dynamics. We note K(s) the set of controllers K(s) of the desired structure: one 4-th
+order controller per spacecraft axis, each one taking the measured angle and rate as inputs and generating a control torque,
+resulting in 24 decision parameters per controller (72 in total). The closed-loop plant has 50 states.
+G(s, δ)
+K(s)
+e
+r
+s
+n
+u
+d(s)
+Fig. 2: Benchmark: closed-loop system
+The control problem consists in placing a control bandwidth of 0.1 rad/s (hence interacting with the uncertain ﬂexible
+modes) while ensuring a modulus margin of 0.5 and minimizing the variance of the actuator command in response to
+measurement noise. It reads:
+minimize
+K∈K
+max
+δ∈D ||Tn→u(s, K, δ)||2
+2
+subject to
+max
+δ∈D || 1
+2Ts→u(s, K, δ)||∞< 1
+max
+δ∈D ||WTr→e(s, K, δ)||∞< 1
+max
+δ∈D α(A(K, δ)) < −10−7
+(26)
+
+
+where D is deﬁned in (5) with the nonlinear constraint (25), the factor
+1
+2 in the 2nd requirement ensures the desired
+modulus margin, and W =
+10s+1
+2(10s+0.01)I3 is a weighting ﬁlter to impose the desired bandwidth of 0.1 rad/s. The last
+requirement of problem (26) ensures closed-loop stability with some tolerance, where A(K, δ) is the matrix A of the
+state-space representation of the closed-loop system.
+C. Worst-case search
+In this section, we present the worst-case search for the spectral abscissa and the H∞norm, as presented in Section III.
+We selected three controllers K1, K2, K3 obtained at early iterations of the robust controller tuning presented in Section V-
+D and analyze the robustness of the closed-loop system with three Test cases. The tests are ran on a 12th Gen Intel(R)
+Core(TM) i7-12700H 2.30 GHz, with 14 cores and 16GB of RAM. Computation times are provided for reference, but they
+may vary depending on hardware, software conﬁguration, implementation details, optimization parameters, etc.
+1) Test case 1: spectral abscissa (multiple local optima):
+Test case 1 illustrates how the proposed approaches perform in presence of several local optima, in different regions of
+the parametric space, that are not particularly rare. We search for maxδ∈D α(A(K1, δ)).
+a) SQP
+We ran the Sequential Quadratic Programming (SQP) algorithm from 100 random initial points. As termination criteria, we
+set 10−6 as optimality tolerance (KKT stationarity condition), and 10−8 as step tolerance (step size between two iterations).
+The resulting worst-case spectral abscissas α(A(δ∗
+SQP)) = −a(δ∗
+SQP) of each run are in Figure 3a, and suggest the presence
+of several local optima, which highlights the limitation of such a local method. These various local optima may correspond
+to signiﬁcantly different parametric conﬁgurations. For example, the worst case 0.135 has the value -1.0 for the (normalized)
+value of one of the moments of inertia of the solar panel, -0.09 and 1.0 for the modal participation factors of the clamped-free
+modes 1 and 3 in rotation around the same axis; in contrast, the local optimum 0.007 has -0.30, -1.0 and -0.87 respectively for
+these three parameters. Figure 3b presents the poles map for the initial poles (for the random initialization of the parameters)
+and ﬁnal poles (corresponding to the worst case) for one of the runs that converged to the suggested global optimum.
+Excluding the runs that did not detect instability (each of which took less than 0.1s), the remaining runs took between
+2.5 and 78s (average: 21s – regarding total computation time, we recall that each SQP run is inherently sequential, but that
+the 100 runs are executed in parallel).
+b) PSO, PSO + SQP
+The parameters of the Particle Swarm Optimization (PSO) were chosen as follows to favor global exploration over local
+exploitation. We set a range of 0.6 to 1.1 for the adaptive inertias (’InertiaRange’ option in MATLAB). Iterations terminate
+when performance is increased by less than 10% (”FunctionTolerance’) across 20 last iterations (’MaxStallIterations’). For
+a given computational budget, because PSO is sensitive to initialization [48], running several independent instances with
+different initializations can yield better results than increasing the number of particles or tightening the termination tolerance.
+Therefore, we performed 100 independent runs with the parameters given above, each with 500 particles (’SwarmSize’) – cf.
+also [49] for a discussion on population size in PSO. All other parameters were set to MATLAB’s default settings. Bearing
+in mind that our parameter choices were speciﬁcally tuned for multiple fast independent runs rather than to maximize the
+reliability of a single run, the results should be interpreted to determine how many such runs are required to reliably identify
+a worst case. We see that, with a few runs, we are able to consistently identify the worst-case conﬁguration that was most
+often missed by the local SQP alone.
+For each run, the computations of the 500 particles were parallelized over 14 cores. Each run took between 6s and 8s
+(average: 7s) with 11000 model evaluations. Each run was followed by SQP (starting from the identiﬁed worst case), each
+between 37 and 97s (average: 77s) ; these SQPs were parallelized. The results in Figure 3c show that the (suggested) global
+optimum can be consistently found using a few random initializations of PSO+SQP.
+c) MC, MC + SQP
+To enable a fair comparison with PSO, (i) we performed a total of NMC =1.1e6 evaluations of the objective function a,
+matching the total number of objective function evaluations of the PSO across all 100 runs, and (ii) we divided the NMC
+random samples into 100 groups, that we call Monte-Carlo (MC) experiments. MC performed almost as well as PSO, cf.
+Figure 3d. In all runs, the subsequent SQP signiﬁcantly improves the result. Each MC run took about 6.2s, and the SQP
+runtimes were similar to the PSO case.
+We mention that 78% of the drawn samples were not admissible (g(δ) > 0) and were therefore discarded before evaluation
+of a(δ). About 92% of the admissible conﬁgurations were destabilizing (a(δ) < 0). We also mention that the total number
+
+
+0
+20
+40
+60
+80
+100
+Random initializations
+0
+0.02
+0.04
+0.06
+0.08
+0.1
+0.12
+0.14
+Worst-case spectral abscissa
+SQP
+(a) SQP, with 100 random initializations
+-0.8
+-0.6
+-0.4
+-0.2
+0
+0.2
+0
+1
+2
+3
+4
+5
+5
+4
+3
+2
+1
+0.75
+0.48
+0.32
+0.23
+0.16
+0.11
+0.07
+0.035
+Initial poles
+Final poles
+(b) Poles map (zoomed) for a SQP run
+0
+20
+40
+60
+80
+100
+Random initializations
+0
+0.02
+0.04
+0.06
+0.08
+0.1
+0.12
+0.14
+Worst-case spectral abscissa
+PSO
+PSO+SQP
+(c) PSO and PSO+SQP, with random 100 initializations
+0
+20
+40
+60
+80
+100
+Independent runs
+0
+0.02
+0.04
+0.06
+0.08
+0.1
+0.12
+0.14
+Worst-case spectral abscissa
+MC
+MC+SQP
+(d) MC and MC+SQP, repeated 100 times
+Fig. 3: Worst-case spectral abscissa for Test case 1
+of runs NMC veriﬁes NMC ≈ln(γ)/ln(1 −ǫ) with the values γ = ǫ =1e-5, which guarantees as in equation (21) that the
+worst-case a(δ∗
+MC) found through all samples of Figure 3d (without considering the subsequent SQP) covers 99.999% of the
+probability distribution of a(δ) with a conﬁdence level of 99.999%. These observations suggest that the worst case around
+0.136 is rare, even though unstable conﬁgurations are frequent in Test case 1.
+2) Test case 2: spectral abscissa (rare worst case):
+Test case 2 illustrates how the proposed approaches perform when the destabilization is rare. Indeed, only ∼0.018% of
+the admissible parametric space (as approximated by the MC experiments) yields unstability of A(K2, δ). We search for
+maxδ∈D α(A(K2, δ)).
+Most SQP runs remained stuck on the local optimum α(A(δ∗
+SQP)) = −a(δ∗
+SQP) = −2e−7 that occupies most of the para-
+metric space (Figure 4a). On the other hand, PSO+SQP (Figure 4c) more consistently ﬁnds the destabilizing conﬁgurations.
+PSO runs required more function evaluations than Test case 1: 1525500 across the 100 runs, for a runtime ranging from 6s
+to 57s with an average of 11s. MC (again executed with the same total number of objective function evaluations as PSO
+for fair comparison) is also able to detect unstability (Figure 4d), but it is signiﬁcantly outperformed by PSO (compare the
+blue crosses of Figures 4c and 4d). MC+SQP performs decently but is slightly less reliable than PSO+SQP.
+3) Test case 3: H∞norm:
+For controller K3, we applied the methods of Test cases 1 and 2 and did not ﬁnd any destabilizing conﬁguration
+for A(K3, δ). Thus, we search for the worst-case H∞norm: maxδ∈D || 1
+2Ts→u(s, K3, δ)||∞(2nd control requirement of
+Problem (26)). We note that the objective function is longer to evaluate than in previous Test cases 1 and 2.
+
+
+0
+20
+40
+60
+80
+100
+Random initializations
+-0.2
+0
+0.2
+0.4
+0.6
+0.8
+1
+1.2
+Worst-case spectral abscissa
+SQP
+(a) SQP, with 100 random initializations
+-1
+-0.5
+0
+0.5
+1
+0
+2
+4
+6
+8
+10
+12
+14
+14
+12
+10
+8
+6
+4
+2
+0.65
+0.4
+0.28
+0.19
+0.135
+0.095
+0.06
+0.03
+Initial poles
+Final poles
+(b) Poles map (zoomed) for a SQP run
+0
+20
+40
+60
+80
+100
+Random initializations
+-0.2
+0
+0.2
+0.4
+0.6
+0.8
+1
+1.2
+Worst-case spectral abscissa
+PSO
+PSO+SQP
+(c) PSO and PSO+SQP, with random 100 initializations
+0
+20
+40
+60
+80
+100
+Independent runs
+-0.2
+0
+0.2
+0.4
+0.6
+0.8
+1
+1.2
+Worst-case spectral abscissa
+MC
+MC+SQP
+(d) MC and MC+SQP, repeated 100 times
+Fig. 4: Worst-case spectral abscissa for Test case 2
+The results are shown in Figure 5. The SQP runs took between 38s and 1172s (average: 591s). The PSO individual
+runtimes ranged from 72 to 126s (average: 85s), and MC around 95s on average. Here, PSO tends to get stuck in the local
+optimum 1.15, whereas MC+SQP more frequently converges to the suggested global optimum. In both cases, the subsequent
+SQP improves the result of PSO or MC alone.
+D. Robust control
+In this section, we solve Problem (26) using Algorithm 2.
+1) Implementation details:
+In the following, let us call problematic conﬁguration any conﬁguration that does not respect the criterion of either Step 2
+(i.e. such that α(A(K∗, δ)) > αmin) or Step 3 (i.e. such that ||Tzw(s, K∗, δ∗)||∞> (1 + ǫ) maxδ∈Da ||Tzw(s, K∗, δ)||∞
+or its multi-objectives counterpart of equation (23)). Below we give implementation details regarding the various steps of
+Algorithm 2.
+Step 1: Multi-models controller synthesis
+SYSTUNE is initialized with the controller obtained at previous iteration along with 13 random initializations. If no
+satisfactory controller is found, the process is repeated with new random initializations until one is obtained. In principle, a
+maximum number of attempts could be enforced to declare the problem infeasible, but this option was not activated, as a
+feasible solution was always found in our experiments.
+
+
+0
+20
+40
+60
+80
+100
+Random initializations
+0.7
+0.8
+0.9
+1
+1.1
+1.2
+1.3
+1.4
+Worst-case H
+ norm
+SQP
+(a) SQP, with 100 random initializations
+Frequency (rad/s)
+Singular Values (dB)
+10-2
+100
+102
+-50
+-40
+-30
+-20
+-10
+0
+10
+Requirement
+Random samples
+Local optima found with SQP
+(b) Sigma plot: 100 random samples and a few KKT points
+0
+20
+40
+60
+80
+100
+Random initializations
+0.7
+0.8
+0.9
+1
+1.1
+1.2
+1.3
+1.4
+Worst-case H
+ norm
+PSO
+PSO+SQP
+(c) PSO and PSO+SQP, with random 100 initializations
+0
+20
+40
+60
+80
+100
+Independent runs
+0.7
+0.8
+0.9
+1
+1.1
+1.2
+1.3
+1.4
+Worst-case H
+ norm
+MC
+MC+SQP
+(d) MC and MC+SQP, repeated 100 times
+Fig. 5: Worst-case (normalized) H∞norm for Test case 3
+Steps 2 and 3: Worst-case searches
+Compared to the choice of parameters of Section V-C, here we reduced the swarm size to 100 and we relaxed the PSO
+convergence criterion: iterations terminate when performance is increased by less than 10% across 10 last iterations. For
+SQP, we reduced the step tolerance from 1e-8 to 1e-6. The objective is to speed up the detection of active conﬁgurations in
+most iterations, relying on Step 4 to perform a ﬁner validation. Below, we present three different strategies for the worst-case
+searches.
+Strategy 1
+We run a single instance of PSO, followed by SQP. Although, as seen in Section V-C, this does not always converge
+to the global optimum, we prioritize computational speed by stopping at the ﬁrst KKT point for several reasons. First,
+each KKT point may be valuable to add to the active conﬁgurations even if it is not the global worst-case for the current
+controller. Second, because multiple iterations are performed, any missed problematic conﬁguration can be detected in
+subsequent iterations. Third, if stability is validated in Step 2 but a destabilizing conﬁguration is discovered when degrading
+performance in Step 3, the process returns to Step 2. Fourth, a more exhaustive search is carried out in Step 4, allowing a
+return to previous iterations if a problematic conﬁguration is identiﬁed, while limiting the number of such more expensive
+searches. The resulting (single) KKT point, if problematic, is added to the active conﬁgurations.
+Strategy 2
+Strategy 2 is the same as Strategy 1, except that the PSO is stopped as soon as a problematic conﬁguration is found (using
+’ObjectiveLimit’ option in MATLAB); the PSO is then followed by SQP.
+Strategy 3
+In Strategy 3, we perform 4 instances of PSO+SQP and obtain 4 KKT points δ∗
+i . For clarity, let us assume that they are
+
+
+all problematic conﬁgurations. The worst case among those 4, noted δ∗
+1, is added to the active conﬁgurations. Then, we
+compute the distance |δ∗
+2 −δ∗
+1|; if the distance exceeds a speciﬁed threshold, δ∗
+2 is also added to the active conﬁgurations.
+The procedure is repeated for δ∗
+3 and δ∗
+4: each δ∗
+i is added to the active scenarios only if its distance from all previously
+selected points exceeds the threshold. The threshold is chosen as half of the hypercube diagonal of the parameter space,
+i.e.,
+√
+k, where k is the number of uncertain parameters. This choice limits the number of active scenarios by enforcing a
+minimum spatial separation, thereby ensuring that only signiﬁcantly distinct worst-case conﬁgurations are retained. Indeed,
+the computation time of the multi-models controller synthesis (Step 1) increases with the number of active conﬁgurations.
+Step 4: validation
+In Step 4, we run up to N instances of PSO. If a problematic conﬁguration is found, we run SQP, and add the resulting
+worst case to the active conﬁgurations. Otherwise, we run SQP on all N instances. In other words, Step 4 operates like
+Section V-C when no problematic conﬁguration is found, but terminates earlier when one is identiﬁed. This procedure is
+applied for both the stability and performance, and the Algorithm 2 terminates when no problematic conﬁguration is found.
+In the implementation, we conducted the worst-case search for performance before that for stability to avoid unnecessary
+computations, since performance was observed to fail more frequently than stability. We used the same optimization
+parameters as in Section V-C and N = 20, which is deemed sufﬁcient to ensure thorough validation of the robustness.
+2) Results:
+As in section V-C, the tests are ran on a 12th Gen Intel(R) Core(TM) i7-12700H 2.30 GHz, with 14 cores and 16GB of
+RAM, and computation times are provided for reference. We used the tolerances ǫ1 = 5% and ǫ2 = 1% (cf. equation (23)).
+The Algorithm 2 was executed 5 times for each strategy. All runs converged to a robust controller. Table I presents a
+few averaged metrics for comparison. The runtime of the ﬁnal validation (Step 4) is averaged over all 15 runs, because
+this step is conducted identically for each strategy. As the multi-models controller synthesis (Step 1) becomes increasingly
+long when the number of active conﬁgurations increases, Strategy 2 results in the longest runtime. Indeed, although it saves
+time by prematurely stopping the PSO, the resulting KKT point is typically not a global optimum, which in turn requires a
+larger number of active conﬁgurations to ensure robustness. Strategy 3, which may add multiple KKT points to the active
+conﬁgurations at each iteration, results in less iterations and a reduced total runtime.
+Figure 6 presents the transfer functions of Problem (26) after optimization of the controller. Active conﬁgurations (in red)
+include the worst cases detected in the ﬁnal iteration.
+TABLE I: Controller optimization results
+Metrics
+Strategy 1
+Strategy 2
+Strategy 3
+Nb of iterations ( = nb. of executions of Step 1) (min/avg/max)
+7/8.4/10
+11/12.2/17
+6/7.4/10
+Nb. of active conﬁgurations (min/avg/max)
+7/8.6/12
+Total runtime, excluding ﬁnal validation (avg)
+4034s
+4919s
+3708s
+... including % represented by controller tuning (Step 1)
+34%
+58%
+33%
+... including % represented by worst-case searches (Steps 2 and 3)
+66%
+42%
+67%
+Runtime of the ﬁnal validation (Step 4 – stability) (avg)
+139s
+Runtime of the ﬁnal validation (Step 4 – performance) (avg)
+2332s
+VI. CONCLUSION
+This paper focused on the robust control and worst-case search in presence of nonlinear constraints restricting the
+hypercube. This speciﬁcity is missing from the current state of the art, and arises for example when considering uncertain
+mechanical properties e.g. in ﬂexible satellites.
+Relying on the theory of upper-C1 functions, we established favorable properties that justify the use of smooth optimization
+algorithms for these nonsmooth problems: any subgradient deﬁnes a valid descent direction, local optima satisfy the
+Karush–Kuhn–Tucker (KKT) conditions for all subgradients, and sequential quadratic programming converges to KKT points
+when applied to such functions. This theoretical foundation legitimizes the use of standard, readily available optimization
+tools, which is of practical importance for industrial users.
+To perform the worst-case search, we combined Particle Swarm Optimization (or Monte-Carlo sampling, if stochastic
+guarantees are desired) for global exploration and Sequential Quadratic Programming for local exploitation. Numerical
+experiments on a ﬂexible spacecraft benchmark show that this method signiﬁcantly outperforms Monte-Carlo sampling
+alone, and is able to reliably detect even rare worst-case conﬁgurations. Then, by iteratively constructing a set of active
+conﬁgurations, multi-objectives robust controller optimization was performed in reasonable runtime.
+
+
+Frequency (rad/s)
+Singular Values (dB)
+10-2
+10-1
+100
+101
+102
+-20
+0
+20
+40
+60
+Random samples
+Active configurations
+(a) Tn→u(s, K∗, δ)
+Frequency (rad/s)
+Singular Values (dB)
+10-2
+10-1
+100
+101
+102
+-50
+-40
+-30
+-20
+-10
+0
+10
+Requirement
+Random samples
+Active configurations
+(b) Ts→u(s, K∗, δ)
+Frequency (rad/s)
+Singular Values (dB)
+10-2
+10-1
+100
+101
+102
+-15
+-10
+-5
+0
+5
+10
+Requirement (W-1)
+Random samples
+Active configurations
+(c) Tr→e(s, K∗, δ)
+Fig. 6: Transfer functions in Problem (26) after controller optimization, with active conﬁgurations and 100 random samples
+Finally, we emphasize that the proposed worst-case search, performing global exploration and being compatible with a
+large number of uncertain parameters and states, has the potential to complement existing robust control techniques, including
+in the unconstrained case.
+FUNDING SOURCES
+This work was funded par R´egion Occitanie in the frame of the France 2030 program. Ce projet a ´et´e ﬁnanc´e par la
+R´egion Occitanie dans le cadre de France 2030.
+ACKNOWLEDGMENTS
+The authors acknowledge the use of an AI tool (ChatGPT: GPT-4) to assist in the reformulation of certain sentences.
+REFERENCES
+[1] P. Apkarian and D. Noll, “The H inﬁnity Control Problem is Solved,” Aerospace Lab, no. 13, pp. 1–27, 2017.
+[2] P. Apkarian, M. N. Dao, and D. Noll, “Parametric Robust Structured Control Design,” IEEE Transactions on Automatic Control, vol. 60, no. 7, pp.
+1857–1869, 2015, arXiv: 1405.4202 Publisher: IEEE.
+[3] P. Apkarian and D. Noll, “Nonsmooth H inﬁnity synthesis,” IEEE Transactions on Automatic Control, vol. 51, no. 1, pp. 71–86, 2006.
+[4] F. Clarke, Optimization and nonsmooth analysis, ser. Society for industrial and Applied Mathematics, 1990.
+[5] S. Boyd and C. Barratt, Linear Controller Design: Limits of Performance, ser. Englewood Cliffs, NJ: Prentice Hall., 1991.
+[6] J. Doyle, “Analysis of feedback systems with structured uncertainties,” IEE Proceedings D Control Theory and Applications, vol. 129, no. 6, p.
+242, 1982. [Online]. Available: https://digital-library.theiet.org/content/journals/10.1049/ip-d.1982.0053
+[7] C. Roos, “Systems modeling, analysis and control (SMAC) toolbox: An insight into the robustness analysis library,” in 2013 IEEE
+Conference on Computer Aided Control System Design (CACSD).
+Hyderabad, India: IEEE, Aug. 2013, pp. 176–181. [Online]. Available:
+http://ieeexplore.ieee.org/document/6663479/
+[8] J.-M. Biannic, C. Roos, S. Bennani, F. Boquet, V. Preda, and B. Girouart, “Advanced probabilistic mu -analysis techniques for AOCS validation,”
+European Journal of Control, vol. 62, pp. 120–129, Nov. 2021. [Online]. Available: https://linkinghub.elsevier.com/retrieve/pii/S0947358021000789
+
+
+[9] F. Somers, C. Roos, J. Biannic, F. Sanfedino, V. Preda, S. Bennani, and H. Evain, “Delay Margin Analysis of Uncertain Linear Control Systems
+Using Probabilistic mu,” International Journal of Robust and Nonlinear Control, vol. 35, no. 6, pp. 2101–2118, Apr. 2025. [Online]. Available:
+https://onlinelibrary.wiley.com/doi/10.1002/rnc.7780
+[10] R.
+Tempo,
+E.
+Bai,
+and
+F.
+Dabbene,
+“Probabilistic
+robustness
+analysis:
+explicit
+bounds
+for
+the
+minimum
+number
+of
+samples,”
+in
+Proceedings of 35th IEEE Conference on Decision and Control, vol. 3.
+Kobe, Japan: IEEE, 1996, pp. 3424–3428. [Online]. Available:
+http://ieeexplore.ieee.org/document/573690/
+[11] J. E. Spingarn, “Submonotone subdifferentials of Lipschitz functions,” vol. 264, no. 1, 1981.
+[12] J. Nocedal and S. J. Wright, Numerical optimization, second edition ed., ser. Springer series in operations research and ﬁnancial engineering.
+New
+York, NY: Springer, 2006.
+[13] J. Kennedy and R. Eberhart, “Particle swarm optimization,” in Proceedings of ICNN’95 - International Conference on Neural Networks, vol. 4.
+Perth, WA, Australia: IEEE, 1995, pp. 1942–1948. [Online]. Available: http://ieeexplore.ieee.org/document/488968/
+[14] M. Davenport and M. Egerstedt, “Convex optimization - Course notes.” [Online]. Available: https://mdav.ece.gatech.edu/ece-6270-spring2021/notes/
+[15] E. Kassarian, F. Sanfedino, D. Alazard, J. Montel, and C.-A. Chevrier, “Modeling of stratospheric balloons and robust line-of-sight pointing control,”
+CEAS Space Journal, Jul. 2023. [Online]. Available: https://link.springer.com/10.1007/s12567-023-00515-x
+[16] E. Kassarian, F. Sanfedino, D. Alazard, and H. Evain, “Parametric sensitivity analysis for the robust control of uncertain space systems,” in EuroGNC,
+Bristol, 2024.
+[17] M. Martin, S. Winkler, F. Belien, and R. Forstner, “Towards new V&V in AOCS/GNC for industrial efﬁciency,” in ESA-GNC 2023, 2023.
+[18] M. Martin, S. Winkler, F. Belien, and R. F¨orstner, “Sample-based sensitivity analysis for uncertain AOCS veriﬁcation and validation,” CEAS Space
+Journal, Jul. 2025. [Online]. Available: https://link.springer.com/10.1007/s12567-025-00619-6
+[19] F. Sanfedino, P. Iannelli, D. Alazard, and E. Pelletier, “European Satellite Benchmark for Control Education & Industrial Training - Lesson Learned
+in the Control Design of a Fine Pointing Mission,” 2025. [Online]. Available: https://ssrn.com/abstract=5231029
+[20] L. Szerdahely, S. Fugger, P. Espeillac, G. Monroig, T. Pareaud, and M. Casasco, “The BepiColombo attitude and orbit control system,” in Proceedings
+of the 9th ESA-GNC conference, Porto, Portugal, 2014.
+[21] A. Falcoz, C. Pittet, S. Bennani, A. Guignard, C. Bayart, and B. Frapard, “Systematic design methods of robust and structured controllers for
+satellites: Application to the reﬁnement of Rosetta’s orbit controller,” CEAS Space Journal, vol. 7, no. 3, pp. 319–334, Sep. 2015. [Online].
+Available: http://link.springer.com/10.1007/s12567-015-0099-8
+[22] C. Charbonnel, “H?? Controller Design and m-Analysis: Powerful Tools for Flexible Satellite Attitude Control,” in AIAA Guidance, Navigation,
+and Control Conference.
+Toronto, Ontario, Canada: American Institute of Aeronautics and Astronautics, Aug. 2010. [Online]. Available:
+https://arc.aiaa.org/doi/10.2514/6.2010-7907
+[23] M. N. Dao, “Bundle Method for Nonconvex Nonsmooth Constrained Optimization,” Journal of convex analysis, vol. 22, no. 4, pp. 1061–1090, 2015.
+[24] P. Apkarian and D. Noll, “Worst-case stability and performance with mixed parametric and dynamic uncertainties,” International Journal of Robust
+and Nonlinear Control, vol. 27, no. 8, pp. 1284–1301, May 2017. [Online]. Available: https://onlinelibrary.wiley.com/doi/10.1002/rnc.3628
+[25] W. De Oliveira, “Short Paper - A note on the Frank–Wolfe algorithm for a class of nonconvex and nonsmooth optimization problems,” Open
+Journal of Mathematical Optimization, vol. 4, pp. 1–10, Jan. 2023. [Online]. Available: https://ojmo.centre-mersenne.org/articles/10.5802/ojmo.21/
+[26] S. P. Han, “A globally convergent method for nonlinear programming,” Journal of Optimization Theory and Applications, vol. 22, pp. 297–309, 1977.
+[27] M.
+J.
+D.
+Powell,
+“Variable
+Metric
+Methods
+for
+Constrained
+Optimization,”
+in
+Mathematical
+Programming
+The
+State
+of
+the
+Art,
+A. Bachem, B. Korte, and M. Gr¨otschel, Eds.
+Berlin, Heidelberg: Springer Berlin Heidelberg, 1983, pp. 288–311. [Online]. Available:
+http://link.springer.com/10.1007/978-3-642-68874-4 12
+[28] K. Zhou, J. C. Doyle, and K. Glover, Robust and Optimal Control.
+Englewood Cliffs: Prentice hall, 1996, iSSN: 09670661.
+[29] T. Rautert and E. W. Sachs, “Computational Design of Optimal Output Feedback Controllers,” SIAM Journal on Optimization, vol. 7, no. 3, pp.
+837–852, Aug. 1997. [Online]. Available: http://epubs.siam.org/doi/10.1137/S1052623495290441
+[30] P. Apkarian, D. Noll, and A. Rondepierre, “Mixed H2/Hinﬁnity control via nonsmooth optimization,” in Proceedings of the 48h IEEE Conference
+on Decision and Control (CDC) held jointly with 2009 28th Chinese Control Conference.
+Shanghai, China: IEEE, Dec. 2009, pp. 6460–6465.
+[Online]. Available: http://ieeexplore.ieee.org/document/5400165/
+[31] D. Arzelier,
+D. Georgia, S. Gumussoy, and D. Henrion, “H2 for HIFOO,” Oct. 2010, arXiv:1010.1442
+[math]. [Online].
+Available:
+http://arxiv.org/abs/1010.1442
+[32] P. Apkarian and D. Noll, “Controller Design via Nonsmooth Multidirectional Search,” SIAM Journal on Control and Optimization, vol. 44, no. 6,
+pp. 1923–1949, Jan. 2006. [Online]. Available: http://epubs.siam.org/doi/10.1137/S0363012904441684
+[33] J. V. Burke, A. S. Lewis, and M. L. Overton, “A Robust Gradient Sampling Algorithm for Nonsmooth, Nonconvex Optimization,” SIAM Journal on
+Optimization, vol. 15, no. 3, pp. 751–779, Jan. 2005. [Online]. Available: http://epubs.siam.org/doi/10.1137/030601296
+[34] V. Bompart, D. Noll, and P. Apkarian, “Second-order nonsmooth optimization for H inﬁnity synthesis,” Numerische Mathematik, vol. 107, no. 3,
+pp. 433–454, Aug. 2007. [Online]. Available: http://link.springer.com/10.1007/s00211-007-0095-9
+[35] M. L. Overton and R. S. Womersley, “On Minimizing the Special Radius of a Nonsymmetric Matrix Function: Optimality Conditions
+and Duality Theory,” SIAM Journal on Matrix Analysis and Applications, vol. 9, no. 4, pp. 473–498, Oct. 1988. [Online]. Available:
+http://epubs.siam.org/doi/10.1137/0609040
+[36] V. Bompart, P. Apkarian, and D. Noll, “Non-smooth techniques for stabilizing linear systems,” in 2007 American Control Conference.
+New York,
+NY, USA: IEEE, Jul. 2007, pp. 1245–1250. [Online]. Available: http://ieeexplore.ieee.org/document/4282408/
+[37] J. V. Burke and M. L. Overton, “Differential
+properties
+of the spectral abscissa and the spectral radius for analytic
+matrix-valued
+mappings,”
+Nonlinear
+Analysis:
+Theory,
+Methods
+&
+Applications,
+vol.
+23,
+no.
+4,
+pp.
+467–488,
+Aug.
+1994.
+[Online].
+Available:
+https://linkinghub.elsevier.com/retrieve/pii/0362546X94900906
+[38] F. Oustry, “A second-order bundle method to minimize the maximum eigenvalue function,” Mathematical Programming, vol. 89, no. 1, pp. 1–33,
+Nov. 2000. [Online]. Available: http://link.springer.com/10.1007/PL00011388
+[39] D. Noll and P. Apkarian, “Spectral bundle methods for non-convexe maximum eigenvalue functions. Part 1: ﬁrst-order methods,” vol. 104, pp.
+701–727, 2005.
+[40] J. V. Burke, A. S. Lewis, and M. L. Overton, “Two numerical methods for optimizing matrix stability,” Linear Algebra and its Applications, vol.
+351-352, pp. 117–145, Aug. 2002. [Online]. Available: https://linkinghub.elsevier.com/retrieve/pii/S0024379502002604
+[41] “Constrained Nonlinear Optimization Algorithms, MATLAB help page,” 2025. [Online]. Available: https://fr.mathworks.com/help/optim/ug/
+constrained-nonlinear-optimization-algorithms.html
+[42] “Particle
+swarm
+optimization
+algorithm,
+MATLAB
+help
+page,”
+2025.
+[Online].
+Available:
+https://fr.mathworks.com/help/gads/
+particle-swarm-optimization-algorithm.html
+[43] P. Apkarian and D. Noll, “Nonsmooth optimization for multidisk H inﬁnity synthesis,” European Journal of Control, vol. 12, no. 3, pp. 229–244,
+2006.
+[44] P. Apkarian, P. Gahinet, and C. Buhr, “Multi-model, multi-objective tuning of ﬁxed-structure controllers,” in 2014 European Control Conference
+(ECC).
+Strasbourg, France: IEEE, Jun. 2014, pp. 856–861. [Online]. Available: http://ieeexplore.ieee.org/document/6862200/
+
+
+[45] D. Alazard, C. Cumer, and K. Tantawi, “Linear dynamic modeling of spacecraft with various ﬂexible appendages and on-board angular momentums,”
+7th International ESA Conference on Guidance, Navigation and Control Systems, vol. 41, no. 2, pp. 11 148–11 153, 2008, iSBN: 9783902661005.
+[46] D. Alazard and F. Sanfedino, “Satellite Dynamics Toolbox for Preliminary Design Phase,” 43rd Annual AAS Guidance and Control Conference, vol.
+172, pp. 1461–147, 2020.
+[47] F. Sanfedino, D. Alazard, E. Kassarian, and F. Somers, “Satellite Dynamics Toolbox Library: a tool to model multi-body space systems for robust
+control synthesis and analysis,” in IFAC PapersOnline, Mar. 2023.
+[48] Q. Li, S.-Y. Liu, and X.-S. Yang, “Inﬂuence of initialization on the performance of metaheuristic optimizers,” Applied Soft Computing, vol. 91, p.
+106193, Jun. 2020. [Online]. Available: https://linkinghub.elsevier.com/retrieve/pii/S1568494620301332
+[49] A. P. Piotrowski, J. J. Napiorkowski, and A. E. Piotrowska, “Population size in Particle Swarm Optimization,” Swarm and Evolutionary Computation,
+vol. 58, p. 100718, Nov. 2020. [Online]. Available: https://linkinghub.elsevier.com/retrieve/pii/S2210650220303710
+[50] P. Apkarian, D. Noll, and L. Ravanbod, “Nonsmooth Bundle Trust-region Algorithm with Applications to Robust Stability,” Set-Valued and
+Variational Analysis, vol. 24, no. 1, pp. 115–148, Mar. 2016. [Online]. Available: http://link.springer.com/10.1007/s11228-015-0352-5
+[51] J. W. Daniel, “Stability of the solution of deﬁnite quadratic programs,” Mathematical Programming, vol. 5, no. 1, pp. 41–53, Dec. 1973. [Online].
+Available: http://link.springer.com/10.1007/BF01580110
+[52] F. Clarke, Y. Ledyaev, R. Stern, and P. Wolenski, Nonsmooth analysis and control theory.
+Springer New York.
+APPENDIX
+In this Appendix, we prove the propositions of Section II. For readability, they are reminded before introducing the proofs.
+Proposition 1 (Descent directions and optimality of upper-C1 functions – Unconstrained case)
+Let a locally Lipschitz function f be upper-C1 at x, and gx ∈∂f(x) any subgradient of f at x. We consider Problem (6).
+a) Descent direction. Any direction −gx, with gx ∈∂f(x) such that ||gx|| ̸= 0, is a descent direction for f(x), and in
+particular it veriﬁes f ′(x, −gx) ≤−||gx||2 < 0 where f ′(x, d) denotes the the directional derivative at x in direction d.
+b) Optimality. If x (locally) minimizes f(x), then ||gx|| = 0 for any gx ∈∂f(x).
+Proof. The proof is provided in the body of the paper.
+Proposition 2 (Descent directions and optimality of upper-C1 functions – Constrained case)
+Let a locally Lipschitz function f be upper-C1 at x, and gx ∈∂f(x) any subgradient of f at x. Let the ci be continuously
+differentiable. We consider Problem (8).
+a) Descent direction. Let (p, u) be a KKT pair of Q(x, H, gx). If ||p|| ̸= 0 and ||u||∞≤r, then p is a descent direction
+for θr(x), i.e. θ′
+r(x, p) < 0 where θ′
+r(x, d) denotes the the directional derivative at x in direction d.
+b) Optimality. If x (locally) minimizes f(x) subject to n constraints ci(x) ≤0 (Problem (8)), then any gx ∈∂f(x) veriﬁes
+the following KKT conditions: there exists (µi)1≤i≤n such that:
+gx + Pn
+i=1 µi∇ci(x) = 0
+∀i, µi ≥0, µici(x) = 0, ci(x) ≤0
+Proof. a) The proof of a) is an adaptation of [26, Theorem 3.1], originally written for a differentiable f, to the upper-C1
+case. Let us deﬁne:
+I = {i : ci(x) > 0}, ¯I = {i : ci(x) = 0},; ˆI = {i : ci(x) < 0}
+As in [26] we have:
+θ′
+r(x, p) = f ′(x, p) + r
+X
+i∈I
+∇ci(x)T p + r
+X
+i∈¯I
+(∇ci(x)T p)+ .
+Since f is upper-C1, we have f ′(x, p) = ming∈∂f(x)⟨g, p⟩≤gT
+x p and thus
+θ′
+r(x, p) ≤gT
+x p + r
+X
+i∈I
+∇ci(x)T p + r
+X
+i∈¯I
+(∇ci(x)T p)+ .
+In the original proof of [26, Theorem 3.1], the expression above is an equality with ∇f(x) instead of gx. From there, the
+proof of [26, Theorem 3.1] is identical, as follows. Since (p, u) is a KKT pair of Q(x, H, gx), we have ci(x)+∇ci(x)T p ≤0
+which yields:
+X
+i∈¯I
+(∇ci(x)T p)+ = 0
+and since ui(ci(x) + ∇ci(x)T p) = 0, we deduce:
+θ′
+r(x, p) ≤gT
+x p +
+n
+X
+i=1
+ui∇ci(x)T p +
+n
+X
+i=1
+uici(x) + r
+X
+i∈I
+∇ci(x)T p .
+
+
+Since (p, u) is a KKT pair of Q(x, H, gx) we also have:
+gx +
+n
+X
+i=1
+ui∇ci(x) + 1
+2(H + HT )p = 0
+and noticing that Pn
+i∈¯I∪ˆI uici(x) ≤0 yields:
+θ′
+r(x, p) ≤−1
+2(H + HT )p +
+n
+X
+i∈I
+(ci(x) + r∇ci(x)T p)
+≤−1
+2(H + HT )p +
+n
+X
+i∈I
+(ui −r)ci(x)
+< 0
+since H is positive deﬁnite and |u|∞< r.
+b) is proved in the body of the paper.
+To prove Proposition 3, we ﬁrst introduce the following lemmas.
+Lemma 1 (Submonotonicity) Let f be upper-C1 at x. For every ǫ > 0, there exists δ > 0 such that for all x0, x′
+0 ∈B(x, δ):
+(gx′
+0 −gx0)T (x′
+0 −x0) ≤ǫ||x′
+0 −x0||
+where gx0 ∈∂f(x0) and gx′
+0 ∈∂f(x′
+0).
+Proof. This comes from [11, Theorem 3.9] and is also noted for example in [50, Lemma 6].
+Lemma 2 (Perturbation of a quadratic problem) Let us consider the two quadratic problems:
+x0 = arg min
+
+Q(x) = 1
+2xT Kx −xT k , subject to Gx ≤g
+
+x′
+0 = arg min
+
+Q′(x) = 1
+2xT K′x −xT k′ , subject to G′x ≤g′
+
+where K, K′ are symmetric, positive deﬁnite matrices. Let us partition G in matrices A, B and g in vectors a, b such that
+Bx ≤b is always satisﬁed as an equality while Ax ≤a can be satisﬁed with strict inequality. Let us deﬁne similarly B′ in
+the partition of G′ and suppose that rank(B) = rank(B′). Set ǫ = max
+
+||K −K′||, ||G −G′||, ||g −g′||, (k′−k)T (x′
+0−x0)
+||x′
+0−x0||
+
+.
+Then there exists ǫ0 > 0 and c > 0 such that:
+||x′
+0 −x0|| ≤cǫ
+whenever ǫ < ǫ0.
+Proof. This lemma is an adaptation of [51] where, instead of our assumption (k′ −k)T (x′
+0 −x0) ≤ǫ||x′
+0 −x0||, the stronger
+assumption ||k′ −k|| ≤ǫ was considered. Let us note λ > 0 the smallest eigenvalue of K. Let us ﬁrst demonstrate the
+equivalent of [51, Theorem 2.1], i.e., that in the unconstrained case:
+x0 = arg min
+
+Q(x) = 1
+2xT Kx −xT k
+
+,
+x′
+0 = arg min
+
+Q′(x)1
+2xT K′x −xT k′
+
+we have:
+||x′
+0 −x0|| ≤ǫ(λ −ǫ)−1(1 + ||x0||) .
+The proof for this statement is almost identical to the one provided in [51, Theorem 2.1], as follows. For any x ∈Rk, we
+have:
+(x −x0)T ∇Q(x0) ≥0
+(x −x′
+0)T ∇Q′(x′
+0) ≥0
+
+
+with the gradients ∇Q(x) = Kx −k and ∇Q(x) = K′x −k′. Substituting x = x′
+0 and x = x0 respectively in these two
+equations and adding the results yields
+(x′
+0 −x0)T (∇Q(x0) −∇Q′(x′
+0)) ≥0
+which is equivalent to
+(x′
+0 −x0)T (∇Q′(x′
+0) −∇Q′(x0)) ≤(x′
+0 −x0)T (∇Q(x0) −∇Q′(x0))
+For the left side:
+(x′
+0 −x0)T (∇Q′(x′
+0) −∇Q′(x0)) = (x′
+0 −x0)T K′(x′
+0 −x0)
+≥(λ −ǫ)||x′
+0 −x0||2
+For the right side:
+(x′
+0 −x0)T (∇Q(x0) −∇Q′(x0)) = (x′
+0 −x0)T (K −K′)x0 + (x′
+0 −x0)T (k′ −k)
+≤ǫ||x′
+0 −x0||(||x0|| + 1)
+which ﬁnalizes the proof for the unconstrained case. Note that the only difference with the original proof of [51, Theorem
+2.1] is that they used (x′
+0 −x0)T (k′ −k) ≤||x′
+0 −x0|| · ||k′ −k|| to deduce (x′
+0 −x0)T (k′ −k) ≤ǫ||x′
+0 −x0||, whereas it
+was directly our assumption.
+Then, the rest of the proof provided in [51] still holds. Indeed, the propositions [51, Propositions 3.1, 3.2] only tackle the
+constrained sets, and do not involve k or k′. Moreover, in, [51, Section 4], the relationship between k and k′ is not used
+(except when using [51, Theorem 2.1], which we generalized already); in fact, [51, Section 4] only works on Q(x).
+Proposition 3 (Convergence of SQP for upper-C1 functions)
+Let f be upper-C1 and the ci be continuously differentiable. Assume that the following conditions are satisﬁed:
+(i) there exists α, β > 0 such that, for each k and for any x ∈Rk:
+αxT x ≤xT Hkx ≤βxT x
+(ii) For each k, there exists a KKT point of Q(xk, Hk, gxk) (equation (10)) with a Lagrange multiplier vector uk such
+that ||uk||∞≤r.
+Then, any sequence (xk) generated by Algorithm 1 either terminates at a KKT point of the constrained optimization
+problem (8), or any accumulation point ¯x with
+S0(¯x) = {p : c(¯x) + ∇c(¯x)T p < 0} ̸= ∅
+is a KKT point of Problem (8).
+Proof. Once again, we follow the proof of [26, Theorem 3.2] and adapt it to the case where f is not differentiable but
+only upper-C1. For completeness, we reproduce the entire proof and indicate where our modiﬁed assumptions apply, while
+emphasizing that the proof itself is not our own.
+By assumption (ii), (pk, uk) is a KKT pair of Q(xk, Hk, gxk) with ||uk||∞≤r. If pk = 0, then (xk, uk) satisﬁes the
+KKT conditions (9) of Problem (8) and the algorithm can terminate at xk.
+Thus, for the following, we assume that pk ̸= 0. From Proposition 2.a) (originally [26, Theorem 3.1], which we adapted
+to upper-C1 functions), it is possible to choose xk+1 as described in Algorithm 1, and in particular, it veriﬁes:
+θr(xk+1) < θr(xk) + ǫk .
+Let ¯x be an accumulation point of (xk) with S0(¯x) ̸= ∅. Without loss of generality (passing to the subsequence if necessary)
+we may assume
+xk →¯x , Hk →¯H
+where the existence of ¯H follows from assumption (i).
+In the original proof [26], the continuity of the gradient of f ensures that ∇f(xk) converges to ∇f(¯x). Here, a similar
+property is maintained as follows. Since f is locally Lipschitz, its subgradients (gxk) are uniformly bounded for k sufﬁciently
+large, hence there exists a subsequence that converges to a vector ¯g. Without loss of generality (passing to the subsequence
+if necessary) we note
+gxk →¯g ,
+and the upper semi-continuity of the Clarke subdifferential [52, Proposition 1.5] yields ¯g ∈∂f(¯x). Since ¯H is positive
+deﬁnite and S0(¯x) ̸= ∅, the quadratic problem Q(¯x, ¯H, ¯g) (originally Q(¯x, ¯H, ∇f(¯x)) in [26]) has a unique KKT point ¯p.
+
+
+If ¯p = 0, then ¯x is a KKT point of Problem (8) and the theorem follows. Thus, we now assume that ¯p ̸= 0 and we will
+show that this leads to a contradiction.
+From the continuity of ∇g(x), and by Lemmas 1 and 2, where xk+1 and xk play the roles of x0 and x′
+0, and gx0 and
+gx′
+0 play the roles of k and k′, we deduce that:
+pk →¯p
+In the original proof [26], this follows [51] (the equivalent to our Lemma 2) and the continuity of ∇f(x) instead (which is
+stronger than our Lemma 1).
+Since (uk) is uniformly bounded by r, it has an accumulation point ¯u. We note
+uk →¯u
+with ||¯u||∞≤r. By passing to the limit in the KKT relation, which is valid for any k, we obtain that ¯u is a Lagrange
+multiplier of Q(¯x, ¯H, ¯g).
+The rest of the proof of [26] is unchanged, and is as follows. Let ¯λ ∈
+0
+λmax
+
+be chosen such that
+θr(¯x + ¯λ¯p) =
+min
+0≤λ≤λmax θr(¯x + λ¯p).
+Let us set
+γ = θr(¯x + ¯λ¯p) −θr(¯x) > 0
+which is strictly positive by Proposition 2.a). Since xk + ¯λpk →¯x + ¯λ¯p, for sufﬁciently large k we have:
+θr(xk + ¯λpk) + γ/2 < θr(¯x) .
+However, for all k we have θr(xk+1) < θr(xk) + ǫk, and for sufﬁciently large k we have
+∞
+X
+i=k
+ǫi < γ/2
+which leads to:
+θr(¯x) < θr(xk+1 +
+∞
+X
+i=k+1
+ǫi
+≤
+min
+0≤λ≤λmax θr(xk + λpk) + ǫk +
+∞
+X
+i=k+1
+ǫi
+< θr(xk + ¯λpk) + γ/2
+which contradicts the previous inequality θr(xk + ¯λpk) + γ/2 < θr(¯x). This proves that ¯p = 0 and that ¯x is a KKT point
+of Problem (8).

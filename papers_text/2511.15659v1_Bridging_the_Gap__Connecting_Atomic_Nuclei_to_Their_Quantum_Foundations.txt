@@ -1,0 +1,453 @@
+Bridging the Gap:
+Connecting Atomic Nuclei to Their Quantum Foundations†
+Fredrick Olness∗
+Department of Physics, Southern Methodist University, Dallas, TX 75275-0175, U.S.A.
+E-mail: olness@smu.edu
+We extend the QCD Parton Model analysis by employing a factorized nuclear structure model
+that explicitly accounts for both individual nucleons and correlated nucleon pairs. This novel
+framework establishes a paradigm that directly links the nuclear physics description of matter (in
+terms of protons and neutrons) to the particle physics schema (in terms of quarks and gluons). Our
+analysis of high-energy data from lepton Deep-Inelastic Scattering, Drell-Yan, and W/Z production
+simultaneously extracts the universal effective distribution of quarks and gluons inside correlated
+nucleon pairs, and their nucleus-specific fractions. The successful extraction of these universal
+distributions marks a significant advance in our understanding of nuclear structure, as it directly
+connects nucleon-level and parton-level quantities.
+XXXII International Workshop on Deep Inelastic Scattering and Related Subjects (DIS2025)
+24-28 March, 2025
+Cape Town, South Africa
+†Performed in collaboration with A.W. Denniston, T. Ježo, A. Kusina, N. Derakhshanian, P. Duwentäster, O. Hen,
+C. Keppel, M. Klasen, K. Kovařík, J.G. Morfín, K.F. Muzakka, E. Piasetzky, P. Risse, R. Ruiz, I. Schienbein, J.Y. Yu.
+∗Speaker
+© Copyright owned by the author(s) under the terms of the Creative Commons Attribution-NonCommercial-NoDerivatives
+4.0 International License (CC BY-NC-ND 4.0) All rights for text and data mining, AI training, and similar technologies for
+commercial purposes, are reserved. ISSN 1824-8039 . Published by SISSA Medialab.
+https://pos.sissa.it/
+arXiv:2511.15659v1  [hep-ph]  19 Nov 2025
+
+
+Bridging the Gap: Connecting Atomic Nuclei to Their Quantum Foundations
+Fredrick Olness
+0
+10
+20
+30
+40
+50
+SRC Percentage
+Partonic Extraction (baseSRC Fit)
+CA
+p
+CA
+n
+N
+Z CA
+n
+3
+10
+30
+60 100
+200
+A
+0
+10
+20
+30
+40
+50
+CA
+p
+baseSRC
+pnSRC
+QE data
+QMC calc.
+Figure 1:
+(a) Comparison of nuclear structure
+parameters 𝐶𝐴
+𝑝, 𝐶𝐴
+𝑛, and (𝑁/𝑍)𝐶𝐴
+𝑛values for the
+baseSRC fit. The solid lines represent logarithmic fits
+to the corresponding quantities. We show uncertainties
+only for the 𝐶𝐴
+𝑝, but errors for other quantities are of
+similar size.
+(b) Comparison of 𝐶𝐴
+𝑝
+values for the baseSRC
+fit and the SRC abundances extracted from quasi-
+elastic (QE) [4–6] data and Quantum Monte Carlo
+(QMC) [7] nuclear calculations. The logarithmic fits
+for baseSRC and pnSRC are also shown.
+A Novel Paradigm:
+Subatomic systems—including nucleons
+and atomic nuclei, as well as dense astrophysi-
+cal matter—derive their fundamental properties
+from the complex, many-body interactions
+among their constituent quarks and gluons, all
+of which are precisely described by the theory
+of Quantum Chromodynamics (QCD).
+We present a novel framework that com-
+bines information from nuclear Parton Distri-
+bution Functions (nPDFs) with Short-Range
+Correlations (SRCs)1. This approach directly
+establishes a crucial link between partonic
+dynamics (quarks and gluons) and nuclear
+dynamics (protons and neutrons).
+The PDFs are a key component that allows
+us to describe the complex internal structure
+and interactions of nuclei. Notably, the nuclear
+PDFs are not a simple sum of the PDFs for
+free protons and neutrons [2, 3]. Instead, they
+demonstrate significant nuclear modification
+effects (such as the EMC effect, shadowing,
+and antishadowing) that alter the momentum
+distributions of quarks and gluons inside a
+nucleus relative to those in individual nucleons.
+nPDF Framework:
+We adopt a model-agnostic approach by focusing on the broad-scale features common to
+modern, high-resolution nuclear structure models, thereby minimizing dependence on specific
+model details.
+The parameterization framework for the nuclear Parton Distribution Functions
+(nPDFs) differs significantly from those employed in conventional global analyses. Nevertheless, it
+achieves a notably good description of the currently available nuclear data, as we shall demonstrate.
+We construct our nPDF as a linear combination of a free-nucleon PDF (which accounts for the
+quasi-free nucleons) and a universal Short-Range Correlation (SRC) PDF that describes the quark
+and gluon distributions inside an SRC pair:
+𝑓𝐴
+𝑖(𝑥, 𝑄) = 𝑍
+𝐴
+h
+(1 −𝐶𝐴
+𝑝) 𝑓𝑝
+𝑖(𝑥, 𝑄) + 𝐶𝐴
+𝑝𝑓SRC 𝑝
+𝑖
+(𝑥, 𝑄)
+i
++ 𝑁
+𝐴
+h
+(1 −𝐶𝐴
+𝑛) 𝑓𝑛
+𝑖(𝑥, 𝑄) + 𝐶𝐴
+𝑛𝑓SRC 𝑛
+𝑖
+(𝑥, 𝑄)
+i
+.
+Here, 𝑓𝐴
+𝑖
+is the nPDF of parton type 𝑖(gluon or quark flavors) in a nucleus with mass number
+𝐴, carrying momentum fraction 𝑥at energy scale 𝑄.
+𝑓𝑝,𝑛
+𝑖
+and 𝑓SRC 𝑝,𝑛
+𝑖
+are the PDFs of the
+free-nucleon and of the modified nucleon in an SRC pair, respectively. We implicitly assume that
+1For a complete list of references, please refer to those cited in Ref. [1]
+2
+
+
+Bridging the Gap: Connecting Atomic Nuclei to Their Quantum Foundations
+Fredrick Olness
+𝑓SRC 𝑝,𝑛
+𝑖
+can be defined via a collinear factorization framework, and that the proton and neutron
+distributions are related by isospin.2 Therefore, we apply the tools from perturbative QCD used for
+free-nucleon PDFs to arrive at the physical predictions.
+A crucial characteristic of SRCs is their universality across the full nuclear spectrum, meaning
+the short-distance dynamics of the correlated pairs are largely independent of the specific nucleus.
+We keep a model-independent approach as to the number of SRC pairs and their isospin
+structure. The nuclear structure dependence is fully encapsulated in the fraction of nucleons in SRC
+pairs, denoted by 𝐶𝐴
+𝑝,𝑛[1, 8]. In fact, these nuclear structure parameters 𝐶𝐴
+𝑝,𝑛will be independently
+determined in our nPDF analysis for the first time (cf., Fig. 1), and tested for consistency with
+independent results from specific nuclear structure studies.
+nPDF Analysis::
+𝜒2/𝑁data
+DIS
+DY
+𝑊/𝑍
+JLab
+𝜒2
+tot
+𝜒2
+tot
+𝑁DOF
+traditional
+0.85
+0.97
+0.88
+0.72
+1408
+0.85
+baseSRC
+0.84
+0.75
+1.11
+0.41
+1300
+0.80
+pnSRC
+0.85
+0.84
+1.14
+0.49
+1350
+0.82
+𝑁data
+1136
+92
+120
+336
+1684
+Table 1: The partial 𝜒2/𝑁data values for the data subsets; the number
+of data points (𝑁data) for each process are listed in the bottom row. The
+traditional fit has 19 shape and 3 𝑊/𝑍normalization parameters.
+The baseSRC and pnSRC fits have 21 shape, 3 𝑊/𝑍normalization, and
+30 and 19 SRC parameters (𝐶𝐴
+𝑝,𝑛), respectively. In total, there are 1684
+data points after cuts. Note the last column (𝜒2
+tot/𝑁DOF) fully takes into
+account the number of fit parameters.
+The analysis utilized the full
+set of available data on nuclear
+lepton DIS, Drell-Yan processes,
+and 𝑊and 𝑍boson produc-
+tion.
+The corresponding theo-
+retical predictions were obtained
+at next-to-leading order (NLO)
+in QCD. The DIS data primarily
+constrain the 𝑢and 𝑑quark
+and anti-quark distributions. In
+contrast, the 𝑊and 𝑍boson pro-
+duction data from LHC proton-
+lead collisions also constrain strange quark and gluon distributions down to lower momentum
+fractions of 𝑥∼10−3.
+The energy-scale dependence is accounted for using the DGLAP evolution equation, which
+also helps constrain the gluon distribution via the 𝑄-dependence of DIS data. The parton number
+and momentum sum rules are guaranteed to be satisfied separately for the free-nucleon PDFs ( 𝑓𝑝
+𝑖)
+and for the SRC PDFs ( 𝑓SRC 𝑝
+𝑖
+). Because each component already satisfies these fundamental
+rules, their linear combination (which forms the total nuclear PDF) must also satisfy the sum rules.
+This holds independently of the specific values used for the proton and neutron SRC fractions
+(𝐶𝐴
+𝑝and 𝐶𝐴
+𝑛).
+The free-nucleon PDFs 𝑓𝑝
+𝑖
+are set to the nCTEQ15 proton distributions [2]. We have also
+explored other proton sets from different groups and obtained comparable results.
+The SRC
+nucleon PDFs 𝑓SRC 𝑝
+𝑖
+use the same functional form as 𝑓𝑝
+𝑖with 21 shape parameters. We perform
+two independent analyses where i) 𝐶𝐴
+𝑝and 𝐶𝐴
+𝑛are allowed to vary freely, and ii) where we assume
+proton-neutron SRC dominance, i.e. 𝐶𝐴
+𝑝= 𝑁
+𝑍×𝐶𝐴
+𝑛≡𝐶𝐴. We refer to these fits as the baseSRC and
+pnSRC fits, respectively. For comparison, we also repeated the traditional (mean-field-like) analysis
+of Ref. [9] using the same dataset, which we refer to as the traditional fit.
+2We will assume isospin symmetry to relate the proton and neutron nPDFs. Therefore, in the following discussion,
+we will simply use 𝑓𝑝
+𝑖and 𝑓SRC 𝑝
+𝑖
+to identify the free-nucleon and SRC nPDFs, respectively.
+3
+
+
+Bridging the Gap: Connecting Atomic Nuclei to Their Quantum Foundations
+Fredrick Olness
+Analysis Results:
+The 𝜒2 Results:
+The resulting fit quality in terms of 𝜒2 are listed in Table 1 for each
+data type separately, and for all data combined. The SRC fits result in overall 𝜒2
+tot/𝑁DOF values
+appreciably better than for the traditional fit; this fully takes into account the additional SRC
+(𝐶𝐴
+𝑝,𝑛) parameters.
+nPDF Results:
+The nPDFs obtained from the SRC approach (not shown) are generally
+consistent with those from the traditional fits within the estimated uncertainties. The SRC
+approach not only yields nPDFs that closely reproduce the traditional results (including the most
+well-constrained valence distributions) but also achieves an improved 𝜒2/dof. This fit successfully
+reproduces all data across the full range, corresponding to an 𝑥range of approximately 10−3 to 0.75.
+Given that the initial nPDF parameterization in the SRC framework differs fundamentally
+from the traditional functional form, achieving results comparable to those of the latter while
+improving data description is a noteworthy achievement.
+The 𝐶𝐴
+𝑝,𝑛Coefficients:
+Figure 1 shows the extracted 𝐶𝐴
+𝑝and 𝐶𝐴
+𝑛coefficients as determined by the global baseSRC.
+The coefficients show logarithmic growth with the nuclear mass number 𝐴, starting from ∼5% for
+He and reaching ∼25% for Pb.
+Figure 1-a):
+In the top panel of Fig. 1-a) we display {𝐶𝐴
+𝑛, 𝐶𝐴
+𝑝} for the baseSRC fit. We
+also show a rescaled coefficient, (𝑁/𝑍)𝐶𝐴
+𝑛, that accounts for the neutron excess when present. The
+uncertainties of {𝐶𝐴
+𝑛, 𝐶𝐴
+𝑝} are obtained by evaluating the 𝜒2 while scanning across the parameters,
+and reflect, in part, the number of data points available for each separate nucleus. The lines are
+simple logarithmic fits to show the trend in 𝐴.
+We first observe that the slopes of the proton fraction (𝐶𝐴
+𝑝) and the neutron fraction (𝐶𝐴
+𝑛)
+of nucleons in SRC pairs are roughly similar when compared against the nuclear mass number
+𝐴.
+However, after accounting for the neutron excess (by multiplying 𝐶𝐴
+𝑛by the factor 𝑁/𝑍),
+we find that the slopes of 𝐶𝐴
+𝑝and the rescaled (𝑁/𝑍)𝐶𝐴
+𝑛become essentially the same within
+the estimated uncertainties.
+This result indicates that protons and neutrons participate in the
+SRC interactions in approximately equal numbers, consistent with the hypothesis that SRCs are
+dominated by proton–neutron pairs.
+Furthermore, the observation that 𝐶𝐴
+𝑝and the rescaled (𝑁/𝑍)𝐶𝐴
+𝑛exhibit similar behavior
+explains why imposing the constraint 𝐶𝐴
+𝑝= (𝑁/𝑍)𝐶𝐴
+𝑛in the pnSRC fit results in only a minimal
+increase in 𝜒2/dof (from 0.80 to 0.82) relative to the baseSRC fit, where 𝐶𝐴
+𝑝and 𝐶𝐴
+𝑛are treated
+independently.
+We note that {𝐶𝐴
+𝑛, 𝐶𝐴
+𝑝} exhibit a scaling freedom on their absolute value due to a freedom in
+the parameterization [8]. Although no evidence of this scaling freedom was identified in our results,
+we focus the following discussion on the relative size of the coefficients instead of their absolute
+values.
+Example Nuclei:
+For the baseSRC fit, the {𝐶𝐴
+𝑝, 𝐶𝐴
+𝑛} vary independently without constraints;
+hence, the observed trends are purely due to the data. We previously noted that when the obtained
+4
+
+
+Bridging the Gap: Connecting Atomic Nuclei to Their Quantum Foundations
+Fredrick Olness
+{𝐶𝐴
+𝑝, 𝐶𝐴
+𝑛} values are adjusted for the neutron excess present in heavy nuclei, the resulting effective
+number of protons and neutrons in SRC pairs is approximately equal. We will now illustrate this
+specific finding for the cases of gold and lead nuclei.
+The estimated uncertainties for {𝐶𝐴
+𝑝, 𝐶𝐴
+𝑛} are displayed in Fig. 1 for the case of gold and lead are
+roughly ±5%. For gold, 197
+79 Au, we obtain𝐶𝐴
+𝑝=0.256, 𝐶𝐴
+𝑛=0.177. This implies 79×𝐶𝐴
+𝑝≃20.2 protons
+and 118×𝐶𝐴
+𝑛≃20.9 neutrons are (effectively) modified by the SRC. Likewise for the case of lead,
+208
+82 Pb, we have 𝐶𝐴
+𝑝=0.295, 𝐶𝐴
+𝑛=0.202, which implies 82×𝐶𝐴
+𝑝≃24.2 protons and 126×𝐶𝐴
+𝑛≃25.5
+neutrons are (effectively) modified.
+This exemplifies the above observation that once the 𝐶𝐴-
+coefficients are adjusted to account for the neutron excess, the effective number of protons and
+neutrons within SRC pairs are approximately equal.
+Proton-Neutron SRC Dominance:
+More generally, we find the above pattern or proton-
+neutron pairing is evident throughout the range of Fig. 1; we fit the {𝐶𝐴
+𝑝, 𝐶𝐴
+𝑛} values with a simple
+2-parameter function, 𝑓(𝐴) = 𝑎log(𝐴) + 𝑏, to better display the trends. In the top panel of Fig. 1
+we observe 𝐶𝐴
+𝑝(blue line) and 𝐶𝐴
+𝑛(gray line) are both increasing with 𝐴, but with differing slopes.
+To account for the abundance of neutrons for non-isoscalar nuclei, we modify the original 𝐶𝐴
+𝑛
+values by a factor of 𝑁/𝑍, and this yields the orange line with a slope much closer to the 𝐶𝐴
+𝑝slope
+(blue line). By comparing the rescaled neutron fraction line, (𝑁/𝑍)𝐶𝐴
+𝑛, with the original proton
+fraction line, 𝐶𝐴
+𝑝, we gain insight into two key aspects of the SRCs.
+1. Proton-Neutron SRC Dominance: The overlap directly shows the extent to which the effective
+number of protons and neutrons participating in SRC interactions are comparable, after
+accounting for the nuclear neutron excess.
+2. Nuclear 𝐴-Dependence:
+The similarity in their slopes reveals the extent to which the
+dependence of these parameters on the nuclear mass number (𝐴) is comparable, highlighting
+their universality.
+These observations are consistent with the hypothesis that the SRC pairs are dominantly proton-
+neutron combinations.
+Figure 1-b):
+Focusing on the lower panel, Figure 1-b) we display the 𝐶𝐴
+𝑝coefficients for
+the baseSRC. We also show the logarithmic fits for both baseSRC and pnSRC and they closely
+coincide. Additionally, we overlay predictions from independent, extractions from both nuclear
+structure calculations [7] and quasi-elastic electron scattering measurements [4–6].
+This behavior is consistent with the observed 𝑝𝑛-dominance previously established in nuclear
+structure studies [10, 11].
+Consequently, the agreement between the baseSRC and pnSRC fits
+provides an initial indication of consistency between quark–gluon–level analyses and traditional
+nuclear structure observations.
+Conclusion:
+We have presented a novel paradigm that directly links nuclear structure information to parton
+(quark and gluon) dynamics. This framework enables the first direct extraction of nPDFs that is
+fully consistent with independent nuclear structure determinations.
+This analysis yields a data description that is similar to or better than that of the traditional
+parameterization and enables a meaningful physical interpretation of the fit in terms of the nuclear
+5
+
+
+Bridging the Gap: Connecting Atomic Nuclei to Their Quantum Foundations
+Fredrick Olness
+dynamics. The study successfully determines both the standard “average” nPDFs (which can be
+directly compared with traditional nPDF fits), and the universal distribution of partons in SRC
+nucleon pairs, along with the fractions of such SRC pairs.
+The agreement between the SRC fractions derived here and those obtained from low-energy
+quasielastic measurements establishes a clear connection between high-energy partonic behavior
+and low-energy nuclear structure, marking a significant step toward understanding nuclei in terms
+of partonic QCD processes.
+The SRC framework provides additional flexibility by allowing one to (i) follow the traditional
+approach using averaged nucleon distributions, or (ii) construct a more detailed initial-state descrip-
+tion in which each nucleon is represented by either a free-nucleon PDF or an SRC-modified PDF,
+depending on its correlation state.
+Furthermore, it is noteworthy that the SRC parameterization (in which the dependence of 𝐴
+and 𝑥is factorized) produces an excellent description of the data. The conceptual simplicity of this
+successful parameterization is striking.
+Acknowledgment:
+This study was performed in collaboration with members of the nCTEQ Collaboration and
+Or Hen’s MIT research group. We are grateful to Tim Hobbs, Jeff Owens and Efrain Segarra for
+valuable discussion. This work was supported by the U.S. DoE Grant No. DE-SC0010129, and by
+the U.S. DoE, Office of Science, Office of Nuclear Physics, within the framework of the Saturated
+Glue (SURGE) Topical Theory Collaboration. This work was performed in part at the Aspen Center
+for Physics, which is supported by National Science Foundation grant PHY-2210452.
+References
+[1] A. W. Denniston et al. (nCTEQ), Phys. Rev. Lett. 133, 152502 (2024), arXiv:2312.16293
+[hep-ph] .
+[2] K. Kovarik et al. (nCTEQ), Phys. Rev. D 93, 085037 (2016), arXiv:1509.00792 [hep-ph] .
+[3] M. Klasen, in 32nd International Workshop on Deep-Inelastic Scattering and Related Subjects
+(2025) arXiv:2510.05880 [hep-ph] .
+[4] K. S. Egiyan et al. (CLAS), Phys. Rev. Lett. 96, 082501 (2006), arXiv:nucl-ex/0508026 .
+[5] N. Fomin et al., Phys. Rev. Lett. 108, 092502 (2012), arXiv:1107.3583 [nucl-ex] .
+[6] B. Schmookler et al. (CLAS), Nature 566, 354 (2019), arXiv:2004.12065 [nucl-ex] .
+[7] R. Cruz-Torres et al., Nature Phys. 17, 306 (2021), arXiv:1907.03658 [nucl-th] .
+[8] P. Paakkinen, (2025), arXiv:2510.00252 [hep-ph] .
+[9] E. P. Segarra et al., Phys. Rev. D 103, 114015 (2021), arXiv:2012.11566 [hep-ph] .
+[10] R. Subedi et al., Science 320, 1476 (2008), arXiv:0908.1514 [nucl-ex] .
+[11] E. Piasetzky et al., Phys. Rev. Lett. 97, 162504 (2006), arXiv:nucl-th/0604012 .
+6

@@ -1,0 +1,1734 @@
+How To Cook The Fragmented Rug Pull?
+Minh Trung Tran†, Nasrin Sohrabi‡, Zahir Tari†, Qin Wang§
+†RMIT University | ‡Deakin University | §CSIRO’s Data61, Australia
+Abstract—Existing rug pull detectors assume a simple work-
+flow: the deployer keeps liquidity pool (LP) tokens and per-
+forms one or a few large sells (within a day) that collapse the
+pool and cash out. In practice, however, many real-world exits
+violate these assumptions by splitting the attack across both
+time and actor dimensions: attackers break total extraction
+into many low-impact trades and route proceeds through
+multiple non-owner addresses, producing low-visibility drains.
+We formalize this family of attacks as the fragmented rug
+pull (FRP) and offer a compact “recipe” for a slow-stewed
+beef special: (i) keep the lid on (to preserve LP control so
+on-chain extraction remains feasible); (ii) chop thin slices (to
+split the total exit volume into many low-impact micro-trades
+that individually fall below impact thresholds); and (iii) pass
+the ladle (to delegate sells across multiple wallets so that each
+participant takes a small share of the extraction). Technically,
+we define three atomic predicate groups and show that their
+orthogonal combinations yield evasive strategies overlooked by
+prior heuristics (USENIX Sec’19, USENIX Sec’23).
+We validate the model with large-scale measurements. Our
+corpus contains 303,614 deployed LPs (block ranging from
+Nov. 2, 2018 to Mar. 5, 2025), among which 105,434 are labeled
+as FRP pools. The labeled subset includes 34,192,767 pool-
+related transactions and 401,838 inflated-seller wallets, involv-
+ing 1,501,408 unique interacting addresses. Notably, owner-
+wallet participation in inflated selling among FRP-flagged
+liquidity pools has declined substantially (≈33.1% of cases),
+indicating a shift in scam behavior: the liquidity drain is no
+longer held on the owner wallet. Additionally, we detected
+127,252 wallets acting as serial scammers when repeatedly
+engaging in inflated selling across multiple FRP LPs. Our
+empirical findings demonstrate that the evasive strategies we
+define are widespread and operationally significant.
+1. Introduction
+Ethereum underpins the majority of decentralized fi-
+nance (DeFi) [1] activity, with approximately 70% of the
+total value locked (TVL) across all blockchains [2]. Rug pull
+scams [3] remain among the most destructive attack vectors
+in this ecosystem, leading to annual losses amounting to
+more than $2B USD [4].
+A typical rug pull follows a simple pattern. (i) The de-
+ployer first launches a new token and establishes a liquidity
+pool on a decentralized exchange, usually pairing the token
+with a well-recognized base asset such as ETH or USDT to
+create an illusion of legitimacy and attract early liquidity.
+(ii) They then supply an initial amount of both assets to
+bootstrap trading activity and adjust pool parameters to
+appear stable and liquid. Once the pool is live, the de-
+ployer engages in aggressive marketing through social media
+announcements, airdrops, and influencer endorsements to
+stimulate speculative demand and drive token purchases
+from unsuspecting investors. As more participants join, the
+token’s market valueincreasese, masking the asymmetry of
+control retained by the deployer over the liquidity provider
+(LP) tokens. (iii) At the moment the liquidity peak, the
+attacker executes the exit phase: selling large quantities of
+the project token or directly withdrawing the LP tokens
+to reclaim the base asset. The sudden extraction (usually
+within one day) drains the pool’s reserves, causes the token’s
+price to collapse, and leaves investors with unsellable assets,
+marking the completion of the rug pull.
+1.1. Why Existing Detection Fails?
+Early measurement and forensic studies [3], [5] distilled
+rug-pull behavior into simple operational heuristics (Figure
+1(a)). Concretely, detectors raise alerts when two observable
+conditions (we denote it as predictes to emphasize their
+role as a family of structurally similar logical elements) co-
+occur: (i) a large sell or withdrawal that sharply reduces pool
+liquidity (impact), and (ii) the transaction’s sender is the
+token owner or LP deployer (identity). These impact- and
+identity-based rules underpin both academic and commercial
+detectors and have long served as effective first-order signals
+for classic, one-shot exits.
+However, attackers adapted faster than the heuristics.
+Our reanalysis of on-chain incidents since 2021 (§3)
+shows a clear shift in operational patterns: instead of a
+single, high-impact owner sell, adversaries increasingly split
+extraction into many smaller trades and route them through
+non-owner addresses.
+The aggregate economic effect is
+the same, yet no single transaction violates the legacy per-
+transaction checks; consequently, many confirmed scams no
+longer exhibit the textbook single large owner sell signature
+relied upon by rule-based detectors. This structural diver-
+gence produces a blind spot: pools are drained economically
+like rug pulls, but remain invisible to static heuristics.
+The root cause is fundamental: existing heuristics encode
+an observable symptom (a conspicuous transaction) rather
+than the underlying economic gap (that the attacker can
+extract value). Once adversaries know the fixed triggers,
+evasion is straightforward: change who sells, reduce per-
+transaction volume, or alter timing.
+arXiv:2511.15463v1  [cs.CR]  19 Nov 2025
+
+
+(a) Traditional rug pull heuristic detection relies on three conditions (i.e.,
+Predicates A-C). If all three hold, the pool is flagged as a rug pull. However,
+we find that B and C are modifiable and can be further generalized!
+(b) Our extended FRP heuristic generalizes (B) and (C) into dynamic,
+multi-actor observables to capture both impact fragmentation (splitting exits
+into low-impact fragments) and identity delegation (distributing sells across
+multiple non-owner addresses). These extensions can bypass existing static
+heuristics and motivate our on-chain measurement of predicate-level evasions.
+Figure 1: Fragmented Rug Pull
+A recent study [6] extended detection into the temporal
+dimension, reporting the emergence of slow liquidity drain
+(SLID) scams where attackers siphon funds gradually rather
+than through a single abrupt exit. While SLID effectively
+lowered the detection threshold by monitoring liquidity loss
+over extended periods, its analysis remains only temporal,
+without revealing how attackers alter the underlying detec-
+tion logic or predicate conditions.
+What is still missing is a principled understanding of
+which predicate-level modifications preserve the attacker’s
+payoff, and how frequently such evasive variants appear
+in the wild. Addressing these gaps motivates our formal
+decomposition of rug-pull heuristics into atomic predicates.
+1.2. Our Efforts
+We progress by identifying and addressing a series of
+research questions (RQs):
+• RQ1: Which canonical heuristic components of rug pulls
+are brittle under adversarial modification?
+Traditional rug-pull detection relies on a small set of
+hand-crafted behavioral rules to flag high-impact, owner-
+originated liquidity exits. However, prior studies lack a
+formal decomposition of these heuristics into elementary
+predicates and overlook which parts can be adversarially
+modified without reducing the attacker’s economic return.
+To fill this gap, we revisit canonical detection logic and
+express it as a minimal set of measurable predicates covering
+three behavioral dimensions: (A) liquidity-pool control, (B)
+splitting large exits (keeping each order’s impact below
+a threshold), and (C) identity obfuscation via multi-wallet
+execution. Through theoretical analysis, we identify which
+predicates can be modified without lowering attacker payoff,
+providing the first principled proof of heuristic brittleness.
+This predicate-level view reveals two core evasive op-
+erations aligned with (B) and (C): (i) splitting large exits
+into many low-impact orders, and (ii) delegating execution
+across multiple wallets to conceal ownership.
+A complementary tactic is to schedule trades over time
+(temporal smoothing, as explored in [6]) to further dilute
+observable signals, though this acts as an overlay on (B)/(C)
+rather than a standalone predicate.
+• RQ2: How can these evasive modifications be formally
+modeled to define and generalize a new scam type?
+Building on the above predicate analysis, we formalize a
+new class of evasive scams and, termed the Fragmented Rug
+Pull (FRP), to systematically exploit heuristic brittleness.
+Definition 1 (Fragmented rug pull (FRP), informal
+sketch). A fragmented rug pull is an exit strategy in which
+the attacker preserves liquidity-pool control (Predicate A)
+while extracting value by (i) splitting large exits so that each
+order remains below the impact threshold (Predicate B),
+and (ii) obfuscating identity by delegating execution across
+multiple wallets (Predicate C), ensuring that no single trans-
+action or address triggers canonical rug-pull heuristics.
+Formally, FRP behavior can be characterized by three
+independent parameters: (i) the number of selling wallets
+(N), (ii) the per-wallet order count (Ka), and (iii) the per-
+order impact (v), subject to the invariant that each order’s
+impact satisfies v < θ (the canonical impact threshold) and
+that ownership signals are dispersed across wallets so that
+no single owner exhibits a heuristic-triggering footprint.
+Our model unifies evasive behaviors under a single
+analytical framework, making FRPs quantifiable and com-
+parable to traditional rug pulls. We show more in §4.
+• RQ3: How prevalent are these fragmented rug pulls in
+real-world DEX environments?
+To answer this, we perform a large-scale on-chain mea-
+surement covering six major Ethereum DEXs (Uniswap,
+SushiSwap, Balancer, Curve, PancakeSwap, and Bancor-
+Swap) from November 2018 to March 2025. Among
+384,029 liquidity pools and over 1.1 billion transactions,
+303,614 short-lived pools (lifetime ≤100 days) were re-
+tained for analysis.
+Applying our predicate-based FRP definition, we iden-
+tify 105,434 pools (34.7%) as fragmented rug pulls, involv-
+ing 34.19M transactions, 401,838 inflated-seller wallets, and
+1.50M unique interacting addresses.
+We find that fragmented rug pulls have rapidly become
+a mainstream scam pattern in DeFi. Their presence was
+negligible before 2020 (fewer than one hundred cases were
+observed) but grew explosively with the rise of decentralized
+trading, reaching nearly 40k detected pools in 2023.
+Our measurement further shows a clear shift in how
+attackers operate. Traditional single-wallet exits are steadily
+disappearing (from 57% in 2019 to 28.3% in 2024), while
+
+
+multi-wallet schemes have become the norm—over 70% of
+FRPs now involve coordinated actions from a few sellers
+rather than one. Owner participation has dropped from
+65% to 24%, showing that deployers increasingly rely on
+delegated wallets to hide their identity. Single-wallet scams
+finish within a couple of days and involve only a handful of
+sells, whereas multi-wallet schemes stretch over a week with
+dozens of small trades that mimic normal market activity.
+Our contributions, in short, are
+•
+predicate decomposition of rug pulls;
+•
+new definition of fragmented rug pull scam;
+•
+formal detection model as extended heuristics;
+•
+large-scale on-chain measurement within Ethereum.
+Beyond modeling and measurement, we further con-
+structed and released1 our labeled pool dataset [7], predi-
+cate evaluations, and analysis scripts to support reproducibil-
+ity and future comparative studies [8].
+We also summarized practical indicators that can serve
+as early warning signals for emerging scams, such as the
+creation of multiple distributor wallets shortly after deploy-
+ment, synchronized low-impact sell patterns, and rapid post-
+exit fund consolidation. We hope that our open resources can
+facilitate the future on-chain fraud detectors that reason over
+aggregated behaviors rather than isolated events.
+2. Technical Warm-Ups
+2.1. Ethereum Token and Account model
+We review three technical facts that enable fragmented
+exit strategies: (i) ERC-20’s interface permits programmatic
+transfer of value across heterogeneous addresses; (ii) ap-
+proval and minting / pre-funding functions make bulk dis-
+tribution and inflated selling operationally feasible; and (iii)
+the combined use of EOAs and contract yields multi-address
+flows that evade single-transaction heuristics.
+ERC-20. Ethereum’s fungible token implements the ERC-
+20 standard [9], which defines a uniform transfer and
+approval APIs and emits transfer events. This improves
+composability across DEXs, bridges, and lending protocols,
+but the identical call patterns can be leveraged by attackers.
+approve/transferFrom enables pre-authorised token
+transfer by third parties or contracts, enabling automated dis-
+tribution from one source to many intermediary addresses.
+Token contracts that allow mint make pre-funding and in-
+flated balances possible, supporting large downstream sells
+without immediate owner-originated buys.
+EOAs, contracts, and internal transfers. Ethereum distin-
+guishes Externally Owned Accounts (EOAs) and Contract
+Accounts [10], [11]. Contracts can programmatically split,
+route, and synchronize transfers (including multi-hop calls),
+producing multiple internal transfers under a single external
+tx hash. The result is multi-address fund flows that are
+difficult to flag using per-transaction heuristics.
+1. Accessible via https://anonymous.4open.science/r/FRP source-730C
+2.2. Decentralized Exchanges and Liquidity Pools
+Decentralized exchanges. DEXs form the backbone of the
+DeFi ecosystem, enabling users to trade assets directly from
+their wallets. Uniswap [12], the largest DEX on Ethereum,
+exemplifies this model. Unlike centralized exchanges that
+hold user assets, DEXs execute trades on-chain through
+automated market makers (AMMs) [13]. Each AMM gov-
+erns a liquidity pool (LP). LP is a reserve of token pairs
+priced continuously by an invariant function. LP allows
+permissionless trading without intermediaries.
+Liquidity pool. An LP typically holds a base token (e.g.,
+ETH, USDT, USDC, DAI) and a paired token, often a newly
+issued asset. The pool creator deposits both to initialize the
+price. Most DEXs adopt the constant-product model [14],
+[15], x · y = k, where x and y denote token reserves and
+k is constant. This design ensures continuous liquidity but
+induces price slippage: larger trades cause proportionally
+higher price impact.
+Users interact with LPs through deposits, withdrawals,
+and swaps, all recorded on-chain. Buying the paired token
+increases the base-token reserve and raises its price; selling
+does the opposite. Any participant may also provide liquidity
+by depositing both tokens, receiving LP tokens as proof of
+ownership and later redeeming them for their share.
+Control over LP tokens determines control over the
+pool’s liquidity. If deployers retain these tokens, they can
+later withdraw reserves. Legitimate projects burn or lock
+LP tokens [1], [12], [16], [17] to prevent such withdrawals
+and signal credibility. In contrast, scammers typically avoid
+or falsify this step, preserving withdrawal rights while dis-
+guising future liquidity drains as normal trading activity.
+2.3. Withdraw vs. Selling in Rug Pull
+A rug pull is an LP-based exit scam in which an at-
+tacker converts pool-held value into base assets, leaving the
+remaining investors with devalued tokens [3], [5].
+In practice, rug pull scammers employ two economically
+equivalent extraction preferences:
+• Withdraw. The deployer redeems unburned LP tokens to
+remove liquidity directly from the pool after users add
+value by buying the paired token. A single withdrawal
+can drain most of the base-token reserves in one atomic
+action, triggering an abrupt price collapse and producing
+an unmistakable owner-originated trace on-chain.
+• (Inflated) selling. The attacker sells an inflated supply of
+the paired token into the pool to extract base tokens indi-
+rectly. Large, concentrated sells deplete reserves through
+price slippage, while repeated or coordinated sells can
+achieve the same depletion effect as a direct withdrawal.
+When the total value recovered from withdrawals or
+inflated sells exceeds the attacker’s initial stake (after fees
+and slippage [3], [5], [6]), the attacker gains a profit. Heuris-
+tic detectors identify rug pulls by flagging abrupt owner
+withdrawals or high-impact sell actions [18], [19].
+Throughout this paper, selling by scam wallets refers to
+this inflated selling, not routine trading behavior.
+
+
+3. Motivational Examples
+We revisit concrete on-chain incidents. Each case results
+in a similar outcome: a near-total liquidity collapse. But they
+exit in different ways and evade automated flagging.
+Case study on LIBRA. LIBRA is one of the biggest
+cryptocurrency scams [20] so far. It reached over $5 billion
+in token value just a few hours after launch.
+The deployer retained control of the initial liquidity
+tokens yet performed no large or visible owner sells. Instead,
+the exit happened through four new wallets created within
+one hour of deployment. Each wallet made only a few
+medium-sized (two - five) sells. Every sell stayed below the
+usual detection limit (θ ≈0.9) used by prior tools [3], [5].
+Small buy orders and private-bundled trades were mixed in
+to hide price changes.
+LIBRA caused the same results as a regular rug pull
+and avoided triggering any known rug pull heuristics.
+No owner transaction exceeded the impact threshold and
+per-transaction impact metrics remained within “normal”
+volatility ranges. Automated detectors marked the pool as
+normal, and the scam went unnoticed for days. LIBRA was
+ultimately identified only through secondary signals (off-
+chain alerts and owner self-confession on intentional scam
+purpose) rather than the canonical on-chain heuristics.
+Additional cases. Safereum [21] and ZhongHua [22] used
+similar evasion strategies with slightly different methods.
+Safereum deployed about a dozen pre-funded wallets. Each
+wallet made a short series of small sells mixed with normal-
+looking trades. The profits were then sent to one shared
+wallet and later bridged out. ZhongHua took a different
+approach. It used a proxy contract to make timed sells
+through delegated EOAs while the main deployer stayed
+inactive, giving the illusion of independent traders. Both
+cases were later confirmed as scams by independent on-
+chain investigation platforms and community security track-
+ers. Specifically, Safereum was flagged by multiple analytics
+aggregators for coordinated multi-wallet drains by Certik,
+while ZhongHua was reported through cross-chain tracing
+that linked one of the inflated selling addresses to another
+group of identified scam wallets.
+Beyond these two, we analyzed more liquidity pools
+showing the same pattern: fragmented exits, multiple sell-
+ing wallets, and no large sells from the owner. Each case
+produced the same invisible outcome as LIBRA (details
+in [23]).
+In all examples, no single sell exceeded the detection
+threshold or came directly from the deployer’s wallet. As a
+result, existing automated detectors missed all of them.
+4. Formalizing Fragmented Rug Pull
+Our motivational examples show that existing detectors
+can be evaded in practice. To investigate this gap, we
+decompose the canonical rug-pull heuristic into elemental
+predicates and analyze which assumptions an attacker can
+change without altering the scam’s economic payoff (e.g.,
+LP control, per-transaction impact, seller identity).
+We proceed in two coordinated steps:
+• Formal decomposition. We formalize the baseline sell-
+based heuristic as a small set of measurable atomic pred-
+icates and express each predicate mathematically so its
+dependence on per-transaction magnitude, actor identity,
+and timing is explicit. Building on this formalization, we
+specify an adversary model and a family of predicate-level
+modifications (an attacker can apply, e.g., fragmenting
+impact, delegating identity) that preserve the economic
+outcome while aiming to evade detection.
+• Empirical evaluation. We apply the formal FRP definition
+to on-chain traces to label affected pools and quantify
+predicate-level evasions. Our measurement includes (i)
+actor-centric analysis (who performs drains: wallet dis-
+tribution, owner participation, recurrence) and (ii) action-
+centric analysis (how drains are executed: sell frequency,
+fragmentation level, behavioral categories).
+4.1. Sell-Based Rug Pull Predicates
+Existing detectors [3], [5] identify rug pulls by searching
+for large owner sells, LP burns/unlocks, and sharp liquidity
+drawdowns as key behavioral signatures (demonstrated in
+Figure 1(a)). We take this baseline as the foundation for
+formalization.
+Notation. Let P denote a DEX liquidity pool, and let
+T = {t1, . . . , tn} be the time-ordered set of sell/withdraw
+transactions that affect P. For each transaction ti where
+ti ∈T, we define:
+• ai: the effective actor that executes the pool-affecting ac-
+tion in ti (the address initiating the swap or LP removal);
+• τi: the timestamp of ti;
+• si: the paired-token amount sold or withdrawn in ti;
+• vi: the realized base-token value returned by the DEX to
+ai in ti;
+• Vi: the base-token value of the pool before ti.
+Owner set. Let O denote the deployer or LP creator address.
+Define O as the owner set used by baseline heuristics. In
+its conservative form, O = {O}; it may be expanded to
+include proxy or custodian addresses when such mappings
+are identifiable.
+Atomic predicates. We next formalize the basic conditions
+(predicates) used in heuristic detection. These predicates
+describe, respectively, LP ownership retention, transaction
+impact magnitude, and ownership identity of the actor.
+Impact(ti) ≜vi
+Vi
+,
+SellerIsOwner(ti) ≜(ai ∈O),
+RetainLP ≜¬burnLock(LPTinit),
+where LPTinit denotes the initial LP tokens controlled by
+the deployer, and burnLock(·) returns true if those tokens
+were irreversibly burned or time-locked.
+We define the predicates as below.
+
+
+RetainLP.
+(A)
+∃ti ∈T : Impact(ti) > θ.
+(B)
+SellerIsOwner(ti).
+(C)
+Here, θ ∈(0, 1) denotes the threshold for a single-
+transaction impact, commonly set to θ = 0.9 following prior
+studies [3], [5].
+Detection rule. The detector D flags P as a rug pull if:
+D(P) = (A) ∧(B) ∧(C).
+Predicate (A) ensures the deployer retains LP control;
+(B) captures a large one-shot sell or withdrawal that signif-
+icantly depletes liquidity; and (C) links that action to the
+owner set.
+An attacker can evade D by violating any one of these
+predicates: (i) concealing LP control (e.g., by locking or
+redistributing LP tokens), (ii) fragmenting exits so that no
+individual Impact(ti) exceeds θ, or (iii) delegating drain-
+ing transactions to non-owner addresses (ai /∈O). Such
+predicate-level manipulations preserve the same economic
+outcome while escaping heuristic detection.
+Notably, in our empirical evaluation (§6.3), we further
+vary θ from 0.7 to 0.95 to assess the sensitivity of the
+baseline detector under different impact thresholds.
+4.2. Applying Modifications to Adversaries
+Having decomposed the canonical heuristic into its
+atomic predicates (A)–(C), we now reason formally about
+how an attacker can perturb these predicates while preserv-
+ing the same payoff-extraction mechanism as a canonical
+rug pull. This section enumerates feasible predicate-level
+modifications that can transform an originally detectable
+rug pull into an operationally equivalent, but heuristically
+undetectable, variant.
+We organize the analysis by predicate:
+• modifications of Predicate (A): can LP-token ownership
+be changed without losing payoff? (see §4.2.1)
+• modifications of Predicate (B): how can impact-based
+rules be bypassed by fragmentation? (see §4.2.2)
+• modifications of Predicate (C): what identity obfuscations
+make large sells appear non-owner originated? (§4.2.3)
+4.2.1. Retaining LP control is necessary. Predicate (A)
+requires the deployer to retain control of the initial LP
+tokens (i.e., RetainLP). If the attacker irrevocably burns or
+time-locks these tokens, they forfeit any on-chain capability
+to withdraw or self-sell liquidity later; hence the canonical
+extraction route disappears.
+Let Π denote any extraction plan that violates (A) (e.g.,
+burnLock(LPTinit) = true). Then for every realization of
+Π the attacker’s on-chain return RΠ is strictly smaller than
+the canonical return Rcanonical (which assumes retained LP
+control). Formally,
+RΠ < Rcanonical.
+Consequently, realistic evasions aiming to produce an equiv-
+alent economic outcome must preserve (A); strategic mod-
+ifications therefore focus on predicates (B) and (C).
+4.2.2. Per-transaction fragmentation. Predicate (B) trig-
+gers an alert when at least one transaction ti ∈T satisfies
+Impact(ti) = vi
+Vi
+> θ.
+Under canonical assumptions, θ ≈0.9 represents a high-
+impact sell or withdrawal that depletes most of the pool’s
+reserves in a single action [3], [5]. The attacker can cir-
+cumvent this predicate by dividing a large extraction into
+multiple smaller fragments such that each individual trade
+remains below the detection threshold.
+Fragmentation principle. Let the attacker aim to extract
+a total base-token value Vtotal from pool P. The attacker
+chooses a partition of Vtotal into K fragments (v1, . . . , vK)
+satisfying
+∀j,
+vj
+Vj
+≤θ.
+Then no single transaction violates (B), yet the cumulative
+proceeds PK
+j=1 vj can approximate the same aggregate
+withdrawal as the canonical rug pull. Operationally, this
+strategy requires only that the attacker sequentially execute
+K transactions rather than one, which is trivial to automate.
+Economic feasibility. Fragmentation incurs additional trans-
+action fees and may suffer from compounding slippage. Let
+slip(vj) denote the slippage cost for a trade of size vj, and
+G the cumulative gas and relay fees across all fragments.
+The attack remains profitable when
+K
+X
+j=1
+ vj −slip(vj)
+
+−G ≥Vmin,
+(1)
+where Vmin is the attacker’s minimal acceptable return.
+Because automated market maker (AMM) price curves are
+convex [14], [15], marginal slippage increases superlinearly
+with trade size; hence breaking a single large transaction
+into multiple smaller ones can reduce per-trade price impact
+faster than it raises total cost. This ensures that feasible
+(K, G) pairs exist for many pools, especially when gas fees
+are low and the attacker controls both sides of the swap.
+Profit-satisficing fragmentation. Attackers may not insist
+on achieving the exact canonical payoff. Instead, they can
+adopt a satisficing approach of accepting a smaller but
+positive profit to greatly reduce exposure. Formally, the
+attacker selects K and {vj} such that each Impact(tj)≤θ
+and inequality (1) holds for some modest Vmin > 0. This
+approach balances profit and stealth: once net proceeds
+exceed deployment and transaction costs, further extraction
+only increases visibility and risk with diminishing marginal
+gains.
+Behavioral
+rationale. Bounded-rational attackers often
+“satisfice” rather than maximize profit [24]. From a
+deterrence-theoretic view [25], expected utility declines as
+detection probability rises; therefore, reducing transaction
+
+
+amplitude while maintaining a positive return is a rational
+choice. In practice, many real-world drains exhibit such
+fragmentation patterns, which moderate in size, temporally
+spaced, and collectively sufficient to yield net positive profit
+after fees and slippage. Throughout this paper, we consider
+a drain profitable once the attacker’s total recovered as-
+set value exceeds initial capital and cumulative operational
+costs, consistent with prior illicit-profit analyses [6].
+4.2.3. Seller-identity obfuscation. Predicate (C) attributes
+a large-impact transaction to the owner set O through the
+predicate SellerIsOwner(ti) ⇔(ai ∈O). In the canonical
+heuristic, a pool is flagged when a high-impact transaction
+satisfies both Impact(ti) > θ and ai ∈O. Therefore, to
+falsify (C), the attacker must ensure that all impactful sells
+are executed by addresses outside of O.
+Core idea. Identity obfuscation does not require crypto-
+graphic anonymity; it only needs to break the on-chain link
+between the deployer and the seller executing the drain.
+The attacker can route exit transactions through a set of
+distributor addresses A = {a(1), . . . , a(N)}, each distinct
+from any O ∈O. Formally, the attacker enforces
+∀ti ∈Texit,
+ai /∈O.
+From the detector’s viewpoint, this immediately falsifies
+Predicate (C), since no large-impact trade originates from
+an address known to be the deployer or owner.
+Evasion design space. Seller-identity obfuscation can be
+implemented across three increasing levels of sophistication:
+• Direct delegation. The simplest form uses manually con-
+trolled EOAs that receive temporary liquidity from the
+owner, execute the sells, and return proceeds off-chain or
+through private transfers. These addresses may be newly
+generated (“fresh”) or pre-funded by the owner through
+intermediary swaps.
+• Proxy or contract-level delegation. A more robust variant
+uses intermediate contracts that perform the selling on
+behalf of the owner, e.g., minimal proxies, flash-loan
+wrappers, or batch relays. Because the selling contract
+address differs from O, the transaction is not labeled
+as owner-originated even though the underlying control
+remains centralized.
+• Cross-wallet or cross-chain laundering. Sophisticated ac-
+tors combine fragmentation and delegation by splitting
+liquidity across chains or DEX instances, routing tokens
+through bridges or mixers before reconvergence. This
+dilutes both temporal and identity correlations, further re-
+ducing the probability that any single address triggers (C).
+Operational feasibility. Such identity-based evasions are
+low-cost and easily automated. Creating or funding new
+EOAs incurs negligible on-chain cost; gas overhead grows
+linearly with the number of distributor addresses |A|, and
+can be further amortized through batch transactions or re-
+lays. The main coordination constraint is ensuring that the
+cumulative exit volume across A satisfies
+X
+a(k)∈A
+X
+ti:ai=a(k)
+vi = Vtotal,
+while preserving Impact(ti) ≤θ for each fragment. When
+combined with the fragmentation strategy of Predicate (B),
+these constraints are easily met.
+Stealth properties and forensic implications. Identity ob-
+fuscation attacks degrade heuristic accuracy in two ways: (i)
+they suppress direct owner–transaction associations required
+by (C), and (ii) they increase the entropy of observable
+addresses, forcing detectors to infer ownership indirectly
+through behavioral clustering or timing analysis. Moreover,
+when multiple distributors act in parallel, their combined
+activity mimics organic market selling rather than a single
+coordinated drain, further reducing detection confidence.
+Beyond owner obfuscation. Attackers can also hide own-
+ership semantically, e.g., transferring control to a DAO-
+like [26], [27] multisig or locking LP tokens under a
+timelock contract while simultaneously retaining trading
+rights through a separate contract. In such cases, even
+static ownership labeling (e.g., “contract deployed by O”)
+becomes ambiguous, as legitimate DEX operations share
+similar structures. We exclude such cases within this paper.
+Finding (§4). Our formal decomposition highlights
+that canonical rug-pull detectors rely on three brittle
+predicates: LP control (A), high-impact sells (B), and
+owner-originated activity (C). Among these, only (A) is
+immutable for maintaining profitability. Predicates (B)
+and (C) can be independently modified without reduc-
+ing the scam’s payoff. By fragmenting exit volume (vi-
+olating (B)) or delegating sells to non-owner addresses
+(violating (C)), attackers can evade heuristic triggers
+while retaining equivalent or satisficing profit.
+4.3. Fragmented Rug Pull
+Attackers in the wild combine the elementary variants
+above into a single operational plan. These combinations
+vary in engineering cost and stealth, but they all exploit the
+same logical weakness of the canonical detector: the heuris-
+tic looks for a small set of atomic signatures (mentioned as
+(A), (B) and (C)). By composing perturbations, an attacker
+can ensure that these 3 atomic checks cannot be simultane-
+ously true while still realizing a profitable extraction.
+Practically, an evasive exit is most naturally described
+by three core, nested degrees of freedom:
+• Number of seller wallets (N): the count of distribu-
+tor/seller wallets that perform the inflated selling activity,
+can range from 1 (a single distributor) to many.
+• Per-wallet selling order count (Ka): for each seller a
+among those N wallets, the number of sell orders exe-
+cuted by a; each Ka can range from 0 to many (and only
+1 sell from any of N is enough for a profitable result).
+• Per-order volume (v): for every sell order in each Ka,
+the order size may range from very small fragments up
+to amounts approaching (but typically not exceeding) the
+detector threshold θ, which is 0.9 based on [3].
+
+
+Operationally, the attacker picks N distributor wallets,
+assigns each a sequence of Ka orders, and chooses per-order
+volumes v for those orders. Owner participation (whether
+the deployer address O also sells/participates in the group of
+inflated selling wallet N) is orthogonal to this construction:
+it is a boolean side-choice that does not change the combina-
+torial structure above. The simple invariant required to evade
+owner+impact heuristics is that no large-impact transaction
+is attributed to O (N = 1 and not owner, v ≥0.9 in any
+Ka), beside that combination, the attacker is free to choose
+any combination of N, Ka, and v based on their preference
+and still be able to result in fraudulent profit.
+From the above predicate analysis and how to break
+them in heuristic (which is visualized in detail in Fig-
+ure 1(b)), we present the formal definition of FRP scam.
+Definition 2 (Fragmented rug pull (FRP)). An LP is
+flagged as a fragmented rug rull (FRP) scam over the LP
+lifetime of less than 100 days (§7.4) if the following hold:
+①Control retention: burnLock(LPTinit) = false.
+The deployer maintains full control over the initial
+LP tokens.
+②Fragmented inflated selling. There exists a set of
+inflated seller(s) address A = {a1, . . . , aN} and,
+for each a ∈A, a sequence of sell events Sa =
+{(ta,1, va,1), . . . , (ta,Ka, va,Ka)} such that
+∀a ∈A, ∀j ∈[Ka] :
+Impact(ta,j) =
+va,j
+V(t−
+a,j) ≤θ,
+(Here Ka is the per-wallet order count)
+③Non-owner wallet(s) execution. Either the owner
+does not execute the impactful sells,
+∀a ∈A : a ̸= O,
+or, if the owner participates, every owner-originated
+sell stays sub-threshold:
+max
+ti: ai=O Impact(ti) ≤θ.
+(in the definition using in this research, we set the
+θ = 0.9 as explained)
+Using the above actions, we label a pool as FRP when
+the deployer (i) retains LP-token control, while the extrac-
+tion proceeds through either (ii) fragmented micro-trades
+or (iii) delegated wallets, or both. The pool thus avoids
+detection by canonical rug-pull heuristics, which rely on
+single large-impact or owner-originated exits, yet achieves
+the same economic outcome of draining the pool’s base-
+token reserves over time.
+4.4. Threat Model
+We focus on detecting and characterizing FRPs using
+only public on-chain data. In FRP games, two entities
+exist: the adversary who performs the FRP, and defender,
+represented by our measurement and detection pipeline.
+Adversary. An adversary controls one or multiple externally
+owned accounts and may also be the LP creator. Their
+capabilities reflect real-world observations: they can (i) cre-
+ate and seed liquidity pools, (ii) perform arbitrarily many
+inflated-sell transactions, and (iii) distribute sells across mul-
+tiple wallets, and (iv) choose flexible timing and sell-volume
+patterns. All operations follow standard AMM semantics
+and be recorded on-chain. The adversary cannot alter past
+state, forge events, or hide sender addresses and timestamps.
+The adversary aims to drain liquidity while avoiding
+detection. To do so, they fragment exit volume, parallelize
+execution across wallets, and modulate time spans.
+Defender (our method). The defender represents our large-
+scale detection pipeline, which observes only public on-
+chain data: LP creation, liquidity changes, swap traces,
+seller wallets, and timestamps. No private keys, off-chain
+metadata, or centralized exchange information are assumed.
+The defender’s role is to identify FRP-like patterns by
+analyzing (i) the set of participating wallets, (ii) the tem-
+poral structure and magnitude of inflated sells, and (iii) the
+distribution of LPs across wallet-count and sell-count bins,
+as formalized in Algorithm 1.
+Detection scope. We restrict our model to AMM-based
+liquidity exit behaviors. Contract exploits, phishing, off-
+chain coordination, or oracle manipulation are outside scope.
+Our analysis captures only FRP behaviors that are fully
+observable through on-chain traces.
+Finding-(§4.3): Aggregating the evasive predicates
+yields a unified operational model of FRP. The model
+captures all practical variations as combinations of
+three execution parameters: number of seller wallets
+(N), per-wallet order count (Ka), and per-order vol-
+ume (v) with optional owner participation. The only
+invariant needed to evade detection is the absence of
+owner transaction with Impact > 0.9.
+5. Large-Scale Measurement
+We perform a large-scale empirical analysis of real-
+world FRP activities (visualized in Figure 2). Firstly, we
+use geth client and on-chain transaction API for LP data
+collection and preprocessing (§5.1). Next, we apply the LP
+dataset with FRP definition (§4.3) to systematically label
+liquidity pools that satisfy the evasive predicates of impact
+fragmentation and identity delegation (§5.1). Finally, we
+conduct large-scale analysis on the flagged LPs (§5.2,§6).
+5.1. Data Preparation
+We construct a new dataset of confirmed scam pools,
+where each entry corresponds to one P and contains its
+complete transaction history from deployment to the final
+observed transaction.
+Data sources. We collect on-chain transactions from the six
+largest DEXs on Ethereum: Uniswap [12], Balancer [28],
+
+
+Figure 2: Overview of the research’s large-scale measurements process of FRP LPs on Ethereum
+PancakeSwap [29], Curve Finance [30], BancorSwap [31]
+and SushiSwap [32] using the Geth client node [33].
+We first collect all Ethereum transactions from block
+6,627,000 (Nov. 2, 2018, the date of the first LP deployment)
+to block 21,379,910 (Mar. 5, 2025) using Geth client node
+[33], and match them to LP deployment information using
+Chainalysis API [34]. This yields a total of 384,029 liquidity
+pools across six major DEXes with at least one recorded
+activity within this range.
+Pool filtering. For these 384,029 pools, we further retrieve
+raw transaction data from a Geth archive node [33] and cat-
+egorize all interactions into DEX-related activities (deploy,
+buy, sell, deposit, withdraw). Following our definition in
+§4.3, we retain only pools whose observable lifetime (from
+first to last activity) does not exceed 100 days (details in
+§7.4). After applying this filter, 303,614 LPs remain.
+LP labeling. We label each pool as an FRP instance based
+on the defined criteria. Applying this definition to the re-
+maining 303,614 LPs, we identify 105,434 pools that match
+the patterns specified by our heuristic.
+Reproducibility. To support research transparency and con-
+tribute for future research in experiment recreation, we
+release all scripts, analysis notebooks, and all code used
+in this study [8].
+5.2. Dataset Analysis
+We provide a brief review of our labelled FRP dataset.
+TABLE 1: Collected data on Ethereum.
+LPs
+DEX Activities
+DEXs
+No. of pools
+Order type
+No. of Txs
+Uniswap
+376,854
+SushiSwap
+3,016
+Deposit
+13,990,620
+Balancer
+2,932
+Withdraw
+6,514,041
+Curve
+341
+Buy
+588,462,142
+PancakeSwap
+462
+Sell
+493,189,487
+BancorSwap
+424
+Total
+384,029
+1,102,156,290
+- Abbreviation: Tx: transaction; No.: number.
+The dataset contains 105,434 LPs deployed between
+2018 and 2024, with the number of detected cases rising
+sharply after mid-2020. Figure 3(c) presents the yearly dis-
+tribution in detail. FRP activity is negligible in 2018–2019
+(only 4 and 76 LPs), but increases by an order of magnitude
+with the expansion of DeFi after mid-2020: 8,195 LPs in
+2020 and 8,524 in 2021. The growth accelerates further in
+2022 (21,455) and peaks in 2023 (39,351). In Figure 3(c),
+the LP counts stop in 2024 (27,829) without 2025 data
+due to the partial observation window since our transaction
+(data collected up to March 2025, which later-formed LPs
+may not yet exhibit full exit behavior and lead to only
+validated FRP with the latest created time of Dec 2024)
+and an overall market slowdown [35]. Overall, over 90%
+of labelled LPs appear after 2020, indicating that FRP is a
+recent phenomenon concentrated in 2022–2024.
+Across all labeled pools, we record 1,501,408 unique
+users and 34,192,767 transactions. On average, each pool
+interacts with 14.24 users and involves 324.30 transactions.
+A total of 401,838 wallets are identified as inflated sellers,
+representing 26.76% of all interacting addresses, meaning
+more than one in four participants engage directly in manip-
+ulative behavior. The average pool lifespan is 14.47 days.
+The underlying distributions of those averages are highly
+skewed: most pools are much smaller than the mean, while
+a small number of large operations dominate total activity.
+5.3. Implementations
+To make our measurement pipeline transparent, we sum-
+marize the end-to-end workflow in Algorithm 1.
+Lines 1–14 extract the set of LPs labeled as FRP and
+compute wallet-level properties such as the number of seller
+wallets and whether the pool creator participates in inflated
+sells. Lines 15–23 encode temporal and structural metrics
+of the inflated-sell trace, enabling stratified comparisons
+across single-wallet vs. multi-wallet and owner- vs. non-
+owner cohorts. Lines 24–32 map each pool into wallet- and
+sell-based bins, from which we derive the three behavioral
+clusters (Minimal Drains, Moderate Networks, Distributed
+Campaigns) reported in Figures 5–4(a) and Table 4.
+
+
+Algorithm 1: Large-Scale Measurement on La-
+beled FRP Pools
+Data: LPInfoData, LPTransactionData
+1 FRP_LPs ←LPInfoData.label == ’FRP’
+2 /* select all LPs labeled as FRP */
+3 Actor Centric Analysis(FRP_LPs,
+LPTransactionData)
+4 Action Centric Analysis(FRP_LPs,
+LPTransactionData)
+5 Behavior Categorization(FRP_LPs,
+LPTransactionData)
+6 Actor Centric Analysis (FRP_LPs,
+LPTransactionData):
+7
+foreach P in FRP_LPs do
+8
+SP ←set of wallets with at least one inflated
+sell in P
+9
+ownerInvolvedP ←(creator(P) ∈SP )
+10
+record |SP | and ownerInvolvedP
+11
+end
+12
+compute distribution of |SP | over all LPs
+13
+compute yearly trend of single- vs multi-wallet exits
+14
+compute yearly fraction of owner-involved LPs
+15 Action Centric Analysis (FRP_LPs,
+LPTransactionData):
+16
+foreach P in FRP_LPs do
+17
+TP ←ordered inflated-sell txs in P
+18
+∆t(P )
+first ←time(first sell) −time(LP creation)
+19
+∆t(P )
+span ←time(last sell) −time(first sell)
+20
+n(P )
+sell ←|TP |
+21
+stratify metrics by cohorts: {single/multi-wallet,
+owner/non-owner}
+22
+end
+23
+compute statistics used in Table 3
+24 Behavior Categorization (FRP_LPs,
+LPTransactionData):
+25
+foreach P in FRP_LPs do
+26
+w ←number of seller wallets in P
+27
+c ←total inflated-sell count in P
+28
+assign P to wallet-bin(w) and sell-bin(c)
+29
+end
+30
+compute share of LPs in each (wallet-bin, sell-bin)
+31
+label dominant behavior regions as: {Minimal
+Drains, Moderate Networks, Distributed
+Campaigns}
+32
+generate category summaries (Fig. 5, 4(b), 4(a),
+Table 4)
+6. Evaluation and Analyses
+The labelled pools are examined from two complemen-
+tary perspectives:
+• Actor-centric analysis (§6.1) investigates who performs
+the draining actions, quantifying wallet distribution, own-
+ership participation, and their evolution over time.
+• Action-centric analysis (§6.2) explores how draining is
+executed by analyzing sell frequency, fragmentation lev-
+els, and behavioral categories.
+We then integrate these perspectives to reveal the aggre-
+gate scale and temporal dynamics of FRPs (§6.3).
+6.1. Actor-Centric Analysis
+This analysis examines the actors behind FRP scam,
+specifically, how many wallets participate in each drain,
+what roles they play, and how profits are distributed among
+them. By characterizing who performs the drain, we aim
+to understand the attacker’s preferences, whether they in
+general prefer relying on a single dominant wallet or in-
+tentionally spread activity across many smaller addresses to
+evade heuristic detection.
+For each labelled pool, we collect all addresses that per-
+form at least one inflated sell order. We then compare these
+addresses with the deployer (owner) wallet and classify the
+remaining sellers as delegated or external wallets. Finally,
+we analyze the distribution of wallet counts across all pools.
+Overall distribution. Across the full corpus, single-seller
+drains remain the most common pattern when pools that
+got inflated sell by only 1 seller account for 28.04% of all
+labeled LPs (29,573 LPs). It is important to note that these
+single-seller cases do not correspond to canonical rug-pulls:
+by construction, all known rug-pull instances and high-
+impact owner sells were excluded during data preparation
+by applying FRP definition. Here, a “single-seller” FRP
+simply denotes scams in which only one wallet executes
+all inflated sells, yet the transaction(s) either remain below
+the impact threshold (Predicate (B)) or originate from a non-
+owner wallet (Predicate (C)).
+Most FRP schemes still operate through small teams:
+pools with inflated seller counts between 1 and 10 account
+for 70.45% of all cases, totaling 74,287 LPs. The remaining
+29.55% (31,147 LPs) form a long tail of pools with more
+than ten sellers, suggesting coordinated campaigns that de-
+liberately distribute execution across larger address sets.
+Transition from single- to multi-wallet exits. When look-
+ing at the yearly distribution of inflated seller count among
+the pool by created day, we can observe that the distribu-
+tion has shifted materially over time, which indicates the
+changing of preferred fraud scheme toward multiple-wallet
+drains. In 2019, single-seller drains accounted for 57% of all
+cases, but their share declined steadily, reaching 28.3% by
+the end of 2024. Figure 3(a) illustrates this trend in detail:
+between 2018 and mid-2021, scams involving multiple sell-
+ing wallets began to surpass traditional single-wallet exits.
+After 2021, the proportions of small-wallet (1–10 sellers)
+and large-wallet (10+ sellers) drains stabilized at roughly
+35–45%, indicating that both strategies now coexist. Some
+attackers continue to rely on a single controlled wallet for
+operational simplicity, while others increasingly adopt multi-
+wallet coordination to evade heuristic detection. Overall, the
+data confirm a clear shift from single-wallet to multi-wallet
+execution, consistent with the identity-evasion strategy dis-
+cussed in §4.2.3.
+Owner wallet involvement. Among the flagged LPs,
+33.13% (34,927 LPs) recorded the involvement of LP’s
+owner address in committing inflated selling activity. Fig-
+ure 3(b) illustrates the temporal trend of owner wallet
+participation among flagged pools. The data show a sharp
+
+
+(a) Shifting in involved wallets used to participate in inflated selling in each
+LPs among labeled FRP
+(b) Proportion of FRP LPs with owner address participated in inflated selling
+exits
+2018
+2019
+2020
+2021
+2022
+2023
+2024
+0
+1
+2
+3
+4
+5
+4
+76
+8, 195
+8, 524
+21, 455
+39, 351
+27, 829
+Year
+FRP LPs (×104)
+(c) Number of FRP-labeled LPs created by year
+Figure 3: Temporal and actor-side evolution of FRP scams
+decline in direct owner involvement after 2019, dropping
+from over 65% of pools in early datasets to roughly 25-30%
+in 2020-2022, and stabilizing near this lower range through
+2023. A minor rebound is visible in 2022–2023, suggesting
+that some attackers intermittently returned to partial owner
+participation, likely using low-impact or mixed-owner sells
+that remain below detection thresholds. By 2024, however,
+the share falls again to its lowest point (24%), confirming
+that most recent FRP scams now shifting toward the trend
+of avoiding the involvement deployer wallet in their exit.
+This pattern aligns with the broader shift toward multi-
+wallet and delegated execution discussed earlier: as public
+awareness and heuristic tools increasingly flag large owner-
+originated sells, scammers appear to have systematically
+phased out direct owner involvement.
+Wallets that are involved in multiple LPs. We further
+examine wallets that appear in more than one flagged LP,
+i.e., any address that conducts inflated selling in at least
+two pools. Among the 401,838 distinct wallets involved
+in inflated selling, 127,252 (31.67%) are recurrent, while
+274,586 (68.33%) occur only once. Table 2 lists the five
+most active recurrent wallets and their LP participation
+counts. Recurrence is highly concentrated.
+The most active address (0xae2...FaE13) appears in
+16,525 flagged LPs, more than twice the count of the next
+most active wallet (0x77a...C65d1, with 8,097 LPs). All
+top-10 wallets exceed 2.4k appearances, the top-20 remain
+above 1.4k, and even the 50th most active wallet still shows
+662 occurrences. However, recurrence does not necessarily
+correlate with illicit profit: several wallets involved in fewer
+LPs earned higher gains (see Table 2).
+TABLE 2: Top Addresses by FRP Pool Participation
+Scammer
+address
+FRP inflated
+selling involved
+Profit
+(USD)
+0xae2...FaE13
+16525
+$9,009,675
+0x77a...C65d1
+8097
+$1,276,803
+0x3fC...b7FAD
+3303
+$79,378,720
+0xE59...61564
+2798
+$59,945,861
+0xf9c...ABE68
+2736
+$466,592
+6.2. Action-Centric Analysis
+We analyze the behavioral dynamics of inflated selling
+within flagged liquidity pools. We contrast two operational
+axes: (i) single- v.s. multi-wallet execution, which captures
+whether the attack is conducted through a single dominant
+address or multiple coordinated ones, and (ii) owner v.s.
+non-owner participation, reflecting whether the deployer
+wallet itself engages in the manipulation. Each combination
+thus represents a behavioral cohort of strategies.
+Measurement methodology. For each LP p, we extract
+three temporal and activity-based features:
+• The first-sell delay ∆t(p)
+first = min(t(p)
+sell)−t(p)
+create, measuring
+the onset of draining relative to pool creation.
+• The sell span ∆t(p)
+span = max(t(p)
+sell)−min(t(p)
+sell), quantifying
+the duration of sustained selling.
+• The number of inflated sells n(p)
+sell, representing the total
+intensity of selling time.
+These measurements reveal how aggressively and persis-
+tently each LP is exploited. We show our results in Table 3
+and explain them as below.
+TABLE 3: Selling Behavior across Wallet and Ownership
+Single Wallet
+Multiple Wallets
+Metric
+Owner
+Non-owner
+Owner
+Non-owner
+No. LPs
+11,613
+17,960
+23,314
+52,547
+Avg First-sell (days)
+2.16
+1.55
+0.68
+0.84
+Avg No. Sell
+3.34
+3.38
+82.47
+96.62
+Avg Sell Span (days)
+0.45
+0.24
+11.76
+6.34
+Behavioral trends. Single-wallet scams are characterized by
+rapid and compact liquidation phases. The median first-sell
+occurs within approximately 1.5–2 days after deployment,
+and selling activity typically concludes within a narrow win-
+dow (median span below one day). The strategy is largely
+scripted and executed shortly after liquidity provisioning,
+with minimal attempt to disguise exit behavior. The average
+number of inflated sells remains low (around 3.4 transactions
+
+
+(a) The number of total distinct seller wallets in all flagged FRP LPs
+(b) The number of distinct inflated sell order among all flagged FRP LPs
+Figure 4: Distribution of inflated selling wallets and inflated
+sell counts in all of flagged FRP LPs
+per pool), consistent with a single address completing most
+of the drain in one or two bursts of activity.
+In contrast, multi-wallet LPs exhibit a different temporal
+pattern. Their first-sell actions occur sooner, often within
+the first 12–20 hours on average, but their selling extends
+for significantly longer, with mean spans stretching over
+6–12 days. This elongated pattern indicates that multi-wallet
+setups distribute draining activity over time, potentially
+to evade transaction-level heuristics or simulate organic
+user interaction. The total number of sell transactions per
+pool rises dramatically (by more than an order of mag-
+nitude), suggesting a clear operational distinction: single-
+wallet scams are opportunistic and direct, whereas multi-
+wallet scams are structured, strategic, and persistent.
+Owner v.s. non-owner participation. Comparing owner-
+involved and non-owner LPs reveals systematic timing dif-
+ferences. Pools where the deployer directly participates in
+selling tend to initiate liquidation earlier, reflecting the at-
+tacker’s immediate control and awareness of deployment
+timing. In contrast, non-owner executions exhibit longer
+sell spans, consistent with delegated draining that unfolds
+gradually over time. This pattern suggests an obfuscation
+strategy, in which the deployer’s address abstains from direct
+selling to reduce traceability, transferring exit operations to
+auxiliary wallets instead.
+6.3. Categorization of FRP Behaviors
+We extend our analysis to structural characteristics ob-
+servable across all LPs, covering both single- and multi-
+wallet LPs. Each pool is characterized by its number of
+20
+40
+60
+80
+100
+Number of seller wallets
+0
+100
+200
+300
+400
+500
+600
+700
+Total number of sells
+Other LPs
+Minimal Drains LPs (n=28,395)
+Distributed Campaigns LPs (n=22,740)
+Moderate Networks LPs (n=40,271)
+Figure 5: Scatter distribution of scam LP behaviors by wallet
+count and sell activity.
+unique wallets conducting inflated selling (seller count) and
+the total number of sell transactions (sell count).
+Figure 4(a) shows the frequency distribution of the
+number of distinct seller wallets (seller count) involved
+in each pool (from 1 to 100 sellers for demonstration).
+The distribution is highly right-skewed, which indicates that
+while many scammers still adopt minimal wallet setups, a
+growing subset deliberately fragments their selling activity
+across a large network of addresses, likely to avoid identity-
+based detection (Predicate (C)).
+Figure 4(b) further plots the number of sell orders
+(sell count) executed per pool (from 1 to 100 inflated sell
+for demonstration). Similar to the seller distribution, most
+scams exhibit only a handful of selling transactions, yet a
+small fraction perform extensive sequences of sales (some-
+times exceeding fifty per pool) demonstrating systematic
+fragmentation (Predicate (B)).
+Together, these distributions highlight the heterogeneity
+of execution patterns among evasive scams, motivating the
+actor- and action-centric analyses that follow. In addition,
+to capture more meaningful behavioral space, we bin both
+axes into interpretable ranges:
+•
+Wallet bins: 1, 2–4, 5–9, and 10+;
+•
+Sell bins: 0–9, 10–49, 50–249, and 250+.
+The resulting 4×4 grid summarizes LP behaviors, with
+each bin’s share representing its percentage among all de-
+tected scam pools. Figure 5 visualizes this distribution,
+where each point corresponds to a flagged LP positioned by
+its number of seller wallets (x-axis) and total sell transac-
+tions (y-axis). Points are color-coded to highlight behavioral
+categories: Minimal Drains, Distributed Campaigns, and
+Moderate Networks. Residual pools outside these clusters
+are shown in light gray. Table 4 further summarizes the
+dominant regions within this behavioral space.
+Three dominant behavioral categories emerge, together
+accounting for over 75% of all identified scam LPs:
+• Minimal Drains (26.9%). Pools with a single wallet and
+fewer than ten sell transactions. These represent the sim-
+
+
+TABLE 4: Dominant inflated-selling categories.
+Category
+Definition (Wallets, Total sells)
+Share of LPs
+Minimal Drains
+1 wallet, 0–9 sells
+26.9%
+Distributed Campaigns
+≥10 wallets, 50–249 sells
+21.6%
+Moderate Networks
+2–9 wallets, ≤50 sells
+27.3%
+Other
+-
+≈24.1%
+plest form of exit scam: a one-operator event involving
+minimal coordination and a short time horizon. The actor
+typically drains liquidity soon after deployment with little
+evidence of distribution.
+• Distributed campaigns (21.6%). Pools operated by large
+coordinated groups (≥10 wallets) with moderate sell
+activity (50–249 transactions). These scams exhibit struc-
+tured execution and likely prefer to rotate wallets or
+fragment sales, maintaining liquidity appearance before
+completing their LP extraction process. Their scale and
+repetition suggest sustained, systematized operations.
+• Moderate networks (27.3%). Formed by mid-sized groups
+(2–9 wallets) engaging in up to 50 sells per pool. These
+LPs combine mild coordination with measured selling ac-
+tivity, possibly reflecting adaptive behaviors of scammers
+scaling from individual to distributed operation.
+A smaller fraction (< 25%) of LPs lie outside, either
+exhibiting irregular patterns or incomplete trading records.
+Finding-(§5): We identified 105,434 FRP pools and
+found that evasive exits are frequent.
+• Single-seller scams remain the majority but show a
+steady decline (from 57% to 28.3% between 2019
+and 2024), while multi-wallet exits have risen contin-
+uously and now account for nearly half of all cases.
+• Owner involvement has decreased from 65% to 24%,
+reflecting a growing preference for delegated execu-
+tion through secondary wallets.
+• Temporal and behavioral analyses reveal two pat-
+terns: (i) rapid, single-wallet drains; (ii) slow, dis-
+tributed exits emphasizing stealth.
+7. Discussion
+7.1. Mitigation and Early-Warning
+Fragmented rug pull remain difficult to identify in real
+time because they mimic legitimate trading dynamics and
+distribute execution across multiple addresses. We still rec-
+ommend a series of proactive checks for mitigation.
+• Verify token intent and behavioral consistency. Cross-
+check the token’s stated utility (e.g., governance, staking,
+yield) with its on-chain activity. Inconsistencies between
+declared purpose and observed liquidity actions, such as
+continuous sell pressure or recurring distributor creation,
+should be treated as risk indicators.
+• Evaluate LP-token status. Confirm that the initial LP
+tokens are either burnt or locked under verifiable mech-
+anisms. Unburned transferable LP tokens remain the
+strongest structural prerequisite for any rug pull vari-
+ant. Open-source tools like Etherscan, DEXTools, and
+Chainalysis can assist with verification.
+• Monitor gradual liquidity changes. FRP drain liquidity
+over hours or days rather than instantly. Track LP balances
+and ownership over time; repeated small sells coupled
+with a steady net liquidity decline are strong indicators
+of an ongoing stealth exit.
+• Leverage cross-wallet forensics. FRP rely on many dis-
+tributor addresses. Apply clustering and linkage heuristics
+to detect shared funding sources, synchronized transaction
+timings, or repeated reuse of intermediary addresses. Inte-
+grate these relational signals into monitoring dashboards
+or analytic APIs for better early warning capability.
+We note that these methods emphasize pattern-oriented
+detection rather than isolated event alerts. This broader,
+behavior-based view allows systems to capture fuzzy yet
+recurring anomalies, aligning with our observation that frag-
+mented rug pulls evade per-transaction heuristics but become
+visible through aggregated behavioral trends.
+7.2. Comparison to Related Concepts
+Stock dilution. A fragmented rug pull shares conceptual
+parallels with unauthorized stock dilution in traditional fi-
+nance, where issuers increase the circulating supply without
+shareholder approval or disclosure. Regulatory authorities
+such as the U.S. Securities and Exchange Commission
+(SEC) strictly prohibit unapproved share issuance and naked
+short selling [36], [37]. For instance, SEC sanctioned Gold-
+man Sachs for facilitating trades that created synthetic stock
+exposure without regulatory consent [36].
+Similarly, in a fragmented rug pull, token deployers
+retain unilateral control over token supply and can gradually
+reduce existing holders’ value through incremental sell-offs.
+Although executed via decentralized smart contracts, this
+process follows the same principle as illicit stock issuance:
+expanding one’s redeemable share while bypassing consent
+and transparency requirements [38], [39].
+MEV bots. FRP may appear similar to automated arbitrage
+activity because both involve frequent, small-volume trades
+that gradually adjust liquidity pool balances. However, their
+mechanisms and intentions are fundamentally different.
+MEV bots are autonomous agents that exploit short-
+lived price discrepancies across pools or exchanges [40],
+[41]. Their trades are economically neutral, driven by trans-
+parent, rule-based strategies that restore price equilibrium
+rather than extract value through deception. In contrast,
+a fragmented rug pull deliberately splits large sell orders
+and distributes them across multiple wallets to conceal co-
+ordinated liquidity drainage. While arbitrage bots stabilize
+markets by realigning token ratios, FRP destabilize them by
+continuously removing real liquidity through inflated selling.
+Moreover, arbitrage agents have no privileged access to LP
+tokens or minting rights. Their profits arise from market
+inefficiencies, not control over supply.
+
+
+7.3. Applications To DeFi Communities
+Beyond detection, our FRP model enables preventive
+mechanisms for AMMs. Because FRP behavior must sat-
+isfy specific structural predicates, DEXes can introduce
+lightweight safeguards such as adaptive fees for abnormal
+micro-sell bursts or temporary throttling of suspicious multi-
+wallet activity. These require no off-chain signals and can
+operate transparently within permissionless pools.
+Our behavioral taxonomy also informs ecosystem tools.
+Wallets and DEX aggregators can expose FRP-risk indi-
+cators to end users, while analytics platforms can incor-
+porate our wallet–sell distributions to flag unstable pools.
+At a broader level, the observed cross-wallet coordination
+patterns support market-level scam modeling and regula-
+tory investigations, offering a new lens for understanding
+liquidity-drain dynamics across DeFi networks.
+7.4. Design Trade-Off
+Our measurement targets liquidity pools with observable
+lifetimes shorter than 100 days, as a trade-off between
+coverage and precision in identifying fraudulent pools.
+Empirically, short-lived pools are highly symptomatic of
+malicious or fraudulent behavior. Large-scale analyses [42]
+[43] [44] show that most known rug pull or scam tokens
+collapse within weeks of deployment, with a median lifetime
+below 30 days. By contrast, legitimate DeFi projects sustain
+trading activities well beyond this period.
+We therefore select 100 days as an operational boundary
+to balance two competing objectives:
+• reducing false negatives by capturing the majority of
+short-lived, high-risk pools; and
+• avoiding false positives from legitimate tokens that exhibit
+natural liquidity fluctuations over longer horizons.
+Although some evasive FRP variants may prolong their
+operation through slower or staged liquidity drains, expand-
+ing the observation window would admit numerous benign
+cases (e.g.,seasonal liquidity shifts or post-airdrop volatility)
+that do not indicate coordinated exits.
+8. Related Works on DeFi Fraud Detections
+Earlier studies established broad taxonomies of DeFi
+scams [45], We present representive ones.
+Rug pull and Honeypot. Rug pulls remain the most studied
+DEX-specific scam, where liquidity providers abruptly with-
+draw their tokens to drain a pool’s reserves. Bruno et al. [3]
+applied machine learning to identify rug-pull and scam-
+prone tokens based on transaction histories and contract
+metadata. Cernera et al. [5] conducted a longitudinal analy-
+sis of rug-pull lifetimes on Ethereum and BNB Smart Chain.
+Honeypots embed malicious logic into the token’s smart
+contract, trapping buyers who attempt to sell back their to-
+kens and thereby enabling the deployer to seize their funds.
+Such contract-level frauds have drawn extensive attention
+from the research community [46], [47], [48], [49]. Run-
+dong et al. [47] proposed heuristic-based honeypot detec-
+tion, and Christof et al. [46] expanded symbolic-execution
+models to identify malicious logic before deployment.
+However, these approaches rely on static rule-based
+heuristics, i.e., flagging a single large owner withdrawal
+or a high-impact sell. We move beyond static detection by
+introducing a dynamic as well as fine-grained framework
+that models both temporal and multi-actor behaviors.
+More
+on-chain
+scams. Beyond DEX-specific studies,
+broader research for on-chain DeFi crimes examined a wide
+spectrum of manipulative behaviors, including pump-and-
+dump events [50], [51], Ponzi and pyramid schemes [52],
+[53], and decentralized money-laundering patterns used by
+scammers to conceal illicit gains [54]. NFT-related rug
+pulls [55] also attracted attention due to the massive eco-
+nomic impact of the NFT ecosystem [56].
+Another emerging category is the counterfeit token
+scam, where attackers issue tokens under the same name
+as legitimate cryptocurrencies to deceive investors [57]. In
+addition, several niche but profitable scams (e.g., frontrun-
+ning [58], role-play frauds [59]) have been investigated to
+decode their operational signatures. Malicious actors contin-
+uously modify transaction behaviors to evade static detection
+heuristics, and capturing new scams is always challenging.
+Scam detection. Blockchain scam detection has evolved
+from early rule-based heuristics to more contextual and
+data-driven approaches. Traditional detectors rely on static
+signals (e.g., large owner sells, sudden liquidity withdrawals,
+or rapid price drops [3], [5], [46], [47]) but their fixed
+thresholds and dependence on known actor identities make
+them easy to evade and mostly useful only after the scam
+has unfolded. Recent work [6] introduces temporal features
+and adaptive logic to better capture manipulation. Parallel
+efforts use graph and neural models to identify abnormal
+wallet behavior or collusive structures [60], [61], [62], [63],
+though these methods require large labelled datasets and
+often lack interpretability when applied to LP dynamics.
+Ours! To our knowledge, no prior study formally decom-
+poses rug-pull heuristics into underlying atomic conditions.
+We conceptually extend their scope and identify a rich set
+of evasive strategies that have been previously overlooked.
+9. Conclusion
+This paper introduces the fragmented rug pull (FRP)
+scam, a family of evasive exit strategies in DEXs. Attackers
+split sell volumes, spread actions across wallets, and bypass
+existing impact-/identity-based detectors via various combi-
+nations. Our model generalizes static behavioral thresholds
+into dynamic ones to capture such long-running exits.
+We conducted a large-scale measurement of 303,614
+on-chain liquidity pools and identified 105,434 scams. We
+also observed that multi-wallet exits have steadily replaced
+single-wallet drains, and direct owner participation has
+dropped from 65% to 24%. Modern scammers are becoming
+“smarter”. We issue a strong warning to DeFi communities.
+
+
+Ethical Considerations
+Our study completely complies with ethical guidelines
+for computer security and information systems research,
+as outlined in the Menlo Report (listed by IEEE S&P).
+All experiments and analysis were conducted on publicly
+available/accessible blockchain on-chain data from the pub-
+lic Ethereum blockchain, which is accessible for everyone
+on internet. Our measurement and experiment not contain
+interaction with human subjects, collection of personal iden-
+tifiable information, or off-chain tracing of private individ-
+ual/action by any form. All wallet addresses, transaction
+hashes, and smart contracts analyzed are public knowledge
+(if full-address and project name mentioned) or anonymized
+(by hiding the middle part of every involved wallet/token
+address involved in the study).
+Complying with responsible disclosure principles, we
+did not exploit or interact with any live DeFi protocol or
+smart contract beyond passive observation and public data
+collection to perform our experiment upon. We make no
+attempt to deanonymize, link, indicate or attribute them
+to real-world identities. No vulnerabilities or exploitable
+software flaws were disclosed during this research.
+We believe this work contributes positively to ecosys-
+tem security by empirically identifying evasive scam be-
+haviors that undermine trust in decentralized finance. By
+making only aggregated and anonymized findings public,
+we mitigate any potential misuse of our detection logic
+while providing the research community with a transparent,
+reproducible framework for future scam analysis.
+Open Science.
+We release all the key materials/artifact that are used
+in this study to promote science transparency and support
+reproducibility to any future research within the same area.
+We public all the research-relevant dataset (anonymized),
+code and instruction, which can be accessible at [8]. We
+encourage the community to reuse our artifacts, indepen-
+dently verify our measurements, and extend our research
+toward stronger defenses for DeFi ecosystems.
+Ethical Usage of LLMs.
+This work involved limited use of large language models
+(e.g., ChatGPT) solely for language refinement purposes.
+The models were used to improve grammar and typos.
+The content was written entirely by the authors. No parts
+of the manuscript, including conceptual content, technical
+descriptions, data analysis, or results, were generated by
+any GenAI or LLMs. All scientific ideas, analyses, and
+conclusions are the sole responsibility of the authors.
+References
+[1]
+Sam Werner, Daniel Perez, Lewis Gudgeon, Ariah Klages-Mundt,
+Dominik Harz, and William Knottenbelt. SoK: Decentralized finance
+(DeFi). In ACM Conference on Advances in Financial Technologies
+(AFT), 2022.
+[2]
+Dexs total value locked by chain.
+https://defillama.com, 2025.
+[3]
+Bruno Mazorra, Victor Adan, and Vanesa Daza.
+Do not rug on
+me: Leveraging machine learning techniques for automated scam
+detection. Mathematics, 10(6):949, 2022.
+[4]
+Statistic on cryptocurrency scam lost by category.
+https://www.ch
+ainalysis.com/blog/2024-pig-butchering-scam-revenue-grows-yoy/,
+2025.
+[5]
+Federico Cernera, Massimo La Morgia, Alessandro Mei, and
+Francesco Sassi. Token spammers, rug pulls, and sniper bots: An
+analysis of the ecosystem of tokens in Ethereum and in the Binance
+smart chain (BNB). In Proceeding of the USENIX Security Sympo-
+sium (USENIX Sec), pages 3349–3366, 2023.
+[6]
+Minh Trung Tran, Nasrin Sohrabi, Zahir Tari, Qin Wang, Minhui Xue,
+and Xiaoyu Xia. Slow is fast! dissecting Ethereum’s slow liquidity
+drain scams. arXiv preprint arXiv:2503.04850, 2025.
+[7]
+Labeled frp lps dataset. https://anonymous.4open.science/r/FRP sou
+rce/analysis/labeled pool anonimized.json, 2025.
+[8]
+Frp anonymized source code for reproduction.
+https://anonymous.
+4open.science/r/FRP source, November 2025.
+[9]
+ERC-20 token standard.
+https://ethereum.org/en/developers/docs/st
+andards/tokens/erc-20/, 2025.
+[10] Qin Wang and Shiping Chen. Account abstraction, analysed. In IEEE
+International Conference on Blockchain (Blockchain), 2023.
+[11] Ethereum account type.
+https://ethereum.org/developers/docs/accou
+nts/, 2025.
+[12] Uniswap main page.
+https://app.uniswap.org/, 2025.
+[13] Jiahua Xu, Krzysztof Paruch, Simon Cousaert, and Yebo Feng.
+SoK: Decentralized exchanges (DEX) with automated market maker
+(AMM) protocols. ACM Computing Survey (CSUR), 55(11), 2023.
+[14] AMM formula for calculating token price from liquidity pool value.
+https://docs.uniswap.org/contracts/v2/concepts/protocol-overview/ho
+w-uniswap-works, 2025.
+[15] How are prices determined? uniswap.
+https://docs.uniswap.org/con
+tracts/v2/concepts/advanced-topics/pricing, 2025.
+[16] Erya Jiang, Bo Qin, et al. Decentralized finance (DeFi): A survey.
+arXiv preprint arXiv:2308.05282, 2023.
+[17] Token burning in transparency aspect.
+https://smithii.io/en/burn-liq
+uidity-pool-solana/#:∼:text=Burning%20or%20locking%20the%20L
+iquidity,whose%20liquidity%20is%20not%20burned., 2025.
+[18] Jiahua Xu and Benjamin Livshits. The anatomy of a cryptocurrency
+Pump-and-Dump scheme. In USENIX Security Symposium (USENIX
+Sec), pages 1609–1625, 2019.
+[19] Massimo La Morgia, Alessandro Mei, Francesco Sassi, and Julinda
+Stefa. The doge of wall street: Analysis and detection of pump and
+dump cryptocurrency manipulations. ACM Transactions on Internet
+Technology (ATIT), 23(1):1–28, 2023.
+[20] Libra scam considered got charged by fbi.
+https://www.ainvest.co
+m/news/fbi-doj-eye-charges-against-argentine-president-milei-over-l
+ibra-meme-coin-scandal-25021010cad8cd5ff23c6c70/, 2025.
+[21] Safereum scam report. https://www.certik.com/resources/blog/safere
+um-exit-scam, 2025.
+[22] Zhonghua scam report.
+https://www.certik.com/resources/blog/tax-f
+ree-fraud-exposing-the-zhonghua-scam, 2025.
+[23] Other motivation examples.
+https://anonymous.4open.science/r/FR
+P source/analysis/motivation examples.md, 2025.
+[24] Herbert A Simon.
+A behavioral model of rational choice.
+The
+Quarterly Journal of Economics, pages 99–118, 1955.
+[25] Gary S Becker.
+Crime and punishment: An economic approach.
+Journal of political economy, 76(2):169–217, 1968.
+
+
+[26] Andres Fabrega, Amy Zhao, Jay Yu, James Austgen, Sarah Allen,
+Kushal Babel, Mahimna Kelkar, and Ari Juels. Voting-Bloc entropy:
+A new metric for DAO decentralization. In USENIX Security Sym-
+posium (USENIX Sec), pages 1299–1318, 2025.
+[27] Qin Wang, Guangsheng Yu, Yilin Sai, Caijun Sun, Lam Duc Nguyen,
+and Shiping Chen.
+Understanding DAOs: An empirical study on
+governance dynamics. IEEE Transactions on Computational Social
+Systems (TCSS), 2025.
+[28] Balancer main page.
+https://balancer.fi/, 2025.
+[29] PancakeSwap main page.
+https://pancakeswap.finance/, 2025.
+[30] Curve Finance main page.
+https://curve.fi/#/ethereum/swap, 2025.
+[31] BancorSwap main page.
+https://bancor.network/, 2025.
+[32] SushiSwap main page.
+https://www.sushi.com/, 2025.
+[33] go-ethereum.
+https://geth.ethereum.org/, 2025.
+[34] Chainanalysis API documentation.
+https://docs.transpose.io/, 2025.
+[35] Defillama statistic in defi slow-down in mid 2024.
+https://defillama
+.com/chain/ethereum/, 2024.
+[36] Nyse receives approval to limit reach of shareholder approval rule.
+https://www.sec.gov/files/rules/sro/nyse/2023/34-99238.pdf/, 2024.
+[37] Understanding about equity dilution - morgan stanley. https://www.
+morganstanley.com/atwork/articles/what-is-equity-dilution/, 2024.
+[38] Sec charges goldman sachs with improper securities lending practices.
+https://www.sec.gov/newsroom/press-releases/2016-9/, 2024.
+[39] Sec charges goldman sachs with improper securities lending practices.
+https://www.sec.gov/newsroom/press-releases/2014-248/, 2014.
+[40] Ben Weintraub, Christof Ferreira Torres, Cristina Nita-Rotaru, and
+Radu State. A flash (bot) in the pan: Measuring maximal extractable
+value in private pools. In Proceedings of the ACM Internet Measure-
+ment Conference (IMC), pages 458–471, 2022.
+[41] Zihao Li, Jianfeng Li, Zheyuan He, Xiapu Luo, Ting Wang, Xiaoze
+Ni, Wenwu Yang, Xi Chen, and Ting Chen. Demystifying DeFi MEV
+activities in flashbots bundle. In Proceedings of the ACM SIGSAC
+Conference on Computer and Communications Security (CCS), pages
+165–179, 2023.
+[42] Chainalysis crypto crime report 2023. https://www.chainalysis.com/
+blog/2023-crypto-crime-report-introduction/, 2023.
+[43] Chainalysis crypto crime report 2024. https://go.chainalysis.com/cry
+pto-crime-2024.html/, 2024.
+[44] Rugdoc analytics: community-maintained rug-pull tracker.
+https:
+//rugdoc.io/, 2025.
+[45] Liyi Zhou, Xihan Xiong, Jens Ernstberger, Stefanos Chaliasos,
+Zhipeng Wang, Ye Wang, Kaihua Qin, Roger Wattenhofer, Dawn
+Song, and Arthur Gervais. Sok: Decentralized finance (defi) attacks.
+In IEEE Symposium on Security and Privacy (SP), pages 2444–2461.
+IEEE, 2023.
+[46] Christof Ferreira Torres, Mathis Steichen, et al. The art of the scam:
+Demystifying honeypots in ethereum smart contracts. In Proceeding
+of the USENIX Security Symposium (USENIX Sec), pages 1591–1607,
+2019.
+[47] Rundong Gan, Le Wang, and Xiaodong Lin.
+Why trick me: The
+honeypot traps on decentralized exchanges. In ACM CCS Workshop
+on Decentralized Finance and Security (DeFi@CCS), pages 17–23,
+2023.
+[48] Leyi Shi, Yang Li, Tianxu Liu, Jia Liu, Baoying Shan, and Honglong
+Chen.
+Dynamic distributed honeypot based on blockchain.
+IEEE
+Access, 2019.
+[49] Weili Chen, Xiongfeng Guo, Zhiguang Chen, Zibin Zheng, Yutong
+Lu, and Yin Li.
+Honeypot contract risk warning on Ethereum
+smart contracts. In IEEE International Conference on Joint Cloud
+Computing (JCC), 2020.
+[50] JT Hamrick, Farhang Rouhi, Arghya Mukherjee, Marie Vasek, Tyler
+Moore, and Neil Gandal.
+Analyzing target-based cryptocurrency
+pump and dump schemes. In ACM CCS Workshop on Decentralized
+Finance and Security (DeFi@CCS), pages 21–27, 2021.
+[51] Jiahua Xu and Benjamin Livshits. The anatomy of a cryptocurrency
+pump-and-dump scheme.
+In Proceeding of the USENIX Security
+Symposium (USENIX Sec), pages 1609–1625, 2019.
+[52] Weimin Chen, Xinran Li, Yuting Sui, Ningyu He, Haoyu Wang, Lei
+Wu, and Xiapu Luo. Sadponzi: Detecting and characterizing Ponzi
+schemes in Ethereum smart contracts. ACM on Measurement and
+Analysis of Computing Systems (POMACS), 5(2):1–30, 2021.
+[53] Weili Chen, Zibin Zheng, Jiahui Cui, Edith Ngai, Peilin Zheng, and
+Yuren Zhou. Detecting Ponzi schemes on ethereum: Towards healthier
+blockchain technology. In Proceedings of the ACM Web Conference
+(WWW), pages 1409–1418, 2018.
+[54] Dan Lin, Jiajing Wu, Yunmei Yu, Qishuang Fu, Zibin Zheng, and
+Changlin Yang. Denseflow: Spotting cryptocurrency money launder-
+ing in ethereum transaction graphs. In Proceedings of the ACM Web
+Conference (WWW), pages 4429–4438, 2024.
+[55] Jintao Huang, Ningyu He, Kai Ma, Jiang Xiao, and Haoyu Wang.
+Miracle or mirage? a measurement study of NFT rug pulls. ACM on
+Measurement and Analysis of Computing Systems (POMACS), 7(3):1–
+25, 2023.
+[56] Qin Wang, Rujia Li, Qi Wang, and Shiping Chen. Non-fungible token
+(NFT): Overview, evaluation, opportunities and challenges.
+arXiv
+preprint arXiv:2105.07447, 2021.
+[57] Bingyu Gao, Haoyu Wang, Pengcheng Xia, Siwei Wu, Yajin Zhou,
+Xiapu Luo, and Gareth Tyson. Tracking counterfeit cryptocurrency
+end-to-end. Proceedings of the ACM on Measurement and Analysis
+of Computing Systems (POMACS), 4(3):1–28, 2020.
+[58] Christof Ferreira Torres, Ramiro Camino, et al. Frontrunner jones and
+the raiders of the dark forest: An empirical study of frontrunning on
+the ethereum blockchain. In USENIX Security Symposium (USENIX
+Sec), pages 1343–1359, 2021.
+[59] Weilin Li, Zhun Wang, Chenyu Li, Heying Chen, Taiyu Wong,
+Pengyu Sun, Yufei Yu, and Chao Zhang.
+Unmasking role-play
+attack strategies in exploiting decentralized finance (defi) systems. In
+Proceedings of the Workshop on Decentralized Finance and Security
+(DeFi@CCS), pages 33–39, 2023.
+[60] Voon Hou Su, Sourav Sen Gupta, and Arijit Khan. Automating etl
+and mining of ethereum blockchain network. In ACM International
+Conference on Web Search and Data Mining (WSDM), 2022.
+[61] Youssef Elmougy and Ling Liu. Demystifying fraudulent transactions
+and illicit nodes in the bitcoin network for financial forensics. In
+ACM SIGKDD Conference on Knowledge Discovery and Data Mining
+(SIGKDD), 2023.
+[62] Ling Cheng, Feida Zhu, Yong Wang, Ruicheng Liang, and Huiwen
+Liu.
+Evolve path tracer: Early detection of malicious addresses
+in cryptocurrency.
+In ACM SIGKDD International Conference on
+Knowledge Discovery and Data Mining (SIGKDD), 2023.
+[63] Haaroon Yousaf, George Kappos, and Sarah Meiklejohn.
+Tracing
+transactions across cryptocurrency ledgers.
+In Proceeding of the
+USENIX Security Symposium (USENIX Sec), 2019.

@@ -1,0 +1,962 @@
+Overview of Routing Approaches in Quantum Key 
+Distribution Networks 
+Ivan Cvitić1[0000-0003-3728-6711], Dragan Peraković1[0000-0002-0476-9373], Armando Nolasco 
+Pinto2,3[0000-0003-2101-5896] 
+1 University of Zagreb, Faculty of Transport and Traffic Sciences, Vukelićeva 4, 10000 Zagreb, 
+Croatia  
+ivan.cvitic@fpz.unizg.hr, dragan.perakovic@fpz.unizg.hr 
+2 University of Aveiro, Department of Electronics, Telecommunications and Informatics 
+(DETI), Campus Universitário de Santiago, P-3810-193, Aveiro, Portugal 
+anp@ua.pt 
+3 Instituto de Telecomunicações, Campus Universitário de Santiago, P-3810-193, Aveiro, 
+Portugal 
+anp@ua.pt 
+Abstract. Quantum Key Distribution (QKD) networks enable unconditionally 
+secure key exchange using quantum mechanical principles; however, routing 
+cryptographic keys across multi-hop quantum networks introduces challenges 
+unique to quantum communication. This survey analyzes and classifies 26 
+routing strategies proposed between 2013 and 2024 for terrestrial, satellite, and 
+hybrid QKD infrastructures. Dynamic, key-aware routing algorithms have been 
+shown to reduce service rejection rates by 25–40% compared to static shortest-
+path methods by incorporating real-time key pool availability and link error rates. 
+Multi-path strategies improve resilience against trusted-node compromise by 
+distributing keys across disjoint routes, albeit with an increase in key 
+consumption of 30–60%. SDN-based orchestration frameworks emerge as 
+essential enablers of flexible, QoS-aware routing for hybrid networks integrating 
+terrestrial fibers and intermittent satellite links. Critical research directions 
+include reducing dependence on trusted nodes through quantum repeaters or 
+post-quantum cryptography, developing standardized key management 
+interfaces for interoperability, and adopting AI-driven predictive routing for 
+adapting to fluctuating network states. This comprehensive synthesis of routing 
+algorithms, performance trade-offs, and unresolved issues offers practical 
+guidance for engineering secure, adaptable, and large-scale QKD networks 
+capable of meeting real-world deployment demands. 
+Keywords: QKD networks, trusted nodes, quantum routing, multi-path key 
+relay 
+1 
+Introduction 
+Quantum Quantum Key Distribution (QKD) provides a secure method for 
+generating cryptographic keys, using quantum mechanical phenomena to ensure that 
+any attempt at eavesdropping is detectable. Unlike classical key exchange protocols, 
+
+
+2 
+QKD ensures information-theoretic security, making it a critical enabler for future-
+proof communications. With the development of terrestrial fiber-based and satellite-
+based QKD systems, networked QKD infrastructures are becoming a reality, requiring 
+efficient and secure routing of quantum keys. 
+Classical public-key cryptosystems are under imminent threat from quantum 
+computing, motivating the development of QKD as a means to distribute encryption 
+keys with unconditional security. QKD leverages quantum mechanics (e.g., Fock states 
+or coherent states) to generate shared random keys between two parties such that any 
+eavesdropping on the quantum channel is detectable by increased error rates [1]. Over 
+a point-to-point link, QKD can produce symmetric keys that are proven secure against 
+even quantum adversaries. However, practical QKD links face severe distance 
+limitations (on the order of tens to a few hundred kilometers in fiber) due to signal loss 
+and detector noise. This necessitates QKD networks that connect multiple QKD links, 
+enabling key exchange over long distances and among many users. 
+The most mature approach for extending QKD range is to use trusted 
+intermediate nodes, where each fiber or free-space QKD link terminates at a node that 
+performs key relay (by XOR-combining keys from adjacent links) to forward secret 
+keys across the network. Trusted-node QKD networks have been demonstrated on city 
+and national scales. For example, the Tokyo QKD network (2010) with 10 nodes [2] 
+and the SECOQC Vienna network (2008) with 6 nodes [3] were early metropolitan 
+QKD networks. More recently, a 46-node quantum metropolitan area network was 
+implemented in China [4]. Going beyond terrestrial fiber, QKD-capable satellites in 
+low Earth orbit (LEO) and geostationary orbit (GEO) have been used to establish 
+intercontinental quantum links, culminating in an integrated space-to-ground QKD 
+network spanning 4,600 km demonstrated in China [5]. These advances herald the 
+dawn of global QKD networks that seamlessly blend terrestrial and satellite channels. 
+In parallel with this experimental progress, significant research attention has 
+turned to the network-layer problem of routing keys in QKD networks—determining 
+how keys should be relayed or shared across multiple hops to efficiently and securely 
+reach their destinations. Unlike classical data routing, QKD key routing has unique 
+challenges. First, QKD links continuously generate secret bits at a finite key generation 
+rate that depends on channel loss and protocol efficiency. These keys are a consumable 
+resource: if a path’s intermediate node runs out of fresh key material, further secret 
+communication on that path is blocked until more keys are generated. This makes key 
+availability a critical factor in routing decisions. 
+Second, every additional hop (trusted relay) in a route introduces a potential 
+security vulnerability—if an adversary compromises a trusted node, any keys passing 
+through that node could be exposed. Routing strategies thus directly affect the threat 
+model: a shorter route with fewer hops is generally more secure (fewer points of attack) 
+but might suffer higher loss on a single long link, whereas multi-hop routes can achieve 
+longer reach at the cost of trusting more nodes. Third, QKD networks often operate 
+alongside classical networks, requiring hybrid routing approaches where a classical 
+control plane (for signaling and key management) coordinates the usage of quantum 
+channels. Issues such as network topology changes, node failures, and varying channel 
+
+
+3 
+conditions (especially in free-space/satellite links subject to weather and orbital 
+dynamics) demand dynamic routing algorithms beyond static paths. 
+The primary focus of this research is to survey how optimal routes for key 
+exchange in QKD networks can be determined, accounting for the above challenges. 
+We cover the full spectrum of QKD network scenarios: (i) terrestrial QKD networks 
+using optical fiber or line-of-sight free-space links with trusted repeater nodes; (ii) 
+satellite QKD networks where keys are delivered via satellites acting as transmitters or 
+relays; and (iii) hybrid networks that integrate terrestrial and satellite QKD links into a 
+unified architecture. We review both theoretical models that formulate routing as an 
+optimization problem (often with multi-objective criteria like maximizing key rate 
+while minimizing hops or cost), as well as experimental and simulation-based studies 
+that demonstrate routing and key relay in real or emulated QKD network testbeds. 
+Particular emphasis is placed on classical-quantum hybrid routing approaches—for 
+instance, using software-defined networking (SDN) controllers to manage QKD 
+resources, or combining QKD with post-quantum cryptography for resilience. We also 
+examine the security implications of different routing strategies, evaluating how well 
+they uphold end-to-end key secrecy under various threat models. The survey compares 
+routing algorithms on multiple performance axes, including achievable key throughput 
+(keys/sec delivered between end-users), latency (time to establish keys), network 
+resource utilization, and deployment cost. 
+2 
+Previous research 
+Numerous routing algorithms for QKD networks have been proposed, each 
+addressing the inherent limitations of quantum communication links. Early approaches 
+aimed to abstract the quantum layer and utilize classical routing strategies over a 
+virtualized infrastructure, for example via SDN-enabled overlay techniques [7]. Other 
+works investigated adaptive and dynamic routing schemes that account for key buffer 
+status and real-time link availability. Kutzkov and Kiktenko introduced a multiple non-
+overlapping paths routing algorithm to improve resilience in trusted-node networks by 
+maintaining alternative disjoint routes [8]. This approach considers both key 
+availability and link reliability (distributing secret keys across parallel paths to prevent 
+single-point failure). Similarly, Lin et al. proposed reinforcement learning-based 
+methods to dynamically select routes based on observed network behavior and key 
+utilization patterns [9]. 
+Routing in satellite-based QKD networks has gained traction with projects such 
+as the European Space Agency’s INT-UQKD initiative [6], which explores integrating 
+LEO satellites into a global QKD framework. These efforts highlight the need for path 
+planning that accommodates orbital dynamics, variable weather conditions, and the 
+limited time windows for satellite visibility. Hybrid QKD networks, combining 
+terrestrial fiber links with satellite relays, require sophisticated algorithms to balance 
+key distribution across very different media. For example, heuristic approaches have 
+been introduced to optimize hybrid routing for minimal latency and sufficient key 
+throughput (e.g., by prioritizing either fiber or satellite paths based on current network 
+
+
+4 
+conditions) [10]. The inclusion of quantum repeaters and memory-enabled nodes has 
+also been considered in recent studies, which emphasize the impact of quantum 
+memory decoherence on route selection and network performance (e.g., limiting the 
+time keys can be stored before use). 
+More recent contributions have highlighted the need to integrate SDN 
+controllers to manage hybrid quantum-classical infrastructures. Such architectures 
+support modular network configuration and monitoring, which is essential for dynamic 
+environments like satellite networks with time-varying connectivity. However, most 
+existing proposals remain limited to conceptual frameworks or small-scale simulations, 
+lacking practical validation in real-world quantum networks. Furthermore, few 
+approaches systematically incorporate both dynamic key availability and security 
+constraints (e.g., the trust level of intermediate nodes) into unified routing decisions. 
+This gap underscores the need for integrated routing solutions that combine real-time 
+control, quantum-aware metrics, and scalable orchestration across diverse QKD 
+technologies—a challenge we address by synthesizing and evaluating strategies from 
+the literature under a unified framework. 
+3 
+Overview of QKD Network Characteristics 
+QKD networks comprise nodes capable of generating, storing, and forwarding 
+quantum keys. The physical layer may include optical fibers, free-space terrestrial links, 
+or satellite-to-ground channels. Unlike classical data, quantum keys are generated 
+probabilistically and may be exhausted after a limited number of uses, necessitating 
+constant key renewal and intelligent routing mechanisms. Table 1 compares the typical 
+parameters and constraints of three major QKD network scenarios: terrestrial, satellite, 
+and hybrid.  
+ 
+Table 1. Overview of Terrestrial, Satellite, and Hybrid QKD Networks [2], [3], [4], [5], 
+[11] 
+ 
+Aspect 
+Terrestrial QKD 
+Networks 
+Satellite QKD Networks 
+Hybrid QKD Networks 
+Typical link 
+distance 
+Up to ~100–200 km 
+per fiber link (with 
+trusted repeaters for 
+longer distances). 
+Up to ~1200 km per 
+satellite downlink (LEO to 
+ground); GEO satellite 
+links up to ~36,000 km. 
+Combines fiber segments 
+(tens to hundreds of km) 
+with satellite hops 
+(hundreds to thousands of 
+km). 
+Key generation 
+rate 
+Moderate to high on 
+short fiber links (kilo- 
+to megabits per 
+second); decays 
+exponentially with 
+distance due to fiber 
+loss (0.2 dB/km). 
+Lower (typically a few 
+kilobits per second) due to 
+channel loss and 
+background noise; varies 
+with elevation angle and 
+weather conditions. 
+Highly variable; satellite 
+links can overcome fiber 
+loss over long distances 
+(demonstrated with 
+1550 nm decoy-state 
+BB84 QKD), but end-to-
+end key rate is limited by 
+
+
+5 
+the weakest link in the 
+path. 
+Trust 
+assumptions 
+Requires trusted 
+intermediate nodes for 
+multi-hop 
+transmissions beyond 
+the loss limit. 
+A satellite can be treated 
+as a trusted node or as an 
+untrusted relay depending 
+on the protocol (e.g., 
+entanglement-based 
+schemes). 
+Combination of ground 
+trusted nodes plus trust in 
+the satellite (if used as a 
+relay). This can reduce the 
+number of intermediate 
+trust points on the ground. 
+Routing 
+dynamics 
+Mostly static topology 
+– links are stable, and 
+routing can be 
+optimized for a fixed 
+infrastructure. 
+Dynamic topology 
+(moving LEO satellites); 
+requires time-dependent 
+routing and scheduling of 
+intermittent links. 
+Semi-dynamic: ground 
+subnets are static, while 
+satellite links are 
+intermittent – adaptive 
+routing is needed to 
+choose between terrestrial 
+and satellite paths. 
+Key storage 
+(buffering) 
+Key pools at nodes can 
+buffer surplus keys to 
+decouple generation 
+and usage, smoothing 
+out bursts. 
+Key storage on satellites 
+and ground stations is 
+critical due to intermittent 
+connectivity (store-and-
+forward of keys between 
+contacts). 
+Key pools at both ground 
+nodes and satellites 
+facilitate hybrid key relay 
+between network 
+segments. 
+Main 
+optimization 
+goals 
+Maximize network key 
+throughput; minimize 
+number of hops (to 
+limit exposure to 
+potentially 
+compromised nodes); 
+balance load across 
+links to avoid key 
+depletion. 
+Schedule satellite passes 
+to serve as many nodes as 
+possible; optimize key 
+usage before a link’s 
+outage; minimize wait 
+times for key delivery. 
+Select optimal mix of 
+terrestrial and satellite 
+segments for each session 
+– trading off latency, 
+security, and cost (e.g., 
+expensive satellite usage). 
+Notable 
+demonstrations 
+SECOQC (Vienna) 6-
+node QKD mesh 
+network [3]; Tokyo 
+QKD 10-node network 
+(ring topology) [2]; 46-
+node metropolitan 
+QKD network in China 
+[4]. 
+Micius satellite QKD 
+downlink (China, 
+~1200 km); satellite-to-
+multiple-ground 
+entanglement-based key 
+distribution (Micius to two 
+ground stations) [11]; Los 
+Alamos/Oak Ridge (USA) 
+utility QKD demo network 
+(2019). 
+China integrated space–
+fiber QKD network 
+(~4,600 km) [5]; 
+EU EuroQCI quantum 
+communication initiative 
+(ongoing). 
+ 
+
+
+6 
+ 
+As shown in Table 1, QKD network scenarios range from relatively static fiber-based 
+infrastructures to highly dynamic satellite constellations. Correspondingly, a variety of 
+routing and key management strategies have been proposed to optimize key exchange 
+under these differing conditions. This survey synthesizes these diverse approaches into 
+a unified overview. To the best of our knowledge, it is among the first to jointly address 
+terrestrial, satellite, and hybrid QKD network routing, supported by an extensive 
+literature review spanning 2013–2024. In the following sections, we outline our 
+methodology and then discuss routing strategies for each network type in detail. 
+4 
+Research methodology 
+To classify and compare existing routing strategies, we conducted a structured 
+literature review of peer-reviewed publications, technical reports, and major QKD 
+deployment initiatives. The selected literature spans the period from foundational QKD 
+networking experiments (e.g., the DARPA Quantum Network in the mid-2000s and 
+SECOQC in 2008) to contemporary hybrid network designs employing SDN-based 
+control and satellite integration. This research selection criteria included: 
+• 
+Relevance to QKD-specific constraints: e.g., key exhaustion, probabilistic key 
+generation, trust management. 
+• 
+Applicability to trusted-node architectures: multi-hop key relay. 
+• 
+Consideration of physical-layer limitations: loss, noise, and topology dynamics. 
+• 
+Support for dynamic or adaptive routing mechanisms. 
+• 
+Experimental validation or realistic simulation. 
+ 
+Each approach was analyzed along three dimensions: (1) Routing objective 
+(throughput maximization, latency minimization, reliability enhancement, etc.), (2) 
+Network type considered (terrestrial, free-space, satellite, or hybrid), and (3) 
+Optimization strategy (static vs. dynamic, deterministic vs. probabilistic, heuristic vs. 
+machine learning). We further assessed whether the solutions support integration with 
+classical control protocols, SDN controllers, or centralized key management systems. 
+This methodology facilitated the construction of a comparative framework 
+summarizing the strengths, limitations, and gaps in current QKD routing proposals. 
+ 
+5 
+Analysis of QKD Routing Approaches 
+5.1 
+Terrestrial QKD Networks 
+ 
+In fiber-based QKD networks, routing must contend with high attenuation over 
+long distances. Trusted nodes extend the reach by storing and relaying keys between 
+shorter fiber segments. Algorithms such as those proposed in research [20], use 
+
+
+7 
+dynamic path selection based on key buffer availability. Multi-path strategies, as in [8], 
+enhance robustness by maintaining alternate disjoint routes to avoid single points of 
+failure. 
+ 
+Table 2. Routing Algorithms in Terrestrial QKD Networks 
+Approach 
+Key Metric 
+Reference 
+Dijkstra-based routing 
+Key cost per hop (link weight) 
+Han et al. [12] 
+Residual key-aware shortest 
+path 
+Available key material on links 
+Lin et al. [13] 
+Blocking probability estimation 
+Poisson-based link stability 
+Bi et al. [14] 
+Multi-path XOR-based routing 
+Disjoint-path security; 
+throughput 
+Kiktenko et al. [8] 
+Reinforcement learning (Q-
+learning) 
+Adaptive reward for successful 
+key delivery 
+Yan et al. [9] 
+ 
+Terrestrial QKD networks, primarily relying on optical fiber infrastructure, are 
+currently the most mature and widely deployed form of quantum key distribution. Their 
+routing strategies, however, must address unique constraints arising from limited key 
+generation rates, sensitivity to quantum bit error rate (QBER), and the necessity of 
+trusting intermediate nodes. A critical limitation of terrestrial QKD links lies in their 
+attenuation and noise characteristics, with secret key rates decreasing exponentially 
+over distance due to fiber loss (~0.2 dB/km) and dark counts at detectors. As a result, 
+trusted repeater nodes are introduced to extend reach, but every additional node 
+introduces a potential compromise point, shifting routing optimization to a multi-
+objective problem: minimize hops for trust, maximize key throughput, and avoid 
+overloading individual links. 
+Another unique aspect is the key resource constraint: QKD links produce a 
+consumable key material. This resource constraint makes it essential for routing 
+protocols to monitor the current state of key buffers and adapt accordingly to avoid 
+service disruptions due to key depletion. 
+Recent approaches extend classical shortest-path algorithms to account for quantum-
+specific metrics. For example, in residual-key-aware routing, each edge weight is 
+dynamically computed based on the availability of key material and the link’s expected 
+QBER. 
+In [14], authors model key generation and consumption using a Poisson process, 
+calculating the blocking probability of each link and adjusting weights accordingly. 
+This SDN-based dynamic routing strategy has been shown to significantly reduce 
+service rejection and latency compared to static OSPF-based methods. 
+To ensure route feasibility under limited key availability, links falling below a 
+predefined key threshold can be excluded from the routing graph entirely, necessitating 
+frequent state synchronization between nodes and SDN controllers or distributed agents 
+[12]. This approach guarantees that selected paths meet minimum operational criteria 
+for secure communication. The methodology has been further enhanced by integrating 
+QBER thresholds directly into edge weights, thus preemptively avoiding high-error 
+links that are likely to fail during key reconciliation [12]. 
+
+
+8 
+As QKD networks are increasingly deployed in shared metro-area environments, 
+support for multiple tenants and differentiated QoS requirements has become essential. 
+For instance, real-time applications such as encrypted voice calls demand consistent 
+key delivery, whereas bulk encrypted transfers can tolerate temporal fluctuations. To 
+accommodate these needs, utility-based routing strategies have been proposed, wherein 
+key bandwidth is allocated according to service-level agreements (SLAs) [16], [17]. 
+These methods utilize SDN controllers to assign and enforce service priorities through 
+routing and scheduling mechanisms. Consequently, high-priority sessions maintain 
+uninterrupted access to key material, while lower-priority sessions may be deferred or 
+rerouted during key scarcity. 
+Such QoS-aware routing is facilitated by SDN-based key orchestration frameworks 
+that virtually slice key resources among tenants. Policy-driven mechanisms define how 
+and when each tenant can access the underlying quantum infrastructure, ensuring both 
+fairness and efficiency in resource utilization. 
+Load-balancing mechanisms can mitigate key exhaustion by distributing traffic 
+across multiple paths. However, this increases coordination complexity. For example, 
+Wang et al. suggested periodically recalculating optimal paths based on real-time key 
+usage metrics. Routing decisions in terrestrial QKD networks must also consider fiber 
+quality (loss), the availability of dark fibers, and the geographic distribution of trusted 
+relay stations. Notably, the SECOQC Vienna QKD network implemented a dynamic 
+routing protocol to handle variations in link conditions and key supply. 
+5.2 
+Satellite QKD Networks 
+Satellite QKD introduces a unique set of constraints compared to terrestrial fiber-
+based networks. Unlike stable terrestrial links, satellite links are highly time-dependent, 
+intermittent, and asymmetric. This results in a routing and scheduling challenge rather 
+than a straightforward pathfinding problem. 
+Low Earth Orbit (LEO) satellites exhibit periodic visibility windows with ground 
+stations, producing a dynamic network topology best represented by time-expanded 
+graphs, where each edge corresponds to a satellite-ground contact opportunity during a 
+specific time slot. A topology abstraction method was introduced to construct a static 
+logical layer that aggregates all feasible satellite-ground pairings over a given pass 
+interval, allowing the application of classical routing algorithms such as Dijkstra or ILP 
+for determining optimal contact sequences for key relaying [19]. 
+
+
+9 
+ 
+Fig.1. Architecture integrating urban and terrestrial grid networks across LEO, MEO, 
+and GEO orbits [10] 
+ 
+In contrast, Geostationary Earth Orbit (GEO) satellites provide near-continuous 
+connectivity but suffer from significantly lower key rates due to increased optical 
+losses. Thus, routing strategies in hybrid LEO-GEO networks must balance link 
+availability, throughput, and latency. Example of the envisioned architecture 
+integrating urban and terrestrial grid networks across LEO, MEO, and GEO orbits for 
+DS-BB84 QKD downlinks under night-time conditions is shown on schematics in 
+Figure 1. 
+Satellite QKD requires solving the contact scheduling problem—determining which 
+users or links are to be served during each satellite pass. An ILP framework has been 
+proposed to maximize key delivery while adhering to constraints imposed by orbital 
+dynamics and visibility windows [23]. To improve scalability, heuristic methods, 
+including greedy and hybrid metaheuristic approaches like genetic algorithms, have 
+been developed for resource allocation under service-level guarantees. 
+Another critical design consideration is key storage. Due to the intermittent nature 
+of satellite links, generated keys must be temporarily stored onboard and forwarded 
+during subsequent contact opportunities. Therefore, buffer management strategies and 
+time-slot reservation mechanisms are essential components of satellite QKD system 
+design. Furthermore, environmental factors such as cloud cover, beam divergence, and 
+atmospheric turbulence influence link availability and quality. Real-time environmental 
+data integration and predictive weather modeling are increasingly being explored for 
+adaptive satellite QKD routing. 
+5.3 
+Hybrid QKD Networks 
+Hybrid QKD networks combine terrestrial and satellite components. Routing in such 
+systems involves selecting among heterogeneous paths with different trust levels and 
+performance profiles. For example, researchers showed a hybrid implementation that 
+
+
+10 
+dynamically switches between satellite and fiber links in a large-scale network, shown 
+in Figure 2. [5].  
+ 
+Fig.2. Visualization of integrated space-to-ground quantum network [5] 
+ 
+Heuristic approaches have been proposed to minimize total latency while ensuring 
+sufficient key material is available for end-users. Other studies consider the use of 
+quantum repeaters and memory to temporarily store keys or entangled states, enabling 
+delayed forwarding to match link availability (though practical quantum memory is 
+currently very limited). In general, hybrid routing algorithms must balance trade-offs 
+between performance (throughput, delay), trust (number of intermediaries), and cost. 
+For instance, a routing decision might favor a longer terrestrial path over a satellite hop 
+at certain times to avoid using scarce satellite resources or to maintain a higher security 
+level, and vice versa during off-peak hours. 
+5.4 
+Routing Algorithms and Protocols 
+Early routing strategies in QKD networks adapted classical algorithms like 
+Dijkstra’s shortest path, with edge weights reflecting QKD-specific metrics such as key 
+rate or trust level. A dynamic graph approach was proposed in which only links with 
+available keys are considered during route computation [12]. It was also shown that 
+standard protocols like OSPF, when applied without modification, can lead to the 
+overuse and depletion of certain QKD links; to address this, probabilistic link-cost 
+metrics based on key consumption rates—such as Poisson-based models for key 
+exhaustion—were introduced to improve routing decisions [14]. Recent developments 
+have focused on SDN-controlled dynamic routing approaches, wherein link weights are 
+updated in real time based on current key buffer levels and predicted key lifetimes. For 
+instance, adaptive link weighting and time-sensitive key stability models have been 
+proposed to optimize path selection [13], [14], where process of key pool providing key 
+encryption for data communication between two optical nodes can be seen in Figure 3.  
+
+
+11 
+ 
+Fig.3. Quantum key pool [13] 
+Multi-path routing has been explored as a strategy to enhance robustness and 
+confidentiality: one approach employed XOR-based schemes to distribute secret keys 
+across disjoint paths, which reduces the risk from compromised trusted nodes at the 
+cost of requiring multiple simultaneous key-distribution routes [8]. This concept was 
+further developed for increased throughput using parallel fiber links in a metropolitan 
+QKD deployment [15]. 
+ 
+Table 3. Comaprison of QKD routing algorithms for QKD 
+Routing Strategy 
+Key Features 
+Advantages 
+Limitations 
+Shortest-Path 
+(Key-Aware) 
+Minimizes hop count or 
+maximizes key rate 
+Simple, widely supported 
+Ignores key 
+depletion risk 
+Greedy Routing 
+Quick selection with limited 
+information 
+Fast, scalable 
+May cause link 
+overloading 
+Residual Key-
+Based 
+Considers remaining key 
+pools 
+Improved reliability 
+under key constraints 
+Needs frequent 
+updates 
+
+
+12 
+Dynamic (SDN-
+enabled) 
+Monitors key state and 
+adapts in real-time 
+Responsive to network 
+dynamics 
+Requires 
+centralized 
+intelligence 
+Reinforcement 
+Learning 
+Learns optimal paths via 
+feedback/reward 
+Handles complex 
+environments 
+High 
+computational 
+overhead 
+Multi-Path 
+(XOR/Secret 
+Sharing) 
+Splits keys across disjoint 
+routes for security 
+Improves robustness 
+against compromise 
+Consumes more 
+keys 
+QoS-Aware 
+Routing 
+Prioritizes sessions with 
+guaranteed key rates 
+Enables service-level 
+differentiation 
+Needs traffic 
+classification 
+Multi-Tenant 
+Partitioning 
+Sliced QKD resources 
+among isolated tenants 
+Enables resource sharing 
+and isolation 
+Complex policy 
+management 
+ 
+Quality-of-service (QoS)-aware routing is becoming increasingly relevant for multi-
+tenant QKD infrastructures. One solution employed a utility-based optimization model 
+that prioritizes key delivery for high-importance users in the context of limited key 
+availability [16]. Another contribution implemented SDN slicing to support tenant-
+isolated key provisioning in hybrid QKD networks, ensuring minimal interference 
+across different user domains [17]. On the protocol development side, a dedicated link-
+state routing protocol was created specifically for QKD environments under the 
+SECOQC initiative [3], while integration of QKD metrics into legacy routing protocols 
+like OSPF has been experimentally validated in real-world testbeds [18]. Centralized 
+SDN-based controllers continue to be favored in experimental setups due to their 
+capacity for global state awareness and advanced optimization capabilities. 
+5.5 
+Satellite, Hybrid, and Classical-Quantum Integration 
+Satellite QKD routing requires temporal optimization due to the inherently time-
+varying topology of orbital networks. One approach to addressing this challenge 
+involves topology abstraction, which converts dynamic link states into quasi-static 
+graphs, thereby simplifying routing decisions over orbital cycles [19]. Optimization 
+methodologies, particularly those based on integer linear programming (ILP), have 
+been employed to schedule key transmissions and allocate network resources 
+efficiently. ILP-based models have been proposed for joint optimization of routing, 
+channel assignment, and key rate allocation, demonstrating tangible benefits of global 
+optimization when physical constraints are considered [20]. In parallel, the concept of 
+hybrid QKD routing, which combines both satellite and terrestrial fiber segments, has 
+gained traction. Software-defined networking (SDN) orchestration has been used to 
+manage such hybrid topologies, enabling centralized control over mixed infrastructures 
+[17], [21]. Adaptive routing strategies have been proposed for global-scale QKD 
+deployments, integrating considerations such as channel loss and trust levels across 
+fiber and satellite segments [22]. Importantly, the optimal routing strategy is not static 
+but varies with environmental and operational conditions—for instance, satellites may 
+be more effective during nighttime or clear weather, while fiber may be preferable in 
+adverse conditions or when satellites are unavailable. SDN-enabled control planes 
+
+
+13 
+support real-time adaptability, making latency-aware QKD routing with dynamic key 
+refresh mechanisms feasible in practice [18], [23]. Moreover, hybrid encryption 
+schemes that combine QKD with post-quantum cryptographic (PQC) techniques are 
+being actively explored. Such schemes ensure continuity of secure communication by 
+using QKD-generated keys when available, and falling back to PQC when quantum 
+channels are degraded [6], [24]. Recent trials and projects have started validating these 
+architectures, which represent a promising direction for enhancing the robustness of 
+secure communication infrastructures. 
+In modern QKD networks, a centralized SDN controller (control layer) orchestrates 
+both the quantum and classical resources. It maintains a global view of the network: 
+querying each QKD link’s status (available key buffer, error rates) and each node’s 
+classical switches or encryptors. The controller uses this information to schedule key 
+generation and path setup for user requests. For example, it can reserve an optical circuit 
+for data while ensuring sufficient QKD-generated keys are routed along that path. The 
+SDN controller “sees” QKD devices as network elements that export their capabilities 
+(without revealing secret keys), and can command them to start/stop key sessions or 
+adjust rates. In effect, the SDN control plane unifies classical and quantum routing: it 
+computes routes that optimize key throughput or latency based on real-time key-buffer 
+metrics, then programs both the classical switches and the QKD hardware accordingly. 
+It can also enact higher-level functions like traffic engineering or multi-tenancy: for 
+instance, dynamically slicing the network so that each user’s key demands are isolated 
+[30], [14]. 
+Routing decision flow (example): When an application requests a key between 
+nodes, the SDN controller follows a loop of sensing, planning, and acting. A typical 
+sequence can be seen bellow: 
+• 
+Step 1: Key request & requirement. An application or user at node A requests 
+a key of a certain length to node B. The requirement (e.g. length, deadline) is 
+passed to the SDN controller. 
+• 
+Step 2: Metrics collection. The controller polls the network elements: it reads 
+each link’s current key-buffer level and status (via a key-pool management 
+interface), and checks classical link metrics (latency, availability) 
+• 
+Step 3: Path computation. Using these metrics, the controller computes the 
+best route(s). For instance, it may run a weighted shortest-path algorithm 
+where each edge weight penalizes links with low key availability or high 
+latency. Links with insufficient stored keys are either avoided or assigned very 
+high cost. Multi-path or XOR-routing may be employed to split keys across 
+diverse routes for robustness. 
+• 
+Step 4: Route installation. The controller configures the network: it instructs 
+the chosen QKD links to generate keys (perhaps boosting their rate) and 
+programs classical switches to establish the data/management channels. In 
+hybrid scenarios, it may allocate a satellite ground station or a fiber route as 
+appropriate. 
+• 
+Step 5: Monitoring & feedback. As keys are consumed, the controller 
+continuously monitors key-buffer levels. If a buffer drops below a threshold, 
+this triggers a feedback loop: the controller can recompute routes or request 
+
+
+14 
+extra QKD generation on that link. For example, research [21] demonstrated 
+an “adjustable key pool” mechanism where remaining key count is used to 
+avoid routes that risk depletion. 
+• 
+Step 6: Failover (reconfiguration). If a link fails or a buffer is critically low, 
+the controller immediately activates a failover: it diverts the key flow to pre-
+computed backup paths (e.g. alternate fiber links or pending satellite passes). 
+This might involve tearing down one path and instating another within 
+milliseconds, or gradually shifting key traffic. The controller ensures that the 
+end-to-end key service continues seamlessly despite link outages or 
+depletions. 
+The above loop illustrates how SDN provides both agility and reliability: by tightly 
+coupling control software with network measurements, routing decisions can adapt in 
+real-time to key-generation dynamics and link conditions. 
+In hybrid fiber–satellite networks, the SDN controller handles even more complex 
+scheduling. Satellite-based QKD links are intermittent and scheduled (known pass 
+windows and weather constraints), whereas fiber links are relatively stable. The 
+controller integrates these into its topology model. For example, it may reserve fiber 
+key-buffer resources to “bridge the gap” between satellite passes, or it may schedule a 
+ground station’s QKD system to run during a predicted clear-sky window. Using 
+abstractions the controller treats each satellite pass as a time-extended link in the graph 
+[19]. It can then compute routes that combine multiple fiber segments and satellite hops, 
+trading off key rates and latency. If a satellite link becomes unavailable (e.g. passing 
+out of visibility or due to clouds), the SDN feedback loop immediately re-routes keys 
+via terrestrial paths until the next satellite opportunity. Hybrid demonstrators have 
+shown that a centralized SDN controller can effectively coordinate such mixed 
+topologies pre-loading keys on ground links before a satellite relay is activated, and 
+switching over as needed [21]. In this way, SDN orchestration ensures end-to-end key 
+delivery across fiber and free-space segments, leveraging the best of each while 
+responding automatically to the network’s evolving state. 
+5.6 
+Trends and Open Challenges 
+Despite significant progress, several challenges remain unresolved. First, most 
+routing strategies rely on trusted-node assumptions, which limit end-to-end security 
+guarantees. Future research must explore lightweight, scalable quantum repeater 
+models or post-quantum–enhanced trust frameworks to reduce reliance on trusted 
+intermediaries. Second, current algorithms often neglect fine-grained traffic 
+engineering and load distribution between quantum and classical paths. Incorporating 
+SDN-based orchestration with AI-driven traffic prediction remains an open avenue. 
+Third, interoperability between heterogeneous QKD systems and vendor platforms is 
+limited. The development of standardized control-plane interfaces and routing APIs 
+(e.g., ITU-T Y.3800 framework) will be critical to achieve seamless integration and 
+manageability in global QKD infrastructures. In sum, future work should combine 
+robust routing algorithms, intelligent control mechanisms, and secure multi-domain 
+
+
+15 
+coordination to enable practical, scalable, and secure quantum key routing across 
+hybrid communication infrastructures. 
+As QKD networks expand beyond small testbeds into metro or national backbones, 
+existing routing schemes struggle with scale and diversity. New routing algorithms 
+must handle tens or hundreds of nodes, complex topologies (e.g. multi-domain links, 
+mesh graphs) and devices with widely varying capabilities. For example, centralized 
+schemes that recompute routes for each key request may quickly become infeasible as 
+the network grows. Moreover, the lack of vendor, and protocol-neutral key-
+management (KMS) interfaces (most current QKD modules use proprietary protocols) 
+creates a major heterogeneity challenge. In practice, each vendor’s QKD module should 
+interoperate under a common control logic; without standards, operators remain locked 
+into specific hardware. Research has only begun to quantify these trade-offs: one study 
+found that more complex, resource-aware routing can improve key distribution success 
+rates but at the cost of much higher computational overhead [26]. To address these gaps, 
+new distributed or hybrid routing architectures are needed that can scale (e.g. 
+hierarchical or zone-based control), along with standardized, vendor-agnostic KMS 
+interfaces. Simulation platforms will be essential for evaluating candidate algorithms 
+before costly field deployment [27], [28], [29]. 
+Integration with Classical and Post-Quantum Infrastructures. QKD cannot exist in 
+isolation – it must interoperate with conventional and post-quantum security layers. In 
+practice, this means designing hybrid encryption schemes and unified control planes 
+that seamlessly combine QKD-derived keys with classical keying (PQC or public-key) 
+and leverage existing network management technology. Recent demonstrations (such 
+as the MadQCI deployment) explicitly mix QKD keys with standard public-key 
+cryptography to achieve end-to-end security [30]. Such hybrid approaches require 
+careful coordination: for example, integrating a QKD controller into an SDN-based 
+optical or IP network so that key routing and data routing share a single control plane 
+[31]. In this way, the SDN controller can manage both classical encryption devices and 
+quantum channel resources jointly [14]. A major open challenge is designing 
+middleware and orchestration layers that let QKD key pools be used interchangeably 
+with post-quantum key agreement (e.g. as specified by ETSI/QKD group standards) 
+without sacrificing performance. Industry white papers emphasize hybrid QKD+PQC 
+transition schemes for critical infrastructure, but concrete network architectures are still 
+sparse in the literature. 
+In operational QKD networks, link conditions and key resources fluctuate 
+constantly. Fiber QKD links can suffer outages or loss changes, and satellite QKD links 
+are only available intermittently (e.g. during overpass windows). Crucially, keys get 
+exhausted as they are used by one-time-pad encryption, so a link with zero remaining 
+key material is effectively “dead” until more keys are generated. To maintain end-to-
+end connectivity, routing must be dynamic and adaptive in real time. SDN controllers 
+are a natural fit: they can continuously monitor link key inventory and quantum-channel 
+health and recompute paths on the fly. For instance, Bi et al. describe an SDN-based 
+QKD architecture where the controller tracks each link’s remaining key count and 
+signal-to-noise, triggering re-routing when a link becomes congested or depleted [14]. 
+Their dynamic-routing algorithm (using adjustable key pools and link-blocking 
+
+
+16 
+probabilities) showed lower latency and higher key-usage efficiency in simulations. 
+Nonetheless, purely reactive schemes may not suffice for highly dynamic scenarios like 
+mobile satellite constellations. Future systems will likely need predictive or AI-
+enhanced routing: for example, machine-learning models that forecast link availability 
+(based on weather or satellite ephemeris) or key generation rates, and proactively 
+reroute before failures occur. 
+6 
+Conclusion 
+This research analyzed state-of-the-art routing strategies in QKD networks, 
+addressing both theoretical models and practical challenges across terrestrial, satellite, 
+and hybrid infrastructures. Unlike classical networks, QKD routing must account for 
+unique resource constraints (limited and perishable keys), trust assumptions, and 
+dynamic link availability. Our review showed that simple shortest-path approaches, 
+while intuitive, often fall short under quantum-specific conditions. In contrast, 
+dynamic, key-aware algorithms and SDN-based control frameworks offer better 
+adaptability and performance by reconfiguring routes in response to key consumption 
+and link changes. Satellite and hybrid QKD networks introduce additional complexity 
+due to time-dependent connectivity and cross-layer optimization needs. Routing in such 
+contexts requires integration of contact scheduling, security policies, and trust-model 
+awareness. Multi-path strategies and SDN-enabled control were identified as essential 
+techniques for achieving both robustness and scalability in large QKD networks. We 
+conclude that practical QKD routing requires: 
+• 
+Real-time awareness of quantum link status and key availability. 
+• 
+Integration with classical control planes (via SDN) to coordinate quantum and 
+classical network resources. 
+• 
+Security-aware path selection that minimizes trust exposure (e.g., using the 
+fewest possible trusted relays). 
+• 
+Standardized interfaces for interoperability and multi-domain coordination. 
+Future research should aim to unify routing, key management, and service 
+orchestration into a single adaptive framework capable of operating across diverse 
+quantum network architectures. By combining robust routing algorithms, intelligent 
+control mechanisms, and secure multi-domain coordination, the next generation of 
+QKD networks can achieve the scalability and reliability required for real-world 
+deployment. 
+Acknowledgment 
+This research is conducted as part of the NATO Research Task Group IST-218 / Multi-
+Domain Quantum Key Distribution (QKD) for Military Usage. 
+
+
+17 
+References 
+[1] V. Scarani et al., “The security of practical quantum key distribution,” Rev. Mod. 
+Phys., vol. 81, no. 3, pp. 1301–1350, 2009. 
+[2] M. Sasaki et al., “Field test of quantum key distribution in the Tokyo QKD 
+Network,” Opt. Express, vol. 19, no. 11, pp. 10387–10409, 2011. 
+[3] M. Peev et al., “The SECOQC quantum key distribution network in Vienna,” New 
+J. Phys., vol. 11, p. 075001, Jul. 2009. 
+[4] T.-Y. Chen et al., “Implementation of a 46-node quantum metropolitan area 
+network,” NPJ Quantum Inf., vol. 7, p. 134, Oct. 2021. 
+[5] Y.-A. Chen et al., “An integrated space-to-ground quantum communication network 
+over 4,600 km,” Nature, vol. 589, pp. 214–219, Jan. 2021. 
+[6] European Space Agency (ESA), “INT-UQKD: International use cases for 
+operational 
+QKD 
+applications 
+and 
+services” 
+(project 
+description), 
+Luxembourg/Singapore, 
+2024. 
+[Online]. 
+Available: 
+https://connectivity.esa.int/projects/intuqkd 
+[7] X. Wang, Y. Zhao, and A. Nag, “QKD networks enabled by software-defined 
+networking (SDN),” Appl. Sci., vol. 9, no. 10, p. 2081, 2019. 
+[8] N. K. Kutzkov and E. O. Kiktenko, “Routing algorithm within the multiple non-
+overlapping paths approach for QKD networks,” Entropy, vol. 26, no. 12, p. 1102, 
+Nov. 2024. 
+[9] J. Yan et al., “Improved quantum key distribution routing algorithm based on 
+reinforcement learning,” IEEE Access, vol. 8, pp. 87277–87285, 2020. 
+[10] A. Stathis et al., “Toward converged satellite/fiber 1550 nm DS-BB84 QKD 
+networks: Feasibility analysis and system requirements,” Photonics, vol. 11, no. 7, 
+p. 609, Jul. 2024. 
+[11] J. Yin et al., “Satellite-based entanglement distribution over 1200 kilometers,” 
+Science, vol. 356, no. 6343, pp. 1140–1144, Jun. 2017. 
+[12] X. Han et al., “A novel QKD network routing algorithm based on optical-path-
+switching,” J. Inf. Hiding Multimedia Signal Process., vol. 5, no. 1, pp. 13–19, Jan. 
+2014. 
+[13] X. Lin et al., “Quantum key distribution in partially-trusted QKD ring networks,” 
+in Proc. IEEE ICISCAE 2020, Dalian, China, Sep. 2020, pp. 33–36. 
+[14] L. Bi, M. Miao, and X. Di, “A dynamic-routing algorithm based on a virtual 
+quantum key distribution network,” Appl. Sci., vol. 13, no. 15, p. 8690, 2023. 
+[15] X. Yu et al., “Secret-key provisioning with collaborative routing in partially-
+trusted-relay QKD-secured optical networks,” J. Lightw. Technol., vol. 40, no. 11, 
+pp. 3530–3545, Jun. 2022. 
+[16] M. Mehic et al., “A novel approach to quality-of-service provisioning in trusted 
+relay QKD networks,” IEEE/ACM Trans. Netw., vol. 28, no. 2, pp. 168–181, Apr. 
+2020. 
+[17] X. Cao et al., “Hybrid trusted/untrusted relay-based quantum key distribution over 
+optical backbone networks,” IEEE J. Sel. Areas Commun., vol. 39, no. 9, pp. 2701–
+2718, Sep. 2021. 
+
+
+18 
+[18] V. López et al., “Applying QKD to improve next-generation network 
+infrastructures,” in Proc. 2019 European Conf. Networks and Commun. (EuCNC), 
+Valencia, Spain, Jun. 2019, pp. 283–288. 
+[19] M. Guo et al., “Topology abstraction-based routing scheme for secret-key 
+provisioning in hybrid GEO/LEO quantum satellite networks,” Entropy, vol. 25, 
+no. 7, p. 1047, Jul. 2023. 
+[20] Z. Zhang et al., “Routing, channel, key-rate and time-slot assignment for QKD in 
+optical networks,” IEEE Trans. Netw. Serv. Manag., early access, Jul. 2023, doi: 
+10.1109/TNSM.2023.3277142. 
+[21] A. Aguado et al., “Virtual network function deployment and service automation to 
+provide end-to-end quantum encryption,” J. Opt. Commun. Netw., vol. 10, no. 4, 
+pp. 421–430, Apr. 2018. 
+[22] N. S. Kirsanov et al., “Forty thousand kilometers under quantum protection,” Sci. 
+Rep., vol. 13, p. 8756, May 2023. 
+[23] R. D. Oliveira et al., “Programmable, latency-aware and dynamic quantum-
+secured optical network with key refresh rate negotiation and QKD sharing,” in 
+Proc. Optical Fiber Commun. Conf. (OFC), San Diego, CA, USA, Mar. 2023, paper 
+Th4B.5. 
+[24] ID Quantique and Orange, “PQC–QKD hybridization in Orange’s fiber network 
+(demonstration report)”, 2022. [Online]. Available: https://www.idquantique.com 
+(accessed Nov. 2023). 
+[25] ITU-T, Y.3800: Overview on networks supporting quantum key distribution, Oct. 
+2019. 
+[26] van Duijn, T., Verschoor, S. R., Rommel, S., & Tafur Monroy, I. (2024). Routing 
+Strategies for Quantum Key Distribution Networks Based on Trusted Relay Nodes. 
+28th International Conference on Optical Network Design and Modelling IFIP. 
+[27] Dervisevic, E., Voznak, M., & Mehic, M. (2024). Large-scale quantum key 
+distribution network simulator. Journal of Optical Communications and 
+Networking, 16(4), 449. https://doi.org/10.1364/JOCN.503356 
+[28] Cvitić, I., Peraković, D., Vladava, J. (2024). Systematic Analysis of Quantum Key 
+Distribution Network Simulations Tools and Platforms. In: Perakovic, D., 
+Knapcikova, L. (eds) Future Access Enablers for Ubiquitous and Intelligent 
+Infrastructures. FABULOUS 2023. Lecture Notes of the Institute for Computer 
+Sciences, Social Informatics and Telecommunications Engineering, vol 542. 
+Springer, Cham. https://doi.org/10.1007/978-3-031-50051-0_1  
+[29] Cvitić, I., Peraković, D., Vladava, J., Gavrilović, K. (2025). Multi-tool Approach 
+for Advanced Quantum Key Distribution Network Modeling. In: Goel, S., Uzun, 
+E., Xie, M., Sarkar, S. (eds) Digital Forensics and Cyber Crime. ICDF2C 2024. 
+Lecture Notes of the Institute for Computer Sciences, Social Informatics and 
+Telecommunications 
+Engineering, 
+vol 
+613. 
+Springer, 
+Cham. 
+https://doi.org/10.1007/978-3-031-89363-6_2 
+[30] Martin, V., Brito, J. P., Ortíz, L., Méndez, R. B., Buruaga, J. S., Vicente, R. J., 
+Sebastián-Lombraña, A., Rincón, D., Pérez, F., Sánchez, C., Peev, M., Brunner, H. 
+H., Fung, F., Poppe, A., Fröwis, F., Shields, A. J., Woodward, R. I., Griesser, H., 
+Roehrich, S., … López, D. (2024). MadQCI: a heterogeneous and scalable SDN-
+
+
+19 
+QKD network deployed in production facilities. Npj Quantum Information, 10(1), 
+80. https://doi.org/10.1038/s41534-024-00873-2 
+[31] Hadi, H. S., & Obaid, A. J. (2025). Quantum key distribution ( <scp>QKD</scp>) 
+for wireless networks with software‐defined networking. Internet Technology 
+Letters, 8(2). https://doi.org/10.1002/itl2.547 
+ 
+ 
+ 
+ 
+ 
+ 
+ 

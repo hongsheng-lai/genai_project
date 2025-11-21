@@ -1,0 +1,4738 @@
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2015
+1
+Text2Loc++: Generalizing 3D Point Cloud
+Localization from Natural Language
+Yan Xia, Letian Shi, Yilin Di, Jo˜ao F. Henriques, and Daniel Cremers
+Abstract—We tackle the problem of localizing 3D point cloud submaps using complex and diverse natural language descriptions, and
+present Text2Loc++, a novel neural network designed for effective cross-modal alignment between language and point clouds in a
+coarse-to-fine localization pipeline. To support benchmarking, we introduce a new city-scale dataset covering both color and non-color
+point clouds from diverse urban scenes, and organize location descriptions into three levels of linguistic complexity. In the global place
+recognition stage, Text2Loc++ combines a pretrained language model with a Hierarchical Transformer with Max pooling (HTM) for
+sentence-level semantics, and employs an attention-based point cloud encoder for spatial understanding. We further propose Masked
+Instance Training (MIT) to filter out non-aligned objects and improve multimodal robustness. To enhance the embedding space, we
+introduce Modality-aware Hierarchical Contrastive Learning (MHCL), incorporating cross-modal, submap-, text-, and instance-level
+losses. In the fine localization stage, we completely remove explicit text-instance matching and design a lightweight yet powerful
+framework based on Prototype-based Map Cloning (PMC) and a Cascaded Cross-Attention Transformer (CCAT). Extensive experiments
+on the KITTI360Pose dataset show that Text2Loc++ outperforms existing methods by up to 15%. In addition, the proposed model exhibits
+robust generalization when evaluated on the new dataset, effectively handling complex linguistic expressions and a wide variety of urban
+environments. The code and dataset will be made publicly available.
+Index Terms—Cross-modal Localization, Point Cloud, Autonomous Driving.
+✦
+1
+INTRODUCTION
+3D localization [1], [2] from natural language descriptions
+within large-scale urban maps plays a crucial role in en-
+abling autonomous agents to collaborate effectively with
+humans for trajectory planning [3]. Such capability is es-
+sential in real-world applications including goods delivery
+and vehicle pickup [4], [5]. In practice, tasks such as food
+delivery often encounter the so-called ”last mile problem”.
+Identifying the exact drop-off point within residential neigh-
+borhoods or large office complexes is particularly challeng-
+ing, as GPS signals tend to degrade or fail in environments
+surrounded by tall buildings and dense vegetation [6], [7].
+Couriers commonly rely on verbal guidance from recipients
+to reach the correct destination. More generally, this “last
+mile problem” manifests whenever users attempt to navi-
+gate to unfamiliar or occluded locations, thereby highlight-
+ing the necessity of developing localization systems that
+can operate directly from natural language inputs which is
+shown in Fig. 1.
+A promising direction is to align linguistic descriptions
+with pre-constructed 3D point-cloud maps obtained from
+calibrated depth sensors such as LiDAR. Compared with
+image-based localization, point-cloud-based methods focus
+on geometric scene structures and thus offer significant
+Yan Xia is with the School of Artificial Intelligence and Data Science,
+University of Science and Technology of China, 230026 Hefei, China (e-mail:
+yan.xia@ustc.edu.cn).
+Letian Shi, Yilin Di, and Daniel Cremers are with Technical University of Mu-
+nich, 80333 Munich, Germany (e-mail: letian.shi@tum.de, yilin.di@tum.de,
+cremers@tum.de).
+Jo˜ao F. Henriques is with the Visual Geometry Group, University of Oxford,
+Oxford OX1 2JD, United Kingdom (e-mail: joao@robots.ox.ac.uk).
+advantages: they exhibit strong robustness to changes in
+illumination, weather, and season, whereas the same scene
+captured in images may vary drastically in appearance
+under different environmental conditions.
+However, there are four-fold challenges of 3D localiza-
+tion from natural language descriptions: (1) Natural lan-
+guage is often vague; the network must accurately capture
+cross-modal semantics between point clouds and texts. (2)
+Language and 3D data are structurally different; the net-
+work must learn to effectively align and fusion between
+modalities. (3) Text descriptions and submaps cannot be ac-
+curately aligned; the network must handle and reason over
+incomplete matches and correspondences. (4) Text styles
+and point cloud distributions vary widely across cities or
+countries; the network must robustly generalize to unseen
+cities/countries.
+We notice that the existing methods [8]–[11] were pri-
+marily applied to simple and uniform text descriptions,
+where each sentence in the text typically conveys only
+a single piece of information, without the complexity or
+mixing found in everyday language. In addition, although
+the training and testing sets of 3D point clouds come from
+different areas, they are derived from the same city, sharing
+similar annotation strategies and stylistic characteristics.
+Thus, it is unclear whether existing methods can maintain
+consistent effectiveness when dealing with more complex
+and diverse text data.
+To this end, we construct a new city-scale text–point
+cloud localization dataset that includes both real and syn-
+thetic point clouds from diverse cities and countries: Se-
+manticKITTI, Paris CARLA [12], Toronto3D [13], TUM City
+Campus [14], and Paris Lille [15]. All point clouds are
+arXiv:2511.15308v1  [cs.CV]  19 Nov 2025
+
+
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2015
+2
+Hey, I’m standing right on top of 
+this gray-green road. There’s a 
+gray sidewalk just to the south, 
+and I’m also on a gray parking 
+area. To my west, there’s some 
+gray vegetation, and a bit further 
+south is a gray-green patch of 
+terrain.
+……
+Localization Recall (%)
+Number of top retrievals
+Paris, France
+Toronto, Canada
+Karlsruhe, Germany
+Text2Loc++
+Text2Loc++
+Text2Loc++
+Text2Loc++
+Munich, Germany
+Fig. 1: (Left) We present Text2Loc++, a framework developed for cross-city and cross-country position localization based
+on textual descriptions of varying complexity. Given a 3D point cloud representing the surrounding environment and
+a textual query describing a location from different urban or regional contexts, Text2Loc++ identifies the most probable
+position corresponding to the description within the map. The model demonstrates strong generalization across diverse
+language inputs and heterogeneous point cloud data. (Right) Localization results on the KITTI360Pose test set show that
+the proposed Text2Loc++ consistently outperforms existing baselines across all top-k retrieval thresholds, achieving up to
+15% higher accuracy in localizing text queries within a 5 m error range.
+annotated following the protocol of [8]. Besides, we generate
+varying levels of linguistic complexity while preserving
+semantic consistency to describe the locations, creating a
+more challenging and realistic benchmark for text–point
+cloud localization task.
+Building upon this new dataset, we revisit the fun-
+damental challenges of text–point cloud localization. To
+address Challenges (1) and (2), we emphasize the neces-
+sity of effectively capturing relational dynamics among 3D
+instances within submaps to obtain more discriminative
+geometric representations. Meanwhile, textual descriptions
+exhibit an inherent hierarchical structure—comprising sen-
+tences and word tokens—which motivates the analysis
+of both intra-text (within-sentence) and inter-text (cross-
+sentence) relationships. To this end, we employ a frozen
+pretrained large language model, T5 [16], and design a hi-
+erarchical transformer equipped with max-pooling to serve
+as an intra- and inter-text encoder. Furthermore, we extend
+the instance encoder from Text2Pose [8] by incorporating
+a number encoder and applying contrastive learning to
+preserve balance between positive and negative pairs.
+Another key observation concerns the fine localization
+stage: the text–instance matching modules used in previous
+approaches can introduce severe noise due to inaccurate cor-
+respondence or offset predictions, thereby hindering precise
+position estimation. To mitigate this issue, we propose a
+novel matching-free fine localization network. Specifically,
+a prototype-based map cloning (PMC) module is designed
+to enrich the diversity of retrieved submaps, followed by a
+cascaded cross-attention transformer (CCAT) that integrates
+semantic information from point clouds into the text em-
+bedding. Together, these components facilitate end-to-end
+training, allowing for the direct prediction of the target
+position without relying on any text–instance matcher.
+More importantly, we observe existing methods largely
+overlook Challenges (3) and (4). In practice, it is often
+infeasible to describe all instances within a 3D submap using
+a single textual description. Conversely, a single language
+description may correspond to multiple submaps that match
+the described scene. To handle this ambiguity, we propose
+masking out non-aligned instances during training, ensur-
+ing that the model focuses only on text-relevant content.
+Inspired by [17] and [18], we further enhance training by
+proposing Modality-aware Hierarchical Contrastive Learn-
+ing (MHCL), which encourages a more structured and
+semantically meaningful embedding space. In addition to
+the standard cross-modal contrastive loss, we introduce
+submap-level, text-level, and instance-level losses. This di-
+verse set of objectives enables more effective representation
+learning, significantly improving the robustness and gener-
+alization of the model without sacrificing accuracy.
+To better handle complex and diverse textual descrip-
+tions, we introduce a new training strategy to enhance the
+model’s language understanding and cross-modal align-
+ment capabilities. Specifically, we adopt the LoRA ap-
+proach [19] to fine-tune the T5 encoder, enabling the model
+to extract semantic information from natural language in-
+puts more effectively. However, as text complexity increases,
+direct alignment of rich language descriptions with point
+clouds becomes increasingly challenging. Due to the in-
+complete alignment between the visible 3D content and
+the textual input, establishing accurate cross-modal cor-
+respondences is difficult, especially under a powerful yet
+unconstrained T5 encoder. To address this, we incorporate
+text distillation [20], which filters out irrelevant content and
+preserves only the most semantically salient information.
+This distilled representation improves the accuracy and
+robustness of multimodal matching.
+To summarize, the main contributions of this work are:
+•
+We focus on the relatively-understudied problem of
+point cloud localization from textual descriptions, to
+address the “last mile problem”. We introduce a new
+benchmark for text-to-point cloud localization with
+multi-level linguistic complexity and both color and
+non-color point clouds from diverse real-world cities.
+•
+We propose a novel attention-based method that is
+hierarchical and represents contextual details within
+and across sentence descriptions of places. We also
+propose a novel attention-based point cloud module.
+
+
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2015
+3
+•
+To address the ambiguity caused by non-aligned
+instances, we propose a Masked Instance Training
+strategy that selectively filters out irrelevant objects
+during training.
+•
+To better organize the multimodal representation
+space, we introduce Modality-aware Hierarchical
+Contrastive Learning, incorporating cross-modal,
+submap-, text-, and instance-level losses.
+•
+We are the first to completely remove the usage
+of the text-instance matcher in the final localization
+stage. We propose a lightweight and faster localiza-
+tion model that achieves state-of-the-art performance
+through our designed prototype-based map cloning
+(PMC) module in training and the cascaded cross-
+attention transformer (CCAT).
+This journal article builds upon and extends our earlier
+conference paper presented at CVPR 2024 [21]. In this
+updated version, we introduce the following extension: I)
+We construct a new city-scale text–point cloud localization
+dataset using real and synthetic point clouds from diverse
+urban environments. Each location is described with se-
+mantically consistent texts of varying linguistic complexity,
+enabling more realistic and challenging benchmarking. II)
+We propose a modality-aware hierarchical contrastive learn-
+ing with a masked instance training strategy to address the
+challenge of partial matching, effectively reducing incorrect
+associations between modalities and boosting the robust-
+ness among different benchmarks. III) We employ LoRA
+and text distillation to address the challenges posed by
+increasing text complexity and diversity. IV) We conduct
+extensive experiments on the new benchmark and show that
+the proposed Text2Loc++ greatly improves over the state-of-
+the-art methods.
+2
+RELATED WORK
+In prior research, only a limited number of networks have
+been proposed for natural language–based 3D localiza-
+tion in large-scale outdoor environments. Closely related
+research areas include 2D visual localization, 3D point
+cloud–based localization, and language-grounded 3D un-
+derstanding.
+2D visual localization. 2D visual localization plays a
+crucial role in applications such as robotics and augmented
+reality, where the goal is to estimate the camera pose from
+a given query image or image sequence. One of the earliest
+approaches, Scale-Invariant Feature Transform (SIFT) [22],
+introduces distinctive invariant features that enable reliable
+object matching across viewpoints, laying the foundation
+for modern localization systems. Later, Oriented FAST and
+Rotated BRIEF (ORB) [23] improved robustness against
+scale, rotation, and illumination variations. Recent learning-
+based approaches [24], [25] typically adopt a coarse-to-fine
+pipeline. In the coarse stage, place recognition is performed
+via nearest-neighbor search in a high-dimensional embed-
+ding space. The fine stage establishes pixel-wise correspon-
+dences between the query and retrieved reference images
+to refine the pose estimation. Despite their success, these
+image-based methods often experience significant perfor-
+mance drops under strong appearance changes caused by
+lighting, weather, or seasonal variations. In contrast to 2D
+feature matching, our work focuses on cross-modal local-
+ization—predicting 3D positions based on textual queries
+and 3D point clouds.
+3D point cloud based localization. Driven by progress
+in image-based localization, deep learning for 3D local-
+ization has become an active research field. Similar to
+image-based systems, most methods follow a two-stage
+design: (1) place recognition, and (2) pose estimation. Point-
+NetVlad [26] is a pioneering network enabling end-to-
+end learning for 3D place recognition. Building upon this,
+SOE-Net [27] introduces the PointOE module, integrating
+orientation encoding into PointNet to produce point-wise
+local descriptors. Many subsequent studies [28]–[34] explore
+transformer-based architectures with stacked self-attention
+blocks to capture long-range dependencies and contextual
+features. Alternatively, MinkLoc3D [35] employs a voxel-
+based strategy to produce a compact global descriptor using
+a Feature Pyramid Network (FPN) [36] and generalized-
+mean (GeM) pooling [37]. However, voxelization inherently
+causes quantization errors and point loss. To mitigate this,
+CASSPR [6] introduces a dual-branch hierarchical cross-
+attention transformer, combining the strengths of voxel-
+based and point-based representations. Once the coarse
+location is determined, pose estimation can be refined using
+point cloud registration algorithms, such as Iterative Clos-
+est Point (ICP) [38] or autoencoder-based registration [39].
+Unlike conventional geometric methods, our approach em-
+ploys natural language descriptions to identify and localize
+arbitrary target positions in 3D space.
+3D vision and language. The integration of 3D vision
+and natural language has recently drawn increasing re-
+search interest. Prabhudesai et al. [40] implicitly link lan-
+guage to 3D visual feature representations to predict object-
+level 3D bounding boxes. Other methods [41]–[44] perform
+referential grounding, locating the most relevant 3D ob-
+jects within a scene from textual descriptions. However,
+these approaches primarily focus on indoor environments.
+Text2Pos [8] represents the first attempt at large-scale out-
+door localization using natural language. It identifies coarse
+candidate locations and refines the pose estimation in a
+subsequent stage. Following this, Wang et al. [9] introduce
+a Transformer-based framework to enhance representation
+discriminability for both point clouds and text queries. More
+recently, MambaPlace [10] and CMMLoc [11] further push
+performance boundaries by integrating advanced sequence
+modeling techniques, namely the Mamba and Cauchy Mix
+modules, respectively.
+3
+PROBLEM STATEMENT
+We define a large-scale 3D reference map as
+Mref = { si | i = 1, . . . , M },
+where each cubic submap si is a set of 3D object instances
+si = { pj
+i | j = 1, . . . , nsi },
+and nsi denotes the number of instances in si. Let { ti |
+i = 1, . . . , M ′ } be the collection of text descriptions; each
+description ti consists of spatial hints {hk
+i }nh
+k=1, where each
+hk
+i specifies a relation between the target location and an
+
+
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2015
+4
+'Perched on the gray road, we find 
+ourselves west of the gray-green parking 
+area, while to the far left, a stretch of 
+dark-green vegetation adds a touch of 
+nature's richness. To the north, a gray-
+green pole stands watchfully, and further 
+south, a black pole rises in stark 
+contrast. Meanwhile, a patch of black 
+vegetation lies to the east, and these 
+elements 
+together 
+form 
+our 
+surroundings.'
+Text Descriptions
+Global Place Recognition
+Top-k submaps
+Position
+Estimation
+Fine Localization
+Instances in retrieval 
+submaps
+Predicted Position
+Text-to-
+submap
+retrieval
+Fig. 2: The proposed Text2Loc++ architecture. It consists of two tandem modules: Global place recognition and Fine
+localization. Global place recognition. Given a text-based position description, we first identify a set of coarse candidate
+locations, ”submaps,” potentially containing the target position. This is achieved by retrieving the top-k nearest submaps
+from a previously constructed database of submaps using our novel text-to-submap retrieval model. Fine localization. We
+then refine the center coordinates of the retrieved submaps via our designed matching-free position estimation module,
+which adjusts the target location to increase accuracy.
+object instance. (M and M’ is the number of 3D reference
+map and text descriptions)
+Following [8], we adopt a two-stage coarse-to-fine scheme.
+In the coarse stage (text–submap global place recognition), a
+function F jointly encodes a text description t and a submap
+s ∈Mref into a shared embedding space, such that matched
+text–submap pairs are pulled together while unmatched
+pairs are pushed apart. In the fine stage, a matching-free
+network directly regresses the target position from the text
+and the retrieved submaps.
+Accordingly, learning language-guided 3D localization
+reduces to predicting the ground-truth planar coordinates
+(x, y) (with respect to the scene frame) via
+min
+ϕ, F E(x,y,t)∼D
+(x, y)−ϕ
+ t, argmin
+s∈Mref
+d
+ F(t), F(s)
+
+2
+, (1)
+where d(·, ·) is a distance metric (e.g., Euclidean), D denotes
+the dataset, and ϕ maps a text description and a submap
+to fine-grained coordinates from a text description t and a
+submap s.
+4
+METHODOLOGY
+Fig. 2 shows our Text2Loc++ architecture. To accom-
+plish text-to-submap retrieval, we employ separate text
+and submap branches to extract modality-specific features.
+A masked instance modality-aware contrastive learning
+framework is then used to train the model for precise multi-
+modal alignment. Additionally, to cope with varying levels
+of textual complexity, we introduce a text distillation mech-
+anism. These components, described in Section 4.1, enable
+Text2Loc++ to adapt not only to varying levels of textual
+input complexity, but also to diverse urban environments
+and point cloud configurations, allowing it to retrieve a
+set of candidate submaps that potentially contain the target
+location. Subsequently, the retrieved submaps are utilized to
+refine the estimated position via a specifically designed fine
+localization module, detailed in Section. 4.2.
+4.1
+Global Place Recognition
+3D point cloud based place recognition is formulated as
+a retrieval problem, in which the task is to identify the
+most similar reference scan and its corresponding spatial
+location for a given query LiDAR scan. This is typically
+achieved by comparing the query’s global descriptor with
+those extracted from a database of reference scans, where
+the similarity is measured using a predefined descriptor
+distance metric. Building on this paradigm, we extend the
+concept to a text–submap cross-modal global place recogni-
+tion framework for coarse localization. In this setting, the
+objective is to retrieve the submap that best corresponds to
+a natural language description. The key challenge lies in
+learning global descriptors for 3D submaps S and textual
+queries T that are both robust to modality-specific varia-
+tions and discriminative enough to distinguish fine-grained
+spatial contexts. Following prior works [8], [9], we employ
+a dual-branch encoding architecture that maps submaps S
+and textual descriptions T into a shared embedding space,
+as depicted in Fig. 3 (left).
+Text Branch. We begin by utilizing a frozen, pre-trained
+large language model (T5) [16] to extract fine-grained se-
+mantic representations from textual descriptions, thereby
+improving the quality of text embeddings. To further cap-
+ture contextual dependencies, we design a hierarchical
+transformer architecture equipped with max-pooling lay-
+ers. This module models both intra-sentence relationships
+through self-attention and inter-sentence semantics by ag-
+gregating information shared across sentences, as illustrated
+in Fig. 3 (right bottom). The transformer serves as our intra-
+and inter-text encoder, where each block is implemented as
+a residual module consisting of Multi-Head Self-Attention
+(MHSA) and Feed-Forward Network (FFN) sublayers. The
+FFN comprises two linear layers activated by ReLU. Addi-
+tional architectural details are provided in the Supplemen-
+tary Material.
+3D Submap Branch. Each instance Pi in the submap SN
+is represented as a point cloud that has both spatial and
+color (RGB) coordinates, forming the 6D features* (Fig. 3
+(right top)). To extract semantic features from these points,
+we employ the most efficient 3D encoder - PointNet++ [45],
+though any more advanced encoder could be substituted. In
+parallel, we generate a color embedding by encoding RGB
+values using a color encoder and a positional embedding
+by encoding the instance centroid ¯Pi (i.e., the mean coor-
+dinates) through a positional encoder. Since different object
+instances typically contain varying numbers of points(for
+example, road surfaces usually have more than 1,000 points,
+whereas poles have fewer than 500), we introduce a num-
+*. The 6D-feature input is for the point cloud with color. If the point
+cloud is without color information, we only include x-y-z coordinates.
+
+
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2015
+5
+Textural Position
+Descriptions 
+(simple)
+t1, t2, ... tN
+Inter Text 
+Encoder
+Instances in Submaps
+s1, s2, ... sN
+p1
+p2
+pi
+Pretrained 
+T5
+Encoder
+T1
+T2
+T3
+...
+TN
+S'1
+S'2
+S'3
+...
+S'N
+S1
+S2
+S3
+...
+SN
+Instance
+Encoder
+Attention 
++
+Max Pooling
+Instance
+Encoder
+Attention 
++
+Max Pooling
+Share
+Weights
+Instance
+Masking
+Contrastive
+Losses
+Instance
+Loss
+Textural Position 
+Descriptions (not simple)
+t'1, t'2, ... t'N
+Intra- and Inter-
+Text Encoder
+Finetuned T5
+Encoder (LoRA)
+Modality-aware Hierarchical Contrastive Learning with Masked Instance Training
+Text Distillation
+T'1
+T'2
+T'3
+...
+T'N
+T'1·T1
+...
+T'1·TN
+...
+...
+...
+T'N·T1
+...
+T'N·TN
+T1
+...
+TN
+T'1
+...
+T'N
+positive
+negative
+ignore
+S'1·T1
+...
+S'1·TN
+...
+...
+...
+S'N·T1
+...
+S'N·TN
+T1
+...
+TN
+S'1
+...
+S'N
+T1·T1
+...
+T1·TN
+...
+...
+...
+TN·T1
+...
+TN·TN
+T1
+...
+TN
+T1
+...
+TN
+S1·S1
+S1·S2
+...
+S1·SN
+S2·S1
+S2·S2
+...
+S2·SN
+...
+...
+...
+...
+SN·S1
+SN·S2
+...
+SN·SN
+S1
+S2
+...
+SN
+S1
+S2
+...
+SN
+S'1
+S'2
+...
+S'N
+S'1
+S'2
+...
+S'N
+S'1·S1
+S'1·S2
+...
+S'1·SN
+S'2·S1
+S'2·S2
+...
+S'2·SN
+...
+...
+...
+...
+S'N·S1
+S'N·S2
+...
+S'N·SN
+S1·S'1
+S1·S'2
+...
+S1·S'N
+S2·S'1
+S2·S'2
+...
+S2·S'N
+...
+...
+...
+...
+SN·S'1
+SN·S'2
+...
+SN·S'N
+S'1·S'1 S'1·S'2
+...
+S'1·S'N
+S'2·S'1 S'2·S'2
+...
+S'2·S'N
+...
+...
+...
+...
+S'N·S'1
+S'N·S'2
+...
+S'N·S'N
+Contrasive
+Loss
+Multi-based Transformer
+Max Pooling
+Intra/Inter Text Encoder
+Instance Encoder
+Instance 
+Point 
+(XYZ, RGB)
+Instance 
+Color
+Instance 
+Center
+Instance 
+Number
+PointNet++
+Color 
+Encoder
+Center 
+Encoder
+Num. 
+Encoder
+Projection
+Feature Fpi
+Intra Text 
+Encoder
+Fig. 3: (left) The architecture of global place recognition and the training procedure in the global place recognition. (right)
+The architecture of instance encoder as well as intra/inter-text encoder architecture for point clouds. Note that the pre-
+trained/finetuned T5 model is frozen.
+Before
+T1
+T2
+S1
+S2
+After
+S1
+S1''
+T1
+S2'
+T2
+S1'
+S2
+t1
+t2
+s1
+s2
+t1 ∪ t2 ⊆ s1
+t1 ∩ t2 = ∅
+t2 ⊆ s2
+Fig. 4: (top) Comparison for without and with masked
+instance modality-aware hierarchical contrastive learning in
+the training process. T1 and T2 are different text embed-
+dings. S1 and S2 are different submap embeddings from
+s1 and s2. S′
+1, S′′
+1 , and S′
+2 are submap embeddings with
+masked instance process. (bottom) Illustration of the text-
+instance relationship. t1 and t2 not only represent the text
+but also stand for the instances described by the respective
+text. In submap s1 and s2, the blue and red area stands for
+the instances t1 and t2.
+ber encoder to explicitly represent this variation. Encod-
+ing the point count provides a useful class-specific prior
+that enhances instance differentiation. All encoders (color,
+positional, and number) are implemented as three-layer
+multilayer perceptrons (MLPs), producing feature vectors
+with dimensions aligned to the semantic point embeddings.
+The resulting semantic, color, positional, and numerical
+embeddings are concatenated and passed through a pro-
+jection layer—another three-layer MLP—that outputs the
+final instance embedding Fpi. Finally, the set of in-submap
+instance descriptors {Fpi}Np
+i=1 is aggregated into a global
+submap descriptor F S using an attention layer [27] followed
+by a max pooling operation.
+Masked Instance Training. Point clouds contain detailed
+and structured spatial information, whereas language is in-
+herently unstructured and context-dependent. This modal-
+ity gap introduces ambiguity, where a single submap may
+correspond to various textual descriptions, and a single
+text may match multiple submaps based on interpreta-
+tion. As shown in Fig. 4, Ti = F(ti), (i = 1, 2) and
+Si = F(si), (i = 1, 2) are text and submap embeddings, re-
+spectively. The definitions for ti and si are in Section ??. This
+example highlights the issue discussed above: the submap
+s1 matches both the textual descriptions t1 and t2, while t2
+also corresponds to both s1 and s2. When applying standard
+contrastive learning, the model is incorrectly encouraged
+to pull T1 closer to S2, introducing semantic inconsistency.
+This illustrates a fundamental limitation of naive contrastive
+objectives in the presence of many-to-many cross-modal
+correspondences.
+To address this issue, we propose a novel Masked In-
+stance Training (MIT) strategy. Specifically, each submap
+is defined as si = sl
+i ∪snl
+i , where sl
+i denotes the set of
+instances described in the text, and snl
+i
+includes those that
+are not. During training, we randomly sample a subset
+s
+′nl
+i
+⊆snl
+i
+and construct a masked submap s′
+i = sl
+i ∪s
+′nl
+i
+.
+This encourages the model to focus on semantically aligned
+content while being robust to irrelevant or noisy instances.
+A detailed algorithmic description is provided in the Sup-
+plementary Material. The proposed MIT improves the align-
+ment of the cross-modal under many-to-many matching
+conditions, as validated by Ablation Studies.
+Modality-aware Hierarchical Contrastive Learning. In-
+
+
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2015
+6
+spired by CLIP [46], we compute the feature distance be-
+tween textual descriptions and 3D point cloud. Given an
+input batch of 3D submap descriptors {Si}N
+i=1 and matching
+text descriptors {Ti}N
+i=1 where N is the batch size. We utilize
+the proposed masked instance training strategy to generate
+the 3D submap descriptors {S′
+i}N
+i=1, which include only
+part of the instances in certain submaps. The heterogeneous
+contrastive loss among each pair is computed as follows.
+l(i, T, S′) = −log
+exp(Ti · S′
+i/τ)
+P
+j∈N
+exp(Ti · S′
+j/τ) −log
+exp(S′
+i · Ti/τ)
+P
+j∈N
+exp(S′
+i · Tj/τ) , (2)
+where τ is the temperature coefficient, similar to CLIP [46].
+Within a training mini-batch, the text-submap alignment
+objective can be described as:
+Lcross-modal = L(T, S′) = 1
+N
+"X
+i∈N
+l(i, T, S′)
+#
+.
+(3)
+As discussed in the last section, text-to-submap match-
+ing inherently exhibits a many-to-many correspondence,
+making it difficult to establish precise alignments between
+textual descriptions and point cloud data; consequently,
+constraining solely at the submap level proves inadequate
+for capturing fine-grained cross-modal relationships. Thus,
+we incorporate an instance-level loss to constrain the align-
+ment between text embeddings and the corresponding in-
+stance embeddings within the submap. Given an input
+batch of 3D instance descriptors {IS
+i }NI
+i=1 and matching text
+descriptors {IT
+i }NI
+i=1 with the instance where M is the num-
+ber of the number of the instance. For simplicity, we take a
+fixed number of instances in each batch NI = kN(k ∈N+).
+Linst = L(IT , IS) =
+1
+NI
+"X
+j∈M
+l(j, IT , IS)
+#
+.
+(4)
+To address the limitations illustrated in Fig. 4, we aim
+to construct a semantically meaningful embedding space
+that requires not only cross-modal supervision but also
+modality-aware constraints. For text embeddings, it is essen-
+tial that distinct descriptions are mapped to well-separated
+regions in the embedding space. To enforce this, we in-
+troduce a text contrastive loss that explicitly encourages
+inter-text separation. For submap embeddings, our goal is
+twofold: (1) ensure sufficient separation between embed-
+dings of different submaps, and (2) maintain consistency
+between each submap and its masked variants, which share
+the same semantic description and should thus remain close
+despite perturbations. To jointly enforce these objectives,
+we propose a double contrastive learning framework that
+penalizes mismatched submap–masked submap pairs while
+promoting alignment across multiple representations of the
+same semantic content.
+ld(i, S, S′) = −log
+exp(Si · S′
+i/τ)
+P
+j∈N
+exp(Si · S′
+j/τ) + P
+j∈N
+j̸=i
+exp(S′
+i · S′
+j/τ)
+−log
+exp(S′
+i · Si/τ)
+P
+j∈N
+exp(S′
+i · Sj/τ) + P
+j∈N
+j̸=i
+exp(Si · Sj/τ)
+(5)
+We define the text, and the submap, and the final loss
+loss below.
+Ltext = L(T, T) = 1
+N
+"X
+i∈N
+l(i, T, T)
+#
+.
+(6)
+Lsubmap = L(S′, S) = 1
+N
+"X
+i∈N
+ld(i, S′, S)
+#
+.
+(7)
+L = α1Lcross-modal + α2Linst + α3Lsubmap + α4Ltext.
+(8)
+After applying masked instance modality-aware hierarchi-
+cal contrastive learning, the training process is illustrated in
+Fig. 4 (top right).
+Text Distillation. As textual descriptions increase in
+complexity, the modality gap between language and point
+cloud data, along with the model’s limited capacity to
+simultaneously extract fine-grained semantics and perform
+accurate cross-modal alignment, renders direct matching
+ineffective. To mitigate this challenge, we propose a step-
+wise training strategy based on text distillation, which pro-
+gressively guides the model toward robust understanding
+and alignment of complex linguistic inputs with 3D spatial
+representations First, we perform multimodal contrastive
+learning between simple descriptions and point clouds.
+Then, we freeze the previously trained network and intro-
+duce a new text module to handle moderate or complex
+text descriptions, generating new text embeddings. Since
+the original pretrained T5 module is no longer effective
+in processing complex text, we finetune the T5 encoder
+using the LoRA approach [19]. The detail finetune steps
+are in the supplementary. For content-equivalent simple
+text descriptions, we use the original frozen text module to
+produce the old text embeddings. In the embedding space,
+these two embeddings should be close to each other due
+to their shared text meaning, so we apply a contrastive
+learning loss between them. A more thorough comparative
+study is in Section 6.3.
+4.2
+Fine Localization
+Following the text–submap global place recognition stage,
+our objective in fine localization is to refine the predicted
+target position within the retrieved submaps. While prior
+approaches [8], [9] have achieved promising results using
+text–submap matching strategies, the inherent ambiguity of
+natural language descriptions often leads to unreliable offset
+predictions for individual object instances. To overcome this
+limitation, we introduce a matching-free fine localization
+network, as illustrated in Fig. 5.
+In this framework (Fig. 5 top), the text branch (bottom)
+extracts fine-grained linguistic features using a frozen or
+fine-tuned pre-trained language model, T5 [16], followed
+by an attention module and a max-pooling operation.
+The submap branch (top) employs a prototype-based map
+cloning (PMC) module to enrich the diversity of submap
+variants and then extracts point cloud features using the
+same instance encoder utilized in the global place recogni-
+tion stage. Subsequently, the text and submap features are
+integrated through a Cascaded Cross-Attention Transformer
+(CCAT), after which a lightweight multi layer perceptron
+(MLP) regresses the final target position.
+Cascaded Cross-attention Transformer (CCAT). To ef-
+fectively model the interactions between the text and 3D
+
+
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2015
+7
+CCAT
+CA
+CA
+FFN
+FFN
+Prototype-based Map Cloning
+Submap
+Map Variant 
+Generation
+Map 
+Picking
+Random 
+Select
+T5 Encoder
+Instance
+Encoder
+PMC
+Textural Position
+Descriptions
+T1, T2, ... TN
+...
+Instances
+MLP
+Predicted 
+Position
+Fig. 5: (top) The proposed matching-free fine localization
+architecture. It consists of two parallel branches: instance
+encoder as the top branch and text encoder as the bottom
+branch. Cascaded Cross-Attention Transformers (CCAT)
+fuse the multimodal information. (bottom) The procedure of
+the Prototype-based Map Cloning (PMC).
+submap branches, we introduce a Cascaded Cross-Attention
+Transformer (CCAT) for multimodal feature fusion. Follow-
+ing the design of [6], the CCAT is composed of two se-
+quential Cross-Attention Transformer (CAT) modules, each
+contains a cross attention module (CA) and a feed-forward
+network (FFN).
+In the first CA, the point cloud features serve as the
+Query, while the text features act as the Key and Value.
+This allows the model to refine the point representations
+by incorporating semantic cues from the text, yielding text-
+informed point feature maps. Conversely, in the second CA,
+the text features are used as the Query, and the enhanced
+point features from the first CAT are used as the Key and
+Value, resulting in text features enriched with geometric
+context.
+Unlike the hierarchical structure proposed in [6], our
+design employs a cascaded configuration of the first and the
+second CAT, enabling progressive cross-modal interaction.
+In this work, we utilize two stacked CCAT blocks to achieve
+more comprehensive feature fusion. Further ablation studies
+and analyses are provided in the Supplementary Material.
+Prototype-based Map Cloning (PMC). To generate more
+diverse and informative submap variants for training, we
+introduce a Prototype-based Map Cloning (PMC) module
+in the training time. For each pair {ti, si}, our goal is to
+construct a collection of neighboring submap variants Gi
+centered around the current map Si, which can be formu-
+lated as follows:
+Gi = {Sj |
+ ¯sj −¯si
+
+∞< α,
+ ¯sj −ci
+
+∞< β },
+(9)
+where ¯si, ¯sj are the center coordinates of the submaps si and
+sj respectively. ci represents the ground-truth target posi-
+tion described by ti, α and β are the pre-defined thresholds.
+In practice, we observe that certain submaps in Gi don’t
+have enough object instances corresponding to the textual
+descriptions Ti. To mitigate this issue, we apply a filtering
+procedure by enforcing a minimum instance threshold, al-
+lowing at most Nm instance mismatch. After this filtering
+step, a single submap is randomly sampled from the refined
+Gi for training.
+Loss function. In contrast to previous approaches [8], [9],
+our fine localization network eliminates the text–instance
+matching module, resulting in a simpler and more efficient
+training process. It is important to note that this network
+is trained independently from the global place recognition
+stage. The objective of training is to minimize the distance
+between the predicted target position and the ground truth.
+To this end, we employ a mean squared error loss Lr as the
+sole optimization objective for the translation regressor.
+L(Cgt, Cpred) =
+Cgt −Cpred
+
+2,
+(10)
+where Cpred = (x, y) (see Eq. (1)) is the predicted target
+coordinates, and Cgt is the ground-truth coordinates.
+5
+EXPERIMENTS
+5.1
+Experimental Datasets
+The KITTI-360 dataset offers a large number of scenes with
+notable geographic and point cloud variations between
+training and testing sets. However, all data are collected in
+the same city using the same LiDAR device, and each pose
+is precisely georegistered in OpenMap, resulting in a high
+level of consistency. Therefore, to evaluate a model’s gen-
+eralization capability, it must maintain stable performance
+across diverse cities, devices, and acquisition settings. To
+this end, we incorporate more varied data sources to evalu-
+ate robustness and generalization.
+We train and evaluate the proposed Text2Loc++ on six
+benchmark datasets designed for text-based point cloud lo-
+calization. This includes the two KITTI360Pose benchmarks
+[8] and four additional datasets containing point clouds
+with semantic annotations: Toronto [13], Paris CARLA [12],
+TUM [14], and Paris Lille [15]. The two KITTI360Pose
+datasets share identical submap structures and textual de-
+scriptions; the only distinction lies in the presence or ab-
+sence of color information in the point clouds. Specifically,
+the Toronto and Paris CARLA datasets provide colored
+point clouds, whereas the TUM and Paris Lille datasets
+contain only geometric data and semantic annotations. With
+the exception of the KITTI360Pose dataset, we augment
+all point clouds with textual descriptions according to the
+protocol proposed in [8]. Additionally, we standardize se-
+mantic labels across all datasets to ensure consistency in
+representation across different urban environments.
+5.1.1
+Data Specification
+Except from Kitti360, the other datasets offer annotated
+point clouds collected from urban environments with dif-
+ferent schemes of semantic categories. We visualize the new
+submaps generated by ourselves in Fig. 6. For Toronto
+and TUM datasets, they only have 8 raw semantic cat-
+egories. Thus, we follow the semantic class definition in
+KITTI360 [47] to split and annotate the point clouds. Since
+we only focus on the layout of the environment, the dy-
+namic objects are removed from the raw point clouds. For
+Paris CARLA and Paris Lille datasets, we directly convert
+the label if the name of the category exists in the KITTI360
+class definition. If not, we utilize the class definition in [48].
+Then, the submaps and texts are created in the same way
+of KITTI360Pose. In detail, the 3D submap is a cube that
+
+
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2015
+8
+Baseline
+Refinement
+Dataset
+Color
+Training
+Testing
+Training
+Testing
+# submaps
+# texts
+# submaps
+# texts
+# submaps
+# texts
+# submaps
+# texts
+Kitti360
+✓
+11259
+28807
+4308
+11505
+11259
+28807
+4308
+11505
+Paris CARLA
+✓
+-
+-
+1004
+3857
+2936
+10855
+1004
+3857
+Toronto
+✓
+-
+-
+685
+2087
+-
+-
+685
+2087
+Kitti360 (no color)
+✗
+11259
+28807
+4308
+11505
+11259
+28807
+4308
+11505
+Paris Lille
+✗
+-
+-
+185
+845
+566
+2337
+185
+845
+TUM
+✗
+-
+-
+183
+755
+350
+1518
+183
+755
+TABLE 1: Dataset information. Number of training and testing submaps and texts for our baseline and refinement networks.
+Color means whether the point cloud contains color information.
+Fig. 6: Samples of point cloud from different datasets.
+We present visualizations of the point clouds from the
+four constructed benchmark datasets. Subfigures CARLA
+- Paris CARLA, Paris - Paris CARLA, and Toronto depict
+datasets with color information, whereas other subfigures
+correspond to datasets without color attributes.
+is 30m long with a stride of 10m. Below are the detailed
+explanations for each dataset:
+KITTI360Pose Dataset. We use the dataset constructed
+by [8], which consists of point clouds from 9 districts,
+covering 43,381 position-query pairs over a total area of
+15.51 km2. Following [8], we select five scenes (11.59 km2)
+for training, one for validation, and the remaining three
+scenes (2.14 km2) for testing. This results in 11,259 training
+submaps and 4,308 testing submaps, with a total of 15,567
+submaps across the entire dataset.
+Paris CARLA Dataset is a collection of dense, colored
+point clouds captured in outdoor environments using a
+mobile platform equipped with a tilted Velodyne HDL-32
+LiDAR (45° to the horizon) and a 360° Ladybug5 camera sys-
+tem (comprising 6 lenses). The dataset consists of two parts:
+a synthetic set generated with the open-source CARLA
+simulator (700 M points), and a real-world set collected in
+central Paris (60 M points). The synthetic portion covers
+approximately 5.8 km of driving distance, while the real-
+world data spans 550 m across three streets in Paris. All
+data are annotated with 23 semantic classes and instance-
+level labels, consistent with the class definitions used in
+CARLA to ensure label alignment between synthetic and
+real domains.
+Toronto Dataset. Toronto is a large-scale outdoor urban
+point cloud dataset collected in Toronto, Canada, using a
+vehicle-mounted mobile LiDAR scanning (MLS) system.
+The platform is equipped with a 32-line LiDAR sensor, a
+Ladybug5 panoramic camera, a GNSS system, and a SLAM
+module. Natural RGB colors are assigned to each point
+using camera projections. The dataset spans approximately
+1 km of road and contains 78.3 million points, with UTM
+coordinates centered at (43.726, –79.417). All points are
+labeled with one of eight semantic classes.
+TUM Dataset is a mobile laser-scanning dataset covering
+approximately 80,000 m2 with detailed semantic annota-
+tions. Collected by the Fraunhofer Institute of Optronics,
+System Technologies, and Image Exploitation (IOSB) using
+two Velodyne HDL-64E laser scanners, the dataset was later
+annotated by the Chair of Photogrammetry and Remote
+Sensing at TUM. It encompasses an urban area with around
+1 km of roadways and includes over 40 million annotated
+points, categorized into eight object classes. Notably, this
+dataset does not contain any images.
+Paris Lille Dataset is a mobile LiDAR dataset collected
+using a Velodyne HDL-32E sensor. The dataset includes
+point clouds from two cities—Paris and Lille—covering
+nearly 2 km and totaling over 140 million points. All points
+are annotated with fine-grained semantic labels across 50
+classes.
+5.1.2
+Dataset Splitting
+We adopt dataset-specific splitting strategies tailored to the
+structural characteristics of each benchmark. For datasets
+containing multiple traversals of the same region (e.g.,
+KITTI360Pose, CARLA in Paris CARLA, and Paris Lille),
+training and testing reference maps are constructed from
+disjoint runs to ensure route-level separation. For datasets
+comprising only a single traversal, alternative protocols
+are employed: the entire Toronto dataset is reserved for
+evaluation, whereas in Paris in Paris CARLA and TUM,
+geographically distinct regions are partitioned into training
+and testing subsets.
+Each reference map is subsequently partitioned into
+submaps at fixed spatial intervals along the trajectory to
+
+
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2015
+9
+Submap
+Simple
+The pose is on-top of a green vegetation.
+The pose is on-top of a road.
+The pose is east of a dark-green fence.
+The pose is east of a sidewalk.
+The pose is north of a green sidewalk.
+The pose is east of a vegetation.
+The pose is south of a green building.
+The pose is east of a fence.
+The pose is north of a green terrain.
+The pose is east of a terrain.
+The pose is north of a green vegetation.
+The pose is west of a sidewalk.
+Moderate
+Two vegetations, the sidewalk, the building and the
+terrain are green. One vegetation is below the pose. The
+sidewalk, the terrain and one vegetation are south of the
+pose. The building is north of the pose. They are east of
+the dark-green fence.
+The road is below the pose. There are two sidewalks.
+They are on-top of one. They are west of one. The
+vegetation is west of the spot. The fence ane the terrain
+is west of the position.
+Complex
+In the landscape, two areas of vegetation, the sidewalk,
+the building, and the surrounding terrain display a
+vibrant green hue, contributing to the overall vitality
+of the scene. One patch of greenery is situated directly
+below the post, while the sidewalk, the terrain, and
+another clump of vegetation stretch out to the south
+of it. Meanwhile, the building stands to the north of
+the post, commanding attention within the layout. All
+these elements are positioned east of a dark-green fence,
+which serves as a contrasting boundary, framing the
+lively environment
+.
+Beneath the pose lies a road flanked by two sidewalks,
+which extend above it. To the west of this location, a
+diverse array of vegetation thrives, accompanied by a
+sturdy fence that also stands in the same direction. Ad-
+ditionally, the terrain itself unfolds to the west, creating
+a cohesive landscape that defines the area surrounding
+this central point.
+TABLE 2: Textual descriptions of the same location in the submap at different levels of linguistic complexity. Pictures are
+semantic bird-eye-view map for the submap with the target as red point. The left one is the text descriptions for color point
+cloud while the right one is for no color point cloud. The simple, moderate, and complex text descriptions each describe
+the same spatial relationships between the target and instances within the submap, differing only in their level of linguistic
+complexity.
+facilitate fine-grained correspondence. Additional imple-
+mentation details concerning the segmentation procedure
+are provided in the supplementary material.
+To evaluate cross-dataset generalization, we define two
+training paradigms: a baseline model, trained solely on
+the KITTI360Pose dataset, and a refinement model, trained
+jointly on KITTI360Pose and supplementary datasets. Ta-
+ble 1 summarizes the number of training and testing
+submaps used for the baseline and refinement networks.
+5.1.3
+Textual Descriptions
+In real-world communication, humans naturally describe
+self-locations by referencing multiple objects, their spatial
+relationships, and relevant attributes. In the prior publica-
+tions, a text-to-point cloud system trained solely on mini-
+mal statements (e.g., ’the pose is on top of a gray road.’).
+This may struggle to capture the richness and nuance of
+human descriptions. By incorporating more complex narra-
+tives, where multiple elements and their relationships are
+mentioned, the model can develop a deeper, more human-
+like understanding of locations. It learns to handle a wide
+range of linguistic expressions, from concise descriptions
+to detailed explanations (potentially containing redundant
+information), enabling it to process a broader spectrum of
+user queries. This not only improves the alignment between
+text and 3D geometry but also supports more natural and
+conversational interactions. To systematically study the ef-
+fect of text complexity on localization accuracy, we thus
+categorize text descriptions into three levels of complexity:
+Simple: Each sentence describes only the spatial re-
+lationship between the self-localized target and a single
+reference instance, with no inter-sentence connections.
+Moderate: Building on the simple level, additional at-
+tributes such as direction, color, and instance labels are in-
+tegrated, resulting in more concise and human-like descrip-
+tions. Moderate inter-sentence correlations are introduced.
+Complex: Extending the moderate level, sentences
+are further diversified to resemble real-world text or
+speech-to-text outputs generated by large language models
+(LLMs) [49]. In this setting, descriptions may contain miss-
+ing details such as omitted colors or instance labels, making
+the text more natural but also noisier.
+Table. 2 shows the distinct characteristics across differ-
+ent complexity levels. Detailed generation procedures are
+provided in the supplementary material.
+
+
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2015
+10
+Submap Retrieval Recall (%) ↑
+Setting
+Method
+Simple
+Moderate
+Complex
+k=1
+k=3
+k=5
+k=1
+k=3
+k=5
+k=1
+k=3
+k=5
+KITTI360Pose [8]
+Text2Pos [8]
+11.8
+24.6
+32.5
+8.6
+18.1
+24.0
+3.3
+7.8
+11.0
+Text2Loc [21]
+29.3
+47.7
+56.9
+21.6
+39.3
+48.2
+17.0
+32.0
+40.1
+Baseline
+MambaPlace [10]
+31.0
+52.0
+62.0
+-
+-
+-
+-
+-
+-
+CMMLoc [11]
+32.3
+53.4
+63.1
+-
+-
+-
+-
+-
+-
+Text2Loc++ (Ours)
+35.3
+35.3
+35.3
+35.3
+57.6
+57.6
+57.6
+57.6
+66.9
+66.9
+66.9
+66.9
+34.5
+34.5
+34.5
+34.5
+56.6
+56.6
+56.6
+56.6
+65.9
+65.9
+65.9
+65.9
+27.9
+27.9
+27.9
+27.9
+48.1
+48.1
+48.1
+48.1
+57.7
+57.7
+57.7
+57.7
+Text2Pos [8]
+10.5
+21.8
+28.7
+8.0
+17.5
+23.6
+3.3
+8.0
+11.4
+Refinement Text2Loc [21]
+29.0
+48.8
+58.0
+21.3
+39.7
+48.6
+18.0
+34.2
+42.4
+Text2Loc++ (Ours)
+34.6
+34.6
+34.6
+34.6
+56.5
+56.5
+56.5
+56.5
+65.6
+65.6
+65.6
+65.6
+34.0
+34.0
+34.0
+34.0
+56.8
+56.8
+56.8
+56.8
+65.4
+65.4
+65.4
+65.4
+26.2
+26.2
+26.2
+26.2
+46.0
+46.0
+46.0
+46.0
+55.7
+55.7
+55.7
+55.7
+Paris CARLA [12]
+Text2Pos [8]
+2.9
+8.0
+12.0
+1.3
+3.4
+5.1
+0.6
+1.9
+3.2
+Text2Loc [21]
+11.2
+21.2
+28.5
+6.0
+14.1
+20.1
+2.5
+5.4
+8.6
+Baseline
+MambaPlace [10]
+9.9
+21.4
+29.1
+-
+-
+-
+-
+-
+-
+CMMLoc [11]
+12.5
+25.6
+33.3
+-
+-
+-
+-
+-
+-
+Text2Loc++ (Ours)
+14.2
+14.2
+14.2
+14.2
+28.2
+28.2
+28.2
+28.2
+36.0
+36.0
+36.0
+36.0
+12.8
+12.8
+12.8
+12.8
+25.5
+25.5
+25.5
+25.5
+33.6
+33.6
+33.6
+33.6
+9.8
+9.8
+9.8
+9.8
+21.2
+21.2
+21.2
+21.2
+27.5
+27.5
+27.5
+27.5
+Text2Pos [8]
+6.0
+15.1
+22.2
+3.8
+9.4
+13.2
+1.8
+5.7
+8.8
+Refinement Text2Loc [21]
+23.9
+44.9
+55.6
+12.9
+29.1
+37.8
+11.5
+24.5
+33.1
+Text2Loc++ (Ours)
+28.4
+28.4
+28.4
+28.4
+51.6
+51.6
+51.6
+51.6
+62.5
+62.5
+62.5
+62.5
+27.2
+27.2
+27.2
+27.2
+49.9
+49.9
+49.9
+49.9
+60.3
+60.3
+60.3
+60.3
+18.5
+18.5
+18.5
+18.5
+36.7
+36.7
+36.7
+36.7
+46.4
+46.4
+46.4
+46.4
+Toronto [13]
+Text2Pos [8]
+2.1
+6.3
+9.6
+1.9
+5.7
+8.7
+0.8
+2.1
+3.4
+Text2Loc [21]
+6.2
+15.5
+21.1
+3.7
+8.3
+12.6
+2.3
+6.1
+9.2
+Baseline
+MambaPlace [10]
+10.7
+22.0
+30.0
+-
+-
+-
+-
+-
+-
+CMMLoc [11]
+7.6
+17.9
+24.1
+-
+-
+-
+-
+-
+-
+Text2Loc++ (Ours)
+13.2
+13.2
+13.2
+13.2
+26.4
+26.4
+26.4
+26.4
+34.6
+34.6
+34.6
+34.6
+13.2
+13.2
+13.2
+13.2
+25.7
+25.7
+25.7
+25.7
+33.8
+33.8
+33.8
+33.8
+10.6
+10.6
+10.6
+10.6
+21.3
+21.3
+21.3
+21.3
+27.4
+27.4
+27.4
+27.4
+Text2Pos [8]
+3.4
+10.0
+14.7
+1.5
+4.6
+6.9
+1.2
+3.5
+5.3
+Refinement Text2Loc [21]
+15.6
+31.5
+39.2
+7.8
+18.0
+25.7
+2.5
+16.6
+22.7
+Text2Loc++ (Ours)
+23.1
+23.1
+23.1
+23.1
+41.3
+41.3
+41.3
+41.3
+49.2
+49.2
+49.2
+49.2
+21.1
+21.1
+21.1
+21.1
+38.5
+38.5
+38.5
+38.5
+47.7
+47.7
+47.7
+47.7
+14.5
+14.5
+14.5
+14.5
+28.4
+28.4
+28.4
+28.4
+35.0
+35.0
+35.0
+35.0
+KITTI360Pose (no color) [8]
+Text2Pos [8]
+2.2
+5.6
+8.5
+1.9
+4.4
+6.6
+0.8
+2.4
+3.8
+Baseline
+Text2Loc [21]
+7.7
+16.4
+22.3
+3.0
+7.2
+10.4
+2.4
+5.7
+8.6
+Text2Loc++ (Ours)
+10.6
+10.6
+10.6
+10.6
+20.8
+20.8
+20.8
+20.8
+27.1
+27.1
+27.1
+27.1
+10.2
+10.2
+10.2
+10.2
+19.7
+19.7
+19.7
+19.7
+25.9
+25.9
+25.9
+25.9
+7.0
+7.0
+7.0
+7.0
+14.9
+14.9
+14.9
+14.9
+20.1
+20.1
+20.1
+20.1
+Text2Pos [8]
+2.0
+5.6
+8.3
+1.2
+3.5
+5.7
+0.9
+2.4
+3.9
+Refinement Text2Loc [21]
+7.7
+16.7
+22.7
+3.1
+7.2
+10.4
+2.4
+6.1
+9.2
+Text2Loc++ (Ours)
+10.6
+10.6
+10.6
+10.6
+21.5
+21.5
+21.5
+21.5
+27.2
+27.2
+27.2
+27.2
+9.7
+9.7
+9.7
+9.7
+20.1
+20.1
+20.1
+20.1
+25.8
+25.8
+25.8
+25.8
+7.3
+7.3
+7.3
+7.3
+15.1
+15.1
+15.1
+15.1
+20.1
+20.1
+20.1
+20.1
+TUM [14]
+Text2Pos [8]
+5.4
+14.3
+21.2
+7.0
+15.7
+20.8
+2.1
+9.4
+13.9
+Baseline
+Text2Loc [21]
+15.5
+29.8
+39.5
+5.5
+14.6
+22.2
+7.7
+16.4
+24.3
+Text2Loc++ (Ours)
+17.0
+17.0
+17.0
+17.0
+31.1
+31.1
+31.1
+31.1
+43.0
+43.0
+43.0
+43.0
+13.9
+13.9
+13.9
+13.9
+31.4
+31.4
+31.4
+31.4
+41.0
+41.0
+41.0
+41.0
+10.0
+10.0
+10.0
+10.0
+24.4
+24.4
+24.4
+24.4
+33.7
+33.7
+33.7
+33.7
+Text2Pos [8]
+10.5
+24.1
+38.2
+5.0
+16.3
+24.8
+4.6
+12.6
+19.2
+Refinement Text2Loc [21]
+23.5
+46.6
+57.5
+15.4
+31.6
+41.3
+11.8
+25.2
+35.4
+Text2Loc++ (Ours)
+27.2
+27.2
+27.2
+27.2
+50.8
+50.8
+50.8
+50.8
+62.5
+62.5
+62.5
+62.5
+26.2
+26.2
+26.2
+26.2
+48.4
+48.4
+48.4
+48.4
+60.0
+60.0
+60.0
+60.0
+23.8
+23.8
+23.8
+23.8
+41.9
+41.9
+41.9
+41.9
+53.3
+53.3
+53.3
+53.3
+Paris Lille [15]
+Text2Pos [8]
+4.0
+9.3
+14.2
+3.7
+9.7
+13.3
+1.3
+4.3
+7.0
+Baseline
+Text2Loc [21]
+5.9
+14.8
+14.8
+14.8
+14.8
+21.2
+4.4
+10.7
+15.5
+3.1
+8.2
+10.8
+Text2Loc++ (Ours)
+6.9
+6.9
+6.9
+6.9
+13.3
+21.5
+21.5
+21.5
+21.5
+6.2
+6.2
+6.2
+6.2
+15.9
+15.9
+15.9
+15.9
+22.0
+22.0
+22.0
+22.0
+6.5
+6.5
+6.5
+6.5
+14.1
+14.1
+14.1
+14.1
+19.2
+19.2
+19.2
+19.2
+Text2Pos [8]
+4.7
+12.8
+19.8
+4.4
+12.2
+17.3
+1.9
+6.9
+11.2
+Refinement Text2Loc [21]
+9.9
+25.4
+36.8
+36.8
+36.8
+36.8
+7.6
+18.5
+25.9
+6.3
+16.7
+25.4
+Text2Loc++ (Ours)
+13.1
+13.1
+13.1
+13.1
+26.3
+26.3
+26.3
+26.3
+35.6
+14.1
+14.1
+14.1
+14.1
+26.3
+26.3
+26.3
+26.3
+38.7
+38.7
+38.7
+38.7
+9.5
+9.5
+9.5
+9.5
+23.6
+23.6
+23.6
+23.6
+33.4
+33.4
+33.4
+33.4
+TABLE 3: The evaluation results of the global place recognition. The ”setting” column (baseline or refinement) indicates
+which datasets are used to train the network, as detailed in Table. 1. The terms simple, moderate, and complex refer to the
+linguistic complexity of the textual descriptions used during both training and testing.
+5.2
+Evaluation Criteria
+Following [8], we use Retrieve Recall at Top k (k
+∈
+{1, 3, 5}) to evaluate text-submap global place recognition.
+The ground-truth submap is defined as the submap whose
+centroid coordinates are closest to the ground-truth loca-
+tion among all candidates. For a given text description,
+if the ground-truth submap appears within the top-k pre-
+dicted submaps, the case is considered positive; otherwise,
+it is negative. For assessing localization performance, we
+evaluate with respect to the top k retrieved candidates
+(k ∈{1, 5, 10}) and report localization recall. Localization
+recall measures the proportion of successfully localized
+queries if their error falls below specific error thresholds,
+specifically ϵ < 5/10/15m by default. Table 3 and 4 shows
+the accuracy results for global place recognition and fine
+localization respectively.
+
+
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2015
+11
+Localization Recall (%) - ϵ < 5/10/15m ↑
+Setting
+Method
+Simple
+Moderate
+Complex
+k=1
+k=5
+k=10
+k=1
+k=5
+k=10
+k=1
+k=5
+k=10
+KITTI360Pose [8]
+Text2Pos [8]
+12/21/24
+32/47/51
+42/60/64
+7/16/20
+20/38/44
+28/50/57
+3/6/8
+9/19/24
+14/29/36
+Text2Loc [21]
+34/47/50
+61/74/76
+71/83/85
+28/39/43
+54/67/70
+65/77/80
+14/29/34
+33/56/61
+42/67/72
+Baseline
+MambaPlace [10]
+38/52/55
+66/79/81
+76/87/89
+-
+-
+-
+-
+-
+-
+CMMLoc [11]
+39/53/56
+67/80/82
+77/87/89
+-
+-
+-
+-
+-
+-
+Text2Loc++ (Ours)
+44
+44
+44
+44/58
+58
+58
+58/61
+61
+61
+61
+72
+72
+72
+72/84
+84
+84
+84/85
+85
+85
+85
+80
+80
+80
+80/90
+90
+90
+90/91
+91
+91
+91
+40
+40
+40
+40/56
+56
+56
+56/60
+60
+60
+60
+68
+68
+68
+68/82
+82
+82
+82/84
+84
+84
+84
+77
+77
+77
+77/89
+89
+89
+89/90
+90
+90
+90
+30
+30
+30
+30/47
+47
+47
+47/51
+51
+51
+51
+58
+58
+58
+58/74
+74
+74
+74/77
+77
+77
+77
+68
+68
+68
+68/83
+83
+83
+83/86
+86
+86
+86
+Text2Pos [8]
+12/19/23
+30/45/50
+41/58/63
+7/14/18
+20/37/43
+28/50/56
+3/6/9
+9/20/25
+15/30/37
+Refinement
+Text2Loc [21]
+35/48/51
+64/76/78
+73/84/85
+28/40/49
+56/68/71
+67/78/80
+15/31/37
+35/59/64
+44/70/75
+Text2Loc++ (Ours)
+40
+40
+40
+40/56
+56
+56
+56/60
+60
+60
+60
+67
+67
+67
+67/82
+82
+82
+82/84
+84
+84
+84
+76
+76
+76
+76/89
+89
+89
+89/90
+90
+90
+90
+38
+38
+38
+38/55
+55
+55
+55/59
+59
+59
+59
+66
+66
+66
+66/82
+82
+82
+82/84
+84
+84
+84
+75
+75
+75
+75/89
+89
+89
+89/90
+90
+90
+90
+27
+27
+27
+27/45
+45
+45
+45/50
+50
+50
+50
+54
+54
+54
+54/72
+72
+72
+72/76
+76
+76
+76
+64
+64
+64
+64/82
+82
+82
+82/84
+84
+84
+84
+Paris CARLA [12]
+Text2Pos [8]
+3/7/11
+11/23/31
+18/35/44
+1/3/5
+4/11/17
+8/18/28
+1/2/4
+3/7/12
+5/12/19
+Text2Loc [21]
+12/20/26
+24/44/52
+41/59/64
+8/16/20
+23/36/42
+32/48/54
+2/5/7
+7/16/23
+12/25/33
+Baseline
+MambaPlace [10]
+11/22/27
+31/50/56
+39/61/68
+-
+-
+-
+-
+-
+-
+CMMLoc [11]
+14/25/30
+34/51/57
+44/63/69
+69
+69
+69
+-
+-
+-
+-
+-
+-
+Text2Loc++ (Ours)
+17
+17
+17
+17/30
+30
+30
+30/34
+34
+34
+34
+36
+36
+36
+36/53
+53
+53
+53/58
+58
+58
+58
+47
+47
+47
+47/65
+65
+65
+65/69
+69
+69
+69
+14
+14
+14
+14/26
+26
+26
+26/30
+30
+30
+30
+33
+33
+33
+33/50
+50
+50
+50/56
+56
+56
+56
+43
+43
+43
+43/62
+62
+62
+62/67
+67
+67
+67
+9/20
+20
+20
+20/25
+25
+25
+25
+24
+24
+24
+24/43
+43
+43
+43/49
+49
+49
+49
+32
+32
+32
+32/53
+53
+53
+53/60
+60
+60
+60
+Text2Pos [8]
+6/14/20
+22/40/49
+33/54/63
+3/8/13
+11/24/33
+17/36/47
+1/5/8
+7/18/27
+13/29/41
+Refinement
+Text2Loc [21]
+25/43/49
+52/74/79
+64/85/88
+16/30/36
+39/60/66
+52/73/78
+9/23/30
+26/51/59
+37/64/72
+Text2Loc++ (Ours)
+33
+33
+33
+33/51
+51
+51
+51/55
+55
+55
+55
+63
+63
+63
+63/81
+81
+81
+81/84
+84
+84
+84
+75
+75
+75
+75/90
+90
+90
+90/92
+92
+92
+92
+31
+31
+31
+31/47
+47
+47
+47/52
+52
+52
+52
+60
+60
+60
+60/78
+78
+78
+78/82
+82
+82
+82
+70
+70
+70
+70/88
+88
+88
+88/91
+91
+91
+91
+18
+18
+18
+18/34
+34
+34
+34/41
+41
+41
+41
+43
+43
+43
+43/65
+65
+65
+65/79
+79
+79
+79
+55
+55
+55
+55/76
+76
+76
+76/82
+82
+82
+82
+Toronto [13]
+Text2Pos [8]
+2/6/8
+9/19/24
+15/30/37
+2/6/8
+7/17/24
+11/27/37
+1/2/4
+3/7/12
+5/13/21
+Text2Loc [21]
+10/16/19
+24/39/44
+34/54/59
+5/11/14
+17/27/33
+25/39/47
+2/6/9
+7/19/27
+13/30/41
+Baseline
+MambaPlace [10]
+12/23/27
+31/50/56
+42/63/68
+-
+-
+-
+-
+-
+-
+CMMLoc [11]
+9/17/22
+28/43/50
+41/59/65
+-
+-
+-
+-
+-
+-
+Text2Loc++ (Ours)
+16
+16
+16
+16/26
+26
+26
+26/29
+29
+29
+29
+36
+36
+36
+36/54
+54
+54
+54/59
+59
+59
+59
+47
+47
+47
+47/68
+68
+68
+68/73
+73
+73
+73
+14
+14
+14
+14/25
+25
+25
+25/28
+28
+28
+28
+32
+32
+32
+32/49
+49
+49
+49/54
+54
+54
+54
+42
+42
+42
+42/62
+62
+62
+62/67
+67
+67
+67
+9/21
+21
+21
+21/25
+25
+25
+25
+24
+24
+24
+24/43
+43
+43
+43/49
+49
+49
+49
+34
+34
+34
+34/56
+56
+56
+56/62
+62
+62
+62
+Text2Pos [8]
+4/9/13
+15/28/35
+23/41/50
+1/4/7
+6/15/22
+11/25/33
+1/4/6
+4/12/17
+8/19/27
+Refinement
+Text2Loc [21]
+18/30/35
+39/59/64
+52/72/76
+10/19/23
+28/45/50
+39/59/66
+6/15/21
+17/39/48
+26/52/62
+Text2Loc++ (Ours)
+30
+30
+30
+30/43
+43
+43
+43/46
+46
+46
+46
+57
+57
+57
+57/69
+69
+69
+69/72
+72
+72
+72
+68
+68
+68
+68/81
+81
+81
+81/84
+84
+84
+84
+26
+26
+26
+26/39
+39
+39
+39/42
+42
+42
+42
+51
+51
+51
+51/67
+67
+67
+67/71
+71
+71
+71
+63
+63
+63
+63/78
+78
+78
+78/82
+82
+82
+82
+15
+15
+15
+15/30
+30
+30
+30/35
+35
+35
+35
+36
+36
+36
+36/57
+57
+57
+57/62
+62
+62
+62
+47
+47
+47
+47/69
+69
+69
+69/74
+74
+74
+74
+KITTI360Pose (no color) [8]
+Text2Pos [8]
+2/4/6
+8/15/19
+14/24/29
+2/4/5
+6/12/16
+10/20/25
+1/2/3
+3/8/11
+6/13/18
+Baseline
+Text2Loc [21]
+8/12/13
+23/32/35
+33/45/48
+3/5/7
+11/17/21
+17/26/30
+2/4/5
+7/14/17
+11/21/26
+Text2Loc++ (Ours)
+11
+11
+11
+11/16
+16
+16
+16/17
+17
+17
+17
+26
+26
+26
+26/38
+38
+38
+38/41
+41
+41
+41
+36
+36
+36
+36/51
+51
+51
+51/54
+54
+54
+54
+10
+10
+10
+10/15
+15
+15
+15/16
+16
+16
+16
+25
+25
+25
+25/36
+36
+36
+36/39
+39
+39
+39
+34
+34
+34
+34/49
+49
+49
+49/52
+52
+52
+52
+6/11
+11
+11
+11/12
+12
+12
+12
+17
+17
+17
+17/29
+29
+29
+29/32
+32
+32
+32
+24
+24
+24
+24/40
+40
+40
+40/44
+44
+44
+44
+Text2Pos [8]
+2/4/6
+8/16/19
+14/25/30
+1/2/4
+5/10/14
+8/16/22
+1/2/3
+3/7/10
+6/13/17
+Refinement
+Text2Loc [21]
+8/12/13
+23/33/36
+33/46/50
+4/6/7
+12/18/21
+18/28/32
+2/4/6
+8/15/19
+12/23/28
+Text2Loc++ (Ours)
+10
+10
+10
+10/16
+16
+16
+16/17
+17
+17
+17
+26
+26
+26
+26/38
+38
+38
+38/41
+41
+41
+41
+36
+36
+36
+36/51
+51
+51
+51/54
+54
+54
+54
+10
+10
+10
+10/15
+15
+15
+15/16
+16
+16
+16
+24
+24
+24
+24/36
+36
+36
+36/39
+39
+39
+39
+33
+33
+33
+33/49
+49
+49
+49/52
+52
+52
+52
+6/11
+11
+11
+11/12
+12
+12
+12
+17
+17
+17
+17/29
+29
+29
+29/32
+32
+32
+32
+24
+24
+24
+24/40
+40
+40
+40/44
+44
+44
+44
+TUM [14]
+Text2Pos [8]
+5/14/20
+19/41/55
+29/57/73
+6/13/20
+16/34/47
+25/50/61
+1/6/13
+10/24/41
+17/37/56
+Baseline
+Text2Loc [21]
+11/29/40
+29/58/68
+42/74/83
+6/14/23
+16/37/49
+25/49/64
+5/13/23
+18/40/55
+29/58/72
+Text2Loc++ (Ours)
+12
+12
+12
+12/30
+30
+30
+30/39
+39
+39
+39
+31
+31
+31
+31/59
+59
+59
+59/68
+68
+68
+68
+47
+47
+47
+47/76
+76
+76
+76/83
+83
+83
+83
+9/28
+28
+28
+28/35
+35
+35
+35
+26
+26
+26
+26/59
+59
+59
+59/65
+65
+65
+65
+39
+39
+39
+39/74
+74
+74
+74/82
+82
+82
+82
+8/19
+19
+19
+19/26
+26
+26
+26
+26
+26
+26
+26/51
+51
+51
+51/59
+59
+59
+59
+40
+40
+40
+40/68
+68
+68
+68/76
+76
+76
+76
+Text2Pos [8]
+10/21/29
+28/55/67
+39/70/81
+4/11/20
+19/42/57
+29/58/72
+4/11/19
+15/35/49
+22/49/62
+Refinement
+Text2Loc [21]
+25/44/52
+54/79/83
+68/89/91
+15/32/41
+37/66/74
+52/80/86
+9/21/32
+30/54/64
+41/70/80
+Text2Loc++ (Ours)
+29
+29
+29
+29/47
+47
+47
+47/54
+54
+54
+54
+57
+57
+57
+57/79
+79
+79
+79/82
+82
+82
+82
+61
+61
+61
+61/88
+88
+88
+88/90
+90
+90
+90
+21
+21
+21
+21/47
+47
+47
+47/53
+53
+53
+53
+49
+49
+49
+49/77
+77
+77
+77/81
+81
+81
+81
+63
+63
+63
+63/87
+87
+87
+87/90
+90
+90
+90
+20
+20
+20
+20/38
+38
+38
+38/46
+46
+46
+46
+42
+42
+42
+42/69
+69
+69
+69/76
+76
+76
+76
+54
+54
+54
+54/82
+82
+82
+82/87
+87
+87
+87
+Paris Lille [15]
+Text2Pos [8]
+3/9/14
+12/30/41
+21/47/61
+3/10/15
+10/28/40
+18/43/55
+1/4/8
+5/16/25
+12/29/41
+Baseline
+Text2Loc [21]
+5/12/18
+18
+18
+18
+16/36
+36
+36
+36/46
+46
+46
+46
+28/55
+55
+55
+55/65
+65
+65
+65
+4/11
+11
+11
+11/17
+17
+17
+17
+12/28/39
+20/44/59
+2/5/9
+9/21/31
+14/35/48
+Text2Loc++ (Ours)
+5/13
+13
+13
+13/18
+18
+18
+18
+18
+18
+18
+18/34/46
+46
+46
+46
+30
+30
+30
+30/53/65
+65
+65
+65
+4/11
+11
+11
+11/17
+17
+17
+17
+16
+16
+16
+16/36
+36
+36
+36/48
+48
+48
+48
+26
+26
+26
+26/55
+55
+55
+55/68
+68
+68
+68
+5/10
+10
+10
+10/15
+15
+15
+15
+15
+15
+15
+15/33
+33
+33
+33/43
+43
+43
+43
+25
+25
+25
+25/50
+50
+50
+50/64
+64
+64
+64
+Text2Pos [8]
+5/11/17
+16/54/45
+28/53/65
+4/10/15
+12/32/43
+21/50/63
+1/7/12
+8/26/36
+17/42/53
+Refinement
+Text2Loc [21]
+10/21/27
+27
+27
+27
+33/50/57
+57
+57
+57
+47/67/74
+8/14/21
+24/40/51
+39/61/71
+5/13/20
+19/38/50
+29/56/68
+Text2Loc++ (Ours)
+12
+12
+12
+12/22
+22
+22
+22/26
+35
+35
+35
+35/51
+51
+51
+51/57
+57
+57
+57
+51
+51
+51
+51/70
+70
+70
+70/77
+77
+77
+77
+11
+11
+11
+11/22
+22
+22
+22/25
+25
+25
+25
+34
+34
+34
+34/53
+53
+53
+53/59
+59
+59
+59
+48
+48
+48
+48/71
+71
+71
+71/77
+77
+77
+77
+8/16
+16
+16
+16/20
+20
+20
+20
+27
+27
+27
+27/48
+48
+48
+48/58
+58
+58
+58
+38
+38
+38
+38/69
+69
+69
+69/77
+77
+77
+77
+TABLE 4: The evaluation results of the fine localization. The ”setting” column (baseline or refinement) indicates which
+datasets are used to train the network, as detailed in Table. 1. The terms simple, moderate, and complex refer to the
+linguistic complexity of the textual descriptions used during both training and testing.
+5.3
+Results
+We compare our proposed Text2Loc++ with several state-
+of-the-art methods: Text2Pos [8], RET [9], MambaPlace [10],
+and CMMLoc [11]. For completeness, we also include our
+previous version, Text2Loc [21], to highlight improvements.
+For a fair comparison, all methods are evaluated on six
+benchmark datasets for both global place recognition and
+fine-grained localization. We evaluate under two training
+settings: baseline and refinement, as detailed in Section 5.1.2
+and Table 1. In addition, we analyze the model’s perfor-
+mance under different levels of text complexity to assess
+robustness to linguistic variation.
+5.3.1
+Global Place Recognition
+Baseline Networks. Text2Loc++ achieves the best perfor-
+mance on the KITTI360Pose test set, reaching a recall of
+35.3% at top-1. Notably, this outperforms the recall achieved
+by the current state-of-the-art method CMMLoc by a wide
+margin of 9.3%. Furthermore, Text2Loc++ achieves recall
+rates of 57.6% and 66.9% at top-3 and top-5, respectively,
+representing substantial improvements of 7.8% and 6.0% rel-
+ative to the performance of CMMLoc. These improvements
+demonstrate the efficiency of our Text2Loc++ to capture
+local information from the cross-model and generate more
+discriminative global descriptors. More qualitative results
+are given in Section 7.1. A horizontal comparison between
+
+
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2015
+12
+“color” and “no-color” input for the KITTI360Pose dataset
+shows that all models experience a significant performance
+drop, highlighting the importance of color information in
+the 3D localization task.
+3D Generalization. To evaluate the generalization abil-
+ity of our network, we train solely on the KITTI360Pose
+dataset
+and
+evaluate
+on
+other
+datasets,
+including
+Paris CARLA [12], Toronto [13], TUM [14] and Paris [15]
+datasets. Excitingly, our network performs this task re-
+markably well. Across different datasets, we achieve strong
+results in top-1/3/5 recall, consistently outperforming all
+other models. Moreover, we observe that with color input,
+the model becomes more sensitive to variations in point
+cloud configurations, leading to larger performance differ-
+ences across datasets.
+Refinement Network. To further enhance generalization,
+we extend training beyond KITTI360Pose by incorporating
+additional datasets—Paris CARLA (with color), and Lille
+and TUM (without color). As shown in Table 3, this refine-
+ment strategy significantly improves performance on previ-
+ously unseen datasets, particularly Toronto (color) and Lille
+(no color), demonstrating the effectiveness of our approach.
+Despite using only a small amount of additional data,
+Text2Loc++ achieves strong generalization across diverse
+domains in LiDAR-based place recognition. Notably, the
+inclusion of extra training data does not noticeably degrade
+performance on the original KITTI360Pose test set. These
+results highlight the robustness of our model and suggest
+that, with the availability of more diverse LiDAR datasets,
+further performance gains can be achieved—ultimately con-
+tributing to more consistent localization across varied envi-
+ronments.
+Text Generalization. To assess the model’s generalizability
+from a language perspective, we evaluate its performance
+across three levels of text complexity: simple, moderate,
+and complex. On the KITTI360Pose test set, the perfor-
+mance with moderate text input remains comparable to
+that with simple descriptions, suggesting that the model
+can effectively handle moderately complex language. How-
+ever, performance degrades with complex inputs, indicating
+that challenges remain in filtering redundant information,
+extracting relevant content, and processing longer descrip-
+tions. On other datasets, the performance drop is more pro-
+nounced as text complexity increases. This suggests that the
+difficulty of cross-modal alignment in unfamiliar domains
+further limits the model’s ability to interpret and leverage
+complex language.
+5.3.2
+Fine Localization
+To enhance localization accuracy, prior works [8], [9] intro-
+duce a fine localization stage. For a fair comparison, we
+adopt the same training configuration as in [8], [9] for our
+fine localization network. As shown in Table 4, we report
+the top-k (k = 1, 5, 10) recall rates under different error
+thresholds ϵ < 5/10/15, m. On the KITTI360Pose (color)
+test set with simple text descriptions, Text2Loc++ achieves
+a top-1 recall rate of 44% under an error bound of ϵ < 5, m,
+outperforming the previous state-of-the-art CMMLoc by
+15%. Moreover, Text2Loc++ consistently maintains supe-
+rior performance when the localization error tolerance is
+relaxed or when k increases. These results demonstrate that
+Setting
+Submap Retrieval Recall (%) ↑
+k = 1
+k = 3
+k = 5
+w/o masked instance
+32.1
+53.5
+62.6
+matching
+10.1
+21.3
+28.5
+Text2Loc++
+35.3
+35.3
+35.3
+35.3
+57.6
+57.6
+57.6
+57.6
+66.9
+66.9
+66.9
+66.9
+TABLE 5: Performance analysis of the masked instance
+training. ”matching” refers to retaining only the instances in
+the submaps that are explicitly described in the text instead
+of masked instance training.
+Setting
+Submap Retrieval Recall (%) ↑
+k = 1
+k = 3
+k = 5
+w/o instance loss
+33.2
+54.9
+64.0
+w/o text loss
+33.4
+56.2
+65.3
+w/o submap loss
+32.5
+54.1
+63.6
+Text2Loc++
+35.3
+35.3
+35.3
+35.3
+57.6
+57.6
+57.6
+57.6
+66.9
+66.9
+66.9
+66.9
+TABLE 6: Performance analysis of the each component of the
+proposed modality-aware hierarchical contrastive learning.
+Text2Loc++ can more accurately interpret textual descrip-
+tions and achieve stronger semantic understanding of point
+clouds compared to prior methods. Qualitative examples are
+provided in Section 7.1. Text2Loc++ also achieves the best
+performance in the other datasets and refinement training.
+For different levels of text difficulty, moderate text descrip-
+tions show a slight performance drop compared to simple
+descriptions. Since fine localization requires more precise
+extraction of textual information than global place recogni-
+tion, it is more sensitive to the complexity of the input text.
+With complex text input, the model struggles to accurately
+match the textual descriptions with the corresponding in-
+formation in the submaps, leading to a noticeable decline in
+overall performance.
+6
+ABLATION STUDY
+6.1
+Ablation Study of Masked Instance Training
+In Table 5, the removal of masked instance training results
+in an 8% decrease in model performance. Additionally,
+the complete exclusion of instances that not aligned with
+the textual descriptions substantially impairs the model’s
+generalization capability. These observations underscore the
+efficacy of masked instance training in mitigating the chal-
+lenges associated with many-to-many cross-modal align-
+ment during the training process.
+6.2
+Ablation Study of Modality-aware Hierarchical Con-
+trastive Learning
+Table. 6 presents an ablation study evaluating the impact
+of different losses for the modality-aware hierarchical con-
+trastive learning. We could conclude that removing any loss
+component leads to a drop in performance across all recall
+levels, highlighting the importance of each component to
+the model’s overall effectiveness.
+
+
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2015
+13
+Level
+TD
+Extra
+Submap Retrieval Recall (%) ↑
+k = 1
+k = 3
+k = 5
+Moderate
+✗
+-
+22.7
+41.8
+50.8
+✗
+Shuffle
+23.1
+41.7
+50.5
+✓
+-
+34.0
+34.0
+34.0
+34.0
+56.8
+56.8
+56.8
+56.8
+65.4
+65.4
+65.4
+65.4
+Complex
+✗
+-
+19.0
+35.5
+44.1
+✗
+Translate
+16.7
+31.8
+39.8
+✗
+Trans.-LoRA*
+29.9
+29.9
+29.9
+29.9
+50.5
+50.5
+50.5
+50.5
+59.5
+59.5
+59.5
+59.5
+✓
+w/o LoRA
+24.8
+44.6
+53.8
+✓
+-
+27.9
+48.1
+57.5
+TABLE 7: Comparison of whether using text distillation for
+moderate and complex text on the KITTI360Pose bench-
+mark. TD means text distillation. Several additional set-
+tings are applied during both training and testing phases.
+”Shuffle” involves randomizing the format of moderate de-
+scriptions. For a specific position, we utilize various formats
+of descriptions during training. ”Translate” denotes the use
+of ChatGPT-4o [50] to simplify complex text descriptions
+before feeding them into the language encoder for both
+training and testing.
+6.3
+Ablation Study of Text Distillation
+In Table 7, we report Text2Loc++ performance without the
+proposed Masked Instance Training (MIT), Modality-aware
+Hierarchical Contrastive Learning (MHCL), and the text dis-
+tillation (TD), respectively, as well as the effect of different
+modules separately for different text types. In the simple
+text setting, we observe a steep drop in top-5 recall (from
+63.5 to 57.2) when multiple alignment is disabled. However,
+limiting submaps to only the instances mentioned in the text
+does not improve performance; in fact, it makes it worse.
+The reason is that, during training, any extra instances are
+removed to perfectly match text and submap. In testing,
+though, submaps still include these extra instances, creating
+a mismatch between training and testing distributions and
+leading to the observed performance drop.
+In both moderate and complex texts, we observe that
+disabling text distillation results in a decrease of 11% and
+7% in top-5 performance, respectively. This highlights the
+critical role of text group alignment. Additionally, we find
+that modifying other modules cannot compensate for this
+loss. In the moderate setting, we attempted to increase the
+complexity of text during training by using linguistically
+diverse expressions conveying the same meaning. However,
+this approach did not lead to any performance improve-
+ment. This indicates that in the case of moderate text, the
+increased complexity prevents us from directly constructing
+a multimodal latent space. Therefore, the task must be
+divided: first, by constructing the latent space based on
+simple text, and then by using text distillation to map the
+complex text into the pre-established latent space.As shown
+in Table 3, even with the incorporation of MIT, MHCL, and
+TD, complex text input consistently yields approximately
+10% lower performance than the simple input. As linguistic
+structures become more entangled and blended—with non-
+parallel syntax and the inclusion of irrelevant or extraneous
+content—the model exhibits difficulty in capturing all useful
+information. Although we initially consider applying text
+Parameter
+Value
+Submap Retrieval Recall (%) ↑
+k = 1
+k = 3
+k = 5
+Loss
+pairwise
+31.5
+53.3
+62.5
+Latent Space
+dim = 64
+28.3
+48.5
+57.4
+dim = 128
+32.9
+54.8
+64.1
+dim = 512
+35.6
+35.6
+35.6
+35.6
+58.3
+58.3
+58.3
+58.3
+67.9
+67.9
+67.9
+67.9
+HTM Layers
+no HTM
+31.0
+51.0
+59.8
+1
++
+2
+34.7
+56.7
+65.9
+2
++
+1
+34.9
+57.6
+66.9
+2
++
+2
+33.8
+56.1
+65.5
+Pooling
+Intra Mean
+35.0
+57.5
+66.4
+Inter Mean
+32.0
+53.5
+62.9
+Backbones
+(Text)
+T5 base
+34.1
+56.8
+65.5
+T5 large
+34.0
+56.7
+65.8
+Llama3.2-1B
+33.2
+54.6
+63.7
+Llama3.2-3B
+33.0
+55.5
+64.7
+CLIP-B/16
+33.2
+54.6
+63.7
+Input Branches
+no number
+33.6
+54.6
+63.7
+no color
+26.0
+45.6
+54.8
+no position
+21.0
+40.1
+49.8
+Default Config
+-
+35.3
+57.6
+66.9
+TABLE 8: Performance analysis of global place recognition
+in the different configurations in the simple text mode. The
+default config utilize InfoNCE loss [51], 256 latent space,
+HTM (intra = 1 + inter = 1), max pooling in intra and inter
+encoder, T5 large [16] backbones in the text module, and
+number, color, position branches.
+simplification via ChatGPT-4o [50] to mitigate this issue,
+empirical results show no performance gain. A likely ex-
+planation is that the simplification process introduces se-
+mantic loss, which adversely affects model predictions. As
+discussed in Section 7.3, the model demonstrates high sensi-
+tivity to sentence-level content, where even minor omissions
+or distortions result in notable performance drops. Con-
+versely, finetuning the T5 module with the LoRA method
+significantly enhances accuracy in the first stage. In the case
+of complex text descriptions, the best results are achieved
+using the translate-LoRA approach, where the finetuned
+T5 model first translates complex text into simplified text,
+which is then passed into our model. However, this method
+is approximately 10 times slower (∼300 ms) than directly
+using the T5 encoder with LoRA (∼30 ms). Given the min-
+imal performance difference and the substantial efficiency
+gain, we adopt the direct T5 encoder approach in our final
+model.
+6.4
+Analysis of Network Settings
+The following ablation studies evaluate the effectiveness of
+different components of Text2Loc, including both the text-
+submap global place recognition and fine localization.
+Global place recognition. In Table. 8, we assess the
+relative contribution of modules and settings.
+We replace the InfoNCE loss [51] by pairwise ranking
+loss [52] that causes a slight decrease of the perforamce.
+By systematically varying the latent space dimension
+from 64 to 512, we find that when it is below 128, changes in
+dimensionality substantially influence the results. However,
+
+
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2015
+14
+once the dimension exceeds 128, further increases have only
+a minor effect on performance. To ensure a fair comparison
+with other models, we set the dimension to 256 as our
+default setting.
+We also explore the effect of hierarchical transformer
+modules (HTM). Removing the HTM layers altogether re-
+sults in lower performance, whereas stacking layers (e.g.,
+1+2 or 2+1) introduces a minor alteration on the recall at all
+values.
+We further study different pooling mechanisms for ag-
+gregating features, comparing intra- and inter-mean with
+the max pooling. The results suggest that intra-mean pool-
+ing performs on par with the default setting, while inter-
+mean pooling falls short.
+Then, we investigate how different backbones affect the
+final results. Overall, we found that changing the backbone
+does not significantly alter submap retrieval recall. We
+tested an encoder-only T5 (since the T5 decoder component
+was not used in our model) and a decoder-only Llama. Even
+though Llama’s architecture is more complex, it failed to
+improve performance on our task. The underlying reason
+is that our task requires precise extraction of linguistic
+information rather than broad understanding of multiple
+languages, and thus different LLM architectures performed
+similarly in this regard. Furthermore, we used the language
+encoder from CLIP [46] and found that the multimodal text
+encoder does not outperform a pure language model in our
+task.
+Finally, we analyze the role of different input branches.
+Removing each branch leads to a noticeable drop in overall
+performance, emphasizing the importance of preserving all
+input modalities.
+Our default configuration yields the highest recall, re-
+flecting a balanced choice of loss function, latent dimension,
+HTM configuration, pooling strategy, backbone architecture,
+and input branches.
+6.5
+Ablation Study of Fine Localization
+To analyze the effectiveness of each proposed module in
+our matching-free fine-grained localization, we separately
+evaluate the Cascaded Cross-Attention Transformer (CCAT)
+and Prototype-based Map Cloning (PMC) module, denoted
+as Text2Loc++ CCAT and Text2Loc++ PMC. For a fair com-
+parison, all methods utilize the same submaps retrieved
+from our global place recognition. The results are shown
+in Table. 9. Text2Pos* significantly outperforms the origin
+results of Text2Pos [8], indicating the superiority of our
+proposed global place recognition. Notably, replacing the
+matcher in Text2Pos [8] with our CCAT results in about 10%
+improvements at top 1 on the test set. We also observe the
+inferior performance of Text2Loc++ PMC to the proposed
+method when interpreting only the proposed PMC module
+into the Text2Pos [8] fine localization network. The results
+are consistent with our expectations since PMC can lead to
+the loss of object instances in certain submaps. Combining
+both modules achieves the best performance, improving
+the performance by 10% at top 1 on the test set. This
+demonstrates adding more training submaps by PMC is
+beneficial for our matching-free strategy without any text-
+instance matches.
+Localization Recall (%) - ϵ < 5m ↑
+Method
+k = 1
+k = 5
+k = 10
+Text2Pos [8]
+12.2
+31.9
+43.0
+Text2Pos*
+36.6
+64.7
+72.8
+Text2Loc++ PMC
+36.8
+64.6
+72.9
+Text2Loc++ CCAT
+39.9
+69.7
+78.2
+Text2Loc++ (Ours)
+43.8
+43.8
+43.8
+43.8
+72.1
+72.1
+72.1
+72.1
+80.0
+80.0
+80.0
+80.0
+TABLE 9: Ablation study of the fine localization on the
+KITTI360Pose benchmark. * indicates the fine localization
+network from Text2Pose [8], and the submaps retrieved
+through our global place recognition. Text2Loc++ CCAT
+indicates the removal of only the PMC while retaining
+the CCAT in our network. Conversely, Text2Loc++ PMC
+keeps the PMC but replaces the CCAT with the text-instance
+matcher in Text2Pos.
+7
+DISCUSSION
+7.1
+Qualitative Analysis
+To complement the quantitative analysis, Fig. 7 presents
+qualitative examples, showing two correct localizations and
+one failure case from text descriptions. Given a query
+text, we visualize the ground truth, the top-3 retrieved
+submaps, and the fine localization predictions. Within the
+text–submap global place recognition setting, a retrieved
+submap is defined as positive if it includes the target
+location. We provide text inputs with different levels of
+complexity across various scenes. Subfigures (a)–(c) cor-
+respond to simple, moderate, and complex text descrip-
+tions, respectively. The results allow us to intuitively ob-
+serve how the model performs under different degrees of
+textual complexity. In most cases, Text2Loc++ effectively
+retrieves the ground-truth submap or spatially adjacent
+ones. Nonetheless, as shown in (b), some negative submaps
+may still appear among the top-3 retrieved candidates. By
+comparing (a) and (b), Text2Loc++ demonstrates its ability
+to predict more accurate locations by leveraging positively
+retrieved submaps during fine localization. With increasing
+text complexity, more failure cases like (c) occur, where all
+retrieved submaps are negative. In these cases, fine localiza-
+tion has difficulty predicting accurate positions, indicating
+its reliance on coarse localization.
+Through the qualitative results obtained from text
+queries of varying complexity, we identify two key chal-
+lenges in outdoor multimodal text-to-point-cloud retrieval.
+(1) Scene similarity. Negative submaps may contain in-
+stances visually similar to the ground truth due to the
+limited diversity of outdoor environments. This highlights
+the necessity of highly discriminative representations to ef-
+fectively distinguish between submaps. (2) Text complexity.
+Highly complex text descriptions, even when containing
+sufficient location cues, can degrade localization perfor-
+mance because of their intricate linguistic structures and the
+presence of irrelevant information.
+7.2
+Computational Cost Analysis
+In this section, we analyze the computational requirements
+of our two stage networks in terms of parameter count and
+
+
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2015
+15
+The pose is on-top of a gray-green sidewalk. 
+The pose is on-top of a gray-green road. 
+The pose is west of a black vegetation. 
+The pose is east of a gray sidewalk. 
+The pose is east of a gray pole. 
+The pose is east of a gray terrain. 
+The gray road is below you. 
+The place is west of the dark-green terrain, 
+the green pole and the green sidewalk.
+The gray sidewalk is west of you. The gray sidewalk is north of you. 
+Situated atop the muted gray-green roadway, we find ourselves in a  landscape 
+where a dull sidewalk stretches to the west of our current position. To our east, 
+an expanse of dark vegetation looms, while directly south lies a gray pole, 
+accompanied by a traffic sign of a similar  hue. In contrast, to our north stands 
+a diminutive gray structure,  marking our place relative to it. This intricate 
+arrangement of elements creates a vivid picture of our surroundings, 
+highlighting the interplay of colors and directions. 
+Text descriptions
+Ground
+truth
+Top 1
+Top 2
+Top 3
+Fine
+localization
+(a)
+(b)
+(c)
+Global place recognition
+Simple
+Moderate
+Complex
+Fig. 7: Qualitative localization results on the KITTI360Pose dataset: In global place recognition, the numbers in top3
+retrieval submaps represent center distances between retrieved submaps and the ground truth. Green boxes indicate
+positive submaps containing the target location, while red boxes signify negative submaps. For fine localization, red and
+black dots represent the ground truth and predicted target locations, with the red number indicating the distance between
+them. (a), (b), and (c) uses simple, moderate, and complex text descriptions respectively.
+Method
+Parameters (M)
+Runtime (ms)
+Localization Recall
+Text2Loc++ Matcher
+2.08
+43.11
+0.34
+Text2Loc++ (Ours)
+1.06
+2.27
+0.40
+TABLE 10: Computational cost requirement analysis of our
+fine localization network on the KITTI360Pose test dataset.
+time efficiency. For a fair comparison, all methods are eval-
+uated on the KITTI360Pose test set using a single NVIDIA
+TITAN X (12 GB) GPU. In global recognition, Text2Loc++
+requires 22.75 ms and 12.37 ms to generate global descrip-
+tors for a textual query and a submap, respectively, while
+Text2Pos [8] achieves this in 2.31 ms and 11.87 ms. The
+longer inference time for Text2Loc++ stems from the addi-
+tional frozen T5 (30.21 ms with LoRA and 21.18 ms without
+LoRA) and HTM modules (1.57 ms). Our text and 3D en-
+coders contain 13.65 M (excluding T5) and 1.84 M parame-
+ters, respectively. For fine localization, we substitute the pro-
+posed matching-free CCAT module with the text–instance
+matcher from [8], [9], denoted as Text2Loc++ Matcher. As
+shown in Table 10, Text2Loc++ is nearly twice as parameter-
+efficient as previous works [8], [9] and requires only 5%
+of their inference time. This gain arises primarily because
+previous approaches employ SuperGlue [53] as a matcher,
+which is computationally heavy and time-consuming. Fur-
+thermore, our matching-free design eliminates the need for
+the Sinkhorn algorithm [54], further improving efficiency
+without sacrificing performance.
+7.3
+Robustness Analysis
+In this section, we investigate the impact of text modifica-
+tions on localization accuracy. To provide a comprehensive
+analysis, we systematically alter specific components of the
+query text—namely color, direction, and semantic class—at
+varying levels of severity. Specifically, we incrementally
+Change Type
+Hint
+Original
+The pose is east of a gray road.
+Color
+The pose is east of a green road.
+Direction
+The pose is west of a gray road.
+Semantic class
+The pose is east of a gray sidewalk.
+Discard
+(Sentence deleted)
+TABLE 11: Change Instruction
+16k
+8k
+4k
+2k
+0
+20
+40
+60
+80
+63.3
+58.8
+52.5
+47.2
+Number of Trainnig Samples
+Top-5  Retrieval Recall (%)
+0
+1
+2
+3
+4
+0
+20
+40
+60
+80
+Number of Modified Descriptions
+Top-5  Retrieval Recall (%)
+discard
+color
+class
+direction
+Fig. 8: Robustness analysis comparing different metrics.
+modify between 1 and 5 sentences, ranging from minor
+to major changes. We also evaluate the network’s robust-
+ness to erroneous versus missing information by randomly
+omitting sentences. Details of the modification strategies are
+provided in Table 11, and all evaluations are conducted on
+the KITTI360Pose test set. Results are illustrated in Fig. 8.
+Our findings reveal that modifying or removing even
+a single sentence leads to a significant performance drop,
+particularly for changes involving color and semantic class.
+For example, altering just one sentence in these categories
+results in an approximate 30% decrease in both Top-1 and
+Top-5 recall, indicating that the network is highly sensitive
+to contextual text cues. In contrast, direction-related modifi-
+cations (represented by the blue line) have the least impact
+on performance.
+Further analysis shows that degradation patterns vary
+
+
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2015
+16
+across categories. Directional changes exhibit a near-linear
+decline with the number of modified sentences, while color
+and class modifications follow an exponential drop. More-
+over, the impact of erroneous information—except for direc-
+tion—is comparable to that of sentence omission, suggesting
+that incorrect context can be as detrimental as missing infor-
+mation. These results underscore the importance of robust
+context modeling in text-based localization systems.
+We also assess robustness under reduced training data.
+Following the protocol in [55], we decrease the training
+set size from 16k to 2k samples. As shown in Fig. 8, Top-
+5 recall gradually drops from 63.3% to 47.2%, indicating
+that our model maintains strong retrieval performance even
+under significant data scarcity. While some degradation is
+expected, the relatively smooth decline demonstrates the
+model’s resilience to limited supervision.
+7.4
+Embedding Space Analysis
+To illustrate the structure of the learned embedding space,
+we visualize it using T-SNE [56], as presented in Fig. 9.
+The baseline method Text2Loc [21], not using masked
+instance training (MIT), modality-aware hierarchical con-
+trastive learning (MHCL), and the text distillation (TD),
+results in a less discriminative embedding space, where
+positive submaps tend to lie far from their corresponding
+query text descriptions and are often dispersed across the
+space. At the same time, they also cause text embeddings
+with different expressions but the same meaning, as well
+as subsets of positive submaps (submaps containing only a
+subset of instances from the original submaps), to have a
+large distance from the original submaps. This negatively
+affects our ability to accurately perform text-based submap
+retrieval during testing. In contrast, the method with MIT,
+MHCL, TD brings positive submaps, subset of positive
+submaps, and query text representations significantly closer
+together within the embedding distance. It shows that the
+proposed network indeed results in a more discriminative
+cross-model space for recognizing places.
+Text Descriptions
+Positive Submaps
+Subsets of Positive Submaps
+Negative Submaps
+w/o  MIT &  MHCL & TD
+w/  MIT &  MHCL & TD
+Fig. 9: T-SNE illustration comparison between with and
+without masked instance training (MIT), modality-aware hi-
+erarchical contrastive learning (MHCL), and text distillation
+(TD).
+8
+CONCLUSION
+In this work, we address the under-explored problem of
+localizing 3D point cloud submaps from natural language
+descriptions, a key step toward more intuitive and flexible
+human-robot spatial interaction. We propose Text2Loc++, a
+novel coarse-to-fine framework that captures fine-grained
+semantic context across modalities. For global place recog-
+nition, we introduce an attention-based language encoder
+and a modality-aware hierarchical contrastive learning strat-
+egy with masked instance training to better align text and
+submaps. To handle complex language inputs, we incorpo-
+rate text distillation and LoRA-based tuning. Furthermore,
+we are the first to propose a matching-free fine localization
+design, which is lighter, faster, and more accurate. Exten-
+sive experiments demonstrate that Text2Loc++ outperforms
+prior methods and generalizes well across diverse linguistic
+and geometric inputs. We hope this work inspires future
+research in language-grounded 3D localization and human-
+centric spatial understanding.
+Acknowledgements. This work was supported by the ERC
+Advanced Grant SIMULACRON, by the Munich Center for
+Machine Learning, and by the Royal Academy of Engineer-
+ing (RF\201819\18\163), by the Anhui Provincial Natural
+Science Foundation (2508085MF142). Some figures created
+by https://BioRender.com.
+REFERENCES
+[1]
+Z. Min, B. Zhuang, S. Schulter, B. Liu, E. Dunn, and M. Chan-
+draker, “Neurocs: Neural nocs supervision for monocular 3d
+object localization,” in Proceedings of the IEEE/CVF Conference on
+Computer Vision and Pattern Recognition (CVPR), June 2023, pp.
+21 404–21 414. 1
+[2]
+P.-E. Sarlin, D. DeTone, T.-Y. Yang, A. Avetisyan, J. Straub, T. Mal-
+isiewicz, S. R. Bul`o, R. Newcombe, P. Kontschieder, and V. Balntas,
+“Orienternet: Visual localization in 2d public maps with neural
+matching,” in Proceedings of the IEEE/CVF Conference on Computer
+Vision and Pattern Recognition (CVPR), June 2023, pp. 21 632–21 642.
+1
+[3]
+Y. Hu, J. Yang, L. Chen, K. Li, C. Sima, X. Zhu, S. Chai, S. Du, T. Lin,
+W. Wang, L. Lu, X. Jia, Q. Liu, J. Dai, Y. Qiao, and H. Li, “Planning-
+oriented autonomous driving,” in Proceedings of the IEEE/CVF
+Conference on Computer Vision and Pattern Recognition, 2023. 1
+[4]
+Y. Xia, Q. Wu, W. Li, A. B. Chan, and U. Stilla, “A lightweight
+and detector-free 3d single object tracker on point clouds,” IEEE
+Transactions on Intelligent Transportation Systems, 2023. 1
+[5]
+Y. Xia, Y. Xu, C. Wang, and U. Stilla, “Vpc-net: Completion of 3d
+vehicles from mls point clouds,” ISPRS Journal of Photogrammetry
+and Remote Sensing, vol. 174, pp. 166–181, 2021. 1
+[6]
+Y. Xia, M. Gladkova, R. Wang, Q. Li, U. Stilla, J. a. F. Henriques,
+and D. Cremers, “Casspr: Cross attention single scan place recog-
+nition,” in Proceedings of the IEEE/CVF International Conference on
+Computer Vision (ICCV), October 2023, pp. 8461–8472. 1, 3, 7
+[7]
+Y. Xia, “Perception of vehicles and place recognition in urban
+environment based on mls point clouds,” Ph.D. dissertation, Tech-
+nische Universit¨at M¨unchen, 2023. 1
+[8]
+M. Kolmet, Q. Zhou, A. Oˇsep, and L. Leal-Taix´e, “Text2pos:
+Text-to-point-cloud cross-modal localization,” in Proceedings of the
+IEEE/CVF Conference on Computer Vision and Pattern Recognition,
+2022, pp. 6687–6696. 1, 2, 3, 4, 6, 7, 8, 10, 11, 12, 14, 15
+[9]
+G. Wang, H. Fan, and M. Kankanhalli, “Text to point cloud
+localization with relation-enhanced transformer,” arXiv preprint
+arXiv:2301.05372, 2023. 1, 3, 4, 6, 7, 11, 12, 15
+[10] T. Shang, Z. Li, P. Xu, and J. Qiao, “Mambaplace:text-to-
+point-cloud cross-modal place recognition with attention mamba
+mechanisms,” 2025. [Online]. Available: https://arxiv.org/abs/
+2408.15740 1, 3, 10, 11
+
+
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2015
+17
+[11] Y. Xu, H. Qu, J. Liu, W. Zhang, and X. Yang, “Cmmloc:
+Advancing text-to-pointcloud localization with cauchy-mixture-
+model
+based
+framework,”
+2025.
+[Online].
+Available:
+https:
+//arxiv.org/abs/2503.02593 1, 3, 10, 11
+[12] J.-E.
+Deschaud,
+D.
+Duque,
+J.
+P.
+Richa,
+S.
+Velasco-Forero,
+B. Marcotegui, and F. Goulette, “Paris-carla-3d: A real and
+synthetic outdoor point cloud dataset for challenging tasks in
+3d mapping,” Remote Sensing, vol. 13, no. 22, 2021. [Online].
+Available: https://www.mdpi.com/2072-4292/13/22/4713 1, 7,
+10, 11, 12
+[13] W. Tan, N. Qin, L. Ma, Y. Li, J. Du, G. Cai, K. Yang, and J. Li,
+“Toronto-3D: A large-scale mobile lidar dataset for semantic seg-
+mentation of urban roadways,” in Proceedings of the IEEE/CVF
+Conference on Computer Vision and Pattern Recognition Workshops,
+2020, pp. 202–203. 1, 7, 10, 11, 12
+[14] J. Zhu, J. Gehrung, R. Huang, B. Borgmann, Z. Sun, L. Hoegner,
+M. Hebel, Y. Xu, and U. Stilla, “Tum-mls-2016: An annotated
+mobile lidar dataset of the tum city campus for semantic point
+cloud interpretation in urban areas,” Remote Sensing, vol. 12, no. 11,
+p. 1875, 2020. 1, 7, 10, 11, 12
+[15] X. Roynard, J.-E. Deschaud, and F. Goulette, “Paris-lille-3d: A
+large and high-quality ground-truth urban point cloud dataset
+for automatic segmentation and classification,” The International
+Journal of Robotics Research, vol. 37, no. 6, pp. 545–557, 2018. 1, 7,
+10, 11, 12
+[16] C. Raffel, N. Shazeer, A. Roberts, K. Lee, S. Narang, M. Matena,
+Y. Zhou, W. Li, and P. J. Liu, “Exploring the limits of transfer
+learning with a unified text-to-text transformer,” Journal of
+Machine Learning Research, vol. 21, no. 140, pp. 1–67, 2020.
+[Online]. Available: http://jmlr.org/papers/v21/20-074.html 2,
+4, 6, 13
+[17] X. Yuan, Z. Lin, J. Kuen, J. Zhang, Y. Wang, M. Maire, A. Kale, and
+B. Faieta, “ Multimodal Contrastive Training for Visual Represen-
+tation Learning ,” in 2021 IEEE/CVF Conference on Computer Vision
+and Pattern Recognition (CVPR), Jun. 2021. 2
+[18] Z. Wang, Y. Zhao, X. Cheng, H. Huang, J. Liu, L. Tang, L. Li,
+Y. Wang, A. Yin, Z. Zhang, and Z. Zhao, “Connecting multi-modal
+contrastive representations,” 2023. 2
+[19] J. E. Hu, Y. Shen, P. Wallis, Z. Allen-Zhu, Y. Li, S. Wang,
+and W. Chen, “Lora: Low-rank adaptation of large language
+models,” ArXiv, vol. abs/2106.09685, 2021. [Online]. Available:
+https://api.semanticscholar.org/CorpusID:235458009 2, 6
+[20] S. Xu, X. Li, H. Yuan, L. Qi, Y. Tong, and M.-H. Yang, “Llavadi:
+What matters for multimodal large language models distillation,”
+2024. [Online]. Available: https://arxiv.org/abs/2407.19409 2
+[21] Y. Xia, L. Shi, Z. Ding, J. F. Henriques, and D. Cremers, “Text2loc:
+3d point cloud localization from natural language,” in Proceedings
+of the IEEE/CVF Conference on Computer Vision and Pattern Recogni-
+tion, 2024. 3, 10, 11, 16
+[22] D. G. Lowe, “Distinctive image features from scale-invariant key-
+points,” International journal of computer vision, vol. 60, pp. 91–110,
+2004. 3
+[23] E. Rublee, V. Rabaud, K. Konolige, and G. Bradski, “Orb: An
+efficient alternative to sift or surf,” in 2011 International conference
+on computer vision.
+Ieee, 2011, pp. 2564–2571. 3
+[24] P.-E. Sarlin, C. Cadena, R. Siegwart, and M. Dymczyk, “From
+coarse to fine: Robust hierarchical localization at large scale,”
+in Proceedings of the IEEE/CVF Conference on Computer Vision and
+Pattern Recognition, 2019, pp. 12 716–12 725. 3
+[25] T. Sattler, B. Leibe, and L. Kobbelt, “Efficient & effective prioritized
+matching for large-scale image-based localization,” IEEE transac-
+tions on pattern analysis and machine intelligence, vol. 39, no. 9, pp.
+1744–1756, 2016. 3
+[26] M. Angelina Uy and G. Hee Lee, “Pointnetvlad: Deep point cloud
+based retrieval for large-scale place recognition,” in Proceedings
+of the IEEE Conference on Computer Vision and Pattern Recognition,
+2018, pp. 4470–4479. 3
+[27] Y. Xia, Y. Xu, S. Li, R. Wang, J. Du, D. Cremers, and U. Stilla, “Soe-
+net: A self-attention and orientation encoding network for point
+cloud based place recognition,” in Proceedings of the IEEE/CVF
+Conference on computer vision and pattern recognition, 2021, pp.
+11 348–11 357. 3, 5
+[28] Z. Zhou, C. Zhao, D. Adolfsson, S. Su, Y. Gao, T. Duckett, and
+L. Sun, “Ndt-transformer: Large-scale 3d point cloud localisation
+using the normal distribution transform representation,” in 2021
+IEEE International Conference on Robotics and Automation (ICRA).
+IEEE, 2021, pp. 5654–5660. 3
+[29] H. Deng, T. Birdal, and S. Ilic, “Ppfnet: Global context aware local
+features for robust 3d point matching,” in Proceedings of the IEEE
+Conference on Computer Vision and Pattern Recognition, 2018, pp.
+195–205. 3
+[30] Z. Fan, Z. Song, H. Liu, Z. Lu, J. He, and X. Du, “Svt-net:
+Super light-weight sparse voxel transformer for large scale place
+recognition.”
+AAAI, 2022. 3
+[31] W. Zhang, H. Zhou, Z. Dong, Q. Yan, and C. Xiao, “Rank-
+pointretrieval: Reranking point cloud retrieval via a visually con-
+sistent registration evaluation,” IEEE Transactions on Visualization
+and Computer Graphics, 2022. 3
+[32] J. Ma, J. Zhang, J. Xu, R. Ai, W. Gu, and X. Chen, “Overlaptrans-
+former: An efficient and yaw-angle-invariant transformer network
+for lidar-based place recognition,” IEEE Robotics and Automation
+Letters, vol. 7, no. 3, pp. 6958–6965, 2022. 3
+[33] T. Barros, L. Garrote, R. Pereira, C. Premebida, and U. J. Nunes,
+“Attdlnet: Attention-based deep network for 3d lidar place recog-
+nition,” in Iberian Robotics conference.
+Springer, 2022, pp. 309–320.
+3
+[34] J. Ma, G. Xiong, J. Xu, and X. Chen, “Cvtnet: A cross-view
+transformer network for place recognition using lidar data,” arXiv
+preprint arXiv:2302.01665, 2023. 3
+[35] J. Komorowski, “Minkloc3d: Point cloud based large-scale place
+recognition,” in Proceedings of the IEEE/CVF Winter Conference on
+Applications of Computer Vision, 2021, pp. 1790–1799. 3
+[36] T.-Y. Lin, P. Doll´ar, R. Girshick, K. He, B. Hariharan, and S. Be-
+longie, “Feature pyramid networks for object detection,” in Pro-
+ceedings of the IEEE Conference on Computer Vision and Pattern
+Recognition, 2017, pp. 2117–2125. 3
+[37] F. Radenovi´c, G. Tolias, and O. Chum, “Fine-tuning cnn image
+retrieval with no human annotation,” IEEE Transactions on Pattern
+Analysis and Machine Intelligence, vol. 41, no. 7, pp. 1655–1668, 2018.
+3
+[38] A. Segal, D. Haehnel, and S. Thrun, “Generalized-icp.” in Robotics:
+science and systems, vol. 2, no. 4.
+Seattle, WA, 2009, p. 435. 3
+[39] G. Elbaz, T. Avraham, and A. Fischer, “3d point cloud registration
+for localization using a deep neural network auto-encoder,” in
+Proceedings of the IEEE conference on computer vision and pattern
+recognition, 2017, pp. 4631–4640. 3
+[40] M. Prabhudesai, H.-Y. F. Tung, S. A. Javed, M. Sieb, A. W. Harley,
+and K. Fragkiadaki, “Embodied language grounding with implicit
+3d visual feature representations,” 2019. 3
+[41] P. Achlioptas, A. Abdelreheem, F. Xia, M. Elhoseiny, and L. Guibas,
+“Referit3d: Neural listeners for fine-grained 3d object identifica-
+tion in real-world scenes,” in Computer Vision–ECCV 2020: 16th
+European Conference, Glasgow, UK, August 23–28, 2020, Proceedings,
+Part I 16.
+Springer, 2020, pp. 422–440. 3
+[42] D. Z. Chen, A. X. Chang, and M. Nießner, “Scanrefer: 3d object
+localization in rgb-d scans using natural language,” in European
+conference on computer vision.
+Springer, 2020, pp. 202–221. 3
+[43] Z. Yuan, X. Yan, Y. Liao, R. Zhang, S. Wang, Z. Li, and S. Cui, “In-
+stancerefer: Cooperative holistic understanding for visual ground-
+ing on point clouds through instance multi-level contextual re-
+ferring,” in Proceedings of the IEEE/CVF International Conference on
+Computer Vision, 2021, pp. 1791–1800. 3
+[44] M. Feng, Z. Li, Q. Li, L. Zhang, X. Zhang, G. Zhu, H. Zhang,
+Y. Wang, and A. Mian, “Free-form description guided 3d visual
+graph network for object grounding in point cloud,” in Proceedings
+of the IEEE/CVF International Conference on Computer Vision, 2021,
+pp. 3722–3731. 3
+[45] C. R. Qi, L. Yi, H. Su, and L. J. Guibas, “Pointnet++: Deep hierar-
+chical feature learning on point sets in a metric space,” Advances
+in neural information processing systems, vol. 30, 2017. 4
+[46] A. Radford, J. W. Kim, C. Hallacy, A. Ramesh, G. Goh, S. Agar-
+wal, G. Sastry, A. Askell, P. Mishkin, J. Clark et al., “Learning
+transferable visual models from natural language supervision,”
+in International conference on machine learning.
+PMLR, 2021, pp.
+8748–8763. 6, 14
+[47] Y. Liao, J. Xie, and A. Geiger, “KITTI-360: A novel dataset and
+benchmarks for urban scene understanding in 2d and 3d,” arXiv
+preprint arXiv:2109.13410, 2021. 7
+[48] M. Cordts, M. Omran, S. Ramos, T. Rehfeld, M. Enzweiler, R. Be-
+nenson, U. Franke, S. Roth, and B. Schiele, “The cityscapes dataset
+for semantic urban scene understanding,” in Proc. of the IEEE
+Conference on Computer Vision and Pattern Recognition (CVPR), 2016.
+7
+
+
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2015
+18
+[49] OpenAI, “Gpt-4 technical report,” 2024. [Online]. Available:
+https://arxiv.org/abs/2303.08774 9
+[50] ——, “Gpt-4o system card,” 2024. [Online]. Available: https:
+//arxiv.org/abs/2410.21276 13
+[51] A. van den Oord, Y. Li, and O. Vinyals, “Representation learning
+with contrastive predictive coding,” 2019. [Online]. Available:
+https://arxiv.org/abs/1807.03748 13
+[52] R. Kiros, R. Salakhutdinov, and R. S. Zemel, “Unifying visual-
+semantic embeddings with multimodal neural language models,”
+2014. [Online]. Available: https://arxiv.org/abs/1411.2539 13
+[53] P.-E. Sarlin, D. DeTone, T. Malisiewicz, and A. Rabinovich,
+“SuperGlue:
+Learning
+feature
+matching
+with
+graph
+neural
+networks,” in CVPR, 2020. [Online]. Available: https://arxiv.org/
+abs/1911.11763 15
+[54] M.
+Cuturi,
+“Sinkhorn
+distances:
+Lightspeed
+computa-
+tion
+of
+optimal
+transport,”
+in
+Advances
+in
+Neural
+Information
+Processing
+Systems,
+C.
+Burges,
+L.
+Bottou,
+M.
+Welling,
+Z.
+Ghahramani,
+and
+K.
+Weinberger,
+Eds.,
+vol.
+26.
+Curran
+Associates,
+Inc.,
+2013.
+[Online].
+Avail-
+able:
+https://proceedings.neurips.cc/paper files/paper/2013/
+file/af21d0c97db2e27e13572cbf59eb343d-Paper.pdf 15
+[55] K. Zha, P. Cao, J. Son, Y. Yang, and D. Katabi, “Rank-n-contrast:
+Learning continuous representations for regression,” in Thirty-
+seventh Conference on Neural Information Processing Systems, 2023.
+16
+[56] L. Van der Maaten and G. Hinton, “Visualizing data using t-sne.”
+JMLR, 2008. 16
+Yan Xia is now a tenure-track Associate Profes-
+sor at University of Science and Technology of
+China (USTC). He was a senior researcher in
+the Chair of Computer Vision and Artificial Intel-
+ligence at Technical University of Munich (TUM)
+and a research scientist at Munich Center for
+Machine Learning (MCML), working with Prof.
+Daniel Cremers. He obtained his PhD degree
+from TUM in 2023 and was a visiting scholar in
+Visual Geometry Group (VGG) at University of
+Oxford. His research interests include 3D vision,
+robotics, and autonomous driving.
+Letian Shi is currently a master’s student in
+Operations Research at the Technical University
+of Munich (TUM). He obtained his M.Sc. degree
+in Data Engineering and Analytics from TUM in
+2023. His research interests include 3D vision,
+multimodal model, and 3D generation.
+Yilin Di is currently a PhD researcher at the
+Technical University of Munich (TUM), working
+under the supervision of Prof. Henrik Semb. She
+previously worked as a research scientist at the
+Helmholtz Zentrum M¨unchen (HMGU). She ob-
+tained her master’s degree from TUM in 2021.
+Her research interests include 3D cell models,
+organoid development, and live imaging.
+Jo˜ao F. Henriques is a Research Fellow of the
+Royal Academy of Engineering, working at the
+Visual Geometry Group (VGG) at the University
+of Oxford. His research focuses on computer
+vision and deep learning, with the goal of mak-
+ing machines more perceptive, intelligent and
+capable of helping people. He created the KCF
+and SiameseFC visual object trackers, which
+won the highly competitive VOT Challenge twice,
+and are widely deployed in consumer hardware,
+from Facebook apps to commercial drones. His
+research spans many topics: robot mapping and navigation, including
+reinforcement learning and 3D geometry; multi-agent cooperation and
+”friendly” AI; as well as various forms of learning, from self-supervised,
+causal, and meta-learning, including optimisation theory.
+Daniel Cremers is a Professor at TUM, where
+he is holding the Chair of Computer Vision and
+Artificial Intelligence. He is also a co-founder of
+Artisense, a deep-tech startup developing com-
+puter vision and AI solutions for robotics and
+autonomous driving. Daniel has served as an
+area chair for ICCV, ECCV, CVPR, ACCV, IROS,
+etc., and as a program chair for ACCV 2014.
+In 2018, he was an organizer of ECCV in Mu-
+nich. His publications received several awards
+and have been cited more than 70000 times. In
+2016, Daniel received the Leibniz Award, the biggest award in German
+academia.

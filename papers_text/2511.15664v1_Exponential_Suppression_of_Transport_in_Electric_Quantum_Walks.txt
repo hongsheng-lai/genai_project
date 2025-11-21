@@ -1,0 +1,1437 @@
+EXPONENTIAL SUPPRESSION OF TRANSPORT
+IN ELECTRIC QUANTUM WALKS
+HOUSSAM ABDUL-RAHMAN, CHRISTOPHER CEDZICH, G¨UNTER STOLZ, AND ALBERT H. WERNER
+Abstract. We establish exact scalings for the maximal group velocity of translation-invariant
+quantum walks in periodic electric fields.
+Our main result shows that the maximal group
+velocity decays exponentially with the period of the field in the whole parameter range, thus
+affirming a conjecture of [3] and at the same time augmenting it to an exact equality. We further
+demonstrate explicit revival relations and characterize the absolutely continuous spectrum in
+these models. Our results apply directly also to generalized CMV matrices.
+1. Introduction
+Periodic quantum systems are commonly associated with ballistic transport, where states
+propagate linearly in time [10,33]. An intriguing and fundamental question arises naturally: is
+it possible to manipulate the velocity by suitably tuning the system’s (periodic) parameters?
+Addressing this question is the primary theme and driving motivation of the present work.
+The physical setup in which we study this question are so-called quantum walks, which have
+emerged as powerful models for studying quantum dynamics. Originally introduced as quantum
+analogues of classical random walks, quantum walks capture essential aspects of quantum co-
+herence and interference. In folklore wisdom, this makes them propagate ballistically compared
+to the diffusive spread of their classical counterparts [43,51]. They have since found numerous
+applications as subroutines in quantum algorithms [45,46], as quantum simulators [11,31], and
+in the study of topological phenomena [8,9,23,44] where new invariants arise due to the discrete
+nature of time.
+From a mathematical perspective, quantum walks offer a rich environment for rigorous spec-
+tral and dynamical analysis, connecting features of discrete quantum systems to harmonic anal-
+ysis [12,22,27,37], operator theory [23,25,27,36], and localization phenomena [5,30,38–42,47].
+Particularly noteworthy is the connection between so-called split-step quantum walks and CMV
+matrices [13, 15], which are five-diagonal unitary matrices that play a fundamental role in the
+theory of orthogonal polynomials and can be thought of as a unitary counterpoint of Jacobi
+matrices [17,49,50].
+Quantum walks subject to external fields have been extensively studied [3, 14, 19, 21, 24, 53].
+In the simplest case, electric fields in one spatial dimension, the dynamics are highly sensitive to
+the field’s arithmetic nature [29,30]: For rational electric fields, the system is effectively periodic,
+which results in ballistic transport at large time scales. Surprisingly, on timescales of the order
+of the denominator of the field, “revivals” occur: the initial state is reproduced with an accuracy
+that is exponentially good in the period of the system. On the other hand, irrational electric fields
+produce complex dynamics that depend on their arithmetic properties: well-approximable fields
+produce hierarchical dynamics while generic fields lead to Anderson localization characterized
+by pure point spectrum and exponentially localized eigenfunctions [30].
+In this paper, we establish an exact scaling for the maximum group velocity of quantum
+walks in rational electric fields which can be thought of a single-particle equivalent of the Lieb-
+Robinson velocity [28, 48]. We prove that this maximal (group) velocity of split-step walks in
+1
+arXiv:2511.15664v1  [math-ph]  19 Nov 2025
+
+
+EXPONENTIAL SUPPRESSION OF TRANSPORT IN ELECTRIC QUANTUM WALKS
+2
+rational electric fields decays exponentially in the period m of the field. More precisely, we show
+that the maximal velocity is exactly |a|m, where a with |a| < 1 is the transmission coefficient
+characterizing the walk. This bound extends the previous results from [3] significantly, where the
+proof techniques limited the validity to an upper bound for transmission coefficients |a| < 1/4
+only.
+We use a conjunction of the Fourier techniques from [29] and a generalized “sieving”
+technique which states that the product of any two shift-coin walks amounts to a direct sum of
+split-step walks.
+Our results complement recent works on discrete Schr¨odinger operators with periodic po-
+tentials [1, 2]. The velocity bounds established there demonstrate that the maximal velocity,
+while positive, can be made arbitrarily small by controlling the potential. Our findings similarly
+highlight that careful periodic modulation can systematically control and suppress transport ve-
+locities, offering significant insights into engineering quantum systems with tailored dynamical
+properties.
+The paper is organized as follows. Section 2 introduces quantum walks in the presence of
+electric fields and presents our main results on maximal velocity, revival relations, and spectral
+properties (Theorem 2.1). These results are proved in Section 3 using a Fourier transform and
+the sieving method developed in Theorem 3.3. Section 3.4 collects crucial intermediate results
+on velocity bounds for powers and direct sums of walks, that are used in the proof of Theorem
+2.1. Finally, the conjecture in [3] that we prove is written in the setting of CMV matrices. To
+make explicit the connection between our results and those of [3], we discuss the connection
+between quantum walks and generalized extended CMV matrices in the Appendix.
+2. Model and results
+2.1. Quantum walks
+We consider quantum walks on the one-dimensional lattice with a two-dimensional internal
+degree of freedom. These systems are modeled as unitary operators on H = ℓ2(Z) ⊗C2, where
+the two factors represent the position space and the two internal degrees of freedom of the
+quantum particle, respectively. We label the basis of H as δs
+n = δn ⊗es for n ∈Z and s ∈{+, −}
+with the ordering
+. . . , δ−
+n−1, δ+
+n , δ−
+n , δ+
+n+1, δ−
+n+1, . . .
+(2.1)
+where {δn : n ∈Z} and {e+ = [1, 0]⊤, e−= [0, 1]⊤} are the standard bases of ℓ2(Z) and C2. On
+H, we define two types of unitary operators:
+(a) state-dependent shift operators S± which are defined via the bilateral shift T : δn 7→δn+1
+on ℓ2(Z) and the orthogonal projections P± = |e±⟩⟨e±| on C2 as
+S± = T ±1 ⊗P± + 1Z ⊗P∓.
+(2.2)
+(b) coin operators C on H which act locally at position n via a unitary 2 × 2 matrix
+C(n) =
+
+a(n)
+b(n)
+c(n)
+d(n)
+
+,
+(2.3)
+where the unitarity of C(n) implies that |a(n)| = |d(n)| and |b(n)| = |c(n)| for all n ∈Z.
+A quantum walk on H with strictly finite jump width is a finite product of such shifts and coins.
+This construction is exhaustive: any banded unitary operator can be decomposed into such a
+finite product, both in the general case [26] as well as in the translation-invariant setting [52].
+The concrete systems we study are split-step quantum walks that are defined via
+W = S+C1S−C2,
+(2.4)
+
+
+EXPONENTIAL SUPPRESSION OF TRANSPORT IN ELECTRIC QUANTUM WALKS
+3
+where the coins Cj act locally as Cj(n). A special type of split-step walks is obtained by setting
+the first coin operator to the identity operation, i.e. C1 = 1. The resulting shift-coin walk has
+the form
+U = SC,
+(2.5)
+where S = S+S−and C = C2. Throughout this manuscript, we consistently denote split-step
+walks by W and reserve U for shift-coin walks1. When the distinction is not essential, we shall
+denote general quantum walks on H simply by W.
+We say that a walk W or a coin C is translation-invariant if W or C commutes with lattice
+translations. In this setting, the local coins are independent of position, i.e., C(n) ≡C(0) for
+all n ∈Z. Without loss of generality, we omit a global phase such that det(C(n)) = 1, which
+leads to
+C(n) =
+
+a
+b
+−¯b
+¯a
+
+,
+a, b ∈C; |a|2 + |b|2 = 1.
+(2.6)
+A popular choice is the Hadamard coin CH with a = b = 1/
+√
+2.
+In the translation-invariant setting, the dynamics is (partially) diagonalized by the Fourier
+transform
+(Fψ)(θ) =
+1
+√
+2π
+X
+n∈Z
+e−iθnψ(n),
+(2.7)
+where ψ(n) is an element of the local Hilbert space C2 at n ∈Z. It is straightforward to check
+that a translation-invariant walk W becomes a matrix-valued multiplication operator in Fourier
+space, that is,
+(FWF −1 ˆψ)(θ) = ˆW(θ) ˆψ(θ).
+(2.8)
+Here, ˆψ(θ) is C2-valued and ˆW(θ) is a unitary 2 × 2 matrix for every θ ∈T := [0, 2π). We can
+further diagonalize the unitary matrices ˆW(θ) pointwise which yields
+ˆW(θ) =
+X
+s=±
+eiωs(θ)Ps(θ),
+(2.9)
+where the dispersion relations ωs(θ) determine the eigenvalues and the Ps(θ) are (rank-1) or-
+thogonal eigenprojections. Below, the dispersion relations play a central role in determining the
+velocity of translation-invariant walks.
+2.2. Electric fields
+We introduce electric fields into quantum walks via the discrete minimal coupling scheme
+described in [24], where electric fields appear as commutation phases between discrete-time
+shifts and lattice translations.
+In the present setting on Z, these commutation phases can
+be implemented as multiplication by a position-dependent phase [24, 29].
+We only consider
+homogeneous and static electric fields Φ ∈T := [0, 2π) which are implemented by the diagonal
+unitary operators
+FΦ = eiΦQ,
+˜FΦ =
+
+1Z ⊗
+1
+0
+0
+eiΦ
+
+F2Φ = ei Φ
+2 e−i Φ
+2 (1Z⊗σ3)F2Φ,
+(2.10)
+where Qδ±
+n = nδ±
+n is the position operator on H, and σ3 is the third Pauli matrix. Note that
+the global phase eiΦ/2 can be dropped without loss of generality.
+We mainly consider “rational electric fields” Φ = 2πn/m with n, m ∈Z coprime such that
+eiΦ is a primitive mth root of unity. Since Φ/2π = n/m is rational, we refer to FΦ and ˜FΦ as
+1The motivation for this notation is the following: In Theorem 3.3 below we will see that two time steps with
+a shift-coin walk (“double-U”) are related to a single step with a split-step walk (W).
+
+
+EXPONENTIAL SUPPRESSION OF TRANSPORT IN ELECTRIC QUANTUM WALKS
+4
+rational electric fields. Throughout the paper, we mostly refer simply to “the electric field Φ”
+whenever is clear from the context whether FΦ or ˜FΦ is intended.
+We incorporate these rational electric fields into shift-coin and split-step quantum walk dy-
+namics by defining
+UΦ := FΦU = FΦSC
+and
+WΦ := ˜FΦW = ˜FΦS+CS−C,
+(2.11)
+respectively. Dynamical and spectral properties of the electric shift-coin UΦ have been explored
+previously in [24, 29, 30]. The crucial observation there was that, while UΦ itself is not, the
+temporally regrouped walk Um
+Φ is translation-invariant. This periodic structure of Um
+Φ leads to
+revivals in the dynamics under UΦ: in [29, Theorem 1] it is established that
+U2m
+Φ
++ 1
+ = 2|a|m
+for m odd,
+Um
+Φ + (−1)m/21
+ = 2|a|m/2
+for m even.
+(2.12)
+This “revival theorem” implies that UΦ reproduces any initial state periodically up to an error
+that is exponentially small in m such that the walker exhibits very little net transport.
+The observation that the temporally regrouped walk commutes with the lattice translations
+opens up the toolbox of Fourier techniques. These tools are standard in the study of quantum
+walks (see, e.g., [6, 7,29, 35]). The proof of the revival theorem hinges on the observation that
+the dispersion relations of Um
+Φ can be explicitly calculated [29] and are given as ω±(θ, m) where
+cos(ω±(θ, m)) =
+(
+|a|m cos(m(θ + arg(a))),
+m odd,
+−|a|m cos(m(θ + arg(a))) + (−1)m/2(|a|m −1),
+m even.
+(2.13)
+Note that in the special case here ω−= −ω+ because ˆW(θ) ∈SU(2) by (2.6). This implies
+immediately that spec(UΦ) is absolutely continuous and consists of 2m bands. The dispersion
+relations depend explicitly on the coin parameter a; we suppress this dependence to simplify
+notation.
+On the other hand, the electric split-step walk WΦ with translation-invariant coins is precisely
+the model studied in [3]. Note that ˜FΦ is not precisely an electric field as defined in [24] due to
+the additional exp[−iΦ(1Z ⊗σ3)/2]. However, this translation-invariant coin can be absorbed
+and WΦ can be written (up to a global phase exp[iΦ/2]) as
+WΦ = F2ΦS+ ˜CS−C,
+where
+˜C := e−i Φ
+2 (1Z⊗σ3)C.
+This justifies calling WΦ an electric walk. Note, that 2Φ/(2π) = 2m/n is reduced only if n is
+odd.
+2.3. The speed limit of electric quantum walks
+A fundamental question for quantum walks is how fast information can propagate under the
+given dynamics, especially when external fields are present. Quantum walks model the discrete-
+time dynamics of single particles. Thus, in t ∈N timesteps, an initial state ψ evolves under
+an arbitrary quantum walk W as ψ 7→W tψ. Moreover, let us denote by Q(t) := W −tQW t
+the position operator at time t in the Heisenberg picture. The velocity of a (normalized) state
+ψ ∈H with respect to W is given as
+v(W, ψ) := lim sup
+t→∞
+1
+t ∥Q(t)ψ∥≡lim sup
+t→∞
+1
+t ∥QW tψ∥.
+(2.14)
+Then we define the maximal velocity as the supremum over all states ψ ∈Dom(Q) of the
+asymptotic expected position in ballistic scaling (recall that Q is the position operator on H):
+v(W) :=
+sup
+ψ∈Dom(Q)
+∥ψ∥=1
+v(W, ψ).
+(2.15)
+
+
+EXPONENTIAL SUPPRESSION OF TRANSPORT IN ELECTRIC QUANTUM WALKS
+5
+Clearly, for any t ∈N the domain of QW t contains all finitely supported states. Moreover, it
+is straightforward to check that Dom(Q) is invariant2 under W, that is, if ψ ∈Dom(Q) then
+W tψ ∈Dom(Q) for any t ∈N.
+In [3, Theorem 3.2] it is proved that the velocity of any initial state Ψ = δ0 ⊗ψ(0) localized
+at 0 with ψ(0) ∈C2 normalized is bounded from above by
+v(WΦ, Ψ) ≤(4|a|)m.
+(2.16)
+This means that the velocity of Ψ decays exponentially in m whenever |a| ∈(0, 1/4) whereas
+the bound becomes trivial for all other coin parameters. Numerics led the authors of [3] to
+conjecture that the exponential decay of the velocity holds for all |a| ∈[0, 1]. Part (a) of our
+main result implies this conjecture: it provides an exact bound for the velocity of any initial
+state in the domain of Q and, moreover, it improves the prefactor in (2.16):
+Theorem 2.1. Let m, n ∈N be coprime and let Φ = 2πn/m. Consider the electric split-step
+walk WΦ = ˜FΦS+CS−C with translation-invariant coin C. Then, for |a| ∈[0, 1] as in (2.6):
+(a) The maximal velocity of WΦ is
+v(WΦ) = |a|m.
+(2.17)
+(b) WΦ satisfies the revival relation
+W m
+Φ + (−1)m−n1
+ = 2|a|m.
+(2.18)
+(c) The spectrum of WΦ is absolutely continuous and given as
+spec(WΦ) =
+[
+θ∈T, s=±
+k=0,1,...,2m−1
+n
+ei 1
+m(bωs(θ,m)+πk)o
+where bωs(θ, m) =
+(
+ωs(θ, 2m),
+n odd,
+2ωs(θ, m),
+n even,
+(2.19)
+and ω±(θ, m) is given by (2.13).
+Thus, the walker’s ballistic spread becomes exponentially suppressed for all |a| ∈(0, 1). Note
+that v is an asymptotic quantity that does not establish a bound for finite times, see Figure 1.
+However, it is known that the faster-than-light contributions, so the contributions with velocities
+larger than v, decay exponentially in time [28].
+Remark 2.2. An upper bound on v(W) automatically implies an upper bound on the asymptotic
+standard deviation of the time-evolved position operator in ballistic scaling:
+σψ(Q(t)) :=
+p
+⟨ψ, Q(t)2ψ⟩−⟨ψ, Q(t)ψ⟩2 ≤
+p
+⟨ψ, Q(t)2ψ⟩= ∥Q(t)ψ∥.
+(2.20)
+Thus, bounding the maximal velocity also provides control over the rate of quantum spreading,
+or uncertainty, in the system. See also Figure 1.
+Theorem 2.1 is proved in Section 3. While ˜FΦ(T ±1 ⊗1) = e2iΦ(T ±1 ⊗1) ˜FΦ and thus W 2m
+Φ
+is translation-invariant, a direct approach via Fourier technics as for the electric shift coin walk
+UΦ in [29] does not seem feasible: there, the structure of the multiplication operator U2m
+Φ
+resp.
+Um
+Φ in Fourier space played a significant role in determining the exact form of the dispersion
+relations (2.13). The Floquet matrix of W 2m
+Φ
+does not posses this structure, which seems to
+render its dispersion relations inaccessible. For the proof of Theorem 2.1 we therefore embark
+a different, less direct approach: the key observation that U2
+Φ acts as a two-step walk suggests
+decomposing the position space into even and odd lattice sites. Then U2
+Φ decomposes as a direct
+sum of two split-step walks which allows us to establish a relation between the velocities of UΦ
+and WΦ.
+2This follows from checking that if ψ ∈Dom(Q) then Cjψ and S±ψ are in Dom(Q).
+
+
+EXPONENTIAL SUPPRESSION OF TRANSPORT IN ELECTRIC QUANTUM WALKS
+6
+0
+50
+100
+150
+200
+250
+t
+0
+5
+10
+15
+20
+25
+30
+35
+40
+σψ(Q(t))
+0
+20
+40
+0
+2
+4
+UΦ
+WΦ
+|a|
+|a|m
+0
+50
+100
+150
+200
+250
+t
+0
+1
+2
+3
+4
+5
+σψ(Q(t))
+UΦ
+WΦ
+|a|
+|a|m
+Figure 1. The standard deviation of the dynamics under UΦ and WΦ with the
+Hadamard coin C = CH for Φ/(2π) = 1/5 (left) and Φ/(2π) = 21/106 = [0, 5, 21]
+(right) with initial state ψ = |0⟩⊗[1, i]⊤/
+√
+2. As the inset shows, the dynamics is
+initially very similar until about the order of t = 20 where the errors committed
+in each revival accumulated enough such that the next term in the continued
+fraction expansion kicks in, see [29] for a thorough explanation of the interplay
+between the continued fraction expansion of Φ and the revivals.
+The revival formula (2.18) demonstrates that the system evolving under WΦ returns close to
+its initial state, after every m steps up to an error decaying exponentially in m. On the one hand,
+this mirrors the revivals in the shift-coin case. However, for m odd WΦ exhibits revivals after m
+time steps, whereas the revivals for UΦ occur only after 2m steps, see Figure 1. These revivals
+underpin the exponential suppression of the maximal velocity and highlight the fundamental
+role of periodicity in suppressing ballistic transport.
+As a direct consequence of the revival relation we conclude that irrational fields that are
+well-approximable in terms of their continued fraction expansion lead to hierarchical motion:
+an alternation between farther and farther excursion and better and better revivals on the time
+scales of the denominators of their continued fraction approximants. As argued in [29], the
+excursions preclude point spectrum while the revivals preclude absolutely continuous spectrum
+via the Riemann-Lebesgue lemma, wherefore the spectral type of such walks must be singular
+continuous. On an arithmetic level, one can show this for example for Lebesgue fields via a
+Gordon-type argument, see [18]. In the typical case, that is, for a full measure set of fields,
+Anderson localization follows for WΦ from the proof in [30] via sieving.
+−π
+π
+−π
+π
+θ
+ω(θ;
+−π
+π
+−π
+π
+θ
+ω(θ;
+−π
+π
+−π
+π
+θ
+ω(θ;
+Figure 2. The spectra resp. the dispersion relations ω±(θ, m) of UΦ for m =
+1, 3, 5 (left to right). The colors distinguish the different signs in (2.13).
+3. Proof of Theorem 2.1
+In this section, we prove the main result, Theorem 2.1, by exploiting the decomposition of
+the Hilbert space H = ℓ2(Z) ⊗C2 into two subspaces corresponding to even and odd lattice
+sites. This decomposition enables us to relate the dynamics of split-step and shift-coin walk:
+the product of two shift-coin operators decomposes as a direct sum of two split-step walks with
+
+
+EXPONENTIAL SUPPRESSION OF TRANSPORT IN ELECTRIC QUANTUM WALKS
+7
+−π
+π
+−π
+π
+θ
+ω(θ, m)
+−π
+π
+−π
+π
+θ
+ω(θ, m)
+−π
+π
+−π
+π
+θ
+ω(θ, m)
+Figure 3. The spectra resp. the dispersion relations ω±(θ, m) of UΦ for m =
+2, 4, 6 (left to right). The colors distinguish the different signs in (2.13). Note
+that opposed to the case of m odd, here the choices for ω± are not analytic at
+the degenerate points. However, such an analytic choice is always possible in the
+present setting [4,6].
+respect to this even-odd decomposition. Combining this with a bound on the maximal velocity
+of electric shift-coin walks that follows from their dispersion relations in (2.13) is the key to
+establishing the exact form of velocity bounds and revival phenomena for split-step walks in
+rational electric fields.
+3.1. The maximal velocity of UΦ
+In the setting where W is an arbitrary translation-invariant quantum walk, it is well known
+(see, e.g., [6, Theorem 4], [32, Theorem 9.4] or [28, Proposition 2.2]) that for any ψ ∈Dom(Q)
+there exists a bounded self-adjoint operator V on H such that
+lim
+t→∞
+1
+t Q(t)ψ = V ψ.
+(3.1)
+This (group) velocity operator V is explicitly given as
+V := F −1
+"X
+s
+∂θωs(θ)Ps(θ)
+#
+F,
+(3.2)
+where ωs and Ps(θ) are the dispersion relations and the eigenprojections from (2.9), and the
+eigenvalues ∂θωs(θ) in Fourier space are called “group velocities” [28]. Equation (3.1) shows
+that the lim sup in the definition of the velocity (2.15) is in fact just a limit. Thus, the velocity
+of W can be expressed as the maximum of the group velocities:
+v(W) =
+sup
+ψ∈Dom(Q)
+∥ψ∥=1
+lim
+t→∞
+1
+t ∥W −tQW tψ∥= sup
+ψ∈H
+∥ψ∥=1
+∥V ψ∥=
+max
+s=±, θ∈T |∂θωs(θ)|,
+(3.3)
+where we used the fact that Dom(Q) is dense in H.
+As mentioned above, the electric shift-coin walk UΦ with rational field Φ = 2πm/n is itself
+not translation-invariant, so to apply the above we need to consider the velocity of the m-fold
+regrouped walk v(Um
+Φ ). For this walk, the dispersion relations are given in (2.13), and its speed
+is obtained by computing:
+Lemma 3.1. For the coin matrix C in (2.6), we have that
+max
+θ∈T |∂θω±(θ, m)| =
+(
+m|a|m,
+m odd,
+m|a|m/2,
+m even,
+(3.4)
+with the dispersion relations ω±(θ, m) given in (2.13).
+
+
+EXPONENTIAL SUPPRESSION OF TRANSPORT IN ELECTRIC QUANTUM WALKS
+8
+Proof of Lemma 3.1. Differentiating the dispersion relations from (2.13) with respect to θ and
+solving for ∂θω±(θ, m) gives
+∂θω±(θ, m) = (−1)m+1 m|a|m sin(m(θ + arg(a)))
+sin(ω±(θ, m))
+.
+(3.5)
+We square this expression and use (2.13) again. Considering the odd and even cases for m
+separately yields
+m odd: Set y1(θ) := cos2(m(θ + arg(a))) ∈[0, 1] such that
+(∂θω±(θ, m))2 = m2|a|2m
+1 −cos2(m(θ + arg(a)))
+1 −|a|2m cos2(m(θ + arg(a))) = m2|a|2m
+1 −y1(θ)
+1 −|a|2my1(θ).
+(3.6)
+m even: Set y2(θ) := 1 −(−1)m/2 cos(m(θ + arg(a))) ∈[0, 2]. Then from (2.13)
+cos(ω±(θ, m)) = (−1)m/2+1 (1 −|a|my2(θ)) .
+(3.7)
+Thus,
+sin2(ω±(θ, m)) = |a|my2(θ) (2 −|a|my2(θ)) ,
+(3.8)
+and hence,
+(∂θω±(θ, m))2 = m2|a|m
+2 −y2(θ)
+2 −|a|my2(θ).
+(3.9)
+The functions
+f1(y) =
+1 −y
+1 −|a|2my,
+f2(y) =
+2 −y
+2 −|a|my
+(3.10)
+are decreasing for all y ∈[0, 2] and hence achieve their maximum value 1 at y = 0.
+□
+Together with Lemma 3.8 below, this implies that the velocity of UΦ is given by
+v(UΦ) = 1
+mv(Um
+Φ ) =
+(
+|a|m
+m odd,
+|a|m/2
+m even,
+(3.11)
+where |a| ∈[0, 1] is the coin parameter from (2.6).
+3.2. Sieving split-step walks
+Our methods to prove the main result in Theorem 2.1 depend on the decomposition of the
+lattice over which H is defined into even and odd labeled cells as
+H = He ⊕Ho :=
+h
+ℓ2(2Z) ⊗C2i
+⊕
+h
+ℓ2(2Z + 1) ⊗C2i
+,
+(3.12)
+where we choose bases {δ±
+e,n} and {δ±
+o,n} for He and Ho, respectively, with ordering
+(δ+
+e,n, δ−
+e,n) := (δ+
+2n, δ−
+2n)
+(δ+
+o,n, δ−
+o,n) := (δ+
+2n+1, δ−
+2n+1).
+(3.13)
+Remark 3.2. For simplicity, we use the same symbols (Q, W, S±, C, . . .) to denote operators
+defined both on the full Hilbert space H and on its subspaces He and Ho. In each case, the symbol
+refers to the corresponding operator acting on the relevant space. This slight abuse of notation
+should cause no confusion, as the relevant domains will always be clear from the context.
+The following theorem shows that the square of a shift-coin walk decomposes as a direct sum
+of two split-step walks with respect to the even-odd decomposition in (3.12). This result, which
+we prove for completeness in Section 3.3 below, is the translation of folklore knowledge in the
+literature of CMV matrices, see for example [34].
+
+
+EXPONENTIAL SUPPRESSION OF TRANSPORT IN ELECTRIC QUANTUM WALKS
+9
+Theorem 3.3. Let U = SC, be a shift-coin walk on H = ℓ2(Z) ⊗C2. Then
+U2 = W ⊕˜W,
+(3.14)
+where W = S+C1S−C2 and ˜W = S+ ˜C1S−˜C2 are specified by the local coins
+C1(n) = C(2n + 1),
+C2(n) = C(2n),
+˜C1(n) = C(2n + 2),
+˜C2(n) = C(2n + 1),
+and the direct sum is with respect to even and odd lattice sites (3.12).
+Note that when C is translation-invariant, (3.14) reads as U2 = W ⊕W where W = S+CS−C.
+The introduction of electric fields depends on which quantum walk we regard as a fundamental
+shift in time direction [24]. For example, it makes a structural difference whether we electrify U
+or U2 via (2.11): Since FΦ is block-diagonal with each block equal to a phase times the identity,
+it commutes with coins, whereas SFΦ = (1Z ⊗e−iΦσ3)FΦS, where σ3 denotes the third Pauli
+matrix. This directly implies that for a shift-coin walk U
+UFΦ = e−iΦ(1Z⊗σ3)FΦU.
+Thus, squaring an electric shift-coin walk UΦ = FΦU yields
+U2
+Φ = FΦUFΦU = e−iΦ(1Z⊗σ3)F2ΦU2 = e−iΦ(1Z⊗σ3)F2Φ
+
+W ⊕˜W
+
+(3.15)
+where W and ˜W are as in Theorem 3.3. To fully decompose U2
+Φ with respect to even and odd
+lattice sites, it remains to decompose the field FΦ = eiΦQ. Clearly, the position operator Q on
+H decomposes as
+Q = (2Q) ⊕(2Q + 1).
+(3.16)
+This implies that the field FΦ in (2.10) decomposes with respect to (3.12) as
+FΦ = eiΦQ = e2iΦQ ⊕eiΦe2iΦQ = F2Φ ⊕eiΦF2Φ.
+(3.17)
+Substituting this expression into (3.15) and replacing Φ 7→Φ/2 yields the following corollary:
+Corollary 3.4. Let UΦ = FΦU be a shift-coin walk subject to the electric field FΦ = eiΦQ. Then
+U2
+Φ/2 =
+
+e−iΦ/2 ˜FΦW
+
+⊕
+
+eiΦ/2 ˜FΦ ˜W
+
+(3.18)
+where W and ˜W are the split-step walks as in Theorem 3.3 and the field ˜FΦ is given in (2.10).
+This decomposition allows us to relate the velocities of the two types of walks: Lemma 3.7
+below shows that the velocity of any walk that acts independently on even and odd lattice
+sites without mixing them is twice the maximum of the subsystem velocities. Moreover, it is
+intuitively clear that the speed of some kth power of a quantum walk is k-times the speed of the
+walk, see Lemma 3.8 below. Applying these results to (3.18) in the translation-invariant case
+yields, on the one hand
+v
+
+U2
+Φ/2
+
+= 2 max
+n
+v
+
+e−iΦ/2WΦ
+
+, v
+
+eiΦ/2WΦ
+o
+= 2v (WΦ) ,
+(3.19)
+and on the other (see Lemma 3.8)
+v
+
+U2
+Φ/2
+
+= 2v
+ UΦ/2
+
+,
+(3.20)
+which together imply that the velocities of UΦ/2 and WΦ agree. This chain of arguments high-
+lights why in the definition of WΦ we use the field ˜FΦ instead of FΦ: Lemma 3.8 only applies to
+powers of operators. If we would consider the split-step walk with field FΦ instead of ˜FΦ, the
+left side of (3.18) we amount to eiΦ/2(1⊗σ3)U2
+Φ/2 for which we have no handle on its velocity.
+
+
+EXPONENTIAL SUPPRESSION OF TRANSPORT IN ELECTRIC QUANTUM WALKS
+10
+To prove Theorem 2.1 we exploit (3.18), where we note that for the electric field Φ = 2πn/m,
+the fundamental period of Φ/2 on the left side is ℓ:= 2m/ gcd(n, 2). Since n, m are coprime by
+assumption, it is easy to see that
+ℓ=
+(
+2m,
+n odd,
+m,
+n even,
+(3.21)
+where in the second case m is automatically odd. Then part (a) of Theorem 2.1, that is v(WΦ) =
+|a|m follows directly from (3.11).
+To prove the revival relations (2.18) as well as part (c) of Theorem 2.1 about the spectrum
+of WΦ, we start from (3.18). It directly follows that
+U2m
+Φ/2 −(−1)m+n1 =
+
+e−imΦ/2W m
+Φ −(−1)m+n1
+
+⊕
+
+eimΦ/2W m
+Φ −(−1)m+n1
+
+.
+(3.22)
+Observe that for Φ = 2πn/m with m, n coprime, e±imΦ/2 = (−1)n. Taking the norm of (3.22)
+yields
+U2m
+Φ/2 −(−1)m+n1
+ = ∥W m
+Φ −(−1)m1∥.
+(3.23)
+Again, since exp(iΦ/2) is a primitive ℓth-root of the unity, (3.21) shows that the spectral prop-
+erties of WΦ depend on the parity of n.
+n odd: In this case, ℓ= 2m is even. Applying the revival formula (2.12) yields
+∥W m
+Φ −(−1)m1∥=
+U2m
+Φ/2 + (−1)m1
+ = 2|a|m.
+(3.24)
+Moreover,
+spec(W 2m
+Φ ) = spec
+ (U2m
+Φ/2)2
+=
+[
+θ∈T
+n
+ei2ω±(θ,2m)o
+,
+(3.25)
+where ω±(θ, m) is given in (2.13), and for 2m the formula corresponds to the even case.
+n even: In this case, m is odd. Thus, again by (2.12),
+∥W m
+Φ + 1∥= ∥U2m
+Φ/2 + 1∥= 2|a|m.
+(3.26)
+Moreover,
+spec(W 2m
+Φ ) = spec
+ (Um
+Φ/2)4
+=
+[
+θ∈T
+n
+ei4ω±(θ,m)o
+.
+(3.27)
+In both cases, (2.19) follows by taking the 2mth root.
+□
+3.3. Proof of Theorem 3.3
+We begin by explicitly describing the action of a split-step quantum walk on basis elements
+{δs
+n : n ∈Z, s ∈{+, −}} with the ordering (2.1). This will allow us to easily identify even-odd
+decompositions.
+Lemma 3.5. Let C1(n), C2(n), n ∈Z be two sequences of unitary 2 × 2 matrices that serve
+as local coins of the form (2.3). Then, the corresponding split-step walk W acts on the basis
+{δs
+n : n ∈Z, s = ±} of ℓ2(Z) ⊗C2 as
+Wδ+
+n = a2(n)
+
+a1(n)δ+
+n+1 + c1(n)δ−
+n
+
++ c2(n)
+
+b1(n −1)δ+
+n + d1(n −1)δ−
+n−1
+
+Wδ−
+n = b2(n)
+
+a1(n)δ+
+n+1 + c1(n)δ−
+n
+
++ d2(n)
+
+b1(n −1)δ+
+n + d1(n −1)δ−
+n−1
+
+.
+(3.28)
+Proof. This follows directly from the definition of the state-dependent shift operators in (2.2)
+and the coins in (2.3).
+□
+
+
+EXPONENTIAL SUPPRESSION OF TRANSPORT IN ELECTRIC QUANTUM WALKS
+11
+Let U be a shift-coin walk with local coins as in (2.3). To prove Theorem 3.3, we start by
+noting the invariance of the even and odd subspaces He and Ho under the action of U2. Precisely,
+U2He ⊂He
+and
+U2Ho ⊂Ho.
+(3.29)
+This can be seen from calculating the action on the basis states: at the even lattice sites the
+product acts as
+U2δ+
+2n = a(2n)[a(2n + 1)δ+
+2n+2 + c(2n + 1)δ−
+2n] + c(2n)[b(2n −1)δ+
+2n + d(2n −1)δ−
+2n−2]
+U2δ−
+2n = b(2n)[a(2n + 1)δ+
+2n+2 + c(2n + 1)δ−
+2n] + d(2n)[b(2n −1)δ+
+2n + d(2n −1)δ−
+2n−2]
+Similarly, on the odd lattice sites,
+U2δ+
+2n+1 = a(2n + 1)[a(2n + 2)δ+
+2n+3 + c(2n + 2)δ−
+2n+1] + c(2n + 1)[b(2n)δ+
+2n+1 + d(2n)δ−
+2n−1]
+U2δ−
+2n+1 = b(2n + 1)[a(2n + 2)δ+
+2n+3 + c(2n + 2)δ−
+2n+1] + d(2n + 1)[b(2n)δ+
+2n+1 + d(2n)δ−
+2n−1]
+Comparing with (3.28), one immediately sees that the action of U2 on each subspace He and
+Ho coincides with that of two separate split-step quantum walks with local coin operators as
+described in the statement of Theorem 3.3.
+Remark 3.6. The ordering of the basis in He and Ho is important here: taking instead
+(δ+
+e,n, δ−
+e,n) := (δ+
+2n, δ−
+2n)
+(δ+
+o,n, δ−
+o,n) := (δ−
+2n−1, δ+
+2n+1),
+(3.30)
+and comparing with the analogue of Lemma 3.5 for the transposed split-step walk, we find that
+U2 acts on Ho as W ⊤= C⊤
+2 S⊤
+−C⊤
+1 S⊤
++ with local coins
+C1(n) = σ1C(2n + 1)⊤σ1,
+C2(n) = σ1C(2n)⊤σ1.
+(3.31)
+3.4. Speed limit of direct sums and powers of quantum walks
+In this section, we establish two structural results on the propagation velocity of quantum
+walks that play a central role in the proof of Theorem 2.1 and are of independent interest. Both
+of them are expectable: Lemma 3.7 says that the velocity of a direct sum of quantum walks
+is determined by the fastest component, while Lemma 3.8 establishes that the velocity of the
+kth power of a quantum walk is k-times the velocity of the walk. Together, these results are
+useful for analyzing composite or periodically driven quantum walks and underpin our analysis
+of ballistic propagation.
+Lemma 3.7. Let W1 and W2 be arbitrary quantum walks on ℓ2(Z) ⊗C2. Then, the velocity
+of their direct sum W1 ⊕W2 with respect to even and odd lattice sites (3.12) equals twice the
+maximum of the velocities of W1 and W2, i.e.,
+v (W1 ⊕W2) = 2 max{v(W1), v(W2)}.
+(3.32)
+Proof. First recall the decomposition of the position operator from (3.16).
+Writing W12 :=
+W1 ⊕W2 we observe that for any t ∈N and normalized ψ = ψe ⊕ψo, we have
+QW t
+12ψ = 2QW t
+1ψe ⊕(2Q + 1)W t
+2ψo,
+(3.33)
+The velocity of ψ with respect to W12 becomes
+v(W12, ψ)2 = lim sup
+t→∞
+1
+t2
+h 2QW t
+1ψe
+2 +
+(2Q + 1)W t
+2ψo
+2 i
+.
+(3.34)
+We emphasize that the terms on the right hand side are not velocities in general since ψe and
+ψo might not be normalized.
+For the second term on the right of (3.34). Two direct applications of triangle inequalities
+yield
+2QW t
+2ψo
+ −∥ψo∥≤
+(2Q + 1)W t
+2ψo
+ ≤
+2QW t
+2ψo
+ + ∥ψo∥.
+(3.35)
+
+
+EXPONENTIAL SUPPRESSION OF TRANSPORT IN ELECTRIC QUANTUM WALKS
+12
+Use this inequality in (3.34) together with the basic fact that (observe that 1
+t ∥ψo∥→0)
+lim
+t→∞g(t) = 0
+⇒
+lim sup
+t→∞
+(f(t) + g(t)) = lim sup
+t→∞
+f(t),
+(3.36)
+to see that
+v(W12, ψ)2 = 4 lim sup
+t→∞
+1
+t2
+h
+∥QW t
+1ψe∥2 + ∥QW t
+2ψo∥2i
+.
+(3.37)
+In particular, when ψ is supported only on He, i.e. ψ = ψe ⊕0Ho, and ∥ψ∥= ∥ψe∥= 1, (3.37)
+reduces to
+2v(W1, ψe) = v(W12, ψe ⊕0Ho).
+(3.38)
+Take the supremum over all normalized initial states ψe ∈Dom(Q), to see that
+2v(W1) = sup
+ψe
+v(W12, ψe ⊕0Ho) ≤sup
+ψ
+v(W12, ψ) = v(W12)
+(3.39)
+Similarly, we have 2v(W2) ≤v(W12), and hence
+v(W12) ≥2 max{v(W1), v(W2)}.
+(3.40)
+To prove the other direction of the inequality (3.40), we start with (3.37) and we consider two
+cases for the state ψ ∈Dom(Q)
+case 1: ∥ψ⋆∥∈{0, 1}, where ⋆∈{e, o}, i.e., ψ = ψe ⊕0Ho or ψ = 0He ⊕ψo.
+case 2: ∥ψ⋆∥/∈{0, 1}, where ⋆∈{e, o}, i.e., ψ = ψe ⊕ψo ∈Dom(Q) with nonzero ψe and ψo.
+For case 1, observe that (3.38) gives
+v(W12, ψe ⊕0Ho) = 2v(W1, ψe) ≤2v(W1).
+(3.41)
+and similarly,
+v(W12, 0He ⊕ψo) = 2v(W2, ψo) ≤2v(W2).
+(3.42)
+For case 2: we distribute the limsup in (3.37) to obtain
+(v(W12, ψ))2 ≤4∥ψe∥2
+
+v(W1, ψe
+∥ψe∥)
+2
++ 4∥ψo∥2
+
+v(W2, ψo
+∥ψo∥)
+2
+(3.43)
+≤4 max
+
+(v(W1))2, (v(W2))2	
+(3.44)
+where we used the fact that ∥ψe∥2 + ∥ψo∥2 = 1.
+Combining the two cases, we find that for initial state ψ ∈Dom(Q),
+v(W12, ψ) ≤2 max{v(W1), v(W2)},
+(3.45)
+which shows that
+v(W12) ≤2 max{v(W1), v(W2)}.
+(3.46)
+Combining (3.40) and (3.46) yields the desired equality (3.32).
+□
+We note in passing that it is immediate from the proof that Lemma 3.7 carries over to more
+general quantum walks, for example, to those with internal degree of dimensions larger than 2.
+Lemma 3.8. Let W be an arbitrary quantum walk. Then
+v(W k) = k v(W).
+Proof. For a fixed k ∈N, the one direction that v(W k) ≤k v(W) follows from the following
+simple argument: For any normalized ψ ∈Dom(Q), recall that
+v(W k, ψ) = lim sup
+t→∞
+1
+t ∥QW ktψ∥,
+(3.47)
+
+
+EXPONENTIAL SUPPRESSION OF TRANSPORT IN ELECTRIC QUANTUM WALKS
+13
+Since (kt)t∈N is a subsequence of (t)t∈N, we obtain
+v(W k, ψ) ≤kv(W, ψ) ≤kv(W).
+(3.48)
+Taking the sup shows that v(W k) ≤k v(W).
+To prove the other direction, note that for any t ∈N, there are unique s ∈N and r ∈
+{0, 1, . . . , k −1} such that t = ks + r. Then use Lemma 3.9 below with f(t) := t−1∥QW tψ∥,
+ψ ∈Dom(Q) and ∥ψ∥= 1, to see that
+v(W, ψ) = max
+0≤r<k lim sup
+s→∞
+1
+ks + r
+QW rW ksψ
+
+≤1
+k max
+0≤r<k lim sup
+s→∞
+1
+s
+QW ksψ
+ +
+[Q, W r]W ksψ
+
+
+.
+(3.49)
+Note that the second term in (3.49) is bounded as
+1
+s
+[Q, W r]W ksψ
+ ≤1
+s∥[Q, W r]∥≤r
+s∥[Q, W]∥−→0 as s →∞
+(3.50)
+The first-to-second step follows from expanding the commutator, and the last step follows from
+the boundedness of [Q, W]. Thus, inequality (3.49) reduces to
+v(W, ψ) ≤1
+k lim sup
+s→∞
+1
+s
+QW ksψ
+ = 1
+kv(W k, ψ) ≤1
+kv(W k).
+(3.51)
+Taking the sup over normalized states in Dom(Q) finishes the proof of the other direction
+v(W k) ≥kv(W).
+□
+Lemma 3.9. Let k ∈N be fixed and let f : N →(R ∪{±∞}) be any sequence. Then
+lim sup
+t→∞
+f(t) = max
+0≤r<k lim sup
+s→∞f(ks + r).
+(3.52)
+Note that this lemma intuitively follows from the fact that
+N =
+[
+t∈N
+{t} =
+[
+0≤r<k
+[
+s∈N
+{ks + r}.
+(3.53)
+Proof. For every fixed r0 ∈{0, 1, . . . , k −1}, (ks + r0)s∈N is a subsequence of (t)t∈N, so
+lim sup
+t→∞
+f(t) ≥lim sup
+s→∞f(ks + r0)
+(3.54)
+Since this holds for every r0 ∈{0, 1, . . . , k −1}, then
+lim sup
+t→∞
+f(t) ≥max
+0≤r<k lim sup
+s→∞f(ks + r).
+(3.55)
+The other direction is more involved. Let
+L := lim sup
+t→∞
+f(t)
+(3.56)
+By definition of the lim sup, given any ϵ > 0, there are infinitely many t ∈N such that L −ϵ <
+f(t). These values of t define a subsequence (tn)n∈N of (t)t∈N such that
+L −ϵ < f(tn)
+(3.57)
+for all n ∈N. For each tn, there is an sn ∈N and rn ∈{0, 1, . . . , k −1}, such that tn = ksn + rn.
+Since there are only k possible different values of rn, then for any fixed r0 ∈{0, 1, . . . , k −1},
+there is a subsequence (tnm) of (tn) and a sequence (snm) ∈N →∞of distinct values (it is a
+subsequence of (s)s∈N) such that
+tnm = ksnm + r0.
+(3.58)
+
+
+EXPONENTIAL SUPPRESSION OF TRANSPORT IN ELECTRIC QUANTUM WALKS
+14
+Hence (3.57) yields that
+L −ϵ ≤lim sup
+m→∞f(tnm) = lim sup
+m→∞f(ksnm + r0) ≤lim sup
+s→∞f(ks + r0)
+≤max
+0≤r<k lim sup
+s→∞f(ks + r)
+(3.59)
+Since ϵ > 0 is arbitrary then
+lim sup
+t→∞
+f(t) ≤max
+0≤r<k lim sup
+s→∞f(ks + r).
+(3.60)
+(3.55) and (3.60) prove (3.52).
+□
+Appendix A. Connection to generalized extended CMV matrices
+The the conjecture from [3] we are proving and the bound (2.16) that we are improving are
+formulated in the language of so-called Cantero-Moral-Vel´azquez (CMV) matrices, which are
+objects of primary interest in the theory of orthogonal polynomials [49, 50]. There is a many-
+to-one correspondence between the objects of interest here, the split-step walks introduced in
+Section 2.1 and CMV matrices, called the CGMV connection due to the foundational papers
+[15,16]. It was generalized to the setting of split-step quantum walks (resp. generalized extended
+CMV matrices) in [20,21].
+For the convenience of the reader and to directly connect our results to those of [3] we define
+these objects here and briefly comment on how their dynamical properties, particularly their
+maximal velocities and revival phenomena, can be inferred from those of quantum walks with
+electric fields. To this end, we call (α, ρ) ∈S3 = {(z1, z2) ∈C2 : |z1|2 + |z2|2 = 1} a Verblunsky
+pair and for such a pair define the unitary matrix
+Θ(α, ρ) :=
+
+α
+ρ
+ρ
+−α
+
+,
+(A.1)
+with det(Θ(α, ρ)) = −1. Given a sequence of Verblunsky pairs (αn, ρn)n∈Z, we define block-
+diagonal operators L and M on ℓ2(Z) via the even and odd subsequences:
+L = L((α2n, ρ2n)n∈Z) =
+M
+n∈Z
+Θ(α2n, ρ2n),
+(A.2)
+M = M((α2n+1, ρ2n+1)n∈Z) =
+M
+n∈Z
+Θ(α2n+1, ρ2n+1),
+(A.3)
+where each Θ(αj, ρj) acts on ℓ2({j, j + 1}). The product of these operators defines a generalized
+extended CMV (GECMV) matrix [13,17]:
+E = E
+ (αn, ρn)n∈Z
+
+= LM.
+(A.4)
+In the standard basis {δn, n ∈Z} of ℓ2(Z), E has the form
+E =
+
+
+...
+...
+...
+...
+α0ρ−1
+−α0α−1
+α1ρ0
+ρ1ρ0
+ρ0ρ−1
+−ρ0α−1
+−α1α0
+−ρ1α0
+α2ρ1
+−α2α1
+α3ρ2
+ρ3ρ2
+ρ2ρ1
+−ρ2α1
+−α3α2
+−ρ3α2
+...
+...
+...
+...
+
+
+,
+(A.5)
+where the boxed entry is ⟨δ0, Eδ0⟩.
+
+
+EXPONENTIAL SUPPRESSION OF TRANSPORT IN ELECTRIC QUANTUM WALKS
+15
+The correspondence between GECMV matrices and split-step walks follows from grouping
+elements of Z into cells of two [15,20,21]. More explicitly, identifying ℓ2(Z) with ℓ2(Z) ⊗C2 via
+the mapping (see the ordering (2.1))
+δ2n−1 7→δ+
+n
+and
+δ2n 7→δ−
+n ,
+(A.6)
+which gives the following relationship between the defining objects, the Θ-matrices and the coin
+operators:
+Lemma A.1. Let (αn, ρn), n ∈Z be a sequence of Verblunsky pairs and define Θ(αn, ρn) via
+(A.1). Then, identifying ℓ2(Z) with ℓ2(Z) ⊗C2 via the mapping (A.6), the GECMV matrix
+E = LM can be interpreted as a split-step walk as
+E = S+C1S−C2,
+where
+C1(n) = σ1Θ(α2n, ρ2n),
+C2(n) = σ1Θ(α2n−1, ρ2n−1),
+(A.7)
+with S± as in (2.2) and σ1 is the first Pauli matrix acting on the C2-cells.
+Proof. First, note that in terms of decomposition ℓ2(Z) = L
+n∈Z ℓ2({2n −1, 2n}), L and M are
+given as
+L = T
+ M
+n∈Z
+Θ(α2n, ρ2n)
+!
+T −1,
+M =
+M
+n∈Z
+Θ(α2n−1, ρ2n−1),
+(A.8)
+where T : δn 7→δn+1 is the shift on ℓ2(Z). That is, L is understood as a shifted block diagonal
+matrix. Importantly, due to the conjugation with T, Θ(α2n, ρ2n) and Θ(α2n−1, ρ2n−1) in (A.8)
+now both act on ℓ2({2n −1, 2n}).
+Identifying bases as in (A.6), the shift T ±1 on ℓ2(Z) acts on ℓ2(Z) ⊗C2 as T ±1 ⊗P±σ1 + 1Z ⊗
+P∓σ1, and thus differs from S± in (2.2) by a flipping operation on the coin space: we have
+T ±1(1 ⊗σ1) = S±.
+(A.9)
+Plugging this into (A.8) yields
+E = LM = S+
+ M
+n∈Z
+σ1Θ(α2n, ρ2n)
+!
+S−
+ M
+n∈Z
+σ1Θ(α2n−1, ρ2n−1)
+!
+= S+C1S−C2
+(A.10)
+with C1, C2 as in (A.7).
+□
+In the special case where either all even or all odd Verblunsky coefficients vanish, e.g., α2n = 0
+for all n, the GECMV matrix reduces to a shift-coin walk.
+Thus, our setting directly translates to that of GECMV matrices with fixed Verblun-
+sky pair (α, ρ):
+we have U = SC = L((0, 1)n∈Z) M((α, ρ)n∈Z) and W = S+C1S−C2 =
+L((α, ρ)n∈Z) M((α, ρ)n∈Z), and electric fields are incorporated analogously to (2.11). Hence,
+the results of Theorem 2.1 on maximal velocity, revival relations, and spectral properties estab-
+lished for the electric quantum walks in Theorem 2.1 carry over directly to the GECMV matrix
+setting, where the role of the coin parameter a is played by the Verblunsky parameter ρ, and
+the explicit formulas retain the same structure.
+A word of warning is in order: the electrified UΦ and WΦ do not relate to GECMV matrices in
+the above sense since their Verblunsky pairs are not in S3. Nevertheless, the CGMV connection
+extends to this setting and yields a standard CMV matrix, see [30] resp. [20, Appendix B].
+Acknowledgements
+H. A.-R. was supported in part by the UAE University under grant number G00004622.
+
+
+EXPONENTIAL SUPPRESSION OF TRANSPORT IN ELECTRIC QUANTUM WALKS
+16
+References
+[1] H. Abdul-Rahman, M. Darras, C. Fischbacher, and G. Stolz. Slow propagation velocities in Schr¨odinger
+operators with large periodic potential. Ann. Henri Poincar´e, 26:3635–3663, 2025. arXiv:2401.11508.
+[2] H. Abdul-Rahman, J. Fillman, C. Fischbacher, and W. Liu. Sharp polynomial velocity decay bounds for
+multidimensional periodic Schr¨odinger operators. arXiv:2509.04381.
+[3] H. Abdul-Rahman and G. Stolz. Exponentially decaying velocity bounds of quantum walks in periodic fields.
+Commun. Math. Phys., 403(3):1297–1327, 2023. arXiv:2302.01869.
+[4] A. Ahlbrecht. Asymptotic behavior of decoherent and interacting quantum walks. Doctoral Thesis, Hannover:
+Gottfried Wilhelm Leibniz Universit¨at Hannover, 2013.
+[5] A. Ahlbrecht, V. B. Scholz, and R. F. Werner. Disordered quantum walks in one lattice dimension. J. Math.
+Phys., 52(10):102201, 2011. arXiv:1101.2298.
+[6] A. Ahlbrecht, H. Vogts, A. H. Werner, and R. F. Werner. Asymptotic evolution of quantum walks with
+random coin. J. Math. Phys., 52(4):042201, 2011. arXiv:1009.2019.
+[7] A. Ambainis, E. Bach, A. Nayak, A. Vishwanath, and J. Watrous. One-dimensional quantum walks. In
+Proceedings of the thirty-third annual ACM symposium on Theory of computing - STOC ’01, pages 37–49,
+Hersonissos, Greece, 2001. ACM Press.
+[8] J. K. Asb´oth. Symmetries, topological phases, and bound states in the one-dimensional quantum walk. Phys.
+Rev. B, 86(19):195414, 2012. arXiv:1208.2143.
+[9] J. K. Asb´oth and H. Obuse. Bulk-boundary correspondence for chiral symmetric quantum walks. Phys. Rev.
+B, 88(12):121406, 2013. arXiv:1303.1199.
+[10] J.
+Asch
+and
+A.
+Knauf.
+Motion
+in
+Periodic
+Potentials.
+Nonlinearity,
+11(1):175–200,
+1998.
+arXiv:cond-mat/9710169.
+[11] A. Aspuru-Guzik and P. Walther. Photonic quantum simulators. Nat. Phys., 8:285–291, 2012.
+[12] J. Bourgain, F. A. Gr¨unbaum, L. Vel´azquez, and J. Wilkening. Quantum Recurrence of a Subspace and
+Operator-Valued Schur Functions. Commun. Math. Phys., 329(3):1031–1067, 2014. arXiv:1302.7286.
+[13] O. Bourget, J. S. Howland, and A. Joye. Spectral analysis of unitary band matrices. Commun. Math. Phys.,
+234(2):191–227, 2003. arXiv:math-ph/0204016.
+[14] O. Buerschaper and K. Burnett. Stroboscopic quantum walks. 2004. quant-ph/0406039.
+[15] M. J. Cantero, F. A. Gr¨unbaum, L. Moral, and L. Vel´azquez. The CGMV method for quantum walks.
+Quantum Inf. Process., 11(5):1149–1192, 2012.
+[16] M. J. Cantero, L. Moral, F. A. Gr¨unbaum, and L. Vel´azquez. Matrix-valued Szeg˝o polynomials and quantum
+random walks. Commun. Pure Appl. Math., 63(4):464–507, 2010. arXiv:0901.2244.
+[17] M. J. Cantero, L. Moral, and L. Vel´azquez. Five-diagonal matrices and zeros of orthogonal polynomials on
+the unit circle. Linear Algebra Appl., 362:29–56, 2003. arXiv:math/0204300.
+[18] C. Cedzich. Quantum Walks: Electromagnetism and Topological Classification. PhD thesis, Leibniz Univer-
+sit¨at Hannover, 2019.
+[19] C. Cedzich, J. Fillman, T. Geib, and A. H. Werner. Singular continuous Cantor spectrum for magnetic
+quantum walks. Lett. Math. Phys., 110(6):1141–1158, 2020. arXiv:1908.09924.
+[20] C. Cedzich, J. Fillman, L. Li, D. Ong, and Q. Zhou. Exact mobility edges for almost-periodic CMV matrices
+via gauge symmetries. Int. Math. Res. Notices, 2024:6906–6941, 2023. arXiv:2307.10909.
+[21] C. Cedzich, J. Fillman, and D. C. Ong. Almost everything about the unitary almost-Mathieu operator.
+Commun. Math. Phys., 403:745–794, 2023. arXiv:2112.03216.
+[22] C. Cedzich, T. Geib, F. Gr¨unbaum, L. Vel´azquez, A. Werner, and R. Werner. Quantum walks: Schur functions
+meet symmetry protected topological phases. Commun. Math. Phys., 389:31–74, 2022. arXiv:1903.07494.
+[23] C. Cedzich, T. Geib, F. A. Gr¨unbaum, C. Stahl, L. Vel´azquez, A. H. Werner, and R. F. Werner. The
+topological classification of one-dimensional symmetric quantum walks. Ann. Henri Poincar´e, 19(2):325–383,
+2018. arXiv:1611.04439.
+[24] C. Cedzich, T. Geib, A. H. Werner, and R. F. Werner. Quantum walks in external gauge fields. J. Math.
+Phys., 60(1):012107, 2019. arXiv:1808.10850.
+[25] C. Cedzich, T. Geib, A. H. Werner, and R. F. Werner. Chiral Floquet systems and quantum walks at half
+period. Ann. Henri Poincar´e, 22(2):375–413, 2021. arXiv:2006.04634.
+[26] C. Cedzich, T. Geib, and R. F. Werner. An algorithm to factorize quantum walks into shift and coin opera-
+tions. Lett. Math. Phys., 112(85), 2022. arXiv:2102.12951.
+[27] C. Cedzich, F. A. Gr¨unbaum, L. Vel´azquez, A. H. Werner, and R. F. Werner. A quantum dynamical approach
+to matrix Khrushchev’s formulas. Commun. Pure Appl. Math., 69(5):909–957, 2016. arXiv:1405.0985.
+[28] C. Cedzich, A. Joye, A. H. Werner, and R. F. Werner. Exponential tail estimates for quantum lattice dy-
+namics. Ann. Henri Poincar´e, 2025. arXiv:2408.02108, Online first.
+
+
+EXPONENTIAL SUPPRESSION OF TRANSPORT IN ELECTRIC QUANTUM WALKS
+17
+[29] C. Cedzich, T. Ryb´ar, A. H. Werner, A. Alberti, M. Genske, and R. F. Werner. Propagation of quantum
+walks in electric fields. Phys. Rev. Lett., 111:160601, 2013. arXiv:1302.2081.
+[30] C. Cedzich and A. H. Werner. Anderson localization for electric quantum walks and skew-shift CMV matrices.
+Commun. Math. Phys., 387:1257–1279, 2021. arXiv:1906.11931.
+[31] A. M. Childs. Universal computation by quantum walk. Phys. Rev. Lett.,
+102(18):180501,
+2009.
+arXiv:0806.1972.
+[32] D. Damanik, J. Fillman, and D. C. Ong. Spreading Estimates for Quantum Walks on the Integer Lattice via
+Power-Law Bounds on Transfer Matrices. J. Math. Pures Appl., 105(3):293–341, 2016. arXiv:1505.07292.
+[33] D. Damanik, T. Malinovitch, and G. Young. What is Ballistic Transport? 2024. arXiv:2403.19618.
+[34] J. Fillman, D. C. Ong, and T. Vandenboom. Spectral Approximation for Ergodic CMV Operators with an
+Application to Quantum Walks. J. Math. Anal. Appl., 467(1):132–147, 2017. arXiv:1712.04620.
+[35] G. Grimmett, S. Janson, and P. F. Scudo. Weak limits for quantum random walks. Phys. Rev. E, 69(2):026119,
+2004. arXiv:quant-ph/0309135.
+[36] D. Gross, V. Nesme, H. Vogts, and R. F. Werner. Index theory of one dimensional quantum walks and cellular
+automata. Commun. Math. Phys., 310(2):419–454, 2012. arXiv:0910.3675.
+[37] F. Gr¨unbaum, L. Vel´azquez, A. Werner, and R. Werner. Recurrence for discrete time unitary evolutions.
+Commun. Math. Phys., 320:543–569, 2013. arXiv:1202.3903.
+[38] E. Hamza and A. Joye. Spectral transition for random quantum walks on trees. Commun. Math. Phys.,
+326(2):415–439, 2014. arXiv:1212.6078.
+[39] E. Hamza, A. Joye, and G. Stolz. Localization for random unitary operators. Lett. Math. Phys., 75(3):255–
+272, 2006. arXiv:math-ph/0504075.
+[40] E. Hamza, A. Joye, and G. Stolz. Dynamical localization for unitary anderson models. Math. Phys. Anal.
+Geom., 12:381–444, 2009. arXiv:0903.0028.
+[41] E. Hamza and G. Stolz. Lyapunov Exponents for Unitary Anderson Models. J. Math. Physx, 48(4):043301,
+2007. arXiv:math-ph/0611081.
+[42] A. Joye and M. Merkli. Dynamical localization of quantum walks in random environments. J. Stat. Phys.,
+140(6):1025–1053, 2010. arXiv:1004.4130.
+[43] J. Kempe. Quantum random walks:
+an introductory overview. Contemp. Phys., 44(4):307–327, 2003.
+arXiv:quant-ph/0303081.
+[44] T. Kitagawa, M. S. Rudner, E. Berg, and E. Demler. Exploring Topological Phases With Quantum Walks.
+Phys. Rev. A, 82(3):033429, 2010. arXiv:1003.1729.
+[45] A.
+Montanaro.
+Quantum
+algorithms:
+An
+overview.
+npj
+Quantum
+Information,
+2:15023,
+2016.
+arXiv:1511.04206.
+[46] R. Portugal. Quantum Walks and Search Algorithms. Springer, New York, 2013.
+[47] A. Schaefer. Dynamical localization and transport properties of quantum walks on the hexagonal lattice.
+2025. arXiv:2503.09421.
+[48] I. M. Sigal and X. Wu. On Propagation of Information in Quantum Mechanics and Maximal Velocity Bounds.
+2024. arXiv:2409.01473.
+[49] B. Simon. Orthogonal polynomials on the unit circle. Part 1: Classical theory, volume 54 of American Math-
+ematical Society Colloquium Publications. American Mathematical Society, Providence, RI, 2005.
+[50] B. Simon. Orthogonal polynomials on the unit circle. Part 2: Spectral theory, volume 54 of American Math-
+ematical Society Colloquium Publications. American Mathematical Society, Providence, RI, 2005.
+[51] S. E. Venegas-Andraca. Quantum walks: A comprehensive review. Quantum Inf. Process., 11:1015–1106,
+2012. arXiv:1201.4780.
+[52] H. Vogts. Discrete Time Quantum Lattice Systems. PhD thesis, Technischen Universit¨at Carolo-Wilhelmina
+zu Braunschweig, 2009.
+[53] A. W´ojcik, T.  Luczak, P. Kurzy´nski, A. Grudka, and M. Bednarska. Quasiperiodic dynamics of a quantum
+walk on the line. Phys. Rev. Lett., 93:180601, 2004. arXiv:quant-ph/0407128.
+[H. Abdul-Rahman] Department of Mathematical Sciences, United Arab Emirates University,
+AL Ain, UAE
+Email address: houssam.a@uaeu.ac.ae
+[C. Cedzich] Fakult¨at f¨ur Mathematik und Informatik, FernUniversit¨at in Hagen, Univer-
+sit¨atsstr. 1, 58097 Hagen, Germany
+
+
+EXPONENTIAL SUPPRESSION OF TRANSPORT IN ELECTRIC QUANTUM WALKS
+18
+Heinrich Heine Universit¨at D¨usseldorf, Universit¨atsstr. 1, 40225 D¨usseldorf, Germany
+Email address: cedzich@fernuni-hagen.de
+[G. Stolz] Department of Mathematics, University of Alabama at Birmingham, Birmingham, AL
+35294, USA
+Email address: stolz@uab.edu
+[A. H. Werner], QMATH, Department of Mathematical Sciences, University of Copenhagen,
+Universitetsparken 5, 2100 Copenhagen, Denmark
+Email address: werner@math.ku.dk

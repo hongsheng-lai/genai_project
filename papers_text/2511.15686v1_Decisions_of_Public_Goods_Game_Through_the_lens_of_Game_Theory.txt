@@ -1,0 +1,717 @@
+Decisions of Public Goods Game Through the lens of
+Game Theory
+Yash Prajapati
+Department of Mathematics & Economics
+University of Kansas
+November 9, 2025
+Abstract
+This paper examines public goods and evaluates the mechanism through the game
+theory. Public goods are characterized by nonexclusivity and nonrivalry and this cre-
+ates fundamental challenges for allocation. We analyze why competitive markets un-
+dersupply public goods by deriving the inefficiency formally through Nash equilibrium.
+The paper evaluates theoretical solutions including Lindahl pricing, Clarke-Groves
+mechanisms, and voting schemes. The paper will cover their efficiency properties and
+practical limitations. We show how strategic interaction leads to free-riding behavior
+using roommates dilemma and other examples. We also cover why a large household
+lives in messy conditions not because individuals are lazy, but because they are rational
+players in a Nash equilibrium. We also examine voting mechanisms, the median voter
+theorem, and recent developments in truth-revealing mechanisms
+1
+Introduction
+A public good is defined by two critical properties: nonrivalry and nonexclusivity. Nonri-
+valry means that the marginal cost of serving an additional user is zero, enabling multiple
+individuals to consume the same unit simultaneously without diminishing others’ consump-
+tion.
+Consumption of one more burger equires that various resources be devoted to its
+production. Nonexclusivity implies that no one can be prevented from consuming the good,
+even if they do not pay for it. Classic examples include national defense, radio broadcasts,
+street lighting, and environmental protection.
+1
+arXiv:2511.15686v1  [econ.TH]  19 Nov 2025
+
+
+The concepts of nonexclusion and nonrivalry are in some ways related. Many nonexclusive
+goods are also nonrival. National defense and mosquito control are two examples of goods
+for which exclusion is not possible and additional consumption takes place at zero marginal
+cost. Many other instances might be suggested. The concepts, are not identical: Some goods
+may possess one property but not the other. For example, it is impossible (or at least very
+costly) to exclude some fishing boats from ocean fisheries, yet the arrival of another boat
+clearly imposes social costs in the form of a reduced catch for all con cerned. Similarly, use
+of a bridge during off-peak hours may be nonrival, but it is possible to exclude potential
+users by erecting toll booths [1].
+These characteristics fundamentally distinguish public goods from private goods and
+challenge the assumptions underlying the efficiency of competitive markets. In private good
+markets, individuals reveal their preferences through purchasing decisions, and market prices
+coordinate supply and demand efficiently. Public goods, however, lack both the revealing
+mechanism of prices and the excludability necessary to prevent free-riding, which ibs some-
+thing we will delve later into this paper. This in turn creates the central economic problem:
+public goods tend to be undersupplied in market economies.
+Table 1: Exclusivity and Nonrivalry
+Exclusive
+Yes
+No
+Rival
+Yes
+Hot dogs, automobiles, houses
+Fishing
+grounds,
+public
+grazing
+land, clean air
+No
+Bridges, swimming pools, satellite
+television transmission (scrambled)
+National defense, mosquito control,
+justice
+Ths strategic nature of public goods provision means that individuals’ decisions are in-
+terdepent. Unlike private goods where one’s consumption is independent of others, in public
+goods settings, each consumer derives a benefit from the purchases of the other. This link
+between the consumers is absent with private goods and introduces strategic interaction into
+the decision processes. With the strategic interaction the consumers are involved in a game,
+so equilibrium is found using the concept of a Nash equilibrium and this is where game
+theory comes into play.
+2
+
+
+1.1
+Why Public Goods Matter
+The characteristics of public goods create deviations from the conditions required for compet-
+itive markets to achieve Pareto efficiency. In private good markets, prices reveal preferences
+and coordinate supply and demand efficiently. But with public goods, the nonexcludability
+prevents the price mechanism from functioning properly, while nonrivalry means that the
+efficient allocation differs fundamentally from private goods.
+This paper proceeds as follows: Section 2 establishes the mathematical framework for
+analyzing public goods provision. Section 3 demonstrates market failure through Nash equi-
+librium analysis. Section 4 examines the free rider problem in detail. Section 5 evaluates
+theoretical solutions including Lindahl pricing and Clarke-Groves mechanisms. Sections 6-7
+analyze voting mechanisms and political economy models.
+2
+Mathematical Foundations
+2.1
+General Equilibrium Model Setup
+Consider an economy with two individuals, A and B. This simplifies the mathematical
+buildup and makes it easier to approach the general solution.. Each individual has a utility
+function depending on consumption of a public good x and a private good: UA(x, yA) and
+UB(x, yB).
+Labor is the only input in this economy. Person A has endowment lA units of labor.
+These units of labor can be allocated to producing the public good lx
+A or the private good
+ly
+A, subject to:
+lx
+A + ly
+A = lA
+(1)
+Person B faces a similar constraint with endowment lB. The total labor endowment is
+l = lA + lB.
+2.2
+Production Functions
+Public good production depends on combined labor inputs from both individuals:
+x = f(lx
+A + lx
+B)
+(2)
+This equation captures the essential nature of x as a public good.
+Nonexclusivity is
+reflected by the fact that as A’s labor input increases the amount of x that B consumes, A
+cannot prevent B from enjoying the fruits of A’s labor, and vice versa. Nonrivalry is reflected
+3
+
+
+by the fact that consumption of x by each person equals the total amount of x produced
+and A’s consumption does not diminish what B can consume.
+Private good production depends on separate labor inputs:
+yA = g(ly
+A),
+yB = g(ly
+B)
+(3)
+2.3
+Efficiency Conditions: The Samuelson Rule
+To find the socially efficient outcome, we maximize one person’s utility (say A’s) for a given
+level of B’s utility. The Lagrangian in this case will be:
+L = UA(f(·), g(ly
+A)) + λ[UB(f(·), g(ly
+B)) −¯U]
+(4)
+where ¯U is a constant representing B’s utility level.
+Taking first-order conditions with respect to ly
+A and ly
+B and solving yields:
+∂UA/∂x
+∂UA/∂yA
++ ∂UB/∂x
+∂UB/∂yB
+= g′
+f ′
+(5)
+This is simply:
+MRSA + MRSB = RPT
+(6)
+This is the Samuelson condition by Paul Samuelson in 1954. It states that the sum of
+each individual’s marginal rate of substitution (MRS) between the public and private good
+should equal the rate of change for product cost (the marginal cost(MC)).
+The intuition behind it is as follows. For Public goods, the MRS in consumption must
+be the total amount of the private good that all consumers would collectively be willing to
+give up to get one more unit of x. This is because everyone obtains the benefits of extra
+x output. It contrasts sharply with private goods, where each consumer’s MRS is equated
+individually to the price ratio.
+2.4
+Vertical Summation of Demand
+The Samuelson condition states that demand curves for public goods must be summed
+vertically rather than horizontally. The socially optimal price for any quantity of public
+good equals to the sum of what each individual would pay .
+This simply means their
+combined marginal valuations
+Thus if there are n consumers with individual inverse demand curves Pi(Q). The aggre-
+4
+
+
+gate demand for a public good will be:
+P(Q) =
+n
+X
+i=1
+Pi(Q)
+(7)
+This vertical summation reflects that all consumers simultaneously benefit from each unit
+of the public good.
+3
+Market Failure Under Competition
+3.1
+Why Competitive Markets Fail
+Production of goods x and y in competitive markets will fail to achieve the efficiency condition
+in the samuelson Equation (6). When prices are perfectly competitive at px and py. Each
+individual will equate his or her MRS to the price ratio px/py.
+Profit maximization by
+producers leads to equality between the rate of product transformation and the price ratio:
+MRSA = MRSB = px
+py
+= RPT
+(8)
+This violates the Samuelson condition. The price ratio px/py is too low and it provides
+insufficient incentive to produce x. In the private markets, a consumer doesn’t take into
+account how their spending on the public good benefits others. Thus, they devote too few
+resources to its production.
+The allocation failure can be because of how private markets sum individual demands.
+The market demand curve reports marginal valuation for a single consumer. For public
+goods, the value of producing one more unit is the sum of each consumer’s valuation as all
+benefit simultaneously.
+3.2
+Inefficiency of Nash Equilibrium
+Generally, independent decision making fails to produce efficiency. This happens even with
+strategic agents who understand the game structure. Consider the voluntary contribution
+mechanism where each agent i chooses contribution gi to maximize:
+Πi(gi, g−i) = Ui
+ 
+Mi −gi,
+n
+X
+j=1
+gj
+!
+(9)
+where Mi is agent i’s income and g−i represents all other agents’ contributions.
+5
+
+
+A Nash equilibrium is a contribution profile (g∗
+1, . . . , g∗
+n) where:
+Πi(g∗
+i , g∗
+−i) ≥Πi(gi, g∗
+−i)
+∀gi ≥0, ∀i
+(10)
+For an interior solution where g∗
+i > 0, the first-order condition is:
+−∂Ui
+∂xi
++ ∂Ui
+∂G = 0
+(11)
+This implies that each agent equates their private marginal benefit to the marginal cost
+i.e PMB = PMC. This means the agent ignores benefits that spill over to others and makes
+sure their benefits equal costs. With n agents, individual i only captures 1/n of the total
+benefit when the good is enjoyed equally. This leads to systematic underprovision.
+The public-good problem worsens as the number of agents increases. In the limit as
+n →∞, any one person may provide essentially none of the public good, becoming a pure
+free rider.
+4
+The Free Rider Problem
+The free rider problem is a market failure that occurs when individuals benefit from a public
+good or service without paying for it. It leads to under-provision because there is little
+incentive for people to contribute and thus it becomes a failure.
+4.1
+The Roommates Dilemma: A Numerical Example
+To understand the free rider problem, let us consider two roommates A and B. Both have
+identical Cobb-Douglas preferences:
+UA(x, yA) = x1/3y2/3
+A
+(12)
+where yA is hours A spends reading (in this case will be the private good) and x = xA+xB
+is total hours spent cleaning the room (the public good). Each roommate has 10 hours per
+week available, so the budget constraint is:
+xi + yi = 10
+(13)
+6
+
+
+4.1.1
+Nash Equilibrium Calculation
+Roommate A maximizes utility with repect to B’s contribution xB. Then the Lagrangian is:
+L = (xA + xB)1/3y2/3
+A
++ λ(10 −xA −yA)
+(14)
+The first-order conditions:
+∂L
+∂xA
+= 1
+3(xA + xB)−2/3y2/3
+A
+−λ = 0
+(15)
+∂L
+∂yA
+= 2
+3(xA + xB)1/3y−1/3
+A
+−λ = 0
+(16)
+Solving for y by equating (15) & (16) using λ gives:
+yA = 2(xA + xB)
+(17)
+By substituting (17) into the budget constraint would yield:
+10 = xA + yA = xA + 2(xA + xB) = 3xA + 2xB
+(18)
+By symmetry, xA = xB = x∗. This is in equilibrium. Therefore:
+10 = 3x∗+ 2x∗= 5x∗=⇒x∗= 2
+(19)
+Each roommate contributes 2 hours to cleaning. The total cleaning will be x = 4 hours.
+The Equilibrium utilities for both roommates will be:
+UA = UB = 41/3 · (20/3)2/3 ≈6.3
+(20)
+4.1.2
+Efficient Allocation
+For Cobb-Douglas preferences, the marginal rate of substitution will be:
+MRSA = ∂UA/∂x
+∂UA/∂yA
+= yA
+2x
+(21)
+From earlier we can also state that the Samuelson condition requires:
+MRSA + MRSB = yA
+2x + yB
+2x = 1
+(22)
+7
+
+
+By symmetry, yA = yB = y∗, so:
+2y∗
+2x∗= 1 =⇒y∗= x∗
+(23)
+Using the combined budget constraint 20 = x∗+ yA + yB = 3x∗, we get:
+x∗= 20
+3 ≈6.67,
+xA = xB = 10
+3 ≈3.33
+(24)
+Thus the efficient utilities for both roommates are are:
+UA = UB =
+20
+3
+1/3 20
+3
+2/3
+= 20
+3 ≈6.67
+(25)
+4.1.3
+Comparison and the Free Rider Problem
+The Nash equilibrium suggests too little cleaning. 2 hours each compared to 3.3 hours each
+in the efficient allocation. The gap comes because each roommate ignores the benefit the
+other roommate will get by them cleaning. Utility at Nash equilibrium (6.3) is lower than
+at the efficient allocation (6.67). The utility loss per roommate is:
+Utility Loss = U ∗−U NE = 6.67 −6.35 = 0.32 (approximately 4.8% reduction)
+(26)
+This is the cost of free-riding: individually rational behavior produces collectively inferior
+outcomes.
+This is comparable to the Prisoner’s Dilemma. The Nash equilibrium (both contribute
+little) is Pareto dominated by another outcome (both contribute more). yet neither has any
+incentive to deviate.
+4.2
+Example 2: Three People in a Dorm
+4.2.1
+3 player game
+Now consider a dormitory with three residents A, B, and C. All three with identical Cobb-
+Douglas preferences:
+Ui(x, yi) = x1/3y2/3
+i
+,
+i ∈{A, B, C}
+(27)
+Each has 10 hours available. The total cleaning hours will be denoted by: x = xA +xB +
+xC.
+8
+
+
+4.2.2
+Nash Equilibrium
+We can find th enash equilibrium by using symmetry. As each resident faces the same best
+response. Let us look at how resident A’s will optimize their output:
+Maximize (xA + xB + xC)1/3y2/3
+A
+subject to xA + yA = 10
+The best response function will then be:
+yA = 2(xA + xB + xC) =⇒xA = 10 −2(xB + xC)
+3
+(28)
+Again by symmetry in equilibrium xA = xB = xC = x∗, we will get:
+x∗= 10 −2(2x∗)
+3
+= 10 −4x∗
+3
+=⇒3x∗= 10 −4x∗=⇒7x∗= 10 =⇒x∗= 10
+7 ≈1.43
+(29)
+Each person contributes approximately 1.43 hours, with total cleaning x = 30
+7 ≈4.29
+hours. Leisure is yi = 10 −10
+7 = 60
+7 ≈8.57 hours.
+Nash Equilibrium Utilities:
+U NE
+i
+=
+30
+7
+1/3
+·
+60
+7
+2/3
+(30)
+Computing numerically:
+U NE
+i
+≈4.291/3 · 8.572/3 ≈1.626 · 4.70 ≈6.12
+(31)
+4.2.3
+Efficient Allocation
+The Samuelson condition with three identical agents is:
+MRSA + MRSB + MRSC = yA + yB + yC
+2x
+= 1
+(32)
+By symmetry, yA = yB = yC = y∗and xA = xB = xC at efficiency. The combined budget
+constraint is:
+x + 3y = 30
+(33)
+With y = x from the Samuelson condition:
+x + 3x = 30 =⇒x∗= 30
+4 = 7.5
+(34)
+Each person contributes xi = 2.5 hours, with leisure y∗= 7.5 hours.
+9
+
+
+Efficient Utilities:
+U ∗
+i = (7.5)1/3 · (7.5)2/3 = 7.5 ≈7.50
+(35)
+4.2.4
+Comparison
+The inefficiency worsens with group size:
+Table 2: Nash vs. Efficient Provision: Two vs. Three Persons
+Group Size
+Nash x∗
+i
+Efficient x∗
+i
+Utility Gap
+Two persons
+2
+2.0
+3.33
+6.35 vs. 6.67 (-4.8%)
+Three persons
+1.43
+2.5
+6.12 vs. 7.50 (-18.4%)
+When there are three people, each person’s private benefit from their contribution is
+only 1/3 of the total social benefit. This weaker personal incentive leads to more severe
+underprovision (1.43 vs. 2.5 hours). The utility loss grows to 18.4%.
+4.3
+The Free Rider Problem with Many Agents
+As seen in the previous example, the problem intensifies as the number of agents grows.
+With n roommates, symmetric equilibrium requires:
+10 = xA + yA = xA + 2nxA = (2n + 1)xA
+(36)
+Thus:
+xA =
+10
+2n + 1
+(37)
+As n →∞, each roommate’s contribution approaches zero. Yet the efficient contribution
+remains constant at xA = 10/3 per person, independent of n.
+This result demonstrates why large groups often fail to provide public goods voluntarily.
+A fraternity or large household lives in messy conditions not because individuals are lazy,
+but because they are rational. In the Nash equilibrium case, it is best for them to free-ride.
+5
+Mechanisms for Solving the Public Goods Problem
+5.1
+Lindahl Pricing
+Erik Lindahl proposed an elegant conceptual solution in the 1920s[1]. Lindahl suggested
+individuals might voluntarily consent to be taxed for beneficial public goods if they knew
+10
+
+
+others were also being taxed. Here tax shares reflect individual benefits.
+5.1.1
+The Lindahl Mechanism
+Each individual i is quoted a personalized tax share αi. It represents their proportion of the
+public good’s cost. Individual A chooses the level of public good x to maximize:
+UA(x, g(lA −αAf(x)))
+(38)
+The first-order condition is:
+∂UA/∂x
+∂UA/∂yA
+= αA · g′
+f ′ = αA · RPT
+(39)
+Similarly, individual B chooses x and satisfies the following:
+MRSB = αB · RPT
+(40)
+A Lindahl equilibrium occurs where αA + αB = 1—tax contributions precisely fund
+the public good. At this equilibrium:
+MRSA + MRSB = (αA + αB) · RPT = RPT
+(41)
+This satisfies the Samuelson condition and thus achieves Pareto efficiency!
+5.1.2
+Application to the Roommates
+If social convention suggests each roommate contributes half the cleaning effort (αA = αB =
+1/2), each faces an effective price of 1/2 hour of personal effort per hour of total cleaning.
+With Cobb-Douglas preferences, each spends 1/3 of their 10-hour budget on cleaning at this
+price:
+xA = xB = 1
+3 · 10 ·
+1
+1/2 = 20
+3
+(42)
+Total cleaning is x = 20/3, exactly the efficient level. This illustrates how appropriate
+personalized pricing achieves efficiency.
+5.2
+The Clarke-Groves (VCG) Mechanism
+Theodore Groves and Edward Clarke independently developed mechanisms that incentivize
+truthful preference revelation through clever tax schemes[1].
+11
+
+
+5.2.1
+Mechanism Design
+Suppose n individuals consider a public project. Each has private valuation vi. The govern-
+ment asks each to report valuation ˆvi, then:
+1. Implements the project if and only if P
+i ˆvi ≥0
+2. Charges each individual i a tax ti if the project is implemented, it can be represented as:
+ti =
+X
+j̸=i
+ˆvj
+(43)
+Otherwise, there will be a zero tax.
+5.2.2
+Incentive Compatibility
+Individual i’s utility from reporting ˆvi when true valuation is vi is:
+Ui(ˆvi) =
+
+
+
+vi −ti = vi −P
+j̸=i ˆvj
+if project implemented
+0
+otherwise
+(44)
+The project is implemented when ˆvi + P
+j̸=i ˆvj ≥0. Note that P
+j̸=i ˆvj is independent of
+i’s report.
+Therefore:
+- When it is beneficial to i, vi > 0. Thus, reporting truthfully will ensure the project proceeds
+- When it is harmful to i, vi < 0. Reporting prevents implementation
+Truthful revelation ˆvi = vi is a dominant strategy. It is optimal regardless of what
+other agents report.
+5.2.3
+The Budget Deficit Problem
+Clarke-Groves mechanisms face a critical limitation. It typically runs a budget deficits even
+after achieving truthful revelation and efficiency.
+Total revenue collected is:
+R =
+n
+X
+i=1
+ti =
+n
+X
+i=1
+X
+j̸=i
+ˆvj = (n −1)
+n
+X
+i=1
+vi
+(45)
+The project costs C. It’s implemented when P
+i vi ≥C. The revenue is (n −1) P
+i vi.
+Unless n = 2, revenue doesn’t cover costs exactly and simply the mechanism runs a surplus
+12
+
+
+or deficit.
+This budget imbalance prevents full implementation of Clarke-Groves in practice. Re-
+distributing surplus or financing deficits typically requires distortionary taxation. Which
+undermines efficiency gains.
+6
+Voting and Resource Allocation
+Many public goods decisions are made through voting rather than markets. Understanding
+how voting mechanisms perform is crucial for analyzing real-world public provision.
+6.1
+Majority Rule
+While commonly used, majority rule is not obviously optimal. Different institutions require
+different decisive proportions:
+- Simple majority (50%+1) for most legislation
+- Two-thirds (67%) for U.S. Constitutional amendments
+- Unanimous wins for some organizations (Quaker meetings)
+Our analysis focuses on simple majority rule. The choice of threshold significantly affects
+outcomes.
+6.2
+The Paradox of Voting
+In the 1780s, Condorcet discovered that majority rule may cycle endlessly without reaching
+equilibrium.
+Consider three voters: Smith, Jones, and Fudd. Each choosing among three public good
+spending levels (A=low, B=medium, C=high) with preferences:
+Choice 1
+Choice 2
+Choice 3
+Smith
+A
+B
+C
+Jones
+B
+C
+A
+Fudd
+C
+A
+B
+Comparing options pairwise:
+- A vs. B: A wins (Smith and Fudd favor A)
+- A vs. C: C wins (Jones and Fudd favor C)
+- C vs. B: B wins (Smith and Jones favor B)
+We cycle: A ≻B ≻C ≻A. No stable outcome exists. The final choice depends on
+agenda setting or when voting stops. These factors are unrelated to actual preferences.
+13
+
+
+6.3
+Single-Peaked Preferences and the Median Voter Theorem
+Duncan Black showed in 1948 that cycles can be avoided with restrictions on preferences. If
+preferences are single-peaked (having only one local maximum) then majority rule selects
+the median voter’s preferred outcome.
+Single-peaked means that as the policy variable (e.g., spending level) increases, utility first
+rises to a peak then declines This happens without multiple local maxima. In Condorcet’s
+example, Fudd’s preferences causes the cycle and has two peaks (A and C).
+Now, instead Fudd had preferences peaked only at C, then option B would defeat both
+A and C by 2-to-1 votes. Option B is Jones’s preferred choice, Jones is the median voter
+whose preferences lie between Smith (preferring A) and Fudd (preferring C).
+Figure 1: This figure illustrates the preferences in the Table above. Smith’s and Jones’s
+preferences are single peaked, but Fudd’s have two local peaks and these yield the voting
+paradox. If Fudd’s preferences had instead been single peaked (the dashed line), then option
+B would have been chosen as the preferred choice of the median voter (Jones).
+Median Voter Theorem: With single-peaked preferences over a one-dimensional policy
+space, the majority rule selects the preferred policy of the median voter. This theorem is
+foundational for political economy models. It predicts that political competition drives policy
+toward the median voter’s preferences.
+14
+
+
+7
+A Political Economy Model
+7.1
+Setup
+Consider a community with n voters, each with income yi.
+Utility depends on private
+consumption ci and a public good g:
+Ui(ci, g) = ci + f(g)
+(46)
+where f ′ > 0 and f ′′ < 0 (concave benefits from public good).
+The public good is financed by proportional income taxation at rate t, so:
+ci = (1 −t)yi
+(47)
+The government budget constraint is:
+g = t
+n
+X
+j=1
+yj = tn¯y
+(48)
+where ¯y is average income.
+7.2
+Individual Preferences
+Each individual chooses preferred g to maximize:
+Ui(g) =
+
+1 −g
+n¯y
+
+yi + f(g) = yi −yi
+n¯yg + f(g)
+(49)
+First-order condition:
+f ′(g∗
+i ) = yi
+n¯y
+(50)
+This shows that desired spending on g is inversely related to income. High-income voters
+pay more in taxes (proportional to income) but receive the same benefits as low-income
+voters. Thus, high-income voters prefer less public spending.
+7.3
+Median Voter Equilibrium
+Under majority rule, the level of g chosen is that preferred by the voter with median income
+ym:
+f ′(g∗) = ym
+n¯y
+(51)
+15
+
+
+Since income distributions are typically right-skewed implying ym < ¯y. This implies:
+f ′(g∗) = ym
+n¯y < ¯y
+n¯y = 1
+n
+(52)
+The more unequal the income distribution (larger gap between ym and ¯y), the higher the
+equilibrium tax rate and public spending.
+8
+Conclusion
+Public goods present fundamental challenges to market-based resource allocation. The com-
+bination of nonexclusivity and nonrivalry creates incentives for free-riding. This leads com-
+petitive markets and strategic voluntary contribution games to undersupply public goods
+relative to Pareto-efficient levels.
+References
+[1] Nicholson, W., & Snyder, C. (2017). Microeconomic theory: Basic principles and exten-
+sions. Cengage Learning.
+[2] Gruber, J. (2016). Public finance and public policy. Worth Publishers.
+[3] Choi, T., & Robertson, P. (2019) Contributors and Free-Riders in Collaborative Gov-
+ernance: A Computational Exploration of Social Motivation and Its Effects. Journal of
+Public Administration Research and Theory. https://doi.org/10.1093/jopart/muy068
+16

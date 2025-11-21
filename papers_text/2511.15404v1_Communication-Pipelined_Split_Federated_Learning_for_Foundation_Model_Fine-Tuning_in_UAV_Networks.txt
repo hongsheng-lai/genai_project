@@ -1,0 +1,2489 @@
+1
+Communication-Pipelined Split Federated Learning
+for Foundation Model Fine-Tuning in UAV
+Networks
+Zizhen Zhou, Ying-Chang Liang, Yanyu Cheng, and Wei Yang Bryan Lim
+Abstract—Deploying foundation models (FMs) on uncrewed
+aerial vehicles (UAVs) promises broad “low-altitude economy”
+applications. Split federated learning (SFL)-based fine-tuning
+leverages distributed data while keeping raw data local and re-
+duces client-side burden by partitioning the model between client
+and server. However, the per-round training latency is dominated
+by stragglers. Training paradigms featuring parallel gradient
+transmission (GT) allocate dedicated portions of downlink com-
+munication resources to each client. They may leave resources
+idle and suffer from prolonged GT latency, especially in UAV
+networks, where the communication latency typically far exceeds
+the computation latency. To address this, we propose a sequential
+GT paradigm, where the server dedicates all downlink resources
+for the current GT. We further propose communication-pipelined
+SFL (CPSFL), characterized by downlink GT priority scheduling
+and intra-round asynchronous training. We investigate CPSFL-
+based LoRA fine-tuning of FMs in UAV networks and formulate
+an optimization problem to minimize a weighted sum of per-
+round training latency and worst-case client energy consumption
+by optimizing the split point selection (SPS) and the computing
+and communication resource allocation (CCRA) (the uplink
+bandwidth allocation and the server computing frequency al-
+location). To solve this problem, we develop an attention-based
+deep reinforcement learning (DRL) framework, where the base
+station agent decides the split point and the CCRA in each
+round by leveraging previous round information, including UAV
+trajectories. Simulation results show that the proposed DRL-
+based CPSFL scheme outperforms the parallel GT benchmarks,
+the ablation variants, the fixed CCRA scheme, while approaching
+the best fixed-SPS scheme.
+Index Terms—Split federated learning, UAV network, resource
+allocation, reinforcement learning
+I. INTRODUCTION
+Uncrewed aerial vehicles (UAVs) are widely applied in low-
+altitude economic activities such as natural resource manage-
+ment, power facility inspection, and public security patrol,
+owing to their flexible deployment and controllable mobility
+[1]. During missions, UAVs collect large volumes of sensory
+data (e.g., images and videos), which can be leveraged to
+Z. Zhou is with the National Key Laboratory of Wireless Communications,
+University of Electronic Science and Technology of China (UESTC), Chengdu
+611731, China (e-mail: zhouzizhen@std.uestc.edu.cn).
+Y.-C. Liang is with the Center for Intelligent Networking and Communi-
+cations (CINC), University of Electronic Science and Technology of China
+(UESTC), Chengdu 611731, China (e-mail: liangyc@ieee.org).
+Y. Cheng is with the School of Cyberspace, Hangzhou Dianzi University,
+Hangzhou 310018, China (email: yycheng@hdu.edu.cn).
+W. Y. B. Lim is with the College of Computing and Data Sci-
+ence,
+Nanyang
+Technological
+University,
+Singapore
+639798
+(e-mail:
+bryan.limwy@ntu.edu.sg).
+adapt foundation models (FMs) to diverse downstream tasks
+[1]. Fine-tuning FMs, rather than training from scratch, sub-
+stantially reduces the required data and computation [2].
+Centralized fine-tuning in a data center after the UAVs
+land is a straightforward approach, but it suffers from some
+limitations: (i) bandwidth-constrained backhaul links from the
+landing site to the data center; (ii) privacy or regulatory
+concerns with sensitive data; and (iii) the need for near-
+real-time adaptation to dynamic environments (e.g., weather,
+lighting). These challenges motivate edge-side, ongoing FM
+adaptation during missions. Federated learning (FL) offers a
+promising solution, enabling collaborative model improvement
+while avoiding raw data transmission: clients train locally and
+upload only model parameters to a server for aggregation
+[3], [4]. Nevertheless, full-parameter fine-tuning (FPFT) of an
+entire FM is often impractical on UAVs with limited memory,
+computing capability, and energy resources.
+Low-rank adaptation (LoRA) [5], a prominent parameter-
+efficient fine-tuning (PEFT) method, greatly reduces the num-
+ber of trainable parameters (TPs) while achieving accuracy
+comparable to FPFT. LoRA is thus attractive for FL in UAV
+networks because it (i) reduces memory usage by eliminating
+the need to store optimizer states for frozen parameters and (ii)
+reduces communication overhead, as UAV clients only need
+to transmit a small number of TPs for federated aggregation.
+However, even with LoRA, hosting and updating an entire FM
+on resource-constrained UAVs can still be challenging.
+Split federated learning (SFL) further alleviates the client-
+side burden by splitting the FM into a client-side model and a
+server-side model, while still enabling parallel client training
+[6]. However, due to synchronized federated aggregation, the
+training latency in the SFL is determined by the slowest client,
+commonly referred to as the “straggler” [7]. In UAV networks,
+the straggler issue is aggravated by the heterogeneous com-
+puting and communication capabilities, mobility, and limited
+energy of UAVs [8]. Split point selection (SPS) significantly
+influences both training latency and client-side energy con-
+sumption, as it determines the computational load on both
+the client and server, as well as the communication overhead
+[4], [7]–[10]. Efficient utilization of server-side computing
+and communication resources is also critical in mitigating the
+straggler problem [7]–[10].
+A. Related Works and Challenges
+Recently, SPS and communication-computing resource al-
+location (CCRA) for SFL in wireless networks have received
+arXiv:2511.15404v1  [cs.IT]  19 Nov 2025
+
+
+2
+TABLE I: Comparison of server-side computing and commu-
+nication resource utilization paradigms
+Paradigms
+Server-side
+computing
+Downlink gradient
+transmission
+Related studies
+SFL-PP
+Parallel
+Parallel
+[11]–[25]
+SFL-SP
+Sequential
+Parallel
+[26]–[33] and
+PipeSFL [37]
+SFL-PS
+Parallel
+Sequential
+CPSFL (ours)
+SFL-PP
+Client 1
+Client 2
+SM
+Client 3
+SM
+SM
+CF
+CA
+CF
+CA
+CF
+CA
+SFL-SP (one variant)
+Client 1
+Client 2
+SM
+Client 3
+SM
+SM
+Server
+CF
+CA
+CF
+CA
+CF
+CA
+SF SB2
+SF SB2 SF SB1
+SF SB1
+SF SB3
+SF SB3
+Client 1
+Client 2
+SM
+Client 3
+SM
+SM
+Server
+SFL-PS (one variant)
+CF
+CA
+CF
+CA
+CF
+CA
+CB
+CF
+CA
+CB
+CF
+CA
+CB
+CF
+CA
+CB
+CF
+CA
+CB
+CF
+CA
+CB
+CF
+CA
+SG
+SG
+SF
+SB
+SG
+SF
+SB
+CB
+CM
+CB
+CM
+SG
+SG
+SF
+SB
+SG
+SF
+SB
+CB
+CM
+CB
+CM
+SG
+SG
+SF
+SB
+SG
+SF
+SB
+CB
+CM
+CB
+CM
+SF
+SB
+SF
+SB
+SF
+SB
+SF
+SB
+SF
+SB
+SF
+SB
+SF
+SB
+SF
+SB
+SF
+SB
+SF
+SB
+SF
+SB
+SF
+SB
+SG3
+SG2 SG1
+SG3
+SG2 SG1
+CB
+CF
+CA
+SF
+SB
+SF
+SB
+CB
+CF
+CA
+SF
+SB
+CB
+CF
+CA
+SF
+SB
+SF
+SB
+CB
+CF
+CA
+SF
+SB
+CB
+CF
+CA
+SF
+SB
+SF
+SB
+CB
+CF
+CA
+SF
+SB
+SG3
+SG2 SG1
+SG3
+SG2 SG1
+CB
+CM
+CB
+CM
+CB
+CM
+CB
+CM
+CB
+CM
+CB
+CM
+CB
+CF
+CA
+CF
+CA
+SG
+CB
+CF
+CA
+SG
+CB
+CF
+CA
+CF
+CA
+SG
+CB
+CF
+CA
+SG
+CB
+CF
+CA
+CF
+CA
+SG
+CB
+CF
+CA
+SG
+SF SB2
+SF SB2 SF SB1
+SF SB1
+SF SB3
+SF SB3
+CB
+CM
+SG
+CB
+CM
+SG
+CB
+CM
+CB
+CM
+SG
+CB
+CM
+SG
+CB
+CM
+SG
+CB
+CM
+SG
+Parallel
+Sequential
+Sequential
+Fig. 1: The timeline of one training round (consisting of two
+local iterations) for three clients when SFL-PP (top), SFL-SP
+(middle), or SFL-PS (bottom) is applied. The notations SM,
+CF, CA, SF, SB, SG, CB, and CM correspond to the eight
+steps in Fig. 2, respectively.
+significant attention [11]–[36]. To mitigate stragglers, existing
+works explore various strategies, including: (i) individual SPS
+for each client [11]–[18], [21]–[25], [29]–[32]; (ii) client
+grouping [19], [26]; (iii) parallel split learning without client-
+side model aggregation [27], [28]; and (iv) inter-round asyn-
+chronous training [12], [16]. Moreover, SFL for LoRA-based
+fine-tuning in wireless networks has been studied in [20]–
+[22], [32]–[34], considering aspects such as server energy
+consumption [21], client storage constraints [20], [22], privacy
+preservation [22], LoRA rank optimization [33], and smashed
+data compression [20]. However, they may incur long per-
+round latency due to inefficient utilization of downlink com-
+munication resources. Specifically, we analyze as follows.
+We classify SFL into three types based on whether the server
+can compute tasks for different clients in parallel and whether
+it can transmit gradients to different clients simultaneously
+over the downlink. Table I summarizes these paradigms,
+referred to as SFL-PP, SFL-SP, and SFL-PS, and their time
+diagrams are illustrated in Fig. 1.
+SFL-PP with full parallelism: In SFL-PP, all steps of
+different clients are executed in parallel. Specifically, the server
+allocates a fixed portion of the shared resources, including
+its computing frequency, the bandwidth for downlink gradient
+transmission (GT), and corresponding transmit power, to each
+client and keeps this allocation unchanged in one training
+round. SFL-PP is widely adopted in existing works [11]–
+[25] due to its analytical tractability: the per-round training
+latency equals the maximum per-round latency among all
+clients. However, idle resources allocated for one client cannot
+be utilized by the ongoing computations or downlink GT of
+other clients, which may increase the per-round latency. For
+example, in Fig. 1, when the server begins GT for client 1,
+the downlink resources allocated to client 3 remain idle.
+SFL-SP with sequential server-side computing: SFL-SP
+uses all computing resources for the current computing task
+and decides the scheduling order of the client tasks. We refer
+to the most widely adopted form as vanilla SFL-SP [26]–[31],
+[33], which exhibits two synchronizations per local iteration:
+(i) the server starts computing only after receiving the smashed
+data from all clients, and (ii) it starts GT only after completing
+the computing tasks of all clients. Thus, the vanilla SFL-SP is
+vulnerable to the straggler issue. To mitigate this, the pipelin-
+ing is introduced to overlap the communication latency and
+the client computing latency with the server computing latency
+(the SF and SB steps in Fig. 1) as much as possible [32], [37].
+In [32], the server prioritizes tasks from clients with longer
+backward propagation (BP) times. In [37], PipeSFL is pro-
+posed to enable finer-grained pipelined computing scheduling
+via server-side computing priority scheduling and intra-round
+asynchronous training. Nevertheless, in wireless networks such
+as UAV networks, where the computing latency is much
+smaller than the communication latency, the performance gain
+offered by PipeSFL may be limited.
+SFL-PS with sequential downlink GT: Different from
+SFL-PP and SFL-SP, we propose SFL-PS, which uses all
+downlink resources for the current GT and decides the
+scheduling order across clients. By reducing the GT latency
+and allowing clients to immediately proceed to subsequent
+steps upon receiving gradients, SFL-PS has the potential to
+reduce the per-round latency of SFL in wireless networks.
+Notably, SFL-PS has not been explored in existing studies.
+In addition to the straggler issue caused by the heterogene-
+ity of UAV clients, their mobility introduces another major
+challenge. The SFL with mobile clients, such as vehicles,
+UAVs, and satellites, has been studied in [23]–[25], [31], [35].
+Nevertheless, these works oversimplify the channel variations
+caused by the moving clients: they either assume the channel
+remains unchanged within a training round [25], [31], [35] or
+approximate communication rates using time-averaged values
+over the coverage period [23], [24]. Given that a single
+training round often exceeds ten seconds [24], [31], a finer-
+grained latency analysis is essential. Building on this, the
+historical trajectory data can be leveraged to infer future mo-
+bility patterns and enable proactive resource management. To
+handle the environment with uncertain UAV trajectory and the
+complexity of the optimization problem, deep reinforcement
+learning (DRL) techniques are promising for decision-making
+in SFL scenarios [13], [23], [24], [36].
+B. Main Contributions
+In summary, existing SFL training paradigms underutilize
+downlink communication resources, and existing SFL resource
+allocation studies inadequately address mobile clients, par-
+ticularly lacking slot-level channel modeling and trajectory-
+aware decision-making. To tackle these challenges, we pro-
+pose communication-pipelined SFL (CPSFL) and an attention-
+
+
+3
+based DRL framework for joint SPS and CCRA in CPSFL-
+enabled UAV networks, supported by the fine-grained latency
+analysis and the UAV trajectory features extraction. The main
+contributions are summarized as follows:
+• To improve downlink resource utilization, we propose
+SFL-PS, where the server transmits gradients sequen-
+tially. To mitigate stragglers in vanilla SFL-PS, we fur-
+ther propose CPSFL, incorporating two PipeSFL-inspired
+enhancements: (i) downlink GT priority scheduling that
+increases latency overlap by prioritizing clients with
+larger lags, and (ii) intra-round asynchronous training
+that reduces downlink idling by enabling immediate GT
+upon server computation completion. We also provide the
+optimality proofs for the scheduling policy under certain
+simplifying assumptions, along with the latency analysis
+and comparisons.
+• To finely capture the UAV mobility, we propose a fine-
+grained latency analysis under SFL-PS where the channel
+varies per time slot instead of per training round. Based
+on this, we formulate an optimization problem to mini-
+mize both the per-round training latency and the maxi-
+mum per-client energy consumption by jointly optimizing
+SPS and CCRA (i.e., the uplink bandwidth allocation and
+the server computing frequency allocation).
+• Decision-making at the round start is intractable due to
+the problem complexity and the unavailability of current-
+round channel knowledge. To address this, we design an
+attention-based DRL framework, where the base station
+(BS) agent leverages previous round information to deter-
+mine the split point and the CCRA. An attention mech-
+anism enables effective feature extraction from variable-
+length UAV trajectories.
+• Simulation results show that CPSFL achieves lower per-
+round latency than SFL-PP, PipeSFL, and ablation vari-
+ants in UAV networks where the communication latency
+is dominant. Moreover, the DRL-based CPSFL scheme
+outperforms its variant that does not leverage UAV tra-
+jectory and the fixed CCRA scheme, and approaches the
+best fixed-SPS scheme.
+C. Organizations
+The rest of this paper is organized as follows: Section II
+presents the system model, the slot-level latency analysis under
+the SFL-PS paradigm, and the optimization problem. Section
+III presents the proposed CPSFL. In Section IV, we propose
+the attention-based DRL framework to decide the SPS and
+the CCRA. Section V shows the simulation results. Finally,
+Section VI concludes this paper.
+Notations: The lowercase, bold lowercase, and bold up-
+percase, i.e., a, a, and A are scalar, vector, and matrix,
+respectively. Ra×b denotes the space of a × b real-valued
+matrices. |A| denotes the cardinality of set A. (·)⊤denotes
+transpose. E{·} denotes the average operation.
+II. SYSTEM MODEL
+As shown in Fig. 2, we consider a CPSFL-enabled UAV
+network, where a BS collaborates with K UAVs to fine-tune
+BS
+UAV K
+UAV 1
+UAV k
+k
+1
+K
+①Global Client-side LoRA Broadcast
+③Smashed Data Transmission
+⑥Gradient Transmission (Sequential)
+⑧Client-side LoRA Upload
+Client-side 
+Model
+Split point
+Server-side  
+Model
+＋
+＋
+                    Server
+Communication Module
+Priority Queue
+Aggregator
+Aggregator
+Model 
+Storage
+c
+w
+Model 
+Storage
+c
+w
+Client 1
+＋
+Client 1
+＋
+Client K
+＋
+Client K
+＋
+Client k
+＋
+②
+⑦
+Client k
+＋
+②
+⑦
+Computing
+Module
+④
+⑤
+＋
+④
+⑤
+＋
+Computing
+Module
+④
+⑤
+＋
+Model Storage
+
+
+,
+,
+,
+s
+s k
+s k
+=
+
+w
+w
+w
+Model Storage
+
+
+,
+,
+,
+s
+s k
+s k
+=
+
+w
+w
+w
+
+
+,
+,
+,
+c k
+c
+c k
+=
+
+w
+w
+w
+
+
+,
+,
+,
+s k
+s
+s k
+=
+
+w
+w
+w
+Fig. 2: Communication-pipelined split federated learning for
+foundation models LoRA fine-tuning in UAV networks.
+a complete FM w through the CPSFL. Specifically, the BS
+acts as the server, while the UAVs serve as the clients. The
+FM is split at the split point u into a server-side FM ws and
+a client-side FM wc, which are fine-tuned at the BS and the
+UAVs, respectively. In each local iteration, UAV k processes a
+data batch Dk = {Xk, yk} of size B, where Xk =
+
+xb
+k
+	B
+b=1
+is the set of raw data and yk =
+
+yb
+k
+	B
+b=1 is their corresponding
+labels. We denote the set of UAV indices as K.
+A. Preliminaries of LoRA and SFL
+LoRA adapts pre-trained models by injecting trainable low-
+rank matrices while freezing original weights [5]. For a weight
+matrix W ∈Rd×h, LoRA represents updates as W0+∆W =
+W0 + BA, where B ∈Rd×r, A ∈Rr×h, and the rank r ≪
+min(d, h). This reduces the number of TPs from d × h to
+(d + h) × r while preserving performance.
+We denote the client-side FM as wc = {wc, ∆wc}, where
+wc is the frozen pre-trained FM parameters and ∆wc is the
+client-side TPs, i.e., the LoRA module weights. Similarly, we
+denote the server-side FM as ws = {ws, ∆ws}, where ∆ws
+denotes the TPs including the LoRA module weights and the
+task module, e.g., the classification head in the classification
+task.
+The SFL process consists of N training rounds, each
+comprising eight steps as shown in Fig. 2. At the start of
+round n, the server broadcasts the latest global client-side TPs
+∆wc(n−1) (i.e., ∆wc,k(n, 0), ∀k) to all clients (Step 1). The
+server set ∆ws,k(n, 0) = ∆ws(n −1), ∀k. Subsequently, the
+K clients perform I local iterations, with each local iteration
+involving Steps 2 to 7, detailed as follows: Step 2: Client
+k performs the forward propagation (FP) of the client-side
+model wc,k(n, i −1) and obtains the output (called smashed
+data) Ak(n, i) = f(Xk(n, i); wc,k(n, i −1)). Step 3: Client
+k transmits Ak(n, i) and label yk(n, i) to the server. Steps
+4 and 5: The server performs the FP and BP of the server-
+side model ws,k(n, i −1) and obtains ∆ws,k(n, i). Step
+6: The server transmits the gradients of the smashed data
+Gk(n, i) = ∇ℓ(Ak(n, i), yk(n, i); ws,k(n, i −1)) to client k.
+Step 7: Client k performs the BP of the client-side model to
+obtain ∆wc,k(n, i). After completing I local iterations, each
+client transmits ∆wc,k(n, I) to the server (Step 8). Finally, the
+
+
+4
+server aggregates the ∆wc,k(n, I) from K clients to obtain
+the updated global client-side TPs ∆wc(n). Concurrently, the
+server aggregates the ∆ws,k(n, I) to obtain the updated global
+server-side TPs ∆ws(n), completing one training round.
+B. SFL-PS Paradigm
+We propose a training paradigm, SFL-PS, characterized by
+parallel server-side computing and sequential downlink GT, as
+illustrated in Table I and Fig. 1. Specifically, in steps 4 and
+5, the server partitions its computing resources into dedicated
+portions for individual clients, with the allocation fixed in one
+training round1. In step 6, all downlink resources are used for
+the current GT, and the GTs are scheduled in a specific order.
+We assume that the uplink bandwidth WU and the downlink
+bandwidth WD do not overlap. At the start of each round, the
+server decides the following variables
+• u (n) is the split point for all clients.
+• αk (n) is the fraction of server computing frequency
+allocated to client k.
+• βk (n) is the fraction of uplink bandwidth allocated to
+client k.
+Vanilla SFL-PS employs intra-round synchronous training
+and undesignated GT scheduling. Specifically, during a local
+iteration, the server starts GT only after completing the server-
+side model FP and BP for all clients, and the scheduling
+order for downlink transmission is undesignated, for example,
+random or first-come-first-served (FCFS). These two char-
+acteristics may lead to long per-round training latency. To
+address these limitations, we propose CPSFL in Section III.
+C. Fine-Grained Latency and Energy Consumption Analysis
+In this section, we first analyze the achievable communica-
+tion rate for each client, and then analyze the time and energy
+consumption of the eight steps in each training round.
+To finely capture the UAV client mobility, we propose a
+fine-grained latency analysis where the channel varies per time
+slot instead of per training round. We denote the channel gain
+between the BS and UAV k in the s-th time slot as hk (s),
+which is a function of the distance between the BS and UAV k
+and assumed to be constant over a time slot with length τ0. At
+the start of round n, the server allocates Wk(n) = βk(n) WU
+bandwidth to client k for the uplink transmission. The uplink
+rate from client k to the server in round n is given by
+RU,k(n, hk(s))=Wk(n) log2(1+ pkhk(s)/(Wk(n)N0)) , (1)
+where pk is the transmit power of client k and N0 is the
+noise power spectral density (PSD). The downlink rate from
+the server to client k in round n is given by
+RD,k (s) = WDlog2 (1 + PShk (s) / (WDN0)) ,
+(2)
+where PS is the total transmit power of the server.
+1To enable parallel server-side computing, the server model storage should
+include K server-side FMs ws for K clients, respectively.
+Then, in round n, the average communication rate of a
+uplink transmission step for client k, starting from tB and
+ending at tE, can be expressed as
+RU,k (n, tB, tE) =
+
+RU,k (n, hk (sB)) ((sB + 1) τ0 −tB)
++
+sE−1
+X
+j=sB+1
+RU,k (n, hk (j))τ0
++ RU,k (n, hk (sE)) (tE −sEτ0)
+
+/ (tE −tB) ,
+(3)
+where sB
+= ⌊tB/τ0⌋and sE
+= ⌊tE/τ0⌋are the time
+slots corresponding to tB and tE. If sB
+=
+sE, then
+RU,k (n, tB, tE) = RU,k (n, hk (sB)). Similarly, by replacing
+RU,k (n, hk(s)) with RD,k (s) in (3), the average rate for the
+downlink transmission RD,k (tB, tE) can be obtained.
+1) Step 1: The client-side TPs broadcasting latency is
+τSM (n) = max {τSM,k (n)} and τSM,k (n) is given by
+τSM,k (n) = ΓM (u (n)) /RD,k (tB, tB + τSM,k (n)) ,
+(4)
+where ΓM (u) is the data size (in bits) of the client-side TPs
+when the split point is u and tB = tSM,k,B (n) is the start
+time of this step. Note that τSM,k (n) is obtained by solving
+equation (4). The latencies of each communication step below
+are also obtained by solving the corresponding equations.
+2) Step 2: The client-side model FP latency of client k is
+τCF,k (n, i) = BΨCF (u (n)) / (κkfk) ,
+(5)
+where ΨCF (u) is the computation workload (in FLOPs) with
+one data sample when the split point is u, κk is the computing
+intensity (in FLOPs/cycle) of client k, and fk is the computing
+frequency of client k. The corresponding energy consumption
+is eF,k (n, i) = ωkf 3
+kτCF,k (n, i), where ωk is the coefficient
+(in Watt/(cycle/s)3) according to the chip architecture [23].
+3) Step 3: The smashed data transmission latency of client
+k is
+τCA,k(n, i)=BΓA(u(n))/RU,k(n, tB, tB+τCA,k(n, i)), (6)
+where ΓA (u) is the data size (in bits) of the smashed data
+when the split point is u and tB = tCA,k,B (n, i). The corre-
+sponding energy consumption is eA,k (n, i) = pkτCA,k (n, i).
+4) Steps 4 and 5: The server-side FP and BP latency for
+client k is
+τS,k(n, i)=B(ΨSF (u(n))+ΨSB(u(n)))/(κSαk(n)fS) , (7)
+where ΨSF (u) and ΨSB(u) denote the computational work-
+loads (in FLOPs) per data sample for FP and BP, respectively,
+when the split point is u; κS is the server’s computing intensity
+(in FLOPs/cycle); and fS is the server’s computing frequency.
+5) Step 6: The gradient transmission latency for client k is
+τSG,k (n, i)=BΓG(u (n))/RD,k (tB, tB + τSG,k(n, i)) , (8)
+where ΓG(u) is the data size (in bits) of the gradients of the
+smashed data when the split point is u and tB = tSG,k,B (n, i).
+6) Step 7: The client-side model BP latency of client k is
+τCB,k (n, i) = BΨCB (u (n)) / (κkfk) ,
+(9)
+where ΨCB (u) is the computation workload (in FLOPs) with
+one data sample when the split point is u. The corresponding
+energy consumption is eB,k (n, i) = ωkf 3
+kτCB,k (n, i).
+
+
+5
+7) Step 8: The client-side TPs uplink transmission latency
+of client k is
+τCM,k (n) = ΓM(u (n)) /RU,k(n, tB, tB + τCM,k(n)) , (10)
+where tB = tCM,k,B (n). The corresponding energy consump-
+tion is eM,k (n) = pkτCM,k (n).
+8) Total energy consumption for one round: In round n,
+the total energy consumption of client k is
+ek(n)=
+I
+X
+i=1
+(eF,k(n,i)+eA,k(n,i)+eB,k(n,i))+eM,k(n). (11)
+9) Lag of clients: We define the lag of client k as the time
+interval from the start of its BP in the previous local iteration
+to the completion of its server-side computation in the current
+iteration, as illustrated in Fig. 3. Specifically, the lag of client
+k in local iteration i of round n is defined as
+lk (n, i) =τCB,k (n, i −1) + τCF,k (n, i) +
+τCA,k (n, i) + τS,k (n, i) .
+(12)
+10) The upper bound of the total latency for one round: The
+total training latency of round n is denoted by τ (n). Under
+the SFL-PS paradigm, the upper bound of τ (n), denoted as
+τmax (n), is achieved when the GT of the client with the
+highest lag in each iteration is performed at the end, i.e.,
+τ (n) ≤τmax (n) = max
+k
+{τSM,k (n)} +
+max
+k
+{τCF,k (n, 1) + τCA,k (n, 1) + τS,k (n, 1)} +
+I−1
+X
+i=1
+ K
+X
+k=1
+τSG,k (n, i) + max
+k
+{lk (n, i + 1)}
+!
++
+K
+X
+k=1
+τSG,k (n, I) + max
+k
+{τCB,k (n, I) + τCM,k (n)} .
+(13)
+D. Problem Formulation
+In the SFL-PS-enabled UAV network, the client mobility
+induces time-varying wireless channels and achievable com-
+munication rates, which affect the latency and the energy
+consumption. Therefore, to minimize the training latency and
+energy consumption per round, adjusting the SPS and the
+CCRA when each round begins is necessary. To prevent UAVs
+from depleting their energy too quickly, we focus on the
+maximum energy consumption of UAVs. The optimization
+problem can be formulated as
+min
+{αk(n),βk(n),u(n)} τ (n) + λmaxk {ek (n)}
+(14a)
+s.t.
+αmin ≤αk (n) ≤1,
+K
+X
+k=1
+αk (n) = 1, (14b)
+βmin ≤βk (n) ≤1,
+K
+X
+k=1
+βk (n) = 1,
+(14c)
+u (n) ∈U,
+(14d)
+where λ > 0 is the weight of the energy term and U is the set
+of possible values of the split point. Besides, αmin ∈[0, 1/K]
+Client 1
+Client 2
+SM
+Client 3
+SM
+SM
+Server
+CPSFL w/o Asynchronous Training
+CF
+CA SF SB
+SF SB
+CF
+CA
+SF SB
+SF SB
+CF
+CA
+SF SB
+SF SB
+CB
+CB
+CB
+SG3
+SG2
+SG1
+SG3
+SG2
+SG1
+CF
+CA SF SB
+SF SB
+CF
+CA SF SB
+CF
+CA
+SF SB
+SF SB
+CF
+CA
+SF SB
+CF
+CA
+SF SB
+SF SB
+CF
+CA
+SF SB
+SG3
+SG2
+SG1
+SG3
+SG2
+SG1
+CB
+CB
+CB
+CM
+CM
+CM
+(
+)
+,
+kl
+n i
+Client 1
+Client 2
+SM
+Client 3
+SM
+SM
+Server
+Vanilla SFL-PS
+CF
+CA SF SB
+SF SB
+CF
+CA
+SF SB
+SF SB
+CF
+CA
+SF SB
+SF SB
+(
+)
+,
+kl
+n i
+Client 1
+Client 2
+SM
+Client 3
+SM
+SM
+Server
+CPSFL w/o Priority Scheduling
+SG1
+CF
+CA SF SB
+SF SB
+CF
+CA SF SB
+CF
+CA
+SF SB
+SF SB
+CF
+CA
+SF SB
+CF
+CA
+SF SB
+SF SB
+CF
+CA
+SF SB
+SG1
+SG3
+SG2
+CB
+CF
+CA SF SB
+SF SB
+CF
+CA SF SB
+CB
+CF
+CA SF SB
+CB
+CF
+CA
+SF SB
+SF SB
+CF
+CA
+SF SB
+CB
+CF
+CA
+SF SB
+CB
+CF
+CA
+SF SB
+SF SB
+CF
+CA
+SF SB
+CB
+CF
+CA
+SF SB
+SG3
+SG2
+CB
+CM
+CB
+CM
+CB
+CM
+CB
+CM
+CB
+CM
+CB
+CM
+Client 1
+Client 2
+SM
+Client 3
+SM
+SM
+Server
+CPSFL
+SG1
+CF
+CA SF SB
+SF SB
+CF
+CA SF SB
+CF
+CA
+SF SB
+SF SB
+CF
+CA
+SF SB
+CF
+CA
+SF SB
+SF SB
+CF
+CA
+SF SB
+SG1
+SG3
+SG2
+SG3
+SG2
+CB
+CF
+CA SF SB
+SF SB
+CF
+CA SF SB
+CB
+CF
+CA SF SB
+CB
+CF
+CA
+SF SB
+SF SB
+CF
+CA
+SF SB
+CB
+CF
+CA
+SF SB
+CB
+CF
+CA
+SF SB
+SF SB
+CF
+CA
+SF SB
+CB
+CF
+CA
+SF SB
+SG3
+SG2
+SG3
+SG2
+CB
+CM
+CB
+CM
+CB
+CM
+CB
+CM
+CB
+CM
+CB
+CM
+SG3
+SG2
+SG1
+SG3
+SG2
+SG1
+CB
+CF
+CA
+SF SB
+SF SB
+CB
+CF
+CA
+SF SB
+CB
+CF
+CA SF SB
+SF SB
+CF
+CA SF SB
+CB
+CF
+CA SF SB
+CB
+CF
+CA
+SF SB
+SF SB
+CF
+CA
+SF SB
+CB
+CF
+CA
+SF SB
+SG3
+SG2
+SG1
+SG3
+SG2
+SG1
+CB
+CM
+CB
+CM
+CB
+CM
+CB
+CM
+CB
+CM
+CB
+CM
+(
+)
+,
+kl
+n i
+(
+)
+,
+kl
+n i
+Fig. 3: The timeline of one training round (consisting of two
+local iterations) for three clients when the proposed CPSFL
+and its ablation variants are applied. The notations SM, CF,
+CA, SF, SB, SGk, CB, and CM correspond to the eight steps
+in Fig. 2, respectively.
+and βmin ∈[0, 1/K] are the limits of the transmitting power
+fraction and the bandwidth fraction, respectively. To keep τ (n)
+away from its upper bound τmax (n) in (13), we propose
+CPSFL in the next section to enhance vanilla SFL-PS.
+III. COMMUNICATION-PIPELINED SFL
+In this section, we propose the CPSFL, which enhances the
+vanilla SFL-PS through the downlink GT priority schedul-
+ing and intra-round asynchronous training. Specifically, the
+priority scheduling allows clients who are likely to become
+stragglers to receive the gradients required for BP earlier.
+The asynchronous training reduces the idle downlink waiting
+time by enabling immediate GT upon server computation
+completion. Fig. 3 illustrates the timelines of four paradigms:
+vanilla SFL-PS, CPSFL without the intra-round asynchronous
+training (CPSFL w/o AT), CPSFL without the downlink GT
+priority scheduling (CPSFL w/o PS), and CPSFL, showing that
+CPSFL achieves the shortest training latency for one round.
+In the following, we first present the priority scheduling
+mechanism in CPSFL w/o AT and establish its optimality via
+theoretical analysis. Next, we introduce CPSFL and prove the
+scheduling optimality under additional simplifying assump-
+tions. We then analyze the per-round latency of CPSFL and its
+ablation variants, and finally compare them against the other
+two paradigms: SFL-PP and PipeSFL.
+A. Downlink Gradient Transmission Priority Scheduling
+Due to client heterogeneity in channel conditions and com-
+puting capabilities, the order of downlink GT significantly im-
+pacts the per-iteration training latency. Under the synchronous
+training setting, there are theoretically K! possible scheduling
+
+
+6
+Algorithm 1 CPSFL (Two Server-Side Improvements)
+1: Procedure: Downlink Gradient Transmission Priority
+Scheduling
+2: if the server completes the server-side model FP and BP
+for client k and obtains the gradient Gk(n, i) then
+3:
+The server adds Gk(n, i) to the priority queue with the
+lag lk (n, i) in (12) as its priority.
+4: end if
+5: Procedure: Intra-Round Asynchronous Training
+6: if the server is not transmitting gradients and the priority
+queue is not empty then
+7:
+The server retrieves the gradient Gk(n, i) of the
+highest-priority client k from the priority queue.
+8:
+The server transmits Gk(n, i) to client k.
+9:
+The server removes Gk(n, i) from the priority queue.
+10: end if
+orders with K clients. Thus, finding the optimal orders is NP-
+hard, and exhaustive search is prohibitively time-consuming.
+To address this, we design a priority scheduling mechanism
+for downlink GT and prove its optimality. This paradigm is
+called CPSFL w/o AT.
+As shown in Algorithm 1, upon completing the computing
+task for client k, the server obtain the gradient Gk(n, i) for
+client k and inserts it into the priority queue along with its lag
+lk (n, i) from (12), which serves as the transmission priority.
+Consequently, clients with larger lags are assigned higher
+transmission priority and can start BP earlier. When I = 0,
+the term τCB,k (n, 0) in (12) can be replaced by ςτCF,k (n, 1)
+with a constant ς > 0.
+1) Optimality analysis: We first analyze the timeline when
+the server employs the priority scheduling, based on the
+following simplifying assumption.
+Assumption 1. The wireless channel remains constant
+within each training round. Thus, we can omit the round
+index n and local iteration index i for brevity. Without loss of
+generality, we reindex the K clients in non-decreasing order
+of their lags, i.e., l1 ≤l2 ≤· · ·≤lK, so that their transmission
+priorities are client 1 < client 2 <· · ·< client K.
+For CPSFL w/o AT, we define the per-iteration training
+latency as the time interval between two consecutive instants
+when the server finishes the computing tasks of all clients,
+which is illustrated in Fig. 3 as the gap between two vertical
+black dashed lines. This latency is given by
+Titer = max
+k
+
+
+
+K
+X
+j=k
+τSG,j + lk
+
+
+.
+(15)
+Then, the following theorem shows the optimality of the
+proposed GT priority scheduling.
+Theorem 1. The optimal strategy to minimize the per-
+iteration training latency Titer is to prioritize the GT task of
+clients with larger lag, i.e., schedule the GT task of client m
+before client k if and only if lm ≥lk, ∀m, k ∈K.
+Proof. See Appendix A.
+B. Intra-Round Asynchronous Training
+In CPSFL w/o AT, the server’s downlink communication
+resources remain idle between the completion of the comput-
+ing task of one client and the completion of the computing
+tasks of all clients. To improve resource utilization, the pro-
+posed CPSFL adopts the intra-round asynchronous training. As
+shown in Algorithm 1, whenever the server is not transmitting
+gradients, it immediately retrieves the highest-priority gradient
+from the priority queue, starts transmission, and then removes
+this gradient and its priority from the queue. This allows the
+server to start downlink GT without waiting for the computing
+tasks of all clients to complete.
+Notably, the gradients in the priority queue may originate
+from different local iteration counts across clients. For exam-
+ple, client j may expect to receive a gradient of iteration 2,
+while client k expects one of iteration 3. In this study, the
+transmission priority of each gradient is independent of the
+number of local iterations completed by the corresponding
+client.
+1) Optimality analysis: To simplify the per-round latency
+analysis, we adopt Assumption 1 and two other assumptions.
+Assumption 2. The uplink transmission latency of the
+client-side TPs, τCM,k, is negligible.
+Assumption 2 approximately holds in practice for two rea-
+sons. First, LoRA and model splitting significantly reduce the
+number of client-side TPs, making the data size ΓM(u) in (10)
+much smaller than BΓA(u) in (6), so that τCM,k ≪τCA,k.
+Second, when the number of local iterations I is large, the
+contribution of τCM,k to the total per-round latency becomes
+negligible.
+Assumption 3. The GT latencies for all clients are equal,
+i.e., τSG,k = τSG, ∀k (based on Assumption 1).
+Assumption 3 holds when the downlink communication
+rates between the clients and the server are identical. Since
+the server uses all downlink resources (bandwidth and transmit
+power) for each GT, as shown in (2) and (8), this assumption
+is equivalent to assuming identical channel gains: hk = h, ∀k.
+Moreover, Assumption 3 is approximately valid in practice:
+due to limited client uplink bandwidth and transmit power,
+τSG,k is much smaller than τCA,k, and the differences among
+τSG,k across clients is relatively small.
+Under Assumptions 1–3, we establish the following opti-
+mality theorem for the proposed scheduling policy.
+Theorem 2. The optimal strategy to minimize the per-round
+training latency of CPSFL is to prioritize the GT task of clients
+with larger lag, i.e., schedule the GT task of client m before
+client k if and only if lm ≥lk, ∀m, k ∈K.
+Proof. See Appendix B.
+C. Per-Round Training Latency Analysis
+In the analysis, we omit the broadcast latency of the global
+client-side TPs τSM (n), as it is identical for all clients and
+paradigms. Besides, we adopt Assumptions 1 and 2 for brevity.
+
+
+7
+1) Per-round latency of the vanilla SFL-PS: We denote the
+per-round latency of the vanilla SFL-PS by τ1. From (13), we
+have τ1 ≤τmax. The minimum value of τ1 is achieved when
+CPSFL w/o AT is applied, i.e., the GT follows the priority
+scheduling in Theorem 1. We denote the per-round latency of
+CPSFL w/o AT by τ2, so τ1 ≥τ2.
+2) Per-round latency of CPSFL w/o AT: The per-round
+latency of CPSFL w/o AT τ2 is given by
+τ2 = max
+k
+{τCF,k + τCA,k + τS,k} + (I −1) ·
+max
+k
+
+
+
+K
+X
+j=k
+τSG,j + lk
+
+
++ max
+k
+
+
+
+K
+X
+j=k
+τSG,j + τCB,k
+
+
+.
+(16)
+Thus, τ2 ≥I maxk
+nPK
+j=k τSG,j + lk
+o
+= bτ2, where the
+equality holds when arg maxk {τCF,k + τCA,k + τS,k}
+=
+arg maxk
+nPK
+j=k τSG,j + τCB,k
+o
+or when I is large.
+3) Per-round latency of CPSFL: Due to the intra-round
+asynchronous training, the per-round latency of CPSFL, de-
+noted by τCPSFL, lacks a closed-form expression. Instead, we
+characterize its bounds. As described in Section III-B, under
+asynchronous training, a lower-priority client’s GT may start
+earlier than a higher-priority one’s, provided no higher-priority
+GT task is yet enqueued. When each client must wait for all
+higher-priority GTs to complete before its GT begins in every
+local iteration, τCPSFL achieves its upper bound, i.e.,
+τCPSFL ≤τ2.
+(17)
+In summary, we have τCPSFL ≤τ2 ≤τ1.
+The lower bound is achieved when the downlink GT fully
+overlaps all other latencies, except for the latency of client 1,
+the client with the smallest lag, at the start and end of each
+round.
+τCPSFL ≥τCF,1+ τCA,1+ τS,1+
+I
+X
+i=1
+K
+X
+j=1
+τSG,j+ τCB,1. (18)
+D. Comparison of the Per-Round Training Latency of CPSFL,
+PipeSFL and SFL-PP
+In this section, we compare the approximate upper bound of
+the per-round latency of CPSFL, bτ2, with that of PipeSFL, bτ3,
+and the per-round latency of SFL-PP, τPP, to characterize the
+conditions under which either CPSFL or PipeSFL outperforms
+the others.
+Firstly, we redefine the latency notation for the relevant
+steps of SFL-PP and PipeSFL since they utilize the server’s
+computing and communication resources differently from the
+proposed CPSFL, as shown in Table I. The downlink rate from
+the server to client k in round n is given by
+R′
+D,k (n, hk (s)) = βk (n) WD·
+log2 (1 + ρk (n) PShk (s) / (βk (n) WDN0)) ,
+(19)
+where ρk (n) is the fraction of the server transmit power
+allocated to the client k. Its constraint is given by
+ρmin ≤ρk (n) ≤1,
+K
+X
+k=1
+ρk (n) = 1.
+(20)
+Then, the average rate for the downlink GT R
+′
+D,k (n, tB, tE)
+can
+be
+obtained
+by
+replacing
+RU,k (n, hk (s))
+with
+R′
+D,k (n, hk (s))
+in
+(3).
+The
+GT
+latency
+for
+client
+k
+τ ′
+SG,k (n, i) can be obtained by replacing RD,k (n, tB, tE)
+with R
+′
+D,k (n, tB, tE) in (8). To avoid cumbersome and
+difficult comparisons, we adopt Assumptions 1 and 2 in the
+following. Obviously, we have τSG,k < τ ′
+SG,k.
+The per-round latency of SFL-PP can be expressed as
+τPP = I max
+k
+
+τCF,k+ τCA,k+ τS,k+ τ ′
+SG,k+ τCB,k
+	
+. (21)
+In PipeSFL, the lag of client k is given by
+l′
+k = τCF,k + τCA,k + τ ′
+SG,k + τCB,k.
+(22)
+Then, we reindex the K clients by their lags, i.e., l′
+1 ≤l′
+2 ≤
+· · · ≤l′
+K
+2. Moreover, the server-side computing latency of
+client k is denoted as τ ′
+S,k, which is identical for all clients
+since the server allocates all its computing resources to the
+current task and all clients share the same split point. For
+brevity, we denote it as τ ′
+S. Obviously, we have τ ′
+S < τS,k.
+Similarly to τ2 in (16) and (17), the upper bound of per-round
+latency of PipeSFL can be expressed as
+τ3 = max
+k
+{τCF,k + τCA,k} + (I −1) max
+k
+
+(K −k + 1) τ ′
+S
++ l′
+k
+	
++ max
+k
+
+(K −k +1) τ ′
+S + τ ′
+SG,k + τCB,k
+	
+. (23)
+Thus, we have τ3
+≥
+I maxk
+nPK
+j=k τ ′
+S + l′
+k
+o
+=
+bτ3,
+where the equality holds when arg maxk {τCF,k + τCA,k} =
+arg maxk
+nPK
+j=k τ ′
+S + τ ′
+SG,k + τCB,k
+o
+or when I is large.
+Next, we compare the latencies under two extreme cases to
+derive intuitive insights.
+1) Case 1: negligible computing latency: When computing
+latency is negligible, i.e., τCF,k, τS,k, τCB,k, τ ′
+S →0, we
+compare the latency of paradigms with parallel GT, τPP
+and bτ3, against that of the paradigm with sequential GT,
+bτ2. In this case, bτ2 = I maxk
+nPK
+j=k τSG,j + τCA,k
+o
+and
+τPP = bτ3 = I maxk
+n
+τCA,k + τ ′
+SG,k
+o
+. Thus, if
+max
+k
+
+
+
+K
+X
+j=k
+τSG,j + τCA,k
+
+
+≤max
+k
+
+τ ′
+SG,k + τCA,k
+	
+, (24)
+then bτ2 ≤bτ3 = τPP and the proposed CPSFL is likely to
+achieve a lower per-round latency.
+Next, we present a scenario under which (24) holds. Firstly,
+(24) is equivalent to
+K
+X
+j=k
+τSG,j + τCA,k ≤max
+k
+
+τ ′
+SG,k + τCA,k
+	
+, ∀k.
+(25)
+If the downlink communication resources are equally allo-
+cated among clients, i.e., βk = ρk = 1/K, ∀k in (19),
+then KτSG,k
+=
+τ ′
+SG,k, ∀k. Thus, KτSG,k + τCA,k
+≤
+maxk {KτSG,k + τCA,k}
+=
+maxk
+n
+τ ′
+SG,k + τCA,k
+o
+, ∀k.
+2Note that the index k in τ2 and that in τ3 may refer to different clients,
+since k in τ2 is indexed according to lk in (12), whereas k in τ3 is indexed
+according to l′
+k.
+
+
+8
+Moreover, if the GT latency ordering is opposite to the
+lag ordering, i.e., τSG,k ≥τSG,k+1, ∀k ∈[1, K −1] (a
+relaxed version of Assumption 3), we have PK
+j=k τSG,j ≤
+(K −k + 1) τSG,k ≤KτSG,k, ∀k. Under these two condi-
+tions, (25) and (24) hold.
+2) Case 2: negligible communication latency: When com-
+munication latency is negligible, i.e., τCA,k, τSG,k, τ ′
+SG,k →
+0, we compare the latency of paradigms with parallel
+server computing, τPP and bτ2, against that of the paradigm
+with sequential server computing, bτ3. In this case, bτ3 =
+I maxk
+nPK
+j=k τ ′
+S + τCF,k + τCB,k
+o
+and τPP
+=
+bτ2
+=
+I maxk {τCF,k + τS,k + τCB,k}. Thus, if
+max
+k
+{(K −k + 1) τ ′
+S + τCF,k + τCB,k} ≤
+max
+k
+{τS,k + τCF,k + τCB,k} ,
+(26)
+then bτ3 ≤bτ2 = τPP and the PipeSFL is likely to achieve a
+lower per-round latency.
+Next, we present a scenario under which (26) holds. Firstly,
+(26) is equivalent to (K −k + 1) τ ′
+S + τCF,k + τCB,k ≤
+maxk {τS,k + τCF,k + τCB,k}, ∀k. If the server computing
+frequency
+is
+equally
+allocated,
+i.e.,
+αk
+=
+1/K,
+∀k
+in
+τS,k
+in
+(7),
+then
+Kτ ′
+S
+=
+τS,k,
+∀k.
+Thus,
+Kτ ′
+S + τCF,k + τCB,k ≤maxk {Kτ ′
+S + τCF,k + τCB,k} =
+maxk {τS,k + τCF,k + τCB,k},
+∀k.
+Then,
+since
+(K −k + 1) τ ′
+S ≤Kτ ′
+S, ∀k, (26) holds.
+IV. DRL-BASED SPS AND CCRA FOR THE
+CPSFL-ENABLED UAV NETWORKS
+In this section, we first motivate the use of DRL for
+decision-making. We then formulate the problem as a partially
+observable Markov decision process (POMDP). Next, we
+describe the design of the BS agent, which incorporates an
+attention-based mechanism to extract features from historical
+UAV trajectories. Finally, we present the DRL-based SPS and
+CCRA scheme for the CPSFL-enabled UAV networks.
+A. Motivation of DRL-based Solution
+Problem (14) presents three major challenges that render
+conventional optimization methods impractical:
+1) Complexity: It is a mixed-integer non-linear program
+(MINLP) with both discrete and continuous variables,
+making it non-convex and NP-hard [24].
+2) Analytical intractability: As discussed in Section III-C3,
+due to intra-round asynchrony, the per-round latency
+τCPSFL(n) lacks a closed-form expression in terms of the
+decision variables and channel strengths.
+3) Uncertainty: At the start of each round, the BS has no
+access to future UAV trajectories or channel realizations.
+Furthermore, the problem exhibits temporal correlation: the
+UAVs’ initial locations in the next round depend on the cur-
+rent round’s decisions, creating a sequential decision-making
+process. These motivate the use of DRL, a technique natu-
+rally suited to optimizing policies in complex, uncertain, and
+temporally correlated environments. Due to the environmental
+uncertainty, the agent only has partial observability. Thus, we
+formulate the problem as a POMDP.
+B. POMDP Formulation and BS Agent Design
+A
+POMDP
+model
+can
+be
+described
+with
+a
+tuple
+⟨S, Ω, A, P, r, B, γ⟩. Specifically, S is the state space, o ∈Ω
+is the observation, a ∈A is the action, P (s′|s, a) ∈P is the
+probabilistic transition function, r is the reward function, and
+γ ∈(0, 1) is the discount factor. Denote the policy for agent
+as π : Ω× A →[0, 1]. The expected discounted cumulative
+reward for agent is J (π) = Es(0),a(0),... [P∞
+t=0 γtr (t)], where
+a (t)∼π (·|o (t)) and s (t+1)∼P (·|s (t) , a (t)). The POMDP
+aims to find an optimal policy π∗that maximizes J (π), i.e.,
+π∗= argmaxπJ (π) .
+(27)
+To find π∗, the DRL algorithms can be applied.
+We designate the BS as the agent for deciding the variables
+listed in Section II-B. Its observation space, action space, and
+reward function are detailed as follows.
+1) Attention-based UAV trajectory feature extraction: To
+make informed decisions, the BS agent needs to infer future
+UAV trajectory features and analyze how past trajectories
+affect the latency and energy consumption. Thus, the agent
+leverages historical trajectory data from the previous training
+round. However, the number of time slots per round varies,
+posing a challenge for fixed-dimension neural networks [38].
+To address this, we employ an attention mechanism with po-
+sitional encoding to extract fixed-dimensional representations.
+Given a query q ∈RDQ×1 and M key-value pairs K =
+[k1, . . . , kM] ∈RDK×M, V = [v1, . . . , vM] ∈RDV ×M, the
+attention mechanism produces a feature vector fk ∈RH×1.
+Specifically, q, K, and V are first projected via the learn-
+able weights WQ
+∈RDS×DQ, WK
+∈RDS×DK, and
+WV ∈RH×DV , respectively. To preserve the temporal order,
+sinusoidal positional encodings are added to the projected keys
+and values, as well as to the query at its corresponding time
+step. The output feature is then obtained via the scaled dot-
+product attention [39]
+f = (WV V + PV ) ·
+softmax
+
+1
+√DS
+(WKK + PK)⊤(WQq + pQ)
+
+, (28)
+where PV ∈RH×M, PK ∈RDS×M, and pQ ∈RDS×1 are
+the positional encodings.
+For UAV k at time slot s, we form a vector χk(s) ∈R4×1
+by combining its 3D coordinates and distance to the BS, which
+is available to the BS at the start of each slot. Let S (n) denote
+the set of time slots in round n, with M (n) = |S (n)| varying
+across rounds. The query is set to q = χk(s′), where s′ is the
+last time slot in S (n −1). The key-value pairs are defined as
+km = vm = χk(s), ∀s ∈S (n −1). Applying (28) yields
+a fixed-dimensional trajectory feature fk (n −1) ∈RH×1 for
+UAV k over round n −1.
+2) Observation space: The observation of the BS is de-
+signed as
+o(n) =
+
+u (n −1) , [αk (n −1) , βk (n −1) , ek (n −1)]k∈K ,
+τ (n −1) , [χk(s)]k∈K,s∈S(n−1)
+
+.
+(29)
+To obtain o(n), the communication overhead is K positive
+real numbers (PRNs) (i.e., ek (n −1), ∀k), which is negligible
+
+
+9
+Algorithm 2 DRL-based SPS and CCRA scheme for the
+CPSFL-enabled UAV networks
+1: Initialize the whole model w with the LoRA modules and the
+batch size B.
+2: The BS initializes the policy network πϑ, the value network Vφ,
+and the trajectory collector ξ of size Bm.
+3: for round n = 0, . . . , N do
+4:
+If n ≥1, the BS obtains observation o(n).
+5:
+If n ≥2, the BS stores the experience ⟨o(n −1), a(n −
+1), r(n −1), o(n)⟩into ξ.
+6:
+if ξ is full then
+7:
+The BS obtains all experiences ⟨oj, aj, rj, oj+1⟩, j =
+1, . . . , Bm in ξ and updates πϑ and Vφ by the PPO
+algorithm, and then clear ξ.
+8:
+end if
+9:
+The BS obtains the action a(n), decides the split point u(n),
+the server computing frequency allocation αk (n), ∀k, and the
+uplink bandwidth allocation βk (n), ∀k.
+10:
+The BS splits w(n −1) into wc(n −1) and ws(n −1), and
+sends ∆wc(n −1), u(n), and βk (n) to UAV k, ∀k.
+11:
+The UAVs and BS perform I local iterations by the CPSFL
+paradigm in Algorithm 1.
+12:
+After receiving ∆wc,k(n, I), ∀k, the BS calculates their
+weighted average to obtain ∆wc(n). Concurrently, the BS
+aggregates the ∆ws,k(n, I), ∀k to obtain ∆ws(n).
+13:
+UAV k send ek (n) to the BS, ∀k.
+14:
+The BS receives reward r(n).
+15: end for
+16: return Trained whole TPs consisting of ∆wc and ∆ws.
+compared with ΓM and ΓA. After obtaining fk (n −1), ∀k,
+we concatenate it with the other components of o(n) as input
+to the subsequent multi-layer perception (MLP).
+3) Action space: The action space of the BS is designed as
+a(n) =
+h
+u(n), eα(n), eβ(n)
+i
+,
+(30)
+where eα = [eα1, · · · , eαK], PK
+k=1 ˜αk (n) = 1, and ˜αk (n) > 0.
+eβ is defined analogously. To satisfy (14b), we obtain αk (n)
+by the following linear scaling
+α(n) =
+(
+˜α(n), min (˜α(n)) ≥αmin,
+A (˜α(n) −min (˜α(n))) + αmin, else,
+(31)
+where A = (1 −Kαmin)/ (1 −K min (eα(n))) ≥0. Besides,
+βk (n) can be obtained in a similar way to satisfy (14c).
+4) Reward function: The reward function of the BS is
+designed as
+r(n) = −τ (n) −λmaxk {ek (n)} .
+(32)
+C. The Overall DRL Scheme
+The proposed DRL-based SPS and CCRA scheme for the
+CPSFL-enabled UAV networks is summarized in Algorithm 2.
+The BS agent is equipped with the proximal policy optimiza-
+tion (PPO) algorithm [40].
+V. SIMULATION RESULTS
+In this section, we present the simulation results to demon-
+strate the performance improvements brought by the proposed
+CPSFL in Algorithm 1 for the UAV network and the proposed
+DRL-based SPS and CCRA scheme in Algorithm 2.
+TABLE II: Amount of the FP computation, the client-side TPs,
+and the smashed data of Swin-L with LoRA
+u
+ΨCF
+(GFLOPs)1
+ΨSF
+(GFLOPs)1
+ΓM
+(KB)2
+ΓA
+(KB)2
+Smashed
+Data Shape
+1
+6.18
+64.10
+192
+2352
+[56, 56, 192]
+2
+12.50
+57.78
+612
+1176
+[28, 28, 384]
+3
+64.19
+6.09
+7596
+588
+[14, 14, 768]
+4
+70.28
+0.001
+9276
+294
+[7, 7, 1536]
+1 It is calculated by fvcore with 1Mult-Adds ≈2FLOPs.
+2 It is measured in float32 precision.
+A. Benchmarks
+We compare CPSFL against the following SFL paradigms
+and ablation variants:
+• CPSFL w/o AT: CPSFL with intra-round synchronous
+training (see Fig. 3): the server starts GT only after
+completing server-side computing for all clients.
+• CPSFL w/o PS: CPSFL with FCFS scheduling instead of
+priority scheduling.
+• PipeSFL [37]: A state-of-the-art SFL-SP variant featuring
+server-side computing priority scheduling and intra-round
+asynchronous training3.
+• PipeSFL w/o AT: PipeSFL with intra-round synchronous
+training: the server starts computing only after receiving
+smashed data from all clients.
+• PipeSFL w/o PS: PipeSFL with FCFS scheduling instead
+of priority scheduling.
+• SFL-PP: All SFL steps of different clients is executed in
+parallel (see Fig. 1).
+The latency of SFL-PP can be readily extended from (21).
+In PipeSFL, upon receiving the smashed data, the server
+calculates the client lag using an extension of (22), where
+we set τCB,k (n, 0) = ςτCF,k (n, 1) and estimate the GT
+latency by utilizing the current-slot channel information, i.e.,
+τ ′
+SG,k (n, 0)
+=
+BΓG (u (n)) /R′
+D,k (n, hk (sCA,k,E (n, i))),
+with sCA,k,E (n, i) = ⌊(tCA,k,B (n, i) + τCA,k (n, i)) /τ0⌋4.
+B. Simulation Parameters Setting
+We consider a UAV network with a BS and K = 10 UAVs.
+The BS is located at [0,0,30]m. The horizontal locations of
+the UAVs are within three concentric annular regions centered
+on the BS. UAVs 1-3, 4-6, and 7-10 are located in the inner,
+middle, and outer rings, respectively. The boundaries of these
+regions are 100m, 550m, 820m, and 1000m away from the
+BS. The UAVs’ height is 20m, and their speed is maintained
+between 0.1m/s and 4m/s. The time slot length is set to τ0 =
+0.1s. The center frequency is fc = 2GHz. The uplink band-
+width and the downlink bandwidth are WU = WD = 20MHz.
+The noise PSD is set to N0 = −114dBm/MHz. The path loss
+LRMa,k in dB follows the RMa-AV LOS model in 3GPP TR
+36.777 [41]. The channel gain is hk(s) = 10−LRMa,k(s)/10.
+The BS and UAVs collaborate to fine-tune a Swin-L model
+(≈200M parameters)5 [42] on the CIFAR-100 dataset, where
+3For fair comparison, we adopt PipeSFL-V2, where each client’s server-side
+FP is immediately followed by its BP.
+4In [37], these terms are set to zero, which may result in priority assign-
+ments that deviate from the optimal scheduling in Theorem 2 of [37] for
+minimizing the per-round training latency.
+5CPSFL is also applicable to billion-scale models, e.g., SwinV2-G (3.0B).
+
+
+10
+the input size is 3*224*224 and B = 8. The LoRA mod-
+ules of rank 8 are injected into all linear layers except the
+classification head. All parameters except the LoRA modules
+and the classification head are frozen. Split point u allocates
+u stages to the client and the remainder to the server. Thus,
+U = {1, . . . , 4} in (14d). The values of ΨCF (u), ΨSF (u),
+ΓM (u), and ΓA (u) are shown in Table II. Besides, we set
+ΓG(u) = ΓA(u), ΨSB(u) = ςΨSF (u), ΨCB(u) = ςΨCF (u),
+and ς = 2 since the computations required for BP are about
+twice that of FP [31]. The BS is equipped with a GeForce RTX
+4080 for server-side computing, which provides a computing
+capacity of 780 AI TOPS (≈195TFLOPS) and operates at a
+frequency of fS = 2.51GHz [43]. Accordingly, we set its
+computational intensity to κS = 195 × 1012/fS FLOPs/cycle.
+In addition, we set PS = 40W and αmin = βmin = 1/K/5
+in (14b) and (14c). The UAVs have heterogeneous transmit
+powers, with pk for UAV 1-10 set to 1, 0.4, 0.1, 1, 0.4, 0.1, 1,
+0.4, 0.2, and 0.1 W, respectively. Each UAV is equipped with a
+device whose performance is comparable to the Jetson Xavier
+NX for client-side computation, offering a computing capacity
+of 10TOPS (≈2.5TFLOPS) and operating at a frequency of
+fk = 1GHz [44]. Accordingly, we set its computational
+density to κk = 2.5×1012/fk FLOPs/cycle and set the energy
+consumption coefficient to ωk = 16W/(GHz)3. The weight of
+the energy term is set as λ = 4.
+For the BS agent, we set DS = 8 and H = 16 in (28).
+Both πϑ and Vφ have three hidden layers with 128, 64, and
+32 neurons, respectively. Besides, the third hidden layer and
+the output layer of πϑ include three branches for deciding
+αk (n), βk (n), and u (n), respectively. The softmax activation
+function is used in the outputs of the branches for u (n) to
+normalize the probabilities. The parameters of Algorithm 2
+are set as follows: discount factor is γ = 0.5, learning rates
+are αV = απ = 3 × 10−4, and we set Bm = 12.
+C. Performance Evaluation with Fixed Variables
+In this section, we perform comparisons under the following
+fixed resource allocation settings. For CPSFL, we set αk =
+βk = 1/K, ∀k. For PipeSFL, we set ρk = βk = 1/K, ∀k.
+For CPSFL, we set αk = βk = ρk = 1/K, ∀k. The split point
+is set as u = 2 by default. The number of local iteration is set
+as I = 3 by default.
+Fig. 4 compares the timelines of SFL-PP, PipeSFL, and
+CPSFL, intuitively illustrating the source of CPSFL’s perfor-
+mance gain. In our simulation setting, the per-round train-
+ing latency is dominated by the wireless communication,
+while the client and server computing latencies are relatively
+small. Consequently, although PipeSFL dedicates all server
+computing resources on the current task and incorporates
+priority scheduling and asynchronous training, its performance
+improvement is limited. In contrast, CPSFL, an advanced SFL-
+PS variant, focuses all downlink communication resources on
+the current GT, significantly reducing the GT latency for each
+client. Moreover, CPSFL integrates priority scheduling and
+asynchronous training, further lowering overall latency.
+Fig. 5 shows the average per-round latency τ (n) over 500
+training rounds for different split points u. First, increasing u
+Fig. 4: Timeline of one training round (consisting of two
+local iterations) for ten clients when SFL-PP (top), PipeSFL
+(middle), or CPSFL (bottom) is applied.
+Fig. 5: Average per-round latency with different split points u
+obtained by CPSFL and the benchmarks.
+leads to a decrease in τ (n) across all schemes since it reduces
+ΓA (u) (see Table II), thereby decreasing τCA,k, τSG,k, and
+τ ′
+SG,k. Moreover, CPSFL achieves the lowest latency. When
+u = 2, it reduces τ (n) by over 30% compared to PipeSFL.
+This gain is more pronounced for smaller u since in this
+case, the communication latency constitutes a larger fraction of
+τ (n), and the benefit of time-division sequential GT becomes
+significant.
+In Table III, we define five clusters of UAVs with approxi-
+mately increasing heterogeneity in their uplink communication
+latencies τCA,k, achieved by changing their transmit powers
+pk while keeping their average uplink communication rates
+RU,k nearly the same. In cluster 1, τCA,k is nearly identical
+across clients, whereas in cluster 5, the last two UAVs exhibit
+τCA,k values nearly 1.5 times larger than those of the others.
+Fig. 6 shows the average per-round latency over 500 training
+rounds for these clusters. CPSFL achieves the lowest latency,
+and its performance gain over CPSFL w/o PS and PipeSFL
+basically grows with increasing latency heterogeneity. This is
+
+
+11
+TABLE III: Transmit power of five UAV clusters (K=12)
+Clusters pk (W) (inner ring) pk (W) (middle ring) pk (W) (outer ring)
+1
+0.2, 0.2, 0.2, 0.2
+0.4, 0.4, 0.4, 0.4
+0.8, 0.8, 0.8, 0.8
+2
+0.4, 0.4, 0.4, 0.4
+0.8, 0.8, 0.2, 0.2
+0.4, 0.4, 0.4, 0.4
+3
+0.4, 0.4, 0.4, 0.4
+0.8, 0.8, 0.8, 0.8
+1.6, 0.2, 0.2, 0.2
+4
+0.8, 0.8, 0.8, 0.4
+0.8, 0.8, 0.2, 0.2
+0.4, 0.2, 0.2, 0.2
+5
+0.8, 0.8, 0.8, 0.4
+0.8, 0.8, 0.4, 0.4
+0.8, 0.1, 0.1, 0.1
+Fig. 6: Average per-round latency with different degrees of
+client heterogeneity obtained by CPSFL and the benchmarks.
+because CPSFL effectively hides the impact of clients with
+large lag lk in the GT latencies τSG,k via priority scheduling
+and intra-round asynchronous training. In contrast, PipeSFL
+struggles to hide the latency of clients with large lag l′
+k in the
+server computing latencies τ ′
+S since τ ′
+S is small in our wireless
+UAV setting.
+Fig. 7 and Fig. 8 show the average per-round latency τ (n)
+over 500 training rounds with different numbers of local iter-
+ations I and clients K, respectively. For Fig. 8, there are K/3
+clients in each of the three rings, with transmit powers pk set to
+0.9W (inner), 0.3W (middle), and 0.1W (outer), respectively.
+In both figures, CPSFL achieves the lowest latency across
+all settings, with the performance gain over PipeSFL slightly
+increases with larger I or K. Specifically, in Fig. 7, τ (n)
+grows approximately linearly with I. In Fig. 8, increasing K
+raises τ (n) since the total resource, including the bandwidth
+and server computing frequency, is fixed.
+D. Performance Evaluation with Optimized Variables
+In this section, we compare the DRL-based scheme in
+Algorithm 2 and the fixed variants. The schemes are appended
+with the suffixes to indicate how the variables are determined.
+• DRL (proposed): The SPS and CCRA are decided by
+Algorithm 2. Besides, DRL(-) denotes a variant that
+replaces [χk(s)]s∈S(n−1), ∀k in (29) with the distances
+from the BS to all UAVs at the last time slot in S (n −1).
+Thus, DRL(-) does not involve the attention mechanism.
+• fixed RA: The SPS is decided by Algorithm 2, while the
+CCRA is fixed at αk = βk = 1/K, ∀k.
+• u = eu: The CCRA is decided by Algorithm 2, while u
+is fixed at eu.
+Fig. 9 shows the per-round latency τ (n) and the maximum
+energy consumption of all UAVs for one round maxk{ek(n)}
+obtained by the DRL-based CPSFL scheme and the bench-
+marks when I = 5. Each value is a moving average with
+a span of 21 rounds. The proposed scheme converges faster
+Fig. 7: Average per-round latency with different numbers of
+local iterations I obtained by CPSFL and the benchmarks.
+Fig. 8: Average per-round latency with different numbers of
+clients K obtained by CPSFL and the benchmarks.
+than the DRL(-) scheme, attaining an average objective value
+(see (14a)) of 105.8 over the last 1000 rounds, compared to
+108.6 for the DRL(-) scheme. This improvement stems from
+its ability to reduce environmental uncertainty by learning the
+relationship among UAV trajectories, actions, and rewards.
+Moreover, the proposed DRL scheme can effectively handles
+the challenging joint optimization of SPS and CCRA within
+CPSFL. For comparison, the fixed CCRA scheme yields an
+average objective value of 122.3, confirming that the pro-
+posed scheme achieves a superior latency-energy trade-off by
+adapting to heterogeneous UAV transmit powers and time-
+varying channel conditions induced by mobility. Furthermore,
+the performance of the proposed scheme approaches that of the
+CPSFL scheme with u = 2, which is the best fixed split point
+scheme evaluated by the objective values in (14a). This shows
+that the BS agent in the proposed scheme can automatically
+select a high-performance split point. Notably, when both
+CPSFL and PipeSFL employ the DRL for decision-making,
+CPSFL consistently achieves lower latency and energy con-
+sumption, further validating the benefits of sequential GT and
+CPSFL’s two key enhancements.
+VI. CONCLUSIONS
+In this paper, we have proposed a sequential GT paradigm,
+where the server dedicates all downlink resources for the
+current GT. We have further proposed CPSFL, characterized
+by downlink GT priority scheduling and intra-round asyn-
+chronous training. We have investigated CPSFL-based LoRA
+fine-tuning of FMs in UAV networks and have formulated
+
+
+12
+0
+1000
+2000
+3000
+4000
+5000
+6000
+Round
+20
+30
+40
+50
+60
+70
+80
+90
+Time for one round (s)
+(a) Latency for one round.
+0
+1000
+2000
+3000
+4000
+5000
+6000
+Round
+20
+30
+40
+50
+60
+70
+Max energy consumption for one round (J)
+5200
+5400
+5600
+5800
+20
+21
+22
+(b) Maximum energy consumption of all UAVs.
+Fig. 9: Latency and the maximum energy consumption of
+all UAVs for one round obtained by the DRL-based CPSFL
+scheme and the benchmarks: I = 5.
+an optimization problem to minimize the per-round training
+latency and the worst-case client energy consumption by
+optimizing the SPS, the uplink bandwidth allocation, and the
+server computing frequency allocation. To solve this problem,
+we have developed an attention-based DRL framework, where
+the BS agent decides the split point and the CCRA in each
+round by leveraging previous round information including
+UAV trajectories. Simulation results have shown that the
+proposed DRL-based CPSFL scheme outperforms the bench-
+marks, the ablation variants, the fixed CCRA scheme, and
+approaches the best fixed-SPS scheme. This study lays the
+foundation for finer-grained pipelining paradigms in SFL.
+APPENDIX A
+PROOF OF THEOREM 1
+With Assumption 1, the lags satisfy l1 ≤l2 ≤· · · ≤lK. The
+proposed priority scheduling strictly follows this lag ordering.
+We suppose that there exist indices m, k ∈K with m > k
+(so lm ≥lk) such that swapping their priorities, i.e., assigning
+client m a lower priority than client k, reduces the per-iteration
+training latency in (15). This latency is rewritten as
+Titer = max
+
+max
+j∈[1,k−1]∪[m+1,K] {tj + lj}, tm + lm,
+max
+q∈[k+1,m−1] {tq + lq}, tk + lk
+
+.
+(33)
+For any q ∈[k + 1, m −1], we have lm ≥lq ≥lk. We
+denote tk = PK
+j=k τSG,j, thus we have tk > tq > tm. We use
+the superscript * to denote all intervals and timestamps after
+the swap. After swapping, we have t∗
+m > t∗
+q > t∗
+k, t∗
+m = tk,
+and t∗
+j = tj, ∀j ∈[1, k −1] ∪[m + 1, K]. Besides, the per-
+iteration training latency becomes
+T ∗
+iter = max
+
+max
+j∈[1,k−1]∪[m+1,K]
+
+t∗
+j + lj
+	
+, t∗
+m + lm,
+max
+q∈[k+1,m−1]
+
+t∗
+q + lq
+	
+, t∗
+k + lk
+
+.
+(34)
+Since t∗
+m = tk and lm ≥lk, we have t∗
+m + lm ≥tk + lk.
+Since t∗
+m > tq and lm ≥lq, we have t∗
+m + lm > tq + lq.
+Since t∗
+m > tm, we have t∗
+m + lm > tm + lm. Therefore,
+T ∗
+iter ≥Titer, meaning the swap does not reduce latency,
+contradicting the initial assumption. Moreover, any priority
+ordering can be obtained by starting from the descending-lag
+order and performing a sequence of such swaps. Since none of
+these swaps can reduce the latency, the ordering that prioritizes
+clients with larger lags is optimal.
+APPENDIX B
+PROOF OF THEOREM 2
+With Assumption 1, the lags satisfy l1 ≤l2 ≤· · · ≤lK. The
+proposed priority scheduling strictly follows this lag ordering.
+We suppose that there exist indices m, k ∈K with m > k
+(so lm ≥lk) such that swapping their priorities, i.e., assigning
+client m a lower priority than client k, reduces the per-round
+training latency.
+We use the superscript * to denote all intervals and times-
+tamps after the swap. Let TCP SF L,k be the latency for
+client k to complete all iterations in a round. We will show
+T ∗
+CP SF L ≥TCP SF L, thereby proving Theorem 2.
+Firstly, lowering client m’s priority may cause its GT to
+wait for those of clients k through m −1, so T ∗
+CP SF L,m ≥
+TCP SF L,m. Secondly, raising client k’s priority eliminates its
+need to wait for transmissions of clients k + 1 through m, so
+TCP SF L,k ≥T ∗
+CP SF L,k.
+Thirdly, client m’s priority after the swap equals client
+k’s priority before the swap. Thus, the number of higher-
+priority clients remains unchanged. Let ϱk and ϱ∗
+k denote the
+number of GTs client k must wait for before and after the
+swap, respectively, with ϱk, ϱ∗
+k ∈
+h
+I, PK
+j=k I
+i
+. Let τ SG,k
+and τ ∗
+SG,k be the corresponding average per-transmission
+latencies. Then, we approximate TCP SF L,k ≈ϱkτ SG,k + Ilk
+and T ∗
+CP SF L,m ≈ϱ∗
+mτ ∗
+SG,m + Ilm. Under Assumption 3,
+we have τSG,k = τSG, ∀k and ¯τ ∗
+SG,m = ¯τSG,k. Moreover,
+under Assumption 3 and lm ≥lk, client k is enqueued
+more frequently than client m, implying ϱ∗
+m ≥ϱk. Hence,
+T ∗
+CP SF L,m ≥TCP SF L,k.
+Similarly, the priority of client j remains unchanged by
+the swap, ∀j ∈[k + 1, m −1]. We approximate TCP SF L,j ≈
+ϱj¯τSG,j +Ilj and T ∗
+CP SF L,j ≈ϱ∗
+j ¯τ ∗
+SG,j +Ilj. Under Assump-
+tion 3, we have ¯τSG,j = ¯τ ∗
+SG,j. Moreover, under Assumption 3
+and lm ≥lk, client k is enqueued more frequently than client
+m, implying ϱ∗
+j ≥ϱj. Hence, T ∗
+CP SF L,j ≥TCP SF L,j.
+
+
+13
+Finally, since client j’s priority are unaffected by the swap,
+∀j ∈[1, k −1] ∪[m + 1, K], their per-round training latency
+is basically unchanged, i.e., T ∗
+CP SF L,j = TCP SF L,j.
+These results imply T ∗
+CP SF L ≥TCP SF L, contradicting
+the assumption that the swap reduces latency. Since any
+priority ordering can be reached via successive swaps from the
+descending-lag order, without reducing latency, the proposed
+lag-based priority scheduling is optimal.
+REFERENCES
+[1] H. Kheddar, Y. Habchi, M. C. Ghanem, M. Hemis, and D. Niyato,
+“Recent advances in transformer and large language models for UAV
+applications,” arXiv preprint arXiv:2508.11834, 2025.
+[2] G. Qu, Q. Chen, W. Wei, Z. Lin, X. Chen, and K. Huang, “Mobile edge
+intelligence for large language models: A contemporary survey,” IEEE
+Commun. Surv. Tut., 2025, early access.
+[3] Z. Chen, H. H. Yang, Y. Tay, K. F. E. Chong, and T. Q. Quek, “The
+role of federated learning in a wireless world with foundation models,”
+IEEE Wireless Commun., vol. 31, no. 3, pp. 42–49, 2024.
+[4] N. Yan, Y. Su, Y. Deng, and R. Schober, “Federated fine-tuning of LLMs:
+Framework comparison and research directions,” IEEE Commun. Mag.,
+vol. 63, no. 10, pp. 52–58, 2025.
+[5] E. J. Hu, Y. Shen, P. Wallis, Z. Allen-Zhu, Y. Li, S. Wang, L. Wang,
+W. Chen et al., “Lora: Low-rank adaptation of large language models.”
+ICLR, vol. 1, no. 2, p. 3, 2022.
+[6] C. Thapa, P. C. M. Arachchige, S. Camtepe, and L. Sun, “Splitfed: When
+federated learning meets split learning,” in Proc. AAAI Conf. Artif. Intell.,
+vol. 36, no. 8, 2022, pp. 8485–8493.
+[7] Z. Lin, G. Qu, X. Chen, and K. Huang, “Split learning in 6G edge
+networks,” IEEE Wireless Commun., vol. 31, no. 4, pp. 170–176, 2024.
+[8] X. Qiang, Z. Chang, C. Ye, T. Hamalainen, and G. Min, “Split federated
+learning empowered vehicular edge intelligence: Concept, adaptive
+design, and future directions,” IEEE Wireless Commun., 2025, early
+access.
+[9] B. Xu, H. Zhao, C. Bao, and H. Zhu, “Optimizing efficient federated
+split learning over wireless networks: Challenges and opportunities,”
+IEEE Netw., 2025, early access.
+[10] W. Ni, H. Tian, S. Wang, C. Li, L. Sun, and Z. Yang, “Federated
+split learning for resource-constrained robots in industrial IoT: Frame-
+work comparison, optimization strategies, and future directions,” arXiv
+preprint arXiv:2510.05713, 2025.
+[11] C. Xu, J. Li, Y. Liu, Y. Ling, and M. Wen, “Accelerating split federated
+learning over wireless communication networks,” IEEE Trans. Wireless
+Commun., vol. 23, no. 6, pp. 5587–5599, 2024.
+[12] S. Chu, Y. Ni, J. Li, K. Wei, and J. Wang, “Online device scheduling
+and model partition in hybrid asynchronous split federated learning,”
+IEEE Commun. Lett., 2025, early access.
+[13] G. Qiang, F. Fang, H. Chen, and X. Wang, “Joint computational resource
+allocation and layer partitioning for federated learning,” IEEE Internet
+Things J., no. 99, pp. 1–1, 2025.
+[14] G. Zhu, Y. Deng, X. Chen, H. Zhang, Y. Fang, and T. F. Wong, “ESFL:
+Efficient split federated learning over resource-constrained heteroge-
+neous wireless devices,” IEEE Internet Things J., vol. 11, no. 16, pp.
+27 153–27 166, 2024.
+[15] Y. Wen, G. Zhang, K. Wang, and K. Yang, “Training latency minimiza-
+tion for model-splitting allowed federated edge learning,” IEEE Trans.
+Netw. Sci. Eng., 2025, early access.
+[16] H. Ao, H. Tian, W. Ni, G. Nie, and D. Niyato, “Semi-asynchronous
+federated split learning for computing-limited devices in wireless net-
+works,” IEEE Trans. Wireless Commun., 2025, early access.
+[17] X. Wang, S. Song, Z. Zhang, X. Hou, Z. Li, T. Xing, and X.-P. Zhang,
+“Split federated learning for resource-constrained edge computing net-
+works,” IEEE Trans. Consum. Electron., 2025, early access.
+[18] J. Hu, Y. Liang, Y. Chen, G. Liu, W. Chen, and L. Duan, “Performance
+optimization of split federated learning in heterogeneous edge computing
+environments,” IEEE Trans. Ind. Inform., 2025, early access.
+[19] S. Zhang, W. Wu, L. Song, and X. Shen, “Efficient model training in
+edge networks with hierarchical split learning,” IEEE Trans. Mobile
+Comput., 2025, early access.
+[20] S. Zhang, G. Cheng, W. Wu, X. Huang, L. Song, and X. Shen, “Split
+fine-tuning for large language models in wireless networks,” IEEE J.
+Sel. Topics Signal Process., 2025, early access.
+[21] Z. Li, S. Wu, L. Li, and S. Zhang, “Energy-efficient split learning for
+fine-tuning large language models in edge networks,” IEEE Netw. Lett.,
+2025, early access.
+[22] X. Chen, W. Wu, F. Ji, Y. Lu, and L. Li, “Privacy-aware split federated
+learning for LLM fine-tuning over internet of things,” IEEE Internet
+Things J., 2025, early access.
+[23] M. Wu, R. Yang, X. Huang, Y. Wu, J. Kang, and S. Xie, “Joint opti-
+mization of model partition and resource allocation for split federated
+learning over vehicular edge networks,” IEEE Trans. Veh. Technol.,
+vol. 73, no. 10, pp. 15 860–15 865, 2024.
+[24] L. Yu, Z. Chang, Y. Jia, and G. Min, “Model partition and resource
+allocation for split learning in vehicular edge networks,” IEEE Trans.
+Intell. Transp. Syst., 2025, early access.
+[25] W. Wu and X. Huang, “Split-LEO: efficient AI model training over LEO
+satellite networks,” Sci. China Inf. Sci., vol. 68, no. 9, pp. 1–15, 2025.
+[26] W. Wu, M. Li, K. Qu, C. Zhou, X. Shen, W. Zhuang, X. Li, and W. Shi,
+“Split learning over wireless networks: Parallel design and resource
+management,” IEEE J. Sel. Areas Commun., vol. 41, no. 4, pp. 1051–
+1066, 2023.
+[27] Z. Lin, G. Zhu, Y. Deng, X. Chen, Y. Gao, K. Huang, and Y. Fang,
+“Efficient parallel split learning over resource-constrained wireless edge
+networks,” IEEE Trans. Mobile Comput., vol. 23, no. 10, pp. 9224–9239,
+2024.
+[28] H. Ao, H. Tian, and W. Ni, “Federated split learning for edge intelli-
+gence in resource-constrained wireless networks,” IEEE Trans. Consum.
+Electron., 2024, early access.
+[29] Z. Lin, G. Qu, W. Wei, X. Chen, and K. K. Leung, “AdaptSFL: Adaptive
+split federated learning in resource-constrained edge networks,” IEEE
+Trans. Netw., 2025, early access.
+[30] Z. Lin, Z. Chen, X. Chen, W. Ni, and Y. Gao, “HASFL: Heterogeneity-
+aware split federated learning over edge computing systems,” arXiv
+preprint arXiv:2506.08426, 2025.
+[31] X. Qiang, Z. Chang, Y. Hu, L. Liu, and T. H¨am¨al¨ainen, “Adaptive and
+parallel split federated learning in vehicular edge computing,” IEEE
+Internet Things J., vol. 12, no. 5, pp. 4591–4604, 2025.
+[32] X. Chen, L. Li, F. Ji, and W. Wu, “Memory-efficient split federated
+learning for LLM fine-tuning on heterogeneous mobile devices,” in Proc.
+IEEE Conf. Comput. Commun. Workshops (INFOCOM WKSHPS), 2025,
+pp. 1–6.
+[33] K. Zhao and Z. Yang, “Efficient federated split learning for large
+language
+models
+over
+communication
+networks,”
+arXiv
+preprint
+arXiv:2504.14667, 2025.
+[34] Z. Wang, Y. Zhou, Y. Shi, and K. B. Letaief, “Federated fine-tuning
+for pre-trained foundation models over wireless networks,” IEEE Trans.
+Wireless Commun., 2025, early access.
+[35] F. Solat, J. Lee, and D. Niyato, “Split federated learning-empowered
+energy-efficient mobile traffic prediction over UAVs,” IEEE Wireless
+Commun. Lett., 2024, early access.
+[36] L. U. Khan, M. Guizani, S. Muhaidat, and M. Ayyash, “QoS-enabled
+wireless split federated learning: A reinforcement learning and optimiza-
+tion approach,” IEEE Trans. Consum. Electron., 2025, early access.
+[37] Y. Gao, B. Hu, M. B. Mashhadi, W. Wang, and M. Bennis, “PipeSFL:
+A fine-grained parallelization framework for split federated learning on
+heterogeneous clients,” IEEE Trans. Mobile Comput., vol. 24, no. 3, pp.
+1774–1791, 2025.
+[38] G. Sun, W. Xie, D. Niyato, F. Mei, J. Kang, H. Du, and S. Mao,
+“Generative AI for deep reinforcement learning: Framework, analysis,
+and use cases,” IEEE Wireless Commun., 2025, early access.
+[39] A. Vaswani, N. Shazeer, N. Parmar, J. Uszkoreit, L. Jones, A. N. Gomez,
+Ł. Kaiser, and I. Polosukhin, “Attention is all you need,” Proc. Adv.
+Neural Inf. Process. Syst., vol. 30, 2017.
+[40] J. Schulman, F. Wolski, P. Dhariwal, A. Radford, and O. Klimov, “Prox-
+imal policy optimization algorithms,” arXiv preprint arXiv:1707.06347,
+2017.
+[41] 3GPP, “Study on enhanced LTE support for aerial vehicles,” Technical
+Report
+(TR)
+36.777,
+2017,
+version
+15.0.0.
+[Online].
+Available:
+https://www.3gpp.org/DynaReport/36777.htm
+[42] Z. Liu, Y. Lin, Y. Cao, H. Hu, Y. Wei, Z. Zhang, S. Lin, and
+B. Guo, “Swin transformer: Hierarchical vision transformer using shifted
+windows,” in Proc. IEEE/CVF Int. Conf Comput. Vis., 2021, pp. 10 012–
+10 022.
+[43] NVIDIA Corporation, “NVIDIA GeForce graphics cards comparison,”
+2025. [Online]. Available: https://www.nvidia.cn/geforce/graphics-cards/
+compare/
+[44] ——,
+“NVIDIA
+Jetson
+Xavier,”
+2025.
+[Online].
+Avail-
+able:
+https://www.nvidia.cn/autonomous-machines/embedded-systems/
+jetson-xavier-series/

@@ -1,0 +1,1807 @@
+Techno-Economic Modelling and Component Sizing in
+Renewable Energy Communities: A Participant Perspective
+Vishal Kachhad a, Amit Joshi a, Luigi Glielmo b
+aDepartment of Engineering, University of Sannio, Benevento, Italy.
+bDepartment of Electrical Engineering and Information Technologies, University of Naples Federico II, Italy.
+Abstract
+This article proposed the optimization problem formulation to find optimal sizes of Photovoltaics (PV) and Battery Energy
+Storage Systems (BESS) for individual participants within the context of the Renewable Energy Community (REC). An
+optimization problem considered the dynamic nature of electricity pricing, solar irradiation levels, financial aspects such as
+capital investment, and operational and maintenance expenditures of PV and BESS. The analysis also considered replacement
+costs and the efficiency of charging and discharging the BESS unit. We employed Mixed Integer Non-Linear Programming
+(MINLP) to find the optimal system size to maximize individual participants’ Net Present Value (NPV). Furthermore, in
+this study, we used daily representative signals for each season of the year to reduce simulation runtime. The Fast Iterative
+Shrinkage-Thresholding Algorithm (FISTA) was used to extract these signals. Then these representative signals obtained were
+used in the optimization problem formulation to reduce simulation time and extend our analysis to a wider planning horizon.
+In addition, the study introduced fairness by applying the individual marginal contribution method to distribute incentives
+equitably among REC participants, ensuring that each member benefited from their contribution. A simulation study was
+performed using a real demand dataset of five houses located in Roseto Valfortore, a small town and commune of the Foggia
+Province in the Apulia region of southern Italy, as a proof of the practical relevance and usefulness of the ideas discussed.
+Ultimately, the goal of the article was to empower the REC with the knowledge necessary to make informed decisions and
+shape the future of sustainable energy.
+Key words: sizing; photovoltaic; battery energy storage; energy management; net present value; periodicity
+1
+Introduction
+T
+he
+landscape
+of
+renewable
+energy
+generation
+transformed,
+reflecting
+the
+new
+policies
+that
+shaped our power networks. In this era of deregulation,
+more people and companies became involved in the
+management of energy resources. An example of this
+shift was the increasing number of RECs. A REC
+was a localized group of individuals, businesses, or
+organizations that collaborated in the generation,
+distribution, and consumption of renewable energy
+resources. These communities were characterized by
+their commitment to sustainable energy practices, with
+the aim of reducing the reliance on nonrenewable energy
+sources and minimizing environmental impacts. The
+key features of an REC included collective ownership
+or shared access to renewable energy infrastructure,
+Email addresses: vishalkachhad123@gmail.com (Vishal
+Kachhad), aj25021993@gmail.com (Amit Joshi),
+luigi.glielmo@unina.it (Luigi Glielmo).
+such as solar panels and energy storage technologies.
+REC participants worked together to exploit natural
+resources
+in
+an
+environmentally
+friendly
+manner,
+fostering a sense of shared responsibility for energy
+production and consumption [1]. People joined a
+REC because of the opportunity for real economic
+advantages, primarily through lower energy bills [2].
+The reduced energy costs and the option to sell
+extra energy to the grid at reasonable rates added to
+the savings compared to regular rates. Furthermore,
+the public authority provided an additional reward
+for sharing energy within the REC, making it even
+more appealing to REC members [3]. This modern
+concept of the REC was supported by a regulatory
+framework that allowed participants (at least two)
+to create fair contracts to share distributed energy
+resources [4]. Within this innovative framework, the
+REC brought three main benefits. First, it achieved
+substantial environmental gains, notably in the form
+of a reduced carbon footprint. Second, it fosters social
+empowerment by encouraging increased participation
+Preprint submitted to Elsevier
+20 November 2025
+arXiv:2511.15321v1  [eess.SY]  19 Nov 2025
+
+
+from end users, thereby nurturing a sense of community
+and shared purpose in energy production. Lastly, REC’s
+energy-sharing practices yielded considerable economic
+benefits, manifested as revenue streams generated
+through
+collaborative
+energy
+transactions
+between
+its members. For these benefits, it was essential to
+implement intelligent control algorithms and advanced
+communication technologies that ensured the stable
+and reliable operation of individual REC units and
+facilitated potential interactions with external entities,
+such as aggregators, transmission system operators
+(TSO), and public authorities.
+The control algorithms used in the REC had to align
+with the rules and regulations provided by the public
+authority, the preferences of the participants, and the
+specific operational limits of the REC. Finding the
+optimal size of the system components in advance
+was crucial for making the REC profitable, especially
+when considering how many PV and BESS components
+were needed. Some earlier studies examined the sizing
+problems in peer-to-peer energy sharing but did not
+explicitly consider the revenue earned through energy
+sharing or the potential savings on transmission costs.
+For example, a study examined the optimal sizing of
+solar PV, BESS and diesel generators in [5], while
+another explored the appropriate sizes for PV, wind
+and BESS using forecasted power generation data in
+[6]. Furthermore, [7] solved an optimization problem
+with respect to the sizes of solar PV and BESS
+installations using data from 300 Australian households.
+Articles [8] and [9] introduced a model to decide
+the optimal number of solar PV and BESS units for
+residential systems, considering uncertainties in solar
+generation, load demand, and different pricing schemes.
+Solar
+PV
+and
+BESS
+served
+various
+applications,
+including peer-to-peer energy trading [10], demand side
+management [11], and minimizing electricity bills [12].
+In [13], the authors highlighted various key performance
+indicators and considered the optimal size of the system
+from an economic perspective. In [14] and [15], a
+two-stage approach and energy management of electrical
+equipment were explained. However, articles focusing on
+the REC lacked information on the optimal sizing of PV
+and BESS for individual participants. In particular, [16]
+suggested a model for optimal system size to maximize
+community revenue, and [17] introduced a framework
+for fair revenue sharing and exit clauses among REC
+participants, considering the optimal size of solar PV
+and BESS. The concept of a bilevel model for an internal
+local market within the REC was explained in [18],
+which demonstrated a fair revenue distribution among
+its members. In addition, some studies considered
+sizing problems while accounting for the capacity of the
+distribution network line [19] and the transformer rating
+[20]. In particular, [21] proposed a MINLP scheme for
+optimal solar PV and BESS sizing, and in [22], a bilevel
+optimization model was used to determine parameters
+and profiles for new REC participants, considering
+existing community members. In energy trading, [23]
+explored energy purchase and bid strategies for energy
+exchange within and between REC communities.
+Although
+many
+aspects
+were
+well
+explored,
+the
+challenges of optimal system sizing for individual
+participants needed further investigation to enhance
+REC’s overall efficiency and effectiveness. Although
+previous studies addressed sizing issues in RECs, a
+critical gap existed as they overlooked NPV a crucial
+factor
+and
+confined
+their
+investigations
+to
+single
+day profiles, neglecting the longer planning horizon
+(typically 20 to 25 years). It was imperative to recognize
+that seasonal variations and uncertainties in energy
+demand and renewable generation over decades further
+complicated sizing decisions, necessitating a robust
+framework that balanced technical feasibility with
+long-term economic viability. In response to these
+challenges, this paper presented an innovative approach
+to optimal sizing of PV and BESS for individual REC
+participants. Our methodology leveraged representative
+daily periodic signals of four seasons, spring, summer,
+fall and winter, blending the dynamic nature of
+renewable energy sources with the crucial concept
+of NPV considering the timing of future cash flows.
+Furthermore, we proposed the individual marginal
+contribution as a fair and computationally efficient
+method to allocate costs and benefits proportionally,
+thus fostering collaboration and stability within the
+REC. We examined these mechanisms through a
+numerical study that revealed their characteristics and
+effectiveness in promoting fairness within the REC. This
+article aimed to fill critical gaps in existing research by
+providing information on the optimal sizing of PV and
+BESS for individual REC participants.
+The remainder of the paper was structured as follows.
+Section II described the mathematical model of the
+system components; in Section III, we formulate the
+optimal sizing problem followed by its approximation
+using the “periodic signal”; Section IV demonstrated
+the simulation results; and Section V presented the
+conclusions.
+2
+Mathematical Modeling
+As shown in Fig. 1, we considered a scenario in
+which n participants and the Technical Facilitator
+(TF) formed a REC. All participants were equipped
+with smart meters to facilitate informed decision
+making by providing real-time information on energy
+production and consumption. A dedicated TF was
+an essential entity within the REC to ensure smooth
+operation and provide technical support to individual
+participants. The TF played an important role in
+providing information on the latest technologies, sharing
+best practices, connecting with resources, and helping
+navigate technical and regulatory challenges that arose
+2
+
+
+in developing the REC. The TF came from government
+agencies, nonprofit organizations, or private companies,
+acting as an essential guide on the journey of building
+an REC.
+The proposed REC model delegated all responsibilities,
+including design, operation, maintenance, and energy
+management, to the TF, as mutually decided by all
+participants. The REC system was monitored and
+operated under the terms and rewards of the service
+agreement with the TF. Compensation for TF was
+specified as a portion of the financial gain obtained
+by REC participants. On the benefit side, community
+participants received incentives for sharing energy,
+reduced electricity bills, and other indirect benefits, such
+as lower carbon emissions. Following internal regulations
+and the signed contract, the TF retained a specified
+amount and the remaining funds were distributed
+fairly among all participants. Typically, within this
+framework, the TF made two contracts with the REC
+participants: (1) a real-time energy management system
+contract covering the deployment and management of
+installed solar PV and BESS, and (2) a maintenance and
+operation costs contract covering the related expenses
+for each participant based on the number of solar PV
+and BESS installed.
+In addition, each participant maintained a physical
+connection to the Point of Common Coupling (PCC),
+which
+formed
+the
+energy
+exchange
+network.
+An
+individual solar PV captured sunlight and converted it
+into usable electrical power. This energy played multiple
+roles within the community: it fulfilled local energy
+needs, recharged the BESS, sold back to the main
+grid, and shared within the REC. The transaction was
+divided into four categories: (1) self-consumed: Each
+participant leveraged their locally generated solar power
+to meet their electricity demand and charge the BESS,
+ensuring efficient self-reliance; (2) energy sold: after
+self-consumption, any remaining surplus energy was
+sold to the main grid, contributing to the participants’
+revenue; (3) energy sharing: all participants met their
+electricity demand from the solar energy generated
+within the REC (with a portion of the sold energy
+constituting the shared energy); and (4) energy bought:
+participants purchased deficit energy from the main
+grid during periods of reduced solar generation. In this
+context, participants were motivated to meet their REC
+energy demand from locally generated power due to cost
+savings compared to regular grid prices and incentives
+received from the public authority.
+The detailed discussion and mathematical modeling of
+different elements of the REC, such as PV energy, BESS,
+grid, and NPV, are further elaborated. In the following
+subsections, we describe the mathematical modeling of
+various REC elements. In this regard, R+, N and ⌊·⌋
+denote the set of nonnegative real numbers, the set of
+natural numbers, and the floor operator, respectively;
+Fig. 1. Schematic representation of the REC. In this model,
+the TF signs a contract with all the participants. This
+contract covers the real energy management, as well as the
+operation and maintenance costs for the solar PV and BESS
+installed on each participant’s rooftop.
+let Y be the set of years in the planning horizon and
+t ∈Ty denote a generic time instant corresponding to
+year y ∈Y. Unless otherwise stated, the formulas apply
+∀t ∈Ty and ∀y ∈Y.
+2.1
+PV
+PV energy enabled the REC to become a self-sufficient
+energy generator, reducing the dependence on the
+main grid. Solar PV offered various benefits beyond
+its substantial economic advantage, such as playing a
+crucial role in reducing greenhouse gas emissions and
+environmental pollution and contributing to a cleaner,
+more sustainable future. Their presence improved
+energy security, acting as a valuable power source
+during power outages. In addition, governments often
+provided financial incentives or subsidies to improve
+the affordability of solar PV. For the mathematical
+modeling, the power generation of a single panel was
+modeled as per [25] and was defined as:
+ˆP s
+t = P r Et
+ˆE
+
+1 −
+γ
+100(θc
+t −ˆθ)
+
+,
+(1)
+where Et, γ, P r and θc
+t
+respectively denoted the
+irradiance level, the power temperature coefficient,
+the rated capacity of a single panel, and the cell
+temperature. In addition, ˆE and ˆθ were the irradiance
+and temperature under standard test conditions. Here,
+the coefficient γ was important because it showed how
+changes in cell or surface temperature affected the power
+output of solar PVs. In particular, the specific value of
+γ depended on the type of solar PV system employed,
+whether it was polycrystalline, monocrystalline, thin
+film, or another variant. This model facilitated a
+3
+
+
+deep understanding of the dynamics that underlay
+solar power generation and its response to varying
+environmental conditions. As proposed in [25], the cell
+temperature of solar PV systems (θc
+t) was expressed
+using the following equation:
+θc
+t = θa
+t + Et
+ˆE
+(θ −ˆθ),
+(2)
+where θ was the Nominal Operating Cell Temperature
+(NOCT),
+defined
+as
+the
+temperature
+reached
+by
+open-circuited cells in a module under the conditions:
+(1) Irradiance on cell surface = 0.8 kW/m2; (2) Air
+Temperature = 20◦C; and (3) Wind Velocity = 1 m/s.
+However, it was important to note that since the solar
+generation determined by (1) applied only to a single
+PV panel, the nth participant had to install a variable
+number of PV panels, denoted as N p,n, to fulfill their
+energy requirements. The total solar power generation,
+taking into account N p,n panels, was defined as:
+P s,n
+t
+= N p,n ˆP s
+t .
+(3)
+Moreover, there was also a constraint on the available
+area for installing solar PV panels. Proper installation
+demanded a specific amount of space to maximize
+solar irradiation. This space was often limited in urban
+environments due to structures like buildings and trees
+obstructing sunlight. As such, the installation of Np,n
+solar panels was bounded by the following constraint:
+0 ≤N p,n ≤
+An
+Ap
+
+.
+(4)
+In this equation, An and Ap denoted the available space
+for the nth participant’s PV system installation and the
+area occupied by a single panel, respectively. As the
+number of solar panels N p,n had to be a whole number,
+the floor function (⌊⌋) was employed in the computation.
+In the quest to install these solar panels, each participant
+procured panels of size P r at a cost of ˆCp. The total cost
+for the nth participant’s solar panels was calculated as
+follows:
+Cp,n = ˆCpN p,n.
+(5)
+Additionally, individual participants within the REC
+paid the Operating and Maintenance Costs (OPEXp)
+along with the Contract Agreement Costs (CAp)
+associated with solar PV. This combined cost, denoted
+as OMCAp,n, was computed as follows:
+OMCAp,n = N p,nOPEXp + N p,nCAp.
+(6)
+For
+simplicity,
+the
+installation
+assumed
+that
+all
+participants used the same type of PVs.
+2.2
+BESS
+The BESS was a valuable asset for all REC participants,
+allowing them to save substantially on their electricity
+bills. This was made possible by optimally capturing
+locally generated energy during high-demand periods
+with high electricity rates. Later, this stored energy was
+used to meet demand when it was most cost-effective.
+In addition, the BESS served as a reliable backup power
+source during unexpected outages, adding additional
+resilience to the REC. The state of charge of a single
+BESS was modeled using the energy-reservoir model [5],
+which was characterized by charging and discharging
+efficiencies:
+ˆSt+∆t = ˆSt +
+
+ηc ˆP c
+t −
+ˆP d
+t
+ηd
+
+∆t,
+(7)
+where 0 ≤
+ˆP c
+t
+≤P
+c and 0 ≤
+ˆP d
+t
+≤P
+d were the
+bounded charging and discharging power, and ηc and
+ηd respectively denoted the charging and discharging
+efficiencies of the BESS. As the capacity of the BESS
+was finite, the state of charge was also bounded, i.e.,
+S ≤ˆSt ≤S,
+(8)
+where S and S were the minimum and maximum
+states of charge of the BESS. Let P c,n
+t
+and P d,n
+t
+denote
+the aggregate charging and discharging power for the
+nth participant associated with the number of BESS
+installed, i.e., N b,n, such that
+0 ≤P c,n
+t
+≤N b,nP
+cbc,n
+t
+,
+(9a)
+0 ≤P d,n
+t
+≤N b,nP
+dbd,n
+t
+,
+(9b)
+where bc,n
+t
+and bd,n
+t
+were binary variables imposed to
+satisfy the non-simultaneous charging and discharging
+of the BESS by enforcing the constraint
+bc,n
+t
++ bd,n
+t
+≤1.
+(10)
+Accordingly, (8) was modified as
+N b,nS ≤Sn
+t ≤N b,nS,
+(11)
+where
+Sn
+t+∆t = Sn
+t +
+
+ηcP c,n
+t
+−P d,n
+t
+ηd
+
+∆t.
+(12)
+Let us introduce ˆCb as the cost of a BESS with a capacity
+of B. Consequently, the total expenditure for procuring
+N b,n BESS units for each nth participant was calculated
+as per the following equation:
+Cb,n = ˆCbN b,n.
+(13)
+4
+
+
+The decision variable of the BESS units, represented
+by N b,n, also had to adhere to an upper limit, denoted
+N
+b, to suit the specific requirements of the systems.
+Consequently, the imposed constraint was defined as
+follows:
+0 ≤N b,n ≤N
+b.
+(14)
+Additionally, individual participants within the REC
+were responsible for covering Operating and Maintenance
+Costs (OPEXb) along with Contract Agreement Costs
+(CAb) associated with their BESS units. This collective
+cost, denoted as OMCAb,n, was computed as follows:
+OMCAb,n = N b,nOPEXb + N b,nCAb.
+(15)
+To streamline the analysis, it was assumed that all
+participants in REC used the same type of BESS.
+2.3
+Power Flows
+In our considered REC setup illustrated in Figure 1,
+P sell,n
+t
+denoted the surplus power sold to the grid by the
+nth participant at time t, P sh,n
+t
+was the power shared
+by the nth participant with other members of the REC
+at time t (treated as a virtual quantity), P c,n
+t
+and P d,n
+t
+represented the charging and discharging power of the
+BESS belonging to participant n at time t, and P self,n
+t
+was the power that participant n consumed from their
+own renewable source at time t. The power balance
+constraints, as defined in (16), ensured that the power
+supply consistently met the demands of the participants
+at all times.
+P sell,n
+t
+= P s,n
+t
+−P self,n
+t
+,
+(16a)
+P self,n
+t
+≤P s,n
+t
+,
+(16b)
+P self,n
+t
+≤dn
+t + P c,n
+t
+−P d,n
+t
+,
+(16c)
+P sh
+t
+≤
+X
+n∈N
+
+dn
+t + P c,n
+t
+−P d,n
+t
+−P self,n
+t
+
+,
+(16d)
+P sh
+t
+≤
+X
+n∈N
+P sell,n
+t
+,
+(16e)
+P c,n
+t
+≤P s,n
+t
+,
+(16f)
+where P s,n
+t
+and dn
+t respectively denoted the total solar
+power generation at time t by the nth participant from
+N p,n ∈N number of panels and the load demand of the
+nth participant at time t. Furthermore, P self,n
+t
+denoted
+the power that the nth participant consumed from their
+own renewable resources. All these power flows had to
+be positive to ensure that our optimization model was
+realistic. Therefore, we imposed the following constraint:
+P sell,n
+t
+, P sh
+t , P self,n
+t
+≥0.
+(17)
+This constraint guaranteed that there were no negative
+power values, which helped maintain a clear and feasible
+energy management model.
+2.4
+Electricity Rate
+An electricity rate, a pivotal factor in the sector of
+energy economics, played a dual role in determining the
+financial dynamics of participants within the electricity
+market. It was both the cost borne by participants
+for their consumption and the revenue they earned
+when selling surplus electricity back to the grid. The
+electricity providers decided on this rate, which was
+subject to various variables that contributed to its
+fluctuation. Factors such as time of day, the prevailing
+season, and overall electricity demand influenced the
+changes in electricity rates. Typically, prices peaked
+during the summer, when the overall demand for
+electricity increased. This occurred because of the
+necessity of incorporating more expensive generation
+sources to cope with the increased energy requirements
+during that period. It was essential to recognize that the
+participants’ purchase price was higher than the selling
+price, reflecting the higher distribution costs incurred
+in delivering electricity to end consumers [31].
+As shown in Figure 2, and focusing on the specific
+context of Italy, the daily electricity price was divided
+into three distinct bands. F1, F2, and F3. Here, F1
+covered peak hours from Monday to Friday between 9
+and 19, with the highest rates due to increased demand
+and the use of more expensive generation sources. F2
+included shoulder hours, covering the morning and
+evening periods on weekdays, 8 and 20 to 23 and
+Saturdays, 8 to 23, with rates lower than F1 but slightly
+higher than F3. Lastly, F3 represented off-peak hours,
+primarily during the night on weekdays from 24 to 7 and
+throughout the day on Sundays from 1 to 24, with the
+lowest electricity rates. Additional details on different
+costs, revenue, and incentives for the considered REC
+systems were further explained.
+Fig. 2. Italian grid electricity rate structure.
+Let us consider that the power P sell,n
+t
+was sold to the
+grid by the nth participant at a price CS
+t ∈R+; then
+the total revenue for power selling to the grid for the nth
+5
+
+
+participant was denoted as
+Rsell,n =
+X
+t∈T
+CS
+t P sell,n
+t
+∆t.
+(18)
+As collective solar generation P s,n
+t
+served the dual role
+of meeting the local load demand dn
+t and supplying
+power P c,n
+t
+for the charging of the BESS, it entailed
+financial benefits for individual participants. This
+dual functionality translated into savings as they
+offset their electricity costs at the prevailing price
+CP
+t . Consequently, the total savings attributed to
+self-consumed
+power
+for
+the
+nth
+participant
+was
+expressed as follows:
+Rself,n =
+X
+t∈T
+CP
+t P self,n
+t
+∆t.
+(19)
+In instances where a participant found themselves with
+surplus solar generation, they engaged in energy sharing,
+thereby establishing a mutually beneficial transaction
+with another REC participant. This exchange occurred
+at a specified rate, denoted as CE
+t . It should be noted
+that this rate of sharing energy, CE
+t , was greater than
+the rate at which excess energy was sold to the grid, CS
+t .
+This distinctive pricing structure yielded an additional
+revenue stream for the REC participant and actively
+encouraged the use of locally generated solar power.
+Furthermore, when energy was consumed within the
+REC, it conferred the advantage of economizing on
+transmission power costs, marked by the rate CT
+t ,
+another benefit provided by the public authority. This
+dual advantage further contributed to the growing
+popularity
+of
+REC
+development.
+The
+combined
+incentive for the nth participant was summarized as
+follows:
+Ish =
+X
+t∈T
+(CE
+t + CT
+t )P sh
+t ∆t.
+(20)
+2.5
+NPV
+The NPV was the sum of the present value of future
+cash flows (CF) for the accounting period associated
+with the investment, and it was discounted so that it
+was expressed in today’s worth of money [33]. In other
+words, the money earned in the future was considered
+less valuable at the initial time of investment. That is,
+by denoting the cash flows at year y as CFy and the
+discount rate as r, the generic NPV for any system was
+written as follows:
+NPV = −INV +
+X
+y∈Y
+CFy
+(1 + r)y ,
+(21)
+where INV was the total investment cost. In the
+presented
+modeling,
+NPV
+was
+calculated
+for
+the
+individual participants of the REC. For the calculation,
+the incentive on sharing power within the REC Ish,
+revenue for selling power to the grid Rsell,n, and savings
+on self-consumption Rsav,n were used to estimate the
+future CF of each year y associated with the initial
+time of investment. Then, the cumulative computation
+of NPV was performed by adding up each year’s CF
+over the entire planning horizon. From (6), (15), (18)
+and (21), the total NPV for the mth year was estimated
+using the formula:
+NPVn
+m =
+m
+X
+y=0
+−INVn
+y + Rsell,n
+y
++ Rself,n
+y
++ ζnIsh
+y
+−OMCAp,n −OMCAb,n
+(1 + r)y
+,
+(22)
+where ζn was the distribution factor of individual
+participants, which was obtained using the formula
+derived in (38). Also, INVn
+y denoted the investment
+by the nth participant corresponding to the yth year,
+defined as
+INVn
+y =
+
+
+
+
+
+
+
+Cp,n + Cb,n,
+y = 0
+(Initial investment),
+Cb,n,
+y = Lb
+(BESS was replaced),
+0,
+Otherwise.
+(23)
+The payback period for the nth
+participant was
+calculated based on (22), which provided information
+about the duration of the time period in which the
+investment money was recovered by selling energy to
+the grid, receiving incentives on energy sharing, and
+saving on self-consumption. It was written using the
+following equation:
+PBn = min{m | NPVn
+m ≥0, ∀m ∈[m, |Y|]},
+(24)
+where the cardinality of Y, denoted as |Y|, was the
+length of the planning horizon, which included all the
+periods considered for the investment evaluation. It was
+often used as a simple way to evaluate the profitability
+and risk of an investment. After the payback period,
+the investment continued to generate cash flow for the
+remainder of the lifespan of the PV-BESS systems, which
+was considered income generated by the investment.
+Finally, the net profit (NP) of the entire REC was
+calculated based on the following equation:
+NP =
+X
+n∈N
+NPVn
+|Y|,
+(25)
+where the NP comprised all future cash flows discounted
+back to their present value, thus providing a comprehensive
+measure of the financial performance of the REC
+investment over its lifespan.
+3
+Optimal Sizing Problem Formulation
+For the considered REC systems, an optimization
+problem was formulated to find the optimal number of
+6
+
+
+solar PV and BESS for individual participants in the
+REC, which involved the maximization of NP while
+meeting a set of constraints. The constraints included
+factors such as total power exchange with the grid, the
+maximum power output of the PV panels and BESS,
+the capacity of the BESS, and other design constraints.
+For the considered REC system with N participants, the
+optimization problem was formulated as follows:
+max
+X
+(25)
+|{z}
+Net Profit of REC
+s.t.
+(16)
+|{z}
+Power balance constraints
+(4), (9) to (12), (14), (17), (24)
+|
+{z
+}
+Operational constraints
+(26)
+where X = {N p,n, N b,n, P self,n
+t,y
+, P sell,n
+t,y
+, P sh,n
+t,y
+, P c,n
+t,y , P d,n
+t,y ,
+Sn
+t,y | ∀t ∈Ty, ∀y ∈Y, ∀n ∈N} was the set of decision
+variables and Ty := {1, 2, . . . , Ty}, ∀y ∈Y was the
+planning horizon. The yearly horizon was typically the
+same for all years, that is, Ty = ¯T, ∀y ∈Y.
+Remark 1 We aim to maximize NP by finding the
+optimal value of each variable that produced the highest
+output value. Solving (26) for a planning horizon of the
+order of decades was computationally very heavy due
+to the increase in the number of decision variables and
+constraints that had to be satisfied at each time instant.
+As an alternative to this, we proposed to take advantage
+of the periodicity of solar generation and the demand
+profile, as described in the following subsection.
+3.1
+Exploiting Periodicity
+Solar power generation and demand profiles in a house
+had inherent periodicities that were used to reduce the
+dimensionality of the optimal sizing problem and the
+execution runtime. Although the periodicity could have
+been daily, weekly, monthly, or yearly, for simplicity
+the daily periodic signal was used for the analysis since
+it covered all working hours of the day. In parallel
+to leveraging daily periodicity, the electricity demand
+profiles for REC participants were preprocessed using
+logarithmic transformation and detrending to capture
+their multi-seasonal characteristics [28], [29]. More
+precisely, the following model for the load (electricity
+demand) L(t) was assumed:
+L(t) = exp
+
+T(t) + F(t) +
+X
+i
+Hi(t) + e(t)
+
+(27)
+where T(t) denoted the trend, F(t) was the deterministic
+multi-seasonal component including daily, weekly, and
+yearly periodicities, Hi(t) were the intervention events
+accounting for the effect of holidays, and e(t) was an
+error term. Following [30], the trend T(t) was estimated
+as the output of a lowpass filter with bandwidth
+1
+730
+day−1. The log-transformed and detrended series
+y(t) = ln(L(t)) −T(t) = F(t) +
+X
+i
+Hi(t) + e(t) (28)
+exhibited a relatively stable profile, whose variability
+was mostly due to the simultaneous presence of daily,
+weekly, and yearly seasonalities. To calculate the
+multi-seasonal component F(t), a Fourier expansion for
+weekly and yearly periodic signals was used as
+Fy(t) = a0 +
+Ny
+X
+j=1
+aj cos (jΨt) + bj sin (jΨt),
+Ψ = 2π
+Ty
+,
+(29a)
+Fw(t) = ˆa0 +
+Nw
+X
+k=1
+ˆak cos (kΩt) + ˆbk sin (kΩt),
+Ω= 2π
+Tw
+.
+(29b)
+An interaction between weekly and yearly periodic
+signals was taken into account for the calculation of the
+final multi-seasonal component F(t) using the equation
+F(t) =
+2Nw(1+2Ny)
+X
+i=1
+θihi(t),
+hi(t) ∈Y ⊗W,
+(30)
+where Y = {cos(jΨt), j ∈[0, Ny]} ∪{sin(jΨt), j ∈
+[1, Ny]} and W = {cos(kΩt), k ∈[0, Nw]} ∪{sin(kΩt),
+k ∈[1, Nw −1]}. Here, Ny and Nw were the numbers
+of yearly and weekly harmonics, respectively. These
+selected numbers of harmonics allowed the model to
+capture variations associated with different times of the
+week, reflecting weekly cycles within the larger yearly
+cycle. Let θ ∈Rn denote the vector that contained the
+coefficients of the Fourier expansion of F(t). Then,
+Y = Φθ + ε,
+(31)
+where Y
+=
+[y(1) y(2) . . . y(n)]T
+was the vector of
+log-transformed and detrended loads, and the columns
+ϕi of Φ ∈Rn×m were the sampled regressors, i.e.,
+ϕi = [hi(1) hi(2) . . . hi(n)]T . For the model in (31) with
+Y ∈Rn×1, Φ ∈Rn×m, θ ∈Rm×1 and ε as a noise term,
+the LASSO regularized estimate [34] was defined as:
+θLASSO = arg min
+θ
+ 1
+n∥Φθ −Y∥2 + λ∥θ∥1
+
+,
+(32)
+where the balance between the loss function and
+the regularization term was controlled by the scalar
+regularization parameter λ. To solve (32), the FISTA
+method [32] was used, as described in Algorithm 1.
+7
+
+
+Algorithm 1 FISTA Algorithm
+1: Initialize θ0
+2: Set t0 = 1
+3: γ ←
+1
+Lf
+▷Lf denotes the Lipschitz constant
+4: while ∥θk −θk−1∥> tol do
+5:
+∇E(θk−1) ←2ΦT (Φθk−1 −Y ) ▷Gradient term
+6:
+θk ←θk−1 −γ∇E(θk−1)
+7:
+tk ←
+1+p
+1+4t2
+k−1
+2
+▷Momentum term
+8:
+θk ←θk−1 + tk−1−1
+tk
+(θk−1 −θk−2)
+▷Nesterov’s
+acceleration
+9:
+θk ←Proxγλ(θk)
+▷Proximal operator
+10: end while
+Here, γ was the Lipschitz constant, ∇E denoted the
+gradient, tk was the momentum term, θk was the
+updated parameter vector using Nesterov’s acceleration
+to improve convergence speed, and Proxγλ was the
+proximal operator defined as
+Proxγλ(θk) =
+
+
+
+θk −γλ,
+if θk > γλ,
+0,
+if θk ∈[−γλ, γλ],
+θk + γλ,
+if θk < −γλ.
+(33)
+In our study, a yearly pattern of electricity usage was
+analyzed to explore its daily trends. A typical signal
+spanned one year was extracted using the FISTA
+method and a single day from each season of the year was
+selected. From these four representative daily signals,
+denoted as x, the NPV was recalculated as
+NPVn
+m =
+m
+X
+y=0
+−INVn
+y + β
+ Rsell,n
+x
++ Rself,n
+x
++ ζnIsh
+x
+
+−OMCAp,n −OMCAb,n
+(1 + r)y
+,
+(34)
+where x represented the obtained periodic signals for the
+four seasonal days; Rsell,n
+x
+, Rsav,n
+x
+, and Ish
+x
+respectively
+denoted the revenue for selling power to the grid,
+the savings on self-consumption, and the incentive on
+energy sharing within the REC for the representative
+periodic seasonal days of the nth participant. To obtain
+approximate annual income and costs, the sum was
+multiplied by β = 91, which was the total number of
+days in a season. From (34), the NP of the entire REC
+was calculated using the expression
+NP =
+X
+n∈N
+NPV
+n
+|Y|.
+(35)
+3.2
+Optimal Sizing using Periodic Signals
+An optimization problem was formulated using four
+typical days for the REC system to find the optimal
+number of solar PV and BESS for individual participants
+to minimize electricity bills. Formally, the problem was
+stated as
+max
+X
+(35)
+|{z}
+Net Profit of REC
+s.t.
+(16)
+|{z}
+Power balance constraints
+(4), (9) to (12), (14), (17), (24)
+|
+{z
+}
+Operational constraints
+1
+(36)
+where ˆ
+X = {N p,n, N b,n, P self,n
+t
+, P sell,n
+t
+, P sh,n
+t
+, P c,n
+t
+, P d,n
+t
+,
+Sn
+t | ∀t ∈ˆT , ∀n ∈N} was the set of decision variables
+and ˆT := {1, 2, . . . , ˆT} was the set of hours over the four
+periodic seasonal days with a total number of hours ˆT.
+3.3
+Individual Marginal Contribution
+This method calculated the marginal contribution
+of each participant based on their individual energy
+sharing profile, which quantified the unique contribution
+of each participant. For individual contribution, it was
+necessary to find the total incentive received from the
+public authority and the savings on self-consumption,
+which were expressed as
+Ish
+x =
+X
+t∈ˆT
+(CE
+t + CT
+t )P sh
+t ∆t.
+(37)
+According to each individual participant’s consumption,
+the distribution factor was expressed as
+ζn =
+P
+t∈ˆT dn
+t ∆t
+P
+n∈N
+P
+t∈ˆT dn
+t ∆t,
+(38)
+where ζn represented the proportion of the total
+incentive received by the nth participant, proportional to
+their individual electricity consumption. The electricity
+bill of the nth participant after joining the REC was
+then formulated as
+EB
+n = EBn −β(Csell,n
+x
++ Rsav,n
+x
++ ζIsh,n
+x
+),
+(39)
+where EB was the annual electricity bill before joining
+the REC.
+4
+Simulation Results
+The optimization algorithm was implemented using
+MATLAB software with the YALMIP toolbox [35]
+and the Gurobi solver [36]. The hardware used for the
+1 The state of charge periodicity was imposed as Sv ˜
+T =
+S(v−1) ˜
+T , where v ∈{1, 2, 3, 4} denoted the number of days
+and ˜T denoted the number of samples in each day.
+8
+
+
+simulation was an Intel Core i7-11800H, 2.3GHz server
+with 32GB of RAM. The developed REC model was
+applied to a real case study to test its practical use and
+evaluate its potential. The case study was related to the
+low voltage grid in Roseto Valfortore, a small town and
+commune in the Foggia province in the Apulia region
+of southeastern Italy. For the simulation analysis, five
+household demand profiles of participants from the
+Roseto Valfortore energy community were collected,
+and historical solar irradiance and temperature data for
+the town of Roseto Valfortore were obtained from the
+online monitoring dashboard [24], with the sampling
+rate ∆t = 1 h. Furthermore, the solar PV panel and
+BESS specifications were provided in Table 1, which
+were taken from [26] and [27], respectively. Furthermore,
+the electricity purchase rate CP
+t for blocks F1, F2, and
+F3 was taken to be 0.195, 0.165 and 0.125 e/ kWh,
+respectively. At the same time, the sale electricity rate
+CS
+t for blocks F1, F2 and F3 was set to 0.075, 0.055
+and 0.035 e/ kWh, respectively. Furthermore, it was
+considered that the electricity sharing rate CE
+t and the
+electricity transmission rate CT
+t were 0.11 e/ kWh and
+0.00822 e/ kWh, respectively. The simulation study
+assumed that: (1) the daily load profile of all participants
+was known; (2) the irradiance profile of the geographical
+location was known; and (3) the distribution network
+transmission line was considered ideal, i.e. no constraints
+were imposed on the network transmission line.
+Table 1
+Specifications of the solar PV and BESS
+Description
+Abbr.
+Value
+PV
+Rating of PV-panel
+P r
+0.43 kW
+Size of one panel
+Ap
+2.4 m2
+PV-panel lifespan
+Lp
+25 years
+Power temperature coefficient
+γ
+0.043 %/◦C
+Cost of solar PV
+ˆCp
+1200 e/kW
+Irradiance during STC
+ˆE
+1 kW/m2
+Temperature during STC
+ˆθ
+25◦C
+Operating & maintenance costs
+OPEXp 24e/kWh/year
+TF contract agreement costs
+CAp
+1e/kWh/year
+BESS
+Normalized Capacity
+B
+5 kWh
+Charging/Discharging efficiency
+ηc, ηd
+90%
+Min Charging/Discharging power
+P c, P d
+0 kW
+Max Charging/Discharging power P
+c, P
+d
+1.25 kW
+Min state of charge
+S
+0.5 kWh
+Max state of charge
+S
+4.5 kWh
+Cost to buy BESS
+ˆCb
+250e/kWh
+BESS lifespan
+Lb
+12 years
+Operating & maintenance costs
+OPEXb 24e/kWh/year
+TF contract agreement costs
+CAb
+1e/kWh/year
+The optimal number of solar PV and BESS obtained for
+the five individual participants mentioned in Table 2.
+Table 2
+Optimal number of PV and BESS
+Participants →
+1
+2
+3
+4
+5
+Solar PV
+146
+0
+45
+3
+2
+BESS
+16
+0
+6
+0
+0
+As shown in Fig. 3(a), the NPV of individual participants
+was
+recovered
+within
+the
+payback
+period,
+which
+depended on the duration for which the participants
+wanted to recover their investment cost. It also suggested
+that investing in the REC was financially advantageous
+in the long run. Another observation was that the first
+and third participants replaced their BESS after 12
+years, and therefore the graph showed a slight decline
+followed by an increase again because of the revenue
+generation and incentives from shared energy within
+the REC. Fig. 3(b) compared the electricity bills of
+the participants before and after joining the REC and
+showed that all participants reduced their electricity
+costs by becoming part of the community. Fig. 3(c)
+showed that the incentive for each participant was based
+on the amount of energy they contributed to the shared
+energy, highlighting the direct rewards for active energy
+sharing. Finally, Fig. 3(d) presented the total shared
+energy profiles for four representative days (one for each
+season), illustrating how the share of energy varied and
+highlighting seasonal differences.
+Fig. 4 provided a detailed look at how five participants
+in the REC managed their electricity consumption,
+solar generation, and potential battery storage. Each
+row corresponded to one participant and the three
+columns (a), (b), and (c) highlighted key aspects of their
+energy flow. In Fig. 4(a), the light blue area showed the
+participant’s electricity demand, while the light orange
+area represented their solar generation. The vertical
+stem line on top of the demand curve indicated the
+portion of electricity directly self-consumed from solar,
+illustrating how much of their demand was met by their
+generation in real-time. Focusing on each participant,
+it was observed that self-consumption (P self
+t
+) varied
+throughout the day as solar production (P s
+t ) fluctuated.
+During peak sunlight hours, the stem line that indicated
+self-consumption (P self
+t
+) often matched a significant
+portion of the participant’s demand (light blue area),
+thereby reducing the dependence on the grid. Solar
+generation (light orange area) sometimes exceeded the
+demand curve, hinting at surplus electricity that could
+potentially be stored or sold to the grid. The degree of
+overlap between solar generation and demand was an
+essential indicator of how effectively participants used
+their renewable resources.
+Fig. 4(b) showed the charging behavior (P c
+t ) and the
+discharging behavior (P d
+t ) of the BESS. For participants
+who did not have a BESS installed, these plots remained
+at zero, reflecting no BESS activity. For those with a
+BESS, the positive values represented battery charging
+(using excess solar energy), while the negative values
+9
+
+
+Fig. 3. NPV, electricity bills, incentives of individual participants on shared energy and total amount of energy shared within
+the REC.
+Fig. 4. Four periodic days profile for demand, generation, self-consumption, charging/discharging power, and selling power for
+individual participants.
+corresponded to discharge (supplying the participant’s
+demand when solar production was insufficient or during
+periods of high grid cost). This battery operation allowed
+participants to optimize their solar use by storing energy
+for later consumption, thus increasing self-consumption
+and reducing peak grid demand. In Fig. 4(c), the
+10
+
+
+surplus power sold to the grid by each participant is
+depicted. When solar generation exceeded self-demand
+and battery charging needs, excess electricity was
+sold back to the grid. Participants without a BESS
+often showed more frequent or higher spikes in grid
+export during sunny periods because they had no
+means of storing surplus energy, while participants with
+batteries exported less at noon since they first charged
+their storage and then sold power to the grid once
+the battery was full or when it became economically
+optimal to discharge. These results showed that the
+REC participants used different strategies. Those with
+BESS and PV reduced their reliance on the grid and
+improved their financial returns. Even participants
+without BESS benefited by using solar power to reduce
+their dependence on the grid and by selling extra power
+back to the grid. In general, the results proved that
+the coordinated smart control strategy improved the
+economic and environmental performance of the REC.
+5
+Conclusion
+This article proposed the optimal sizing formulation
+for individual REC participants using MINLP. Since
+simulation for a longer planning horizon was ineffective
+in solving, daily representative signals were used for
+each season of the year to determine the optimal number
+of solar PV and BESS with the objective of maximizing
+NP for individual REC participants. The FISTA
+algorithm was used to obtain these daily representative
+signals. Moreover, after receiving payment from the
+TF via the public authority, the fair revenue-sharing
+mechanism was proposed using the individual marginal
+contribution method. The simulation results showed
+that the participant received an additional incentive to
+participate in the REC. This incentive for individual
+participants was determined after making payment to
+the TF for real-time energy management, operation,
+and maintenance costs for installed solar PV and
+BESS. These findings highlighted the potential of a
+collaborative energy community to support the adoption
+of renewable energy while ensuring fairness for all
+participants. This work offered a clear and practical
+roadmap for creating an efficient, sustainable, and fair
+REC. In the future, this research could have been
+explored by applying this model in different settings
+and with other renewable energy sources.
+Authorship contribution statement
+Vishal
+Kachhad:
+Conceptualization,
+Methodology,
+Software, Validation, Formal Analysis, Investigation,
+and Data Curation. Amit Joshi: Methodology, Validation,
+Resources, and Writing Reviews & Editing. Luigi
+Glielmo: Supervision, Validation, Resources & Writing
+reviews.
+Declaration of competing interest
+The authors declare that they have no known competing
+financial interests or personal relationships that could
+have appeared to influence the work reported in this
+document.
+Abbreviations
+The following abbreviations are used in this manuscript:
+PV
+Photovoltaics
+BESS
+Battery Energy Storage Systems
+FISTA
+Fast Iterative Shrinkage-Thresholding Algorithm
+NOCT
+Nominal Operating Cell Temperature
+MINLP
+Mixed-Integer Linear Programming
+STC
+Standard Test Conditions
+NPV
+Net Present Value
+REC
+Renewable Energy Community
+TF
+Technical Facilitator
+RLA
+Rooftop Lease Agreement
+PCC
+Point of Common Coupling
+CF
+Cash Flows
+OPEX
+Operating and Maintenance Costs
+References
+[1]
+Directive, E. U. (2018). 2001 of the European Parliament
+and of the Council of 11 December 2018 on the Promotion
+of the Use of Energy from Renewable Sources. European
+Commission: Brussels, Belgium.
+[2]
+J. Radl; Fleischhacker, A.; Revheim, F.H.; Lettner, G.;
+Auer, H., “Comparison of Profitability of PV Electricity
+Sharing in Renewable Energy Communities in Selected
+European
+Countries.”
+Energies
+2020,
+13,
+5007.,
+DOI:
+10.3390/en13195007
+[3]
+Martens,
+K. (2022). “Investigating subnational success conditions to
+foster renewable energy community co-operatives.” Energy
+Policy, Elsevier, 162, 112796.
+[4]
+J. Salom; Tamm, M., “WP3 Technology Integration in Smart
+Managed Plus Energy Buildings and Neighborhoods.” D3.1
+Methodology Framework for Plus Energy Buildings and
+Neighbourhoods. 2020.
+[5]
+C. D. Rodr´ıguez-Gallegos et al., “A Siting and Sizing
+Optimization
+Approach
+for
+PV–Battery–Diesel
+Hybrid
+Systems,” in IEEE Transactions on Industry Applications,
+vol.
+54,
+no.
+3,
+pp.
+2637-2645,
+May-June
+2018,
+DOI:
+10.1109/TIA.2017.2787680.
+[6]
+R. Khezri, A. Mahmoudi and M. H. Haque, “A Demand Side
+Management Approach For Optimal Sizing of Standalone
+Renewable-Battery
+Systems,”
+in
+IEEE
+Transactions
+on
+Sustainable Energy, vol. 12, no. 4, pp. 2184-2194, Oct. 2021,
+DOI: 10.1109/TSTE.2021.3084245.
+11
+
+
+[7]
+D. Adelberger, G. Obereigner, A. Joshi and L. Glielmo,
+“Optimal PVB System Sizing and Energy Management
+for Grid-Connected Households,” 2021 IEEE International
+Conference on Systems, Man, and Cybernetics (SMC), 2021,
+pp. 194-199, DOI: 10.1109/SMC52423.2021.9658717.
+[8]
+M.
+Aghamohamadi,
+A.
+Mahmoudi
+and
+M.
+H.
+Haque,
+“Two-Stage Robust Sizing and Operation Co-Optimization
+for
+Residential
+PV–Battery
+Systems
+Considering
+the
+Uncertainty
+of
+PV
+Generation
+and
+Load,”
+in
+IEEE
+Transactions on Industrial Informatics, vol. 17, no. 2, pp.
+1005-1017, Feb. 2021, DOI: 10.1109/TII.2020.2990682.
+[9]
+L.
+Zhou,
+Y.
+Zhang,
+X.
+Lin,
+C.
+Li,
+Z.
+Cai,
+and
+P.
+Yang, “Optimal Sizing of PV and BESS for a Smart
+Household Considering Different Price Mechanisms,” in
+IEEE
+Acces,”
+vol.
+6,
+pp.
+41050-41059,
+2018,
+DOI:
+10.1109/ACCESS.2018.2845900.
+[10] A. Pena-Bello, Parra, D., Herberz, M., Tiefenbeck, V.,
+Patel,
+M.
+K.,
+&
+Hahnel,
+U.
+J.
+(2022),
+“Integration
+of
+prosumer
+peer-to-peer
+trading
+decisions
+into
+energy
+community modeling.” Nature Energy.
+[11] X.
+Lu
+and
+H.
+Wang,
+“Optimal
+Sizing
+and
+Energy
+Management
+for
+Cost-Effective
+PEV
+Hybrid
+Energy
+Storage
+Systems,”
+in
+IEEE
+Transactions
+on
+Industrial
+Informatics, vol. 16, no. 5, pp. 3407-3416, May 2020, DOI:
+10.1109/TII.2019.2957297.
+[12] Y. Li and J. Wu, “Optimum Integration of Solar Energy With
+Battery Energy Storage Systems,” in IEEE Transactions on
+Engineering Management, vol. 69, no. 3, pp. 697-707, June
+2022, DOI: 10.1109/TEM.2020.2971246.
+[13] G. Bianco; Bonvini, B.; Bracco, S.; Delfino, F.; Laiolo,
+P.;
+Piazza,
+G.,
+“Key
+Performance
+Indicators
+for
+an
+Energy Community Based on Sustainable Technologies.”
+Sustainability 2021.
+[14] A. Giordano, C. Mastroianni, D. Menniti, A. Pinnarelli,
+L. Scarcello and N. Sorrentino, “A Two-Stage Approach
+for Efficient Power Sharing Within Energy Districts,” in
+IEEE Transactions on Systems, Man, and Cybernetics:
+Systems, vol. 51, no. 3, pp. 1679-1689, March 2021, DOI:
+10.1109/TSMC.2019.2902077.
+[15] G. Belli et al., “A Unified Model for the Optimal Management
+of Electrical and Thermal Equipment of a Prosumer in
+a
+DR
+Environment,”
+in
+IEEE
+Transactions
+on
+Smart
+Grid, vol. 10, no. 2, pp. 1791-1800, March 2019, DOI:
+10.1109/TSG.2017.2778021.
+[16] C.
+Gallego-Castillo,
+Miguel
+Heleno,
+Marta
+Victoria,
+“Self-consumption for energy communities in Spain: A
+regional analysis under the new legal framework,” Energy
+Policy, Volume 150, 2021, 112144, ISSN 0301-4215, DOI:
+10.1016/j.enpol.2021.112144.
+[17] F. Fioriti, Davide & Antonio, Frangioni & Poli, Davide.,
+“Optimal sizing of energy communities with fair revenue
+sharing and exit clauses: Value, role, and business model of
+aggregators and participants.” Applied Energy. 299., DOI:
+10.1016/j.apenergy.2021.117328.
+[18] B. Corn´elusse, Iacopo Savelli, Simone Paoletti, Antonio
+Giannitrapani, Antonio Vicino, “A community microgrid
+architecture with an internal local market,” Applied Energy,
+Volume 242, 2019, Pages 547-560, ISSN 0306-2619, DOI:
+10.1016/j.apenergy.2019.03.109.
+[19] Weckesser, Tilman & Dominkovi´c, Dominik & Blomgren,
+Emma & Schledorn, Amos & Madsen, Henrik., “Renewable
+Energy Communities: Optimal sizing and distribution grid
+impact
+of
+photovoltaics
+and
+battery
+storage.”
+Applied
+Energy. 301. 117408., DOI: 10.1016/j.apenergy.2021.117408.
+[20] Novoa, Laura & Flores, Robert & Brouwer, Jack. (2019).
+“Optimal renewable generation and battery storage sizing
+and siting considering local transformer limits.” Applied
+Energy. 256, DOI: 10.1016/j.apenergy.2019.113926.
+[21] A. Cielo, P. Margiaria, P. Lazzeroni, I. Mariuzzo, M.
+Repetto, “Renewable Energy Communities business models
+under the 2020 Italian regulation,” Journal of Cleaner
+Production, Volume 316, 2021, 128217, ISSN 0959-6526,
+DOI:10.1016/j.jclepro.2021.128217.
+[22] Perger, Theresia & Auer, Hans., “Dynamic participation in
+local energy communities with peer-to-peer trading.” Open
+Research Europe. 2., DOI: 10.12688/openreseurope.14332.1.
+[23] D. Menniti, F. Costanzo, N. Scordino and N. Sorrentino,
+“Purchase-Bidding Strategies of an Energy Coalition With
+Demand-Response Capabilities,” in IEEE Transactions on
+Power Systems, vol. 24, no. 3, pp. 1241-1255, Aug. 2009,
+DOI: 10.1109/TPWRS.2009.2023750.
+[24] European
+Commission,
+Joint
+Research
+Centre,
+PVGIS
+Tools. [Online]. Available: https://re.jrc.ec.europa.eu/
+pvg_tools/en/
+[25] Y. Riffonneau, S. Bacha, F. Barruel and S. Ploix, ”Optimal
+Power Flow Management for Grid Connected PV Systems
+With
+Batteries,”
+in
+IEEE
+Transactions
+on
+Sustainable
+Energy,
+vol.
+2,
+no.
+3,
+pp.
+309-320,
+July
+2011,
+DOI:
+10.1109/TSTE.2011.2114901.
+[26] S. Schopfer, V. Tiefenbeck, and T. Staake, “Economic
+assessment
+of
+photovoltaic
+battery
+systems
+based
+on
+household load profiles,” Applied Energy, vol. 223, pp.
+229–248, 2018. ISSN 0306-2619. DOI: https://doi.org/10.
+1016/j.apenergy.2018.03.185.
+[27] Tesla, Tesla Powerwall, 2020. [Online]. Available: https://
+www.tesla.com/en_gb/powerwall
+[28] S. Fan and R. J. Hyndman, “Short-term load forecasting
+based on a semi-parametric additive model,” IEEE Trans.
+Power Syst., vol. 27, no. 1, pp. 134–141, Feb. 2012. DOI:
+10.1109/TPWRS.2011.2162082.
+[29] J. Nowicka-Zagrajek and R. Weron, “Modeling electricity
+loads in California: ARMA models with hyperbolic noise,”
+Signal Process., vol. 82, no. 12, pp. 1903–1915, 2002.
+[30] A. Guerini and G. D. Nicolao, “Long-term electric load
+forecasting: A torus-based approach,” in Proc. Eur. Control
+Conf. (ECC), Linz, Austria, Jul. 2015, pp. 2768–2773. DOI:
+10.1109/ECC.2015.7330957.
+[31] Autorit`a
+di
+Regolazione
+per
+Energia
+Reti
+e
+Ambiente
+(ARERA). Fasce orarie. [Online]. Available: https://www.
+arera.it/bolletta/glossario-dei-termini/dettaglio/
+fasce-orarie
+[32] A. Beck and M. Teboulle, “A fast iterative shrinkage
+thresholding algorithm for linear inverse problems,” SIAM J.
+Imag. Sci., vol. 2, no. 1, pp. 183–202, 2009.
+[33] Moncecchi, Matteo & Meneghello, Stefano & Merlo, Marco,
+“A Game Theoretic Approach for Energy Sharing in the
+Italian Renewable Energy Communities.” Applied Sciences.
+10. 8166., DOI: 10.3390/app10228166.
+[34] Tibshirani,
+Robert
+(1996).
+“Regression
+Shrinkage
+and
+Selection via the lasso”. Journal of the Royal Statistical
+Society. Series B (methodological). 58 (1). Wiley: 267–88.
+doi:10.1111/j.2517-6161.1996.tb02080.
+[35] J. Lofberg, “Yalmip: A toolbox for modeling and optimization
+in Matlab,” in In Proceed”ngs of the CACSD Conference,
+Taipei, Taiwan, 2004.
+[36] Gurobi Optimization, LLC, Gurobi Optimizer Reference
+Manual, 2020. [Online]. Available: http://www.gurobi.com
+12

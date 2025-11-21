@@ -1,0 +1,1541 @@
+1
+Transferable Dual-Domain Feature Importance
+Attack against AI-Generated Image Detector
+Weiheng Zhu, Gang Cao, Member, IEEE, Jing Liu, Lifang Yu, and Shaowei Weng Member, IEEE
+Abstract—Recent AI-generated image (AIGI) detectors achieve
+impressive accuracy under clean condition. In view of anti-
+forensics, it is significant to develop advanced adversarial attacks
+for evaluating the security of such detectors, which remains un-
+explored sufficiently. This letter proposes a Dual-domain Feature
+Importance Attack (DuFIA) scheme to invalidate AIGI detectors
+to some extent. Forensically important features are captured by
+the spatially interpolated gradient and frequency-aware pertur-
+bation. The adversarial transferability is enhanced by jointly
+modeling spatial and frequency-domain feature importances,
+which are fused to guide the optimization-based adversarial
+example generation. Extensive experiments across various AIGI
+detectors verify the cross-model transferability, transparency and
+robustness of DuFIA.
+Index
+Terms—Anti-Forensics,
+Adversarial
+Attack,
+AI-
+Generated Image Detection, Feature Importance, Frequency
+Domain.
+I. INTRODUCTION
+With rapid progress of generative models like generative
+adversarial network (GAN) [1] and diffusion model (DM) [2],
+the AI-generated image (AIGI) exhibits photo-realistic visual
+quality, making it indistinguishable from real images to the
+human eye. In response, many AIGI detection algorithms [3]–
+[9] have been developed to achieve impressive results across
+multiple datasets. However, the security evaluation of such
+detectors against advanced adversarial attacks is still lacking.
+Some prior works [10]–[12] focus on the adversarial attack
+against GAN-generated image detectors. Xie et al [10] pro-
+posed a deep dithering approach to effectively eliminate the
+generative artifacts on various GAN based generated images.
+Manuscript
+received
+xxxxxxxxxxx;
+revised
+xxxxxxxxxxx;
+accepted
+xxxxxxxxxxx. Date of publication xxxxxxxxxxx; date of current version
+xxxxxxxxxxx. This work was supported in part by the National Natural
+Science Foundation of China under Grant 62071434, Grant 62262062, and
+in part by the Fundamental Research Funds for the Central Universities
+under Grant CUC25GT07. The associate editor coordinating the review of
+this manuscript and approving it for publication was xxxxxxxxxxxxxxxxx.
+(Corresponding author: Gang Cao.)
+Weiheng Zhu and Gang Cao are with the School of Computer and Cyber
+Sciences, Communication University of China, Beijing 100024, China, and
+also with the State Key Laboratory of Media Convergence and Communi-
+cation, Communication University of China, Beijing 100024, China (e-mail:
+zhuweiheng@mails.cuc.edu.cn, gangcao@cuc.edu.cn).
+Jing Liu is with the School of Computer Science and Engineering, Hunan
+University of Information Technology, Changsha 410151, China (e-mail:
+jingliu1123@163.com).
+Lifang Yu is with the Department of Information Engineering, Beijing
+Institute of Graphic Communication, Beijing 100026, China (e-mail: yuli-
+fang@bigc.edu.cn).
+Shaowei Weng is with the Fujian Provincial Key Laboratory of Big Data
+Mining and Applications, Fujian University of Technology, Fuzhou 350118,
+China (e-mail: wswweiwei@126.com).
+Code will be available at https://github.com/multimediaFor/DuFIA .
+In [11], a shallow reconstruction method with a learned linear
+dictionary is proposed to reduce the artifacts incurred during
+GAN-based fake image synthesis. Lou et al
+[12] design a
+black-box attack through training an anti-forensic encoder-
+decoder network with contrastive loss. The popular gradient-
+based adversarial example methods including FGSM [13],
+IFGSM [14] and PGD [15] are also used to attack both GAN
+and DM types of AIGI detectors [16]–[18]. Diao et al [16]
+demonstrated the vulnerability of AIGI detectors under white-
+and black-box settings by attacking Convolutional Neural
+Network (CNN) [19] models. Mavali et al [17] showed that
+the state-of-the-art AIGI detectors may be defeated even with
+post-processing in black-box scenario. Rosa et al [18] explored
+the adversarial robustness of focused on CLIP-based [20] and
+CNN-based detectors, between which the transferability of
+attacks is found to be limited. Such prior works show that
+most AIGI detectors are vulnerable to white-box adversarial
+attacks. However, the attacks exhibit limited transferability
+across different detector
+We note that intermediate-level attacks (ILA) [21]–[24] is
+a new adversarial example paradigm with high transferability.
+Instead of final prediction, the intermediate feature representa-
+tion which is generally more transferable across architectures
+is operated. Given advantages of ILA, we creatively introduce
+it to AIGI anti-forensics. However, existing ILA methods
+operate solely in spatial domain, ignoring the complementary
+information in the frequency domain, which has been actually
+exploited in some prior AIGI detectors [25], [26].
+To further improve the transferability, we specifically pro-
+pose a novel Dual-domain Feature Importance Attack (Du-
+FIA) method, which extends the ILA paradigm by jointly
+leveraging spatial and spectral feature representations. Two
+complementary feature importance maps are generated from
+spatial and frequency-domain perturbations, respectively. Such
+importance maps are fused and integrated into the gradient
+backward pass, so that the semantically critical and transfer-
+able features are selectively emphasized. Unlike the existing
+ILA methods with static feature weighting, we creatively
+design a domain-aware mechanism to enhance the cross-model
+transferability. Extensive experiments demonstrate that DuFIA
+consistently outperforms existing traditional and ILA attacks
+in black-box scenario.
+The rest of this letter is organized as follows. The proposed
+DuFIA scheme is described in Section II, followed by exten-
+sive experiments and discussions in Section III. We draw the
+conclusion in Section IV.
+arXiv:2511.15571v1  [cs.CV]  19 Nov 2025
+
+
+2
+Spatial 
+perturbation
+Frequency
+perturbation
+ xori 
+ (s)
+ (f)
+ 
+hadv
+L(xadv)
+t
+xadv
+t
+xadv
+t+1
+t
+Source
+detector
+Source
+detector
+Source
+detector
+Optimization
+Computing dual-domain feature importance 
+Generating adversarial example
+Fig. 1. Detailed illustration of proposed DuFIA. A original image, after undergoing spatial and frequency domain perturbations, is fed into a source detector,
+and the dual feature importance at an intermediate layer is obtained via backpropagation. The feature importance is then multiplied element-wise with the
+same intermediate layer feature map of the adversarial example, producing a loss that guides the generation of the adversarial sample in the next iteration.
+⊙, ⊕are the operations of element-wise product and addition, respectively.
+II. PROPOSED DUFIA SCHEME
+A. Revisiting Feature Importance in MI-FGSM
+Assume an AIGI detection model fθ :xori 7→y, where xori
+is the original image and y is the label of xori. θ denotes the
+parameters of the model. The goal of adversarial attacks is
+to yield a perturbed image xadv, which is visually similar to
+the original image xori but makes fθ(xadv) ̸= y. That can be
+formulated as a constrained optimization problem
+arg max
+xadv J(xadv, y) s.t.∥xadv −xori∥p ≤ϵ,
+(1)
+where ∥· ∥p denotes the Lp-norm measuring the perturbation
+strength (p = ∞in this work). ϵ is the maximum allowable
+distortion, and J(·, ·) is the cross entropy loss in AIGI detec-
+tors. However, direct optimization of Eq. (1) requires explicit
+access to the parameters of fθ, which is infeasible in black-
+box attack scenarios. A feasible alternative is to optimize a
+surrogate model fϕ (the source model), where the parameters
+are accessible. This approach generates transferable adversar-
+ial examples to attack the target model fθ.
+To solve Eq.(1) in black-box attack scenarios, we select
+a representative FGSM-inspired boosting method, i.e., MI-
+FGSM [27] as our baseline framework. Formally, the adver-
+sarial example update at iteration t is generated by
+xadv
+t+1 = xadv
+t
++ α · sign(gt+1),
+(2)
+gt+1 = µ · gt + ∇xadv
+t
+J(xadv
+t
+, y),
+(3)
+where gt denotes the adversarial image gradient calculated in
+the t-th iteration. The momentum µ is empirically set as 1.0.
+α is the step size and sign(·) denotes the symbolic function.
+Different models extract unique features to better adapt to
+their specific data domains, resulting in model-specific feature
+representations. When the characteristic is ignored, adversarial
+attacks often distort features indiscriminately in the source
+model, leading to local optima specific to that model. Avoiding
+such local optima is crucial for improving transferability.
+Adversarial example generation should be guided by key
+features that are independent of the source model. Feature
+importance refers to the significance of features that influence
+the final decision but are independent of the source model.
+Inspired by the prior ILA techniques [22], [24] , we com-
+pute the intermediate feature importance of AIGI detection
+networks. That is,
+∇xadv
+t
+J(xadv
+t
+, y) =
+m−1
+X
+i=0
+λi
+t · ∂(hadv
+t
+)i
+∂xadv
+t
+(4)
+with
+λi
+t = ∂J(xadv
+t
+, y)
+∂(hadv
+t
+)i
+.
+(5)
+where m is the number of the activation units in the feature
+maps. hadv
+t
+represents the mid-layer feature maps of adver-
+sarial images at the t-th iteration. λi
+t denotes the intermediate
+feature importance weights. During the iterative processing,
+feature importance λi
+t tends to become increasingly depen-
+dent on the source model. To mitigate this, a simple yet
+effective method is proposed in [22]. λi
+t is set as a constant
+λi, which is determined by the original image xori rather
+than the iterative adversarial examples xadv
+t
+as in MI-FGSM:
+λi = ∂J(xori, y)/∂(hori)i, where hori denotes the mid-layer
+feature maps of original images.
+B. Joint Spatial-Frequency Feature Importance
+As illustrated in Fg. 1, we propose a dual-branch feature
+perturbation strategy to compute the feature importance from
+both spatial and frequency domains.
+Spatial Perturbation Branch:
+The feature importance λ
+derived from the raw gradients still carries a significant amount
+of model-specific information. To mitigate this, we employ
+integrated gradients (IG) [28]. The method aggregates the
+gradients of interpolated versions of the original image input.
+The interpolations generate diverse inputs while preserving the
+spatial structure and overall texture of the image. [28] has
+shown that, during gradient computation, features related to
+the decision-making are robust to such transformations, while
+model-specific features are more susceptible. As a result, the
+integrated gradients emphasize critical features while suppress-
+ing or neutralizing model-specific ones. The spatial-domain
+feature importance λ(s) is once for all computed as
+λ(s) = 1
+N
+N
+X
+i=1
+∂J( i
+N xori, y)
+∂h
+,
+(6)
+
+
+3
+TABLE I
+ACCURACY OF DIFFERENT METHODS USING UNIVFD AS WHITE-BOX SOURCE AND OTHER DETECTORS AS BLACK-BOX TARGETS. THE BEST IS RED.
+Target detectors Attack methods
+GAN-based
+Deepfakes
+Low-Level
+Perceptual loss Guided
+LDM
+Glide
+DALLE-E
+Total
+ProGAN CycleGAN BigGAN StyleGAN GauGAN StarGAN
+SITD
+SAN
+CRN
+IMLE
+200s
+200+CFG
+100s
+100 27 50 27 100 10
+Avg. Acc
+UnivFD [4]
+Unattacked
+1.000
+0.985
+0.945
+0.820
+0.995
+0.970
+0.666
+0.630 0.575 0.595
+0.720
+0.700
+0.942
+0.738
+0.944
+0.791
+0.799
+0.781
+0.867
+0.802
+FGSM [13]
+0.711
+0.422
+0.446
+0.401
+0.623
+0.118
+0.271
+0.322 0.317 0.290
+0.319
+0.504
+0.511
+0.423
+0.516
+0.528
+0.538
+0.530
+0.460
+0.418
+PGD [15]
+0.412
+0.184
+0.258
+0.236
+0.360
+0.730
+0.026
+0.117 0.381 0.301
+0.320
+0.430
+0.475
+0.431
+0.473
+0.434
+0.438
+0.438
+0.460
+0.386
+C&W [29]
+0.967
+0.917
+0.784
+0.721
+0.954
+0.831
+0.605
+0.591 0.498 0.575
+0.627
+0.627
+0.837
+0.628
+0.844
+0.698
+0.703
+0.698
+0.724
+0.729
+MIFGSM [27]
+0.213
+0.054
+0.074
+0.055
+0.142
+0.001
+0.037
+0.112 0.144 0.075
+0.140
+0.317
+0.338
+0.312
+0.334
+0.325
+0.318
+0.327
+0.333
+0.210
+FIA [22]
+0.330
+0.154
+0.156
+0.154
+0.273
+0.045
+0.082
+0.121 0.267 0.215
+0.272
+0.375
+0.394
+0.382
+0.385
+0.375
+0.381
+0.393
+0.395
+0.280
+DuFIA (Ours)
+0.258
+0.099
+0.085
+0.070
+0.172
+0.013
+0.052
+0.125 0.135 0.054
+0.085
+0.368
+0.378
+0.365
+0.371
+0.362
+0.367
+0.366
+0.363
+0.220
+Corvi [7]
+Unattacked
+0.511
+0.463
+0.519
+0.598
+0.506
+0.457
+0.566
+0.781 0.801 0.500
+0.500
+0.514
+0.993
+0.993
+0.580
+0.622
+0.591
+0.514
+0.894
+0.592
+FGSM [13]
+0.504
+0.495
+0.502
+0.503
+0.501
+0.482
+0.495
+0.671 0.498 0.500
+0.500
+0.487
+0.964
+0.947
+0.963
+0.490
+0.490
+0.491
+0.585
+0.565
+PGD [15]
+0.503
+0.480
+0.500
+0.503
+0.503
+0.466
+0.434
+0.517 0.505 0.500
+0.500
+0.377
+0.978
+0.979
+0.572
+0.5155
+0.498
+0.505
+0.563
+0.534
+C&W [29]
+0.512
+0.461
+0.501
+0.518
+0.501
+0.454
+0.539
+0.497 0.546 0.500
+0.500
+0.4645
+0.989
+0.989
+0.989
+0.531
+0.542
+0.550
+0.782
+0.576
+MIFGSM [27]
+0.502
+0.484
+0.499
+0.501
+0.501
+0.448
+0.371
+0.469 0.507 0.500
+0.500
+0.487
+0.957
+0.942
+0.489
+0.495
+0.490
+0.487
+0.567
+0.514
+FIA [22]
+0.501
+0.490
+0.499
+0.500
+0.500
+0.470
+0.441
+0.442 0.527 0.500
+0.500
+0.488
+0.944
+0.915
+0.490
+0.490
+0.490
+0.488
+0.560
+0.509
+DuFIA (Ours)
+0.510
+0.461
+0.505
+0.508
+0.516
+0.221
+0.251
+0.415 0.484 0.500
+0.500
+0.487
+0.936
+0.901
+0.486
+0.490
+0.489
+0.487
+0.556
+0.495
+Cozz [5]
+Unattacked
+0.726
+0.873
+0.741
+0.705
+0.839
+0.550
+0.510
+0.823 0.776 0.531
+0.537
+0.439
+0.691
+0.681
+0.677
+0.681
+0.667
+0.678
+0.653
+0.677
+FGSM [13]
+0.581
+0.495
+0.527
+0.497
+0.549
+0.501
+0.467
+0.484 0.461 0.524
+0.550
+0.475
+0.638
+0.630
+0.639
+0.587
+0.594
+0.592
+0.609
+0.574
+PGD [15]
+0.575
+0.480
+0.500
+0.497
+0.561
+0.482
+0.461
+0.512 0.468 0.538
+0.538
+0.374
+0.605
+0.585
+0.599
+0.508
+0.479
+0.499
+0.617
+0.520
+C&W [29]
+0.623
+0.461
+0.500
+0.518
+0.767
+0.454
+0.513
+0.498 0.530 0.526
+0.526
+0.465
+0.605
+0.602
+0.607
+0.596
+0.586
+0.592
+0.781
+0.571
+MIFGSM [27]
+0.531
+0.511
+0.459
+0.448
+0.461
+0.490
+0.487
+0.473 0.463 0.475
+0.496
+0.375
+0.584
+0.584
+0.549
+0.552
+0.546
+0.554
+0.557
+0.506
+FIA [22]
+0.513
+0.519
+0.452
+0.431
+0.458
+0.481
+0.478
+0.467 0.482 0.453
+0.466
+0.433
+0.599
+0.593
+0.556
+0.556
+0.548
+0.551
+0.556
+0.510
+DuFIA (Ours)
+0.524
+0.493
+0.474
+0.435
+0.458
+0.484
+0.489
+0.427 0.452 0.390
+0.409
+0.424
+0.593
+0.582
+0.554
+0.553
+0.553
+0.552
+0.560
+0.505
+DRCT [6]
+Unattacked
+0.801
+0.945
+0.827
+0.756
+0.784
+0.630
+0.573
+0.810 0.788 0.439
+0.505
+0.785
+0.866
+0.816
+0.868
+0.84
+0.833
+0.848
+0.86
+0.767
+FGSM [13]
+0.610
+0.4940
+0.501
+0.438
+0.576
+0.414
+0.497
+0.497 0.477 0.561
+0.661
+0.373
+0.478
+0.461
+0.486
+0.498
+0.498
+0.506
+0.477
+0.489
+PGD [15]
+0.530
+0.436
+0.426
+0.332
+0.519
+0.330
+0.318
+0.524 0.479 0.375
+0.479
+0.262
+0.451
+0.410
+0.463
+0.347
+0.347
+0.366
+0.405
+0.411
+C&W [29]
+0.693
+0.734
+0.733
+0.500
+0.856
+0.528
+0.517
+0.514 0.605 0.685
+0.796
+0.488
+0.677
+0.600
+0.685
+0.670
+0.657
+0.681
+0.648
+0.684
+MIFGSM [27]
+0.486
+0.414
+0.383
+0.341
+0.424
+0.371
+0.422
+0.429 0.488
+0.35
+0.419
+0.665
+0.649
+0.601
+0.678
+0.6
+0.672
+0.613
+0.601
+0.517
+FIA [22]
+0.292
+0.308
+0.292
+0.261
+0.355
+0.288
+0.411
+0.415 0.397 0.158
+0.238
+0.49
+0.56
+0.511
+0.559
+0.549
+0.529
+0.574
+0.534
+0.404
+DuFIA (Ours)
+0.213
+0.282
+0.262
+0.253
+0.283
+0.215
+0.264
+0.398 0.477 0.204
+0.287
+0.436
+0.533
+0.51
+0.533
+0.483
+0.469
+0.498
+0.537
+0.376
+Rajan [8]
+Unattacked
+0.523
+0.493
+0.512
+0.533
+0.507
+0.518
+0.509
+0.612 0.564 0.501
+0.500
+0.516
+0.995
+0.995
+0.995
+0.656
+0.695
+0.679
+0.783
+0.599
+FGSM [13]
+0.503
+0.493
+0.502
+0.506
+0.501
+0.497
+0.481
+0.513 0.500 0.500
+0.500
+0.495
+0.989
+0.984
+0.988
+0.511
+0.520
+0.508
+0.600
+0.557
+PGD [15]
+0.502
+0.495
+0.500
+0.501
+0.500
+0.500
+0.499
+0.521 0.507 0.500
+0.500
+0.494
+0.992
+0.985
+0.992
+0.496
+0.495
+0.497
+0.578
+0.556
+C&W [29]
+0.511
+0.492
+0.504
+0.509
+0.501
+0.506
+0.484
+0.509 0.498 0.500
+0.500
+0.502
+0.995
+0.995
+0.995
+0.561
+0.586
+0.572
+0.704
+0.575
+MIFGSM [27]
+0.502
+0.495
+0.498
+0.501
+0.500
+0.499
+0.495
+0.500 0.502 0.500
+0.500
+0.492
+0.979
+0.971
+0.981
+0.495
+0.498
+0.494
+0.561
+0.551
+FIA [22]
+0.501
+0.497
+0.500
+0.500
+0.500
+0.500
+0.500
+0.498 0.498 0.500
+0.500
+0.496
+0.978
+0.943
+0.978
+0.495
+0.496
+0.498
+0.548
+0.549
+DuFIA (Ours)
+0.511
+0.493
+0.504
+0.501
+0.507
+0.498
+0.487
+0.493 0.502 0.500
+0.500
+0.496
+0.969
+0.931
+0.962
+0.495
+0.499
+0.498
+0.554
+0.547
+RINE [9]
+Unattacked
+1.000
+0.993
+0.996
+0.889
+0.998
+0.995
+0.806
+0.906 0.683 0.892
+0.906
+0.761
+0.983
+0.882
+0.986
+0.889
+0.926
+0.907
+0.950
+0.861
+FGSM [13]
+0.855
+0.659
+0.604
+0.555
+0.804
+0.587
+0.527
+0.521 0.457 0.373
+0.445
+0.565
+0.563
+0.495
+0.572
+0.539
+0.544
+0.541
+0.526
+0.562
+PGD [15]
+0.663
+0.485
+0.459
+0.369
+0.652
+0.221
+0.108
+0.501 0.466 0.201
+0.361
+0.471
+0.534
+0.478
+0.541
+0.489
+0.489
+0.484
+0.548
+0.422
+C&W [29]
+0.991
+0.979
+0.965
+0.878
+0.987
+0.970
+0.796
+0.573 0.523 0.683
+0.684
+0.699
+0.941
+0.817
+0.945
+0.861
+0.908
+0.880
+0.912
+0.839
+MIFGSM [27]
+0.453
+0.299
+0.281
+0.251
+0.454
+0.202
+0.122
+0.419 0.380 0.446
+0.466
+0.492
+0.444
+0.505
+0.455
+0.454
+0.460
+0.484
+0.388
+0.386
+FIA [22]
+0.480
+0.361
+0.253
+0.214
+0.426
+0.265
+0.172
+0.352 0.320 0.399
+0.473
+0.528
+0.455
+0.550
+0.474
+0.473
+0.476
+0.507
+0.399
+0.399
+DuFIA (Ours)
+0.412
+0.235
+0.217
+0.223
+0.371
+0.170
+0.194
+0.317 0.318 0.374
+0.520
+0.525
+0.423
+0.495
+0.494
+0.490
+0.511
+0.490
+0.384
+0.377
+(e) UFD(FP)
+0
+1
+real
+(a) UFD [4]
+(b) DRCT [6]
+(c) Cozz [5]
+(d) Corvi [7]
+fake
+Fig. 2. Spectrum saliency maps (averaged over all images from the CycleGAN
+dataset [4]) for different AIGI detectors. (a-d) the results of the raw images
+for four different detectors. (e) the result of the images with frequency
+perturbation (FP) for UFD [4].
+where h denotes the mid-layer feature maps extracted from
+the interpolated image . N is the number of integrated steps.
+Frequency Perturbation Branch: Previous studies [30],
+[31] have shown that real and synthetic images exhibit distinct
+differences in the frequency domain. Additionally, some prior
+AIGI detectors [25] [26] have also leveraged frequency domain
+information. To this end, we calculate the feature importance
+in the frequency domain. Similar to spatial perturbation, we
+apply a transformation to the original image in the frequency
+domain [32]:
+x(f) = IDCT
+ M ⊙DCT(xori + ξ)
+
+,
+(7)
+where the discrete cosine transform (DCT) and the inverse
+discrete cosine transform (IDCT) are applied. M ∼U(1 −
+p, 1 + p) is a random frequency mask drawn from a uniform
+distribution U(·). p controls the perturbation range of each
+frequency coefficient. ⊙denotes the operation of element-wise
+product and ξ ∼N(0, σ2) is Gaussian noise. The frequency-
+domain feature importance is then estimated as
+λ(f) = ∂J(x(f), y)
+∂h
+.
+(8)
+We
+use
+the
+spectrum
+saliency
+map
+[32]
+computed
+as ∂J
+ IDCT(DCT(x)), y
+
+/∂DCT(x) to highlight frequency
+components. In Fig. 2, low-frequency components are mainly
+concentrated in the upper left corner, while high-frequency
+components are distributed in the lower right corner. Fig. 2
+illustrates two key phenomena: (1) In the frequency domain,
+there are significant differences between real and synthetic
+images. Adding perturbations can reduce the gap between
+the differences, making it more difficult for detectors to
+distinguish. (2) Different detectors tend to exploit different
+frequency features for classification. Random frequency per-
+turbations help reduce the discrepancy among detectors.
+Joint Feature Importance: Finally, joint feature impor-
+tance is computed by
+λ = λ(s) + λ(f)
+2
+.
+(9)
+C. Generating Adversarial Example via DuFIA Objective
+As is illustrated in Fig. 1, instead of the cross-entropy loss
+J(·, ·) as MI-FGSM, DuFIA essentially works by maximizing
+
+
+4
+TABLE II
+PERCEPTUAL QUALITY METRICS OF DIFFERENT ATTACKS.
+Attack
+FGSM [13] PGD [15] C&W [29] MIFGSM [27] FIA [22] DuFIA (Ours)
+PSNR (dB) ↑
+33.28
+32.64
+33.31
+33.16
+32.48
+33.42
+SSIM ↑
+0.870
+0.857
+0.874
+0.873
+0.854
+0.881
+LPIPS ↓
+0.072
+0.087
+0.075
+0.067
+0.089
+0.062
+a novel mid-layer feature attack loss:
+L(xadv
+t
+, y) =
+X
+(λ ⊙hadv
+t
+),
+(10)
+The optimization objective of DuFIA can be defined as
+arg max
+xadv L(xadv, y) s.t.∥xadv −xori∥p ≤ϵ.
+(11)
+III. EXPERIMENTS
+A. Experimental Settings
+Datasets: We evaluate the performance of attack schemes
+on a large scale of public AI-generated image dataset, which
+has been used as benchmark in prior works [4], [9]. Specifi-
+cally, the synthetic image are created by the generated models
+including ProGAN, StyleGAN, StyleGAN2, BigGAN, Cycle-
+GAN , StarGAN, GauGAN, DeepFake, SITD, SAN, CRN,
+IMLE, Guided Diffusion, LDM, Glide, and DALL-E. Most of
+the images have a spatial resolution of 256 × 256 pixels.
+Target Detectors: To evaluate detection performance and
+adversarial robustness, we select six representative state-of-
+the-art AI-generated image detectors spanning diverse ar-
+chitectures and training approaches. That is, UnivFD [4],
+Corvi [7], Cozz [5], DRCT [6], Rajan [8], and RINE [9].
+Compared Attacks: Six representative adversarial attack
+methods. FGSM [13], PGD [15], Carlini & Wagner [29], MI-
+FGSM [27] and FIA [22] in the test.In pursuit of fairness and
+comprehensiveness, we followed previous works [16], [17] and
+made efforts to include the attacks they had used. However,
+since some works did not release their source code, we could
+only use limited attack methods from their papers.
+Evaluation Metrics: Following previous works [4], [9], we
+evaluate the classification accuracy of of AIGI detectors based
+on a fixed threshold 0.5. PSNR, SSIM and LPIPS [17] are
+adopted to measure the visual quality.
+Implementation details: To ensure imperceptible pertur-
+bation and fair comparison with counterparts, we set the
+maximum perturbation ϵ = 8/255, the step size α = 0.8/255,
+and the number of iterations 10.All attacks use the ℓ∞norm.
+For C&W, we set the number of iterations 500 and the learning
+rate 0.005. MIFGSM, FIA and DuFIA are enhanced with
+momentum factor µ = 1.0. We choose the 5th transformer
+block as the intermediate layer for ViT-based models.
+B. Comparison with State-of-the-Art Methods
+Table I presents the performance of different attack methods
+using UnivFD as the source detector and all other AIGI
+detectors as targets. Each row corresponds to the adversarial
+examples crafted on UnivFD, while each column shows the
+accuracy when transferred to a specific target detector. DuFIA
+consistently results in the lowest average accuracy, indicating
+its superior transferability. Table II compares the average
+TABLE III
+ACCURACY OF RINE [9] ON THE ATTACKED CYCLEGAN DATASET
+AGAINST DIFFERENT POST-PROCESSING WHEN ATTACKING UNIVFD.
+Methods
+JPEG
+Blur
+Noise
+90
+60
+30
+0.02
+0.32
+0.64
+1/255
+8/255
+64/255
+Unattacked
+0.987
+0.900
+0.885
+0.993
+0.992
+0.993
+0.975
+0.903
+0.651
+FGSM [13]
+0.681
+0.682
+0.717
+0.659
+0.659
+0.679
+0.658
+0.676
+0.624
+PGD [15]
+0.736
+0.749
+0.803
+0.485
+0.485
+0.606
+0.480
+0.667
+0.625
+C&W [29]
+0.982
+0.965
+0.881
+0.979
+0.979
+0.978
+0.969
+0.860
+0.636
+MIFGSM [27]
+0.405
+0.563
+0.657
+0.299
+0.312
+0.383
+0.289
+0.446
+0.611
+FIA [22]
+0.457
+0.547
+0.596
+0.361
+0.378
+0.481
+0.347
+0.436
+0.563
+DuFIA (Ours)
+0.301
+0.445
+0.551
+0.235
+0.248
+0.293
+0.224
+0.328
+0.591
+TABLE IV
+ABLATION STUDY ON THE CYCLEGAN DATASET. ADVERSARIAL
+SAMPLES ARE FROM UNIVFD [4] AND EVALUATED ON DIFFERENT
+MODELS BY ACCURACY.
+Attack
+UnivFD [4] Corvi [7] Cozz [5] DRCT [6] Rajan [8] RINE [9] Avg
+None Perturbation
+0.154
+0.490
+0.519
+0.308
+0.497
+0.361
+0.388
+Spatial Perturbation
+0.150
+0.473
+0.509
+0.289
+0.492
+0.254
+0.361
+Frequency Perturbation
+0.085
+0.491
+0.495
+0.284
+0.497
+0.240
+0.349
+Spatial-Frequency Perturbation
+0.099
+0.461
+0.493
+0.282
+0.493
+0.235
+0.344
+perceptual quality metrics of all adversarial samples yielded
+by different attacks.The results show that DuFIA achieves the
+highest PSNR and SSIM values and the lowest LPIPS score
+among all attack methods. It implies the best visual quality
+for the attacked images yielded by our scheme.
+C. Robustness Evaluation
+We further evaluate the robustness of attack methods against
+common post image degradations, which frequently occur in
+real-world application, such as social media platform. Specif-
+ically,three types of degradations are applied to adversarial
+examples: JPEG compression with quality factor Q=90/60/30,
+Gaussian blur with standard deviations (0.02/0.08/0.64), and
+additive Gaussian noise with intensities of 1/255, 8/255 and
+64/255.Table III shows the average of RINE detector on the
+post-processed adversarial example images. As shown, DuFIA
+consistently achieves the lowest accuracy across most scenar-
+ios, indicating better robustness against post degradation.
+D. Ablation Study
+We conduct an ablation study to investigate the impact
+of perturbation in different domains. As shown in Table IV,
+computing gradients solely in the spatial domain or frequency
+domain leads to lower transferability. Our proposed joint
+spatial-frequency strategy adopted in DuFIA achieves the best.
+IV. CONCLUSION
+This work proposes DuFIA, a dual-domain feature impor-
+tance attack that integrates spatial and frequency perturbations.
+By adaptively fusing complementary feature gradients, Du-
+FIA significantly improves transferability against diverse AI-
+generated image detectors. Extensive experiments verify its
+effectiveness under various AIGI detectors and degradations.
+In future work, we plan to refine the adaptive fusion mecha-
+nism, extend DuFIA to multimodal tasks.
+
+
+5
+REFERENCES
+[1] I. Goodfellow, J. Pouget-Abadie, M. Mirza, B. Xu, D. Warde-Farley,
+S. Ozair, A. Courville, and Y. Bengio, “Generative adversarial nets,” in
+Proceedings of the Advances in Neural Information Processing Systems,
+2014, pp. 2672–2680.
+[2] J. Ho, A. Jain, and P. Abbeel, “Denoising diffusion probabilistic models,”
+in Proceedings of the Advances in Neural Information Processing
+Systems, 2020, pp. 6840–6851.
+[3] D. Gragnaniello, D. Cozzolino, F. Marra, G. Poggi, and L. Verdoliva,
+“Are gan generated images easy to detect? a critical analysis of the
+state-of-the-art,” arXiv preprint arXiv:2104.02617, 2021.
+[4] U. Ojha, Y. Li, and Y. J. Lee, “Towards universal fake image detec-
+tors that generalize across generative models,” in Proceedings of the
+IEEE/CVF Conference on Computer Vision and Pattern Recognition,
+2023, pp. 24 480–24 489.
+[5] D. Cozzolino, G. Poggi, R. Corvi, M. Nießner, and L. Verdoliva, “Rais-
+ing the bar of ai-generated image detection with clip,” in Proceedings of
+the IEEE/CVF Conference on Computer Vision and Pattern Recognition,
+2024, pp. 4356–4366.
+[6] B. Chen, J. Zeng, J. Yang, and R. Yang, “Drct: Diffusion reconstruction
+contrastive training towards universal detection of diffusion generated
+images,” in Proceedings of the Forty-First International Conference on
+Machine Learning, 2024.
+[7] R. Corvi, D. Cozzolino, G. Zingarini, and et al, “On the detection of
+synthetic images generated by diffusion models,” in Proceedings of
+the IEEE International Conference on Acoustics, Speech and Signal
+Processing, 2023, pp. 1–5.
+[8] A. S. Rajan, U. Ojha, J. Schloesser, and Y. J. Lee, “Aligned datasets
+improve detection of latent diffusion-generated images,” in Proceedings
+of the International Conference on Learning Representations, 2025, pp.
+63 304–63 322.
+[9] C. Koutlis and S. Papadopoulos, “Leveraging representations from inter-
+mediate encoder-blocks for synthetic image detection,” in Proceedings
+of the European Conference on Computer Vision, 2024, pp. 394–411.
+[10] H. Xie, J. Ni, J. Zhang, and et al, “Evading generated-image detectors:
+A deep dithering approach,” Signal Processing, vol. 197, no. 108558,
+2022.
+[11] Y. Huang, F. Juefei-Xu, R. Wang, Q. Guo, L. Ma, X. Xie, J. Li, W. Miao,
+Y. Liu, and G. Pu, “Fakepolisher: Making deepfakes more detection-
+evasive by shallow reconstruction,” in Proceedings of the 28th ACM
+International Conference on Mmultimedia, 2020, pp. 1217–1226.
+[12] L. Zijie, C. Gang, and L. Man, “Black-box attack against gan-generated
+image detector with contrastive perturbation,” Engineering Applications
+of Artificial Intelligence, vol. 124, no. 108558, 2023.
+[13] I.
+J.
+Goodfellow,
+J.
+Shlens,
+and
+C.
+Szegedy,
+“Explaining
+and
+harnessing adversarial examples,” in Proceedings of the International
+Conference on Learning Representations, 2015. [Online]. Available:
+http://arxiv.org/abs/1412.6572
+[14] A. Kurakin, I. J. Goodfellow, and S. Bengio, “Adversarial examples in
+the physical world,” in Artificial Intelligence Safety and Security, 2018,
+pp. 99–112.
+[15] A. Madry, A. Makelov, L. Schmidt, D. Tsipras, and A. Vladu, “Towards
+deep learning models resistant to adversarial attacks,” arXiv preprint
+arXiv:1706.06083, 2018.
+[16] Y. Diao, N. Zhai, C. Miao, Z. Yu, X. Wei, X. Yang, and M. Wang, “Vul-
+nerabilities in ai-generated image detection: The challenge of adversarial
+attacks,” arXiv preprint arXiv:2407.20836, 2024.
+[17] S. Mavali, J. ”Ricker, D. ”Pape, Y. ”Sharma, A. ”Fischer, and
+L. ”Sch¨onherr, “Fake it until you break it: On the adversarial robustness
+of ai-generated image detectors”,” CISPA preprint CISPA:2410.01574v2,
+2024.
+[18] V. De Rosa, F. Guillaro, G. Poggi, D. Cozzolino, and L. Verdoliva,
+“Exploring the adversarial robustness of clip for ai-generated image
+detection,” in Processings of the IEEE International Workshop on
+Information Forensics and Security, 2024, pp. 1–6.
+[19] Y. LeCun, L. Bottou, Y. Bengio, and P. Haffner, “Gradient-based learning
+applied to document recognition,” Proceedings of the IEEE, vol. 86,
+no. 11, pp. 2278–2324, 1998.
+[20] A. Radford, J. W. Kim, C. Hallacy, and et al, “Learning transferable
+visual models from natural language supervision,” in Proceedings of the
+International Conference on Machine Learning, 2021, pp. 8748–8763.
+[21] M.
+Naseer,
+S.
+H.
+Khan,
+S.
+Rahman,
+and
+F.
+Porikli,
+“Task-
+generalizable adversarial attack based on perceptual metric,” arXiv
+preprint arXiv:1811.09020, 2018.
+[22] Z. Wang, H. Guo, Z. Zhang, W. Liu, Z. Qin, and K. Ren, “Feature
+importance-aware transferable adversarial attacks,” in Proceedings of
+the IEEE/CVF International Conference on Computer Vision, 2021, pp.
+7639–7648.
+[23] J. Zhang, W. Wu, J. Huang, Y. Huang, W. Wang, Y. Su, and M. R.
+Lyu, “Improving adversarial transferability via neuron attribution-based
+attacks,” in Proceedings of the IEEE/CVF Conference on Computer
+Vision and Pattern Recognition, 2022, pp. 14 993–15 002.
+[24] Q. Li, Y. Guo, W. Zuo, and H. Chen, “Improving adversarial transfer-
+ability via intermediate-level perturbation decay,” Advances in Neural
+Information Processing Systems, vol. 36, pp. 32 900–32 912, 2023.
+[25] R. Durall, M. Keuper, and J. Keuper, “Watch your up-convolution: Cnn
+based generative deep neural networks are failing to reproduce spectral
+distributions,” in Proceedings of the IEEE/CVF Conference on Computer
+Vision and Pattern Recognition, 2020, pp. 7890–7899.
+[26] D. Zhang, T. Zhang, S. Ge, and S. Susstrunk, “Leveraging natural
+frequency deviation for diffusion-generated image detection,” 2024.
+[Online]. Available: https://openreview.net/forum?id=fPBExgC1m9
+[27] Y. Dong, F. Liao, T. Pang, H. Su, J. Zhu, X. Hu, and J. Li, “Boosting
+adversarial attacks with momentum,” in Proceedings of the IEEE Con-
+ference on Computer Vision and Pattern Recognition, 2018, pp. 9185–
+9193.
+[28] M. Sundararajan, A. Taly, and Q. Yan, “Axiomatic attribution for deep
+networks,” in Proceedings of the International Conference on Machine
+Learning, 2017, pp. 3319–3328.
+[29] N. Carlini and D. Wagner, “Towards evaluating the robustness of neural
+networks,” in Proceedings of the IEEE Symposium on Security and
+Privacy, 2017, pp. 39–57.
+[30] J. Frank, T. Eisenhofer, L. Sch¨onherr, A. Fischer, D. Kolossa, and
+T. Holz, “Leveraging frequency analysis for deep fake image recog-
+nition,” in Proceedings of the International Conference on Machine
+Learning, 2020, p. 32473258.
+[31] Y. Jeong, D. Kim, Y. Ro, and J. Choi, “Frepgan: Robust deepfake
+detection using frequency-le-vel perturbations,” in Proceedings of the
+AAAI Conference on Artificial Intelligence, 2022, pp. 1060–1068.
+[32] Y. Long, Q. Zhang, B. Zeng, L. Gao, X. Liu, J. Zhang, and J. Song,
+“Frequency domain model augmentation for adversarial attack,” in
+Proceedings of the European Conference on Computer Vision, 2022,
+pp. 549–566.

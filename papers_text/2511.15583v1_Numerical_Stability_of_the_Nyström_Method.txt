@@ -1,0 +1,1643 @@
+Numerical Stability of the Nystr¨om Method∗
+Alberto Bucci† , Yuji Nakatsukasa‡ , and Taejun Park§
+Abstract. The Nystr¨om method is a widely used technique for improving the scalability of kernel-based algo-
+rithms, including kernel ridge regression, spectral clustering, and Gaussian processes. Despite its
+popularity, the numerical stability of the method has remained largely an unresolved problem. In
+particular, the pseudo-inversion of the submatrix involved in the Nystr¨om method may pose stability
+issues as the submatrix is likely to be ill-conditioned, resulting in numerically poor approximation.
+In this work, we establish conditions under which the Nystr¨om method is numerically stable. We
+show that stability can be achieved through an appropriate choice of column subsets and a careful
+implementation of the pseudoinverse. Our results and experiments provide theoretical justification
+and practical guidance for the stable application of the Nystr¨om method in large-scale kernel com-
+putations.
+Key words. Nystr¨om method, stability analysis, maximum volume indices, kernel methods
+MSC codes. 15A23, 65F55, 65G50
+1. Introduction. Low-rank techniques play an important role in improving scalability of
+many algorithms. Matrices that are low-rank are ubiquitous across data science and com-
+putational sciences [43]. Among these techniques, the Nystr¨om method [35] stands out as a
+key tool in machine learning [20] for enhancing scalability in applications such as kernel ridge
+regression [1], kernel support vector machine [9], spectral clustering [45], Gaussian processes
+[46, 29], and manifold learning [41]. Beyond machine learning, the Nystr¨om approximation
+also finds use in statistics [4], signal processing [38], and computational chemistry [19].
+Given a symmetric positive semi-definite (SPSD) matrix A ∈Rn×n, the Nystr¨om method
+[46, 35, 20] constructs a rank-r approximation of A as:
+A ≈AN := AS(ST AS)†STA,
+where S ∈Rn×r is a column-sampling matrix that selects a subset of A’s columns, that is, S is
+a column submatrix of the identity matrix In, and † denotes the Moore-Penrose pseudoinverse.
+The approximation depends on the pseudoinverse of the core matrix ST AS, which is almost
+always ill-conditioned for matrices well-approximated by a low-rank matrix. This may result
+in reduced accuracy due to roundoff errors, particularly if the implementation is not carefully
+∗Submitted to the editors DATE.
+Funding: AB is member of the INdAM Research Group GNCS and partially supported by the project GNCS2024,
+CUP E53C23001670001 and by PRIN 2022 project ”Low-rank Structures and Numerical Methods in Matrix and Ten-
+sor Computations and their Application” CUP J53D23003620006, YN is supported by EPSRC grants EP/Y010086/1
+and EP/Y030990/1. TP is supported by the RandESC project, funded by the Swiss Platform for Advanced Scientific
+Computing (PASC).
+†Faculty of Mathematics and Physics,
+Charles University,
+Sokolovsk´a 83,
+Prague,
+186 75,
+CZ (al-
+berto.bucci@matfyz.cuni.cz).
+‡Mathematical Institute, University of Oxford, Oxford, OX2 6GG, UK (nakatsukasa@maths.ox.ac.uk).
+§Institute of Mathematics, EPF Lausanne, 1015 Lausanne, Switzerland (taejun.park@epfl.ch). Part of the work
+was done while the author was at the University of Oxford.
+1
+arXiv:2511.15583v1  [math.NA]  19 Nov 2025
+
+
+2
+A. BUCCI, Y. NAKATSUKASA, T. PARK
+designed.
+While these issues are not always critical, they can degrade the quality of the
+approximation to the point where we lose all accuracy, making the approximation pointless.
+Algorithm 1.1 First implementation of Nystr¨om’s method
+Input: Symmetric positive semidefinite matrix A ∈Rn×n, a sketching matrix S ∈Rn×r
+Output: B ∈Rn×r such that A ≈BBT
+1: Compute C ←AS, W ←STAS,
+2: Compute Cholesky factor RT R = W,
+3: Solve B = C/R
+To investigate potential numerical issues, we examine the implementation of the Nystr¨om
+method presented in Algorithm 1.1. In exact arithmetic, the algorithm produces AN exactly.
+However, in finite-precision arithmetic, roundoff errors may render the procedure numerically
+unstable. In particular, Step 2 of Algorithm 1.1, which involves computing the pseudoinverse
+of W, is a potential source of instability when W is highly ill-conditioned, which is typically
+the case when A is well-approximated by a low-rank matrix. This motivates the need for an
+alternative algorithm and a numerically robust implementation of the Nystr¨om method.
+To illustrate the issue, consider the matrix A = diag(1, γ2, 0), where γ is on the order of
+machine precision. In exact arithmetic, selecting the first two columns of A yields the optimal
+Nystr¨om approximation of A:
+∥A −AN∥=
+
+
+
+1
+0
+0
+0
+γ2
+0
+0
+0
+0
+
+−
+
+
+1
+0
+0
+γ2
+0
+0
+
+
+1
+0
+0
+γ2
+† 1
+0
+0
+0
+γ2
+0
+
+= 0.
+However, in Step 2 if we get a slightly perturbed Cholesky factor due to roundoff errors, we
+get
+(1.1)
+ˆR =
+1
+0
+0
+γ + ˜γ
+
+,
+where ˜γ is in the order of machine precision, instead of R = diag(1, γ) in exact arithmetic.
+Note that ˆRT ˆR = RT R+O(γ2) = STAS+O(γ2), so ˆR is a good substitute for R, in particular
+it is a backward stable Cholesky factor of ST AS. With ˆR we obtain
+ˆB = AS ˆR−1 =
+
+
+1
+0
+0
+γ2
+0
+0
+
+
+1
+0
+0
+γ + ˜γ
+−1
+=
+
+
+1
+0
+0
+γ2
+γ+˜γ
+0
+0
+
+.
+Let the computed Nystr¨om approximation be bAN := ˆB ˆBT . Then we get
+A −bAN
+ =
+A −ˆB ˆBT  =
+γ2 −
+γ4
+(γ + ˜γ)2
+ .
+Now set ˜ϵ = −(1 −δ)ϵ for δ ∈(0, 0.5) so that ˜γ = O(γ), then
+A −bAN
+ = γ2
+ 1
+δ2 −1
+
+= O
+γ2
+δ2
+
+,
+
+
+NUMERICAL STABILITY OF THE NYSTR¨OM METHOD
+3
+making the Nystr¨om error arbitrarily large as δ →0. Therefore, the Nystr¨om approximation
+may give an extremely poor approximation if the pseudoinverse of the core matrix is not
+computed with care. Essentially, the issue arises from very small entries in the diagonal of
+the Cholesky factor, making the Nystr¨om approximation arbitrarily large when solving C/R
+in line 3 of Algorithm 1.1. This issue has also been raised in prior works; see Subsection 1.1.
+In this work, we propose an alternative stabilization strategy based on ϵ-truncation of the
+singular values of the core matrix, STAS. By discarding singular values below a prescribed
+tolerance ϵ, this method ensures that the singular values of the core matrix remain sufficiently
+large before computing its pseudoinverse. We refer to this procedure as the stabilized Nystr¨om
+method, formally defined as follows:
+(1.2)
+A(ϵ)
+N := AS(STAS)†
+ϵSTA,
+where (STAS)ϵ denotes the truncated version of STAS, obtained by setting all singular values
+smaller than ϵ to zero.
+This stabilized formulation is central to our subsequent analysis.
+In particular, we investigate its approximation accuracy and establish its numerical stability
+guarantees under a carefully designed implementation, as outlines in Algorithm 1.2.
+Algorithm 1.2 presents our implementation of Nystr¨om method, which differs fundamen-
+tally from Algorithm 1.1 in that it produces a different output even in exact arithmetic.
+The main difference lies in Step 2, where we replace the standard Cholesky factor with an
+ϵ-truncated Cholesky factor. In this approach, the Cholesky process is terminated once the
+largest remaining diagonal element falls below the threshold ϵ. In our implementation, this
+procedure is performed in MATLAB using the cholp function from the Matrix Computation
+Toolbox [25]. Similar to Algorithm 1.1, Algorithm 1.2 provides the option to retain the large
+low-rank factor as a subset of columns of A by skipping Step 3 and outputting C and Rϵ as
+the low-rank factors.
+Algorithm 1.2 Stable implementation of Nystr¨om’s method
+Input: Symmetric positive semidefinite matrix A ∈Rn×n, a sketching matrix S ∈Rn×r,
+truncation parameter ϵ (recommendation: ϵ = 10u)
+Output: B ∈Rn×r such that A ≈BBT
+1: Compute C ←AS, W ←STAS,
+2: Compute ϵ-truncated Cholesky factor RT
+ϵ Rϵ ←W where Rϵ ∈Rˆr×r with ˆr ≤r,
+3: Compute B ←CR†
+ϵ via backward stable solve for the overdetermined system
+1.1. Existing methods. Prior works have investigated the potential numerical instability
+of the Nystr¨om method when computing the pseudoinverse of the core matrix STAS.
+In
+particular, Tropp et al. [42] proposed introducing a small shift to the core matrix before
+computing its pseudoinverse; see Algorithm 3 in [42]. The small shift ensures that the singular
+values of STAS remain sufficiently larger than the unit roundoff, thereby improving numerical
+stability while preserving the spectral decay of A. Carson and Dau˘zickait˙e [5] analyzed the
+numerical stability of this approach. While this strategy appears to be numerically stable
+in practice, their analysis is limited: the bound suggests that roundoff error is amplified
+approximately by σ1(A)/σr(A), which can be extremely large for matrices with fast decaying
+
+
+4
+A. BUCCI, Y. NAKATSUKASA, T. PARK
+singular values; this is often the case when the matrix is well-approximated by a low-rank
+matrix. Moreover, the method requires computing the QR factorization of an n × r matrix,
+and the resulting low-rank factors cannot be kept as subsets of the original matrix, which can
+be considered a drawback. To our knowledge, shifting has been the only technique proposed to
+address the potential instability of the Nystr¨om method. We note that the shifted formulation
+does not yield the exact Nystr¨om approximation in exact arithmetic, as the introduced shift
+slightly perturbs the eigenvalues of the core matrix.
+Related approaches have been used in the broader context of low-rank approximations.
+One common strategy is the use of the ϵ-pseudoinverse, which truncates singular values below
+a threshold ϵ before (pseudo)inversion. For example, Chiu and Demanet [8] applied this idea to
+the CUR decomposition to improve numerical stability, and subsequent analyses [37] derived
+stability bounds for the CUR decomposition using an ϵ-pseudoinverse. This idea has also been
+applied to generalized Nystr¨om method [33].
+1.2. Contributions. In this work, we study the numerical stability of the Nystr¨om method
+with maximum-volume indices (see Definition 2.1) by employing the ϵ-pseudoinverse.
+We
+propose a numerically stable approach for computing the Nystr¨om approximation that trun-
+cates small singular values of the core matrix before taking its pseudoinverse as outlined in
+Algorithm 1.2. This strategy avoids the numerical instabilities associated with standard pseu-
+doinversion and eliminates the need for additional shifting strategies, while maintaining the
+accuracy of the approximation.
+We provide stability analysis showing that the roundoff error of our approach is inde-
+pendent of the condition number of the original matrix A, ensuring high accuracy without
+stability concerns. This means one can safely use low-precision arithmetic to improve speed
+(e.g. single precision instead of the standard double precision), if a low accuracy is sufficient
+for the application, which is often the case in data science. This was suggested in [5]1, but
+our bounds crucially removes the dependence on the conditioning of A or JAKr where JAKr is
+the best rank-r approximation to A. While our analysis focuses on maximum-volume indices,
+we expect similar stability guarantees for any well-chosen set of representative indices such as
+[7].
+Furthermore, our method is computationally efficient and can preserve the original matrix
+structure such as sparsity or nonnegativity in the factors, by taking S to be a subset selection
+matrix. In comparison to the shifting strategies, we avoid the QR factorization of an n × r
+matrix, allowing our algorithm to scale effectively to large matrices.
+Also, by relying on
+subsets of the original data, it retains interpretability and data fidelity. This combination of
+stability, efficiency and structural preservation makes our approach particularly suitable for
+large-scale computing.
+1.3. Notation. Throughout, we use ∥·∥2 for the spectral norm or the vector-ℓ2 norm,
+∥·∥F for the Frobenius norm, and ∥·∥∗for the trace norm. We use dagger † to denote the
+pseudoinverse of a matrix and JAKr to denote the best rank-r approximation to A in any
+1Carson and Dauˇzickait˙e [5] consider the use of mixed precision in implementing Nystr¨om’s method, in
+particular using lower-precision in computing the matrix-matrix multiplication AS. Here we do not explore
+this, partly for simplicity, and partly because in our context where S is a subsampling matrix, AS is simply a
+column submatrix of A, and hence can often be computed exactly.
+
+
+NUMERICAL STABILITY OF THE NYSTR¨OM METHOD
+5
+unitarily invariant norm, i.e., the approximation derived from truncated SVD [27, § 7.4.9].
+Unless otherwise specified, σi(A) denotes the ith largest singular value of the matrix A. We
+use MATLAB-style notation for matrices and vectors. For example, for the kth to (k + j)th
+columns of a matrix A we write A(:, k : k + j).
+2. Overview of the Nystr¨om method and Kernel matrices. The Nystr¨om method is
+widely used in data science to efficiently approximate kernel matrices [16, 20, 45], especially
+in scenarios where computing and storing the full kernel matrix is computationally prohibi-
+tive. By leveraging low-rank approximations, the Nystr¨om method improves the scalability
+of kernel-based machine learning algorithms in both memory and computational costs. This
+section provides an overview of the Nystr¨om method and kernel matrices.
+Given n d-dimensional data points z1, z2, ..., zn ∈Rd and a kernel function κ : Rd×Rd →R,
+the kernel matrix of κ with respect to z1, z2, ..., zn is defined by
+Aij = κ(zi, zj).
+Appropriate choices of κ ensure that A is SPSD and we interpret the kernel function as a
+measure of similarity between a pair of data points. In this case, the kernel function determines
+a feature map Φ : Rd →H such that Aij = ⟨Φ(zi), Φ(zj)⟩H. Here, H is a Hilbert space and
+dim(H) can be much larger than n or even infinite.
+Therefore, kernel matrices implicitly
+compute inner products in a high-dimensional feature space without explicitly transforming
+the data. When data are mapped to a high-dimensional feature space, it is often easier to
+extract nonlinear structure in the data. Machine learning algorithms where this is exploited
+through kernel matrices include kernel SVM [12], kernel ridge regression [39] and kernel k-
+means clustering [45].
+Popular kernels include polynomial kernels, Gaussian kernels, and
+Sigmoid kernels. See, for example, [39, 26] for details.
+For a given dataset, constructing the kernel matrix involves evaluating the kernel entries, a
+process that becomes increasingly expensive as n and d become large. This issue is particularly
+problematic when the kernel function is computationally expensive to compute. To address
+this, choosing S ∈Rn×r as a column subsampling matrix in the Nystr¨om method has proven
+to be an effective strategy for improving the scalability of kernel methods.
+When S is a
+column subsampling matrix, AS is an r-subset of the columns of A, and STAS is an r × r
+principal submatrix of A. Consequently, the Nystr¨om approximation requires only nr kernel
+evaluations instead of the full n2. Therefore, we focus on column subsampling matrices in this
+work.2
+There are several ways of choosing the important columns for the Nystr¨om approxima-
+tion. The methods used to choose columns significantly impact the accuracy of the Nystr¨om
+method. There are numerous practical algorithms in the literature for constructing a sub-
+sampling matrix, including uniform sampling [46, 16], leverage score sampling [17, 20, 30], de-
+terminantal point process (DPP) sampling [14], volume-based methods [32], and pivot-based
+strategies such as greedy pivoting [23], adaptive randomized pivoting [10], and randomly-
+pivoted Cholesky [7]. Notably, certain methods produce columns that provide close-to-optimal
+2Other popular choices for S include random embeddings such as Gaussian embeddings and sparse maps;
+see [31, 20].
+
+
+6
+A. BUCCI, Y. NAKATSUKASA, T. PARK
+guarantees [32, 10]:
+(2.1)
+∥A −AN∥∗≤(1 + r) ∥A −JAKr∥∗.
+It is worth noting that the suboptimality in (2.1) does not depend on n; the existence of a
+Nystr¨om approximation satisfying (2.1) for an arbitrary PSD matrix A is arguably remarkable.
+Although many effective strategies exist for identifying the important columns of a SPSD
+matrix, this work focuses on maximum volume indices (max-vol indices) [32, 48]. The formal
+definition for max-vol indices is given below.
+Definition 2.1. Let A be a matrix and Sn,r be the set of subsampling matrices that pick r
+out of n column indices. Then S ∈Sn,r is a max-vol subsampling matrix if
+(2.2)
+det(STAS) = max
+˜S∈Sn,r
+det
+
+˜STA ˜S
+
+.
+The max-vol indices maximize the product of the eigenvalues3 of the core matrix STAS
+and provide a high-quality low-rank approximation [32, 48] to a SPSD matrix. Since maxi-
+mum volume indices are highly effective, the analysis in this work serves as a good proxy for
+understanding the behaviour of any high-quality set of indices.
+In this paper we focus on the max-vol S and prove stability of the resulting Nystr¨om’s
+method, when implemented as in Algorithm 1.2. The max-vol choice has historically been the
+gold standard, leading to a number of desirable properties. It does not necessarily minimize
+the error ∥A−AN∥∗, and is not guaranteed to satisfy (2.1); other choices of (still subsampling)
+S have been introduced to satisfy such bounds [10, 36, 14]. In addition to the max-vol S, we
+believe that also with such a choice of S (or essentially with any ‘good’ choice of S), Nystr¨om
+is stable when implemented according to Algorithm 1.2.
+3. Analysis of the stabilized Nystr¨om method in exact arithmetic. Here we analyze
+the approximation accuracy (or error) of the Nystr¨om method with ϵ pseudoinverse, which
+from now on we will call stabilized Nystr¨om (SN), assuming that the subsampling matrix S
+is maximum-volume subsampling for A. The analysis is first carried out in exact arithmetic,
+neglecting round-off errors, while stability in finite precision will be addressed in the following
+section.
+The structure of the analysis closely follows [33], where the generalized Nystr¨om is ana-
+lyzed. However, the techniques we employ will differ as matrices with different properties are
+involved, and unlike generalized Nystr¨om where two independent sketches of A are employed,
+in Nystr¨om we use a single sketch (and hence is a case of generalized Nystr¨om where the
+sketches are highly dependent).
+3.1. Accuracy of SN. In this section, we provide a bound for the accuracy of the sta-
+bilized version of the Nystr¨om method for SPSD matrices under the assumption that S is
+the maximum-volume subsampling matrix.4 The stabilized version of the Nystr¨om method is
+3For symmetric positive semi-definite matrices, the set of eigenvalues are equal to the set of singular values.
+4This assumption is made for simplicity of the analysis; however, our bounds can be extended to subsampling
+matrices S that have near maximum volume in the sense that det(STAS) = η sup ˜
+S∈Sn,rdet( ˜ST A ˜S) for some
+0 < η < 1.
+
+
+NUMERICAL STABILITY OF THE NYSTR¨OM METHOD
+7
+given by
+A(ϵ)
+N = AS(STAS)†
+ϵSTA,
+where S ∈Rn×r is the maximum-volume subsampling matrix for A with r as the target rank,
+and its associated error is given by
+A −A(ϵ)
+N = (I −AS(STAS)†
+ϵST )A = (I −P ϵ
+AS,S)A,
+where we set P ϵ
+AS,S := AS(STAS)†
+ϵST . Recall that P is an (oblique) projector if and only if
+P 2 = P (and P is nonsymmetric). To verify that P ϵ
+AS,S is an oblique projector we compute
+(P ϵ
+AS,S)2 = AS(STAS)†
+ϵSTAS(STAS)†
+ϵST
+= AS(STAS)†
+ϵ(ST AS)ϵ(STAS)†
+ϵST
+= AS(STAS)†
+ϵST = P ϵ
+AS,S.
+We begin with four lemmas that are important for carrying out our analysis in Theo-
+rem 3.5. First, Lemma 3.1 proves an important inequality for the maximum-volume subsam-
+pling matrix S ∈Rn×r and Lemma 3.2 proves an error bound ∥(I −(AS)(AS)†)A∥F when
+maximum-volume subsampling matrix S is used. Lemma 3.3 shows that the projector P ϵ
+AS,S
+is bounded by a small function involving n and r and finally, in Lemma 3.4 we prove that
+P ϵ
+AS,S projects AS to a slightly perturbed space of AS.
+Lemma 3.1. Let S ∈Rn×r be a maximum-volume subsampling matrix for a SPSD matrix
+A. Then
+σmin(STQ) ≥
+1
+p
+1 + r(n −r)
+≥
+1
+√nr
+where Q is the orthonormal factor in the thin QR decomposition of AS.
+Proof. Since S is the maximum-volume subsampling matrix for A and the maximum
+volume submatrix of SPSD matrices can be chosen to be a principal submatrix of A [11,
+Theorem 1],
+S = argmax ˜S∈Sn,rdet( ˜STAS) = argmax ˜S∈Sn,rdet( ˜STQ)det(R),
+where Sn,r is the set of subsampling matrices that pick r out of n indices. Therefore S is also
+the maximum-volume subsampling matrix for Q ∈Rn×r. Now by [21, Lemma 2.1], we obtain
+σmin(STQ) ≥
+1
+p
+1 + r(n −r)
+.
+and the lemma follows by noting that nr ≥1 + r(n −r) for r ≥1.
+In the analysis that follows, we repeatedly use Lemma 3.1. Each invocation of the inequal-
+ity introduces a factor of √nr, so the error bounds in Lemma 3.3, Lemma 3.4 and Theorem 3.5
+
+
+8
+A. BUCCI, Y. NAKATSUKASA, T. PARK
+carry a polynomial prefactor that depends on √n and √r. The classical worst-case bound
+σmin(ST Q) ≥1/
+p
+1 + r(n −r) [21] is theoretically tight, but it is usually quite conservative
+for most matrices [32]. In practice, one can check the conditioning of a chosen index set I by
+computing the QR factorization of AS = A( : , I) = QR and computing the singular values
+of ST Q. This costs O(nr2 + r3) operations. Numerical experiments typically show that the
+smallest singular value of ST Q is much larger than 1/√nr, which confirms that the √nr fac-
+tors are worst-case artifacts [15]. We note that in classical stability analysis [24], low-degree
+polynomial factors in n are regarded as insignificant when multiplied by the unit roundoff u or
+a comparably small quantity. We follow this convention in this paper, even though in modern
+data science applications n can be large enough to make terms like n2u potentially large.
+Lemma 3.2. Let S ∈Rn×r be a maximum-volume subsampling matrix for a SPSD matrix
+A. Then
+∥(I −(AS)(AS)†)A∥2 ≤n(1 + r)σr+1(A).
+Proof. The maximum-volume subsampling matrix satisfies the classical bound [11, 22]
+∥A −AS(STAS)−1STA∥max ≤(r + 1) σr+1(A),
+where ∥· ∥max denotes the maximum magnitude among the entries of the matrix argument.
+Now consider the following optimization problem
+(3.1)
+min
+C ∥A −ASC∥F .
+Since the optimization problem (3.1) has the solution (AS)†A = arg minC ∥A −ASC∥F , we
+have
+∥A −AS(AS)†A∥F = min
+C ∥A −ASC∥F ≤∥A −AS(ST AS)−1STA∥F .
+Therefore, putting these together we obtain
+∥(I −(AS)(AS)†)A∥2 ≤∥A −AS(AS)†A∥F
+≤∥A −AS(STAS)−1STA∥F
+≤n∥A −AS(STAS)−1STA∥max
+≤n(r + 1)σr+1(A),
+where in the penultimate inequality, we used ∥B∥F ≤n∥B∥max for B ∈Rn×n.
+A recent refinement by [2] slightly sharpens the dependence on the singular values, and also
+establishes guarantees for near-maximum-volume subsampling. For the purposes of this work,
+we retain the classical bound in order to keep the presentation simple.
+Lemma 3.3. Given a SPSD matrix A ∈Rn×n, let S ∈Rn×r be a maximum-volume sub-
+sampling matrix for A and assume that r ≤rank(A). Then
+(3.2)
+∥P ϵ
+AS,S∥2 = ∥AS(STAS)†
+ϵ∥2 ≤√nr.
+
+
+NUMERICAL STABILITY OF THE NYSTR¨OM METHOD
+9
+Proof. Let AS = QR be the thin QR decomposition of AS. Then
+∥AS(STAS)†
+ϵ∥2 = ∥QR(STAS)†
+ϵ∥2
+= ∥R(ST AS)†
+ϵ∥2
+= ∥(STQ)†(STQ)R(STAS)†
+ϵ∥2
+≤∥(STQ)†∥2∥(STAS)(STAS)†
+ϵ∥2
+= ∥(STQ)†∥2,
+≤√nr
+where Lemma 3.1 was used for the last inequality.
+Lemma 3.4. With P ϵ
+AS,S = AS(STAS)†
+ϵST as in Lemma 3.3
+(3.3)
+P ϵ
+AS,SAS = AS + Eϵ,
+where ∥Eϵ∥2 ≤2ϵ√nr.
+Proof. We first notice that there exists Aϵ = A + E with ∥E∥2 ≤ϵ such that
+(STAS)ϵ = STAϵS.
+Indeed if STAS = U1Σ1UT
+1 + U2Σ2UT
+2 is the SVD, with ∥Σ2∥2 ≤ϵ , it is sufficient to set
+Aϵ = A −SU2Σ2UT
+2 ST .
+Then we get STAϵS = [U1, U2]
+Σ1
+0
+0
+0
+
+[U1, U2]T as the SVD of
+STAϵS. Hence we have P ϵ
+AS,SAS = AS(STAS)†
+ϵ(STAS) = AS(STAϵS)†(STAS). Now
+P ϵ
+AS,SAS = AS(STAϵS)†(STAS) = AS(STAϵS)†(ST(Aϵ −E)S)
+= AS(STAϵS)†(STAϵS) −AS(STAϵS)†STES,
+where the second term in the final equality satisfies
+∥AS(STAϵS)†STES∥2 ≤∥AS(STAϵS)†∥2∥STES∥2 ≤ϵ√nr
+by Lemma 3.3. Then
+AS(STAϵS)†(STAϵS) = ASU1UT
+1 = AS −ASU2UT
+2
+and
+∥ASU2UT
+2 ∥2 = ∥QRU2UT
+2 ∥2 = ∥RU2UT
+2 ∥2
+≤∥(STQ)†STQRSU2UT
+2 ∥2
+≤∥(STQ)†STASU2UT
+2 ∥2
+≤∥(STQ)†∥2∥ST(Aϵ −E)SU2UT
+2 ∥2
+≤√nr∥−STESU2UT
+2 ∥2
+≤ϵ√nr,
+
+
+10
+A. BUCCI, Y. NAKATSUKASA, T. PARK
+where Lemma 3.1 and STAϵS ˜U2 = 0 was used in the penultimate inequality. The result follows
+by setting
+Eϵ := −ASU2UT
+2 −AS(STAϵS)†STES
+and noting that
+P ϵ
+AS,SAS = AS −ASU2UT
+2 −AS(ST AϵS)†ST ES = AS + Eϵ,
+where ∥Eϵ∥2 ≤2ϵ√nr.
+We now combine the lemmas to analyze the accuracy of the stabilized Nystr¨om method in
+exact arithmetic.
+Theorem 3.5 (Accuracy of SN).
+Let A ∈Rn×n be a SPSD matrix and S ∈Rn×r be a
+maximum-volume subsampling matrix for A. Then
+(3.4)
+∥A −A(ϵ)
+N ∥2 ≤2n2r(r + 1)σr+1(A) + 2nrϵ.
+Proof. We first note that, by Lemma 3.4,
+A −A(ϵ)
+N = (I −P ϵ
+AS,S)A = (I −P ϵ
+AS,S)A(I −SMS) + EϵMS
+for any matrix MS ∈Rr×n and Eϵ is as in Lemma 3.4, satisfying ∥Eϵ∥2 ≤2ϵ√nr. Now choose
+MS = (QTS)†QT where Q is the orthonormal matrix in the thin QR decomposition of AS.
+We get
+(I −P ϵ
+AS,S)A(I −SMS) = (I −P ϵ
+AS,S)A(I −S(QTS)†QT )
+= (I −P ϵ
+AS,S)A(I −QQT )(I −S(QTS)†QT )
+since QTS is non-singular by Lemma 3.1 and
+∥EϵMS∥2 ≤∥Eϵ∥2∥(QTS)†∥2 ≤2ϵ√nr√nr = 2ϵnr
+by Lemma 3.1. Finally, we get
+∥A −A(ϵ)
+N ∥2 ≤∥(I −P ϵ
+AS,S)A(I −QQT )(I −S(QTS)†QT )∥2 + ∥EϵMS∥2
+≤∥I −P ϵ
+AS,S∥2∥A(I −QQT )∥2∥I −S(QTS)†QT ∥2 + 2ϵnr
+≤(1 + ∥P ϵ
+AS,S∥2)∥A(I −QQT )∥2∥S(QTS)†QT ∥2 + 2ϵnr
+≤(1 + √nr)∥A(I −QQT )∥2
+√nr + 2ϵnr
+≤(n√nr + n2r)(r + 1)σr+1(A) + 2nrϵ,
+where in the third line we used the fact that S(QTS)†QT is an oblique projector, in the
+penultimate inequality we used Lemmas 3.1 to 3.3 for the final inequality.
+We conclude
+noting that (n√nr + n2r) ≤2n2r.
+
+
+NUMERICAL STABILITY OF THE NYSTR¨OM METHOD
+11
+4. Numerical Stability of SN. So far, we have analyzed SN in exact arithmetic, showing
+that it closely preserves the accuracy of the Nystr¨om algorithm. Here we address the problem
+of the stability of the algorithm; that is, we provide an actual implementation of the algo-
+rithm and show that even taking into account round-off errors, the computed approximant
+fl(AS(STAS)†
+ϵSTA) has error ∥A −fl(ASN)∥F comparable to A −A(ϵ)
+N .
+We consider the
+following implementation: we first compute AS and STAS. Next, we compute a truncated
+Cholesky decomposition RT
+ϵ Rϵ = (STAS)ϵ. Finally, we obtain the low-rank factor ASR†
+ϵ.
+Throughout the analysis, we will use the notation O(1) to denote a quantity bounded in
+magnitude by a constant c, where c is independent of the problem size. We let u denote the
+unit roundoff, and use the symbol u∗to represent either a scalar or a matrix whose norm
+is bounded by at most a low-degree polynomial in n and r, multiplied by u. In particular,
+∥u∗∥F does not grow exponentially with n, nor does it scale inversely with small quantities
+such as ϵ or σr(A). While this may appear to be a simplification, it is a standard convention
+in stability analyses (see, e.g., [34]). The precise value of u∗may vary from one occurrence to
+another, but we always assume that ϵ ≫u∗. Unless explicitly stated otherwise, we normalize
+so that ∥A∥2 = 1.
+Proposition 4.1. Let S ∈Rn×r (n > r) be any orthonormal matrix. There exist matrices
+bA = A + ∆bA and eA = eA + ∆eA, with ∥∆bA∥2, ∥∆eA∥2 ≤u∗such that
+• fl(AS) = bAS;
+• fl(STAS) = ST eAS.
+These statements are perhaps trivially true when S is a subsampling matrix, often with bA = A
+and eA = A. We state a more general version in case there are errors incurred in computing
+with S.
+Proof. For any matrix A and B, ∥fl(AB) −AB∥2 ≤∥A∥2∥B∥2u∗[24, Section 3.5] and
+since ∥S∥2 = 1 and ∥A∥2 = 1
+fl(AS) = AS + u∗= (A + u∗ST )S =: bAS
+and
+fl(STAS) = STAS + u∗= ST(A + Su∗ST )S =: ST eAS.
+We will also assume that the computed truncated Cholesky factor bRϵ = fl(chol((ST eAS)ϵ))
+satisfies
+(4.1)
+bRT
+ϵ bRϵ = (ST eAS)ϵ + u∗,
+where bRϵ ∈Rˆr×r, with ˆr ≤r, is numerically full-rank. In fact, by applying the Cholesky
+algorithm with complete pivoting, one can establish the pessimistic bound [24, Theorem 10.14]
+∥(ST eAS)ϵ −bRT
+ϵ bRϵ∥2 ≤4ˆru∗,
+even though the dimensions of the matrix are relatively small, there is still an exponential
+dependence in ˆr, which we could not ignore in general. However, as explained in [24, Theorem
+10.14], this bound tends to be overly pessimistic in practice, and for our purposes, we can
+safely disregard it.
+We now prove the floating-point version of the Lemmas 3.3 and 3.4.
+
+
+12
+A. BUCCI, Y. NAKATSUKASA, T. PARK
+Lemma 4.2. Let bA and eA be as in Proposition 4.1, and suppose S ∈Rn×r is the maximum-
+volume set of indices for A. then
+(4.2)
+∥bAS(ST eAS)†
+ϵ∥2 ≤1 + 2√nr.
+Proof. Let AS = QR be the thin QR decomposition of AS. Then
+∥bAS(ST eAS)†
+ϵ∥2 = ∥(A + u∗)S(ST eAϵS)†∥2
+≤∥AS(ST eAϵS)†∥2 + ∥u∗S(ST eAϵS)†∥2
+≤∥QR(ST eAϵS)†∥2 + 1
+= ∥R(ST eAϵS)†∥2 + 1
+= ∥(STQ)−1(STQ)R(ST eAϵS)†∥2 + 1
+≤∥(STQ)−1∥2∥(STQ)R(ST eAϵS)†∥2 + 1
+= ∥(STQ)−1∥2∥(ST( eAϵ + u∗)S)(ST eAϵS)†∥2 + 1
+≤∥(STQ)−1∥2
+
+∥(ST eAϵS)(ST eAϵS)†∥2 + ∥(STu∗S)(ST eAϵS)†∥2
+
++ 1
+≤1 + 2∥(STQ)−1∥2 ≤1 + 2√nr.
+Lemma 4.3. Let bA and eA be as in Proposition 4.1, then
+(4.3)
+bAS(ST eAS)†
+ϵ( bAS)TS = AS + Eϵ,
+where ∥Eϵ∥2 ≤4ϵ√nr.
+Proof. As in Lemma 3.4, there exists eAϵ = eA + E with ∥E∥2 ≤ϵ such that
+(ST eAS)ϵ = ST eAϵS.
+Hence we have
+bAS(ST eAS)†
+ϵ( bAS)T S = bAS(ST eAϵS)†(ST bAT S) = bAS(ST eAϵS)†(ST( eAϵ −u∗)S).
+The term bAS(ST eAϵS)†ST u∗S, by Lemma 4.2, satisfies
+∥bAS(ST eAϵS)†STϵ∗S∥2 ≤∥bAS(ST eAϵS)†∥2∥STu∗S∥2 ≤ϵ∗(1 + 2√nr).
+Hence we focus on the remaining term. Let ST eAϵS = [ ˜U1, ˜U2]
+˜Σ1
+0
+0
+0
+
+[ ˜U1, ˜U2]T be the SVD
+of ST eAϵS where [ ˜U1, ˜U2] ∈Rr×r is an orthogonal matrix and ˜Σ1 contains singular values of
+ST eAϵS greater than ϵ. Then
+bAS(ST eAϵS)†(ST eAϵS) = bAS ˜U1 ˜UT
+1 = AS −AS ˜U2 ˜UT
+2 + u∗,
+
+
+NUMERICAL STABILITY OF THE NYSTR¨OM METHOD
+13
+where
+∥AS ˜U2 ˜UT
+2 ∥2 ≤∥(STQ)†STAS ˜U2 ˜UT
+2 ∥2
+≤∥(STQ)†∥2∥ST( eAϵ −E + u∗)S ˜U2 ˜UT
+2 ∥2
+≤√nr∥ST (E −u∗)S ˜U2 ˜UT
+2 ∥2
+≤2ϵ√nr
+where Lemma 3.1 and ST eAϵS ˜U2 = 0 was used in the penultimate inequality. The result follows
+by putting everything together.
+We now analyze the quantity fl(AS(STAS)†
+ϵSTA). Let us denote the ith row of a matrix
+Z by [Z]i and the element in position (i, j) by [Z]ij.
+Lemma 4.4. Let fl([AS(STAS)†
+ϵSTA]ij) be computed with ϵ-truncated Cholesky on fl(STAS),
+obtaining bRϵ satisfying (4.1). And then by solving linear systems of the form fl([AS]k bR†
+ϵ), for
+k = i, j, using a backward stable underdetermined linear solver. Then
+(4.4)
+fl
+
+[AS(STAS)†
+ϵSTA]ij
+
+= [AS + u∗]i(STAS + u∗)†
+eϵ[AS + u∗]T
+j ,
+where eϵ ≥ϵ −u∗.
+Proof. Recall that fl(AS) = AS + u∗.
+Thus, the overdetermined least-squares linear
+systems that we need to solve are of the form,
+(4.5)
+min
+x
+x bRϵ −([AS]k + u∗)
+
+2
+for k = i, j. Since the matrix bRϵ is numerically full-rank, by [24, Theorem 20.3], the computed
+solution satisfies
+fl
+
+([AS]k + u∗) bR†
+ϵ
+
+= (([AS]k + u∗) + u∗)
+
+bRϵ + u∗
+†
+= ([AS]k + u∗)
+
+bRϵ + u∗
+†
+.
+It remains to multiply ([AS]i + u∗)
+
+bRϵ + u∗
+†
+and
+
+bRϵ + u∗
+†T
+([AS]j + u∗)T , that is
+fl
+
+([AS]i + u∗)
+
+bRϵ + u∗
+† 
+bRϵ + u∗
+†T
+([AS]j + u∗)T
+
+=
+= ([AS]i + u∗)
+
+bRϵ + u∗
+† 
+bRϵ + u∗
+†T
+([AS]j + u∗)T
++ u∗
+([AS]i + u∗)
+
+bRϵ + u∗
+†
+2
+([AS]j + u∗)
+
+bRϵ + u∗
+†
+2
+.
+We now prove that
+(4.6)
+([AS]k + u∗)
+
+bRϵ + u∗
+†
+2
+= Ø(1)
+for k = 1, . . . , n. Indeed
+
+
+14
+A. BUCCI, Y. NAKATSUKASA, T. PARK
+([AS] + u∗)
+
+bRϵ + u∗
+†
+2
+=
+(STQ)−1
+2
+(STAS + u∗)
+
+bRϵ + u∗
+†
+2
+= Ø(1)
+
+
+bRT
+ϵ bRϵ + ϵ + u∗
+ 
+bRϵ + u∗
+†
+2
+≤Ø(1)
+
+
+bRT
+ϵ bRϵ
+ 
+bRϵ + u∗
+†
+2
++
+(ϵ + u∗)
+
+bRϵ + u∗
+†
+2
+
+.
+By Weyl’s inequality,
+σk((STAS)ϵ) −u∗≤σk((STAS)ϵ + u∗) ≤σk((STAS)ϵ) + u∗.
+Since σk( bRϵ) =
+p
+σk((STAS)ϵ + u∗), we obtain
+σmin( bRϵ −u∗) ≥σmin( bRϵ) −u∗≥√ϵ −u∗−u∗.
+Thus
+
+
+bRT
+ϵ bRϵ
+ 
+bRϵ + u∗
+†
+2
+≤∥bRϵ∥2∥bRϵ
+
+bRϵ + u∗
+†
+∥2
+≤∥bRϵ∥2∥( bRϵ + u∗−u∗)
+
+bRϵ + u∗
+†
+∥2 = ∥bRϵ∥2∥I −u∗
+
+bRϵ + u∗
+†
+∥2 = O(1)
+and
+∥(ϵ + u∗)
+
+bRϵ + u∗
+†
+∥2 = O(1),
+completing the proof of (4.6).
+Finally, we prove that there exists a eϵ ≥ϵ −u∗such that
+
+bRϵ + u∗
+† 
+bRϵ + u∗
+†T
+= (STAS + u∗)†
+eϵ
+.
+Recall that bRϵ ∈Rˆr×r, with ˆr ≤r satisfies σk( bRT
+ϵ bRϵ) ≥ϵ for all k ≤ˆr. Thus by Weyl’s
+inequality, for all k ≤ˆr
+σk
+
+bRϵ + u∗
+T 
+bRϵ + u∗
+
+= σk
+
+bRT
+ϵ bRϵ + u∗
+
+≥ϵ −u∗.
+At the same time, being product of two rank ˆr matrices, for all k > ˆr
+σk
+
+bRϵ + u∗
+T 
+bRϵ + u∗
+
+= 0.
+
+
+NUMERICAL STABILITY OF THE NYSTR¨OM METHOD
+15
+Hence
+
+bRϵ + u∗
+† 
+bRϵ + u∗
+†T
+=
+
+bRϵ + u∗
+T 
+bRϵ + u∗
+†
+=
+
+bRϵ + u∗
+T 
+bRϵ + u∗
+†
+eϵ
+=
+ STAS + u∗
+†
+eϵ .
+Combining all the steps, we arrive at the desired result.
+We now state the main stability result of SN.
+Theorem 4.5 (Nystr¨om’s stability). Suppose we compute AS(STAS)†
+ϵSTA as in Lemma 4.4,
+then
+∥A −fl(AS(STAS)†
+ϵSTA)∥F ≤n√nr
+ 4n√nr(r + 1)σr+1(A) + ϵ + u∗
+
++ u∗.
+Proof. For shorthand let AN,ϵ = (AS + u∗)(STAS + u∗)†
+eϵ(STA + u∗). By Lemma 4.3
+AN,ϵS = AS + eϵ.
+Following the proof of Theorem 3.5, we obtain
+A −AN,ϵ = (A −AN,ϵ)(I −S(QT S)†QT ) + eϵ(QTS)†QT
+= (A −AN,ϵ)(I −QQT )(I −S(QTS)†QT ) + eϵ√nr
+since ∥(QTS)†∥2 ≤√nr by Lemma 3.1. Now note that
+A −AN,ϵ = A −(AS + u∗)(STAS + u∗)†
+eϵ(STA + u∗)
+= (I −(AS + u∗)(STAS + u∗)†
+eϵST )A + (AS + u∗)(STAS + u∗)†
+eϵu∗
+=
+
+I −(AS + u∗)(STAS + u∗)†
+eϵST 
+A + u∗
+since ∥(AS + u∗)(STAS + u∗)†
+ϵ∥2 ≤1 + 2√nr by Lemma 4.2. Therefore,
+A −AN,ϵ =
+
+I −(AS + u∗)(STAS + u∗)†
+eϵST 
+A(I −QQT )(I −S(QTS)†QT ) + u∗+ eϵ√nr.
+Hence
+∥A −AN,ϵ∥2 ≤∥
+
+I −(AS + u∗)(STAS + u∗)†
+eϵST 
+∥2∥A(I −QQT )∥2∥(I −S(QTS)†QT )∥2
++ u∗+ eϵ√nr
+≤
+ 1 + (1 + 2√nr)
+
+(n(r + 1)σr+1(A))√nr + eϵ√nr + u∗
+by Lemmas 3.1, 3.2, and 4.2 respectively, for the first three terms in the final inequality.
+Therefore,
+∥A −AN,ϵ∥2 ≤4√nr(n(r + 1)σr+1(A))√nr + eϵ√nr + u∗
+= (4n√nr(r + 1)σr+1(A) + eϵ)√nr + u∗
+
+
+16
+A. BUCCI, Y. NAKATSUKASA, T. PARK
+In particular
+Aij −
+h
+fl
+
+A(ϵ)
+N
+i
+ij
+ < (4n√nr(r + 1)σr+1(A) + eϵ)√nr + u∗.
+Therefore,
+∥A −fl
+
+A(ϵ)
+N
+
+∥F =
+v
+u
+u
+t
+n
+X
+i=1
+n
+X
+j=1
+Aij −
+h
+fl
+
+A(ϵ)
+N
+i
+ij
+
+2
+≤
+v
+u
+u
+t
+n
+X
+i=1
+n
+X
+j=1
+ 4n√nr(r + 1)σr+1(A) + eϵ)√nr + u∗
+2
+=
+v
+u
+u
+t
+n
+X
+i=1
+n
+X
+j=1
+(4n√nr(r + 1)σr+1(A) + eϵ)√nr)2 + u∗
+= n√nr
+ 4n√nr(r + 1)σr+1(A) + ϵ + u∗
+
++ u∗,
+where in the third line we use the assumption that σr+1(A) ≤∥A∥2 = 1.
+The inequality in Theorem 4.5 shows that, when using max-vol indices, the error incurred
+in computing the Nystr¨om approximation in finite-precision arithmetic is bounded—up to
+a small polynomial factor—by the error obtained in exact arithmetic. This establishes the
+numerical stability of the method when implemented as described in Lemma 4.4.
+5. Numerical Experiments and Implementation Details. In this section, we illustrate the
+stability of the Nystr¨om method through numerical experiments. As outlined in Section 1,
+we implement the stabilized algorithm described in Algorithm 1.2 by truncating the small
+eigenvalues in the core matrix via pivoted Cholesky, using the cholp function from Higham’s
+Matrix Computation Toolbox [25]. Provided the core matrix admits a Cholesky factorization5,
+Algorithm 1.2 satisfies the conditions needed for our stability theory so it is numerically stable,
+whereas Algorithm 1.1 may not be.
+We first compare various different implementations of the Nystr¨om method in Subsec-
+tion 5.1 to observe their empirical stability. We then compare the naive Nystr¨om method
+(Algorithm 1.1), stabilized Nystr¨om method (Algorithm 1.2), and the shifted variant from
+[5, 42] using kernel matrices of various datasets in Subsection 5.2. In all the experiments, we
+select the index set I with a strong rank-revealing QR factorization, whose pivoting steps aim
+to locally maximize the volume6, and take 10u ∥A∥2 as the shift and truncation parameter
+where u is the unit roundoff. We use the best rank-r approximation using the truncated SVD
+(TSVD) as reference and plot the relative error in the Frobenius norm, i.e., if ˆA is a rank-r
+approximation then ∥A−ˆA∥F /∥A∥F is plotted. The experiments were conducted in MATLAB
+R2024b using double precision arithmetic.
+5In the case when Cholesky fails, the eigendecomposition of the core matrix can be used instead where the
+negative eigenvalues are set to zero.
+6The MATLAB code for the strong rank-revealing QR is taken from [47].
+
+
+NUMERICAL STABILITY OF THE NYSTR¨OM METHOD
+17
+5.1. Implementation details. The main numerical challenge in the Nystr¨om method lies
+in forming the pseudoinverse of the core matrix STAS, which can be extremely ill-conditioned.
+When A is low-rank and S selects a good set of columns/rows, the smallest singular value of
+STAS is smaller than σr(A) by Courant-Fischer theorem, so any instability in the pseudoin-
+verse is amplified. To investigate this issue, we explore five different implementations of the
+Nystr¨om method in MATLAB:
+1. plain: A ≈AS(STAS)†STA implemented as in Algorithm 1.1,
+2. shift: Shifted version implemented as in [5, 42],
+3. trunc: Stabilized Nystr¨om method implemented as in Algorithm 1.2,
+4. backslash: implemented as (AS) ∗((STAS)\(AS)T ),
+5. pinv: implemented as (AS) ∗pinv(STAS) ∗(AS)T .
+We test these five implementations using two symmetric positive semidefinite (SPSD) test
+matrices:
+1. SNN: Random sparse non-negative matrices [40, 44]. We use
+SNN =
+150
+X
+j=1
+1
+j xjxT
+j +
+350
+X
+j=151
+10−5
+j
+xjxT
+j +
+500
+X
+j=351
+10−10
+j
+xjxT
+j ∈R1000×1000,
+where xj’s are computed in MATLAB using the command sprandn(1000,1,0.01).
+2. ex33: 1733 × 1733 matrix from the SuiteSparse Matrix Collection [13].
+0
+600
+Singular Value Index
+10-35
+10-30
+10-25
+10-20
+10-15
+10-10
+10-5
+100
+105
+0
+200
+400
+Target Rank r
+10-14
+10-12
+10-10
+10-8
+10-6
+10-4
+10-2
+100
+Relative error in Frobenius norm
+TSVD
+plain
+shift
+trunc
+backslash
+pinv
+(a) SNN
+0
+600
+1200
+1800
+Singular Value Index
+10-2
+100
+102
+104
+106
+108
+1010
+1012
+0
+200
+400
+600
+800
+Target Rank r
+10-10
+10-8
+10-6
+10-4
+10-2
+100
+Relative error in Frobenius norm
+TSVD
+plain
+shift
+trunc
+backslash
+pinv
+(b) ex33
+Figure 1: All the different implementations appear to be numerically stable except for the
+pinv implementation.
+Figure 1 summarizes the results. The pinv implementation becomes unstable even at
+moderate rank values: although the rth singular value of A is still sufficiently larger than
+machine precision (≈2.2 × 10−16 in double precision), the error spikes and becomes unsta-
+ble. In contrast, the other four implementations closely follow the truncated SVD error and
+
+
+18
+A. BUCCI, Y. NAKATSUKASA, T. PARK
+Table 1: Overview of datasets used in our experiments. Listed are the number of samples n,
+the feature dimension d, and the source repository.
+Dataset
+n
+d
+Source
+a9a
+32 561
+123
+LIBSVM
+Anuran Calls
+7 195
+22
+UCI
+cadata
+16 512
+8
+LIBSVM
+CIFAR10
+60 000
+3 072
+[28]
+cod-rna
+59 535
+8
+LIBSVM
+connect-4
+54 045
+126
+LIBSVM
+covertype
+581 012
+54
+UCI
+covtype.binary
+464 809
+54
+LIBSVM
+ijcnn1
+49 990
+22
+LIBSVM
+phishing
+8 844
+68
+LIBSVM
+sensit vehicle
+78 823
+100
+LIBSVM
+sensorless
+58 509
+48
+LIBSVM
+skin nonskin
+196 045
+3
+LIBSVM
+w8a
+49 749
+300
+LIBSVM
+YearPredictionMSD
+463 715
+90
+LIBSVM
+behaves in a numerically stable manner. We note, however, that in the kernel experiments
+(see Subsection 5.2), if a poor set of indices is chosen, the core matrix can become extremely
+ill-conditioned and the backslash implementation may fail in a similar manner to the plain
+version. When a well-chosen set of indices is used, the method is surprisingly stable. The
+MATLAB’s backslash solver (backslash implementation) should nevertheless be used with
+care on numerically rank-deficient underdetermined systems, as it returns a sparse solution
+based on a pivoting strategy [3, § 2.4], which may differ from the minimum-norm solution and
+therefore might not satisfy the assumptions in our analysis (Section 4). We recommend our
+proposed approach when a theoretical guarantee of stability is desired.
+5.2. Comparison between different implementations using Kernels. In this section, we
+compare four Nystr¨om approximations–the plain Nystr¨om method (Algorithm 1.1), the stabi-
+lized Nystr¨om method (Algorithm 1.2), the shifted Nystr¨om method [5, 42], and the backslash
+implementation–on kernel matrices derived from a range of datasets in LIBSVM [6] and the
+UCI Machine Learning Repository [18].
+The datasets used are summarized in Table 1. For each dataset, we draw a subsample
+of n = 2000 points, and normalize each feature to have zero mean and unit variance. We
+then form an RBF kernel K(xi, xj) = exp
+
+−∥xi−xj∥2
+2
+2σ2
+
+where σ is the bandwidth. Larger
+bandwidths yield smoother kernels with rapid singular-value decay (i.e., lower effective rank),
+whereas small bandwidths produce kernels of higher rank with larger trailing singular values.
+Moderate Bandwidth (σ = 3). We conducted experiments on all datasets but show results
+for two representative datasets in Figure 2, using a fixed bandwidth of σ = 3. For ijcnn1
+
+
+NUMERICAL STABILITY OF THE NYSTR¨OM METHOD
+19
+100
+200
+300
+400
+500
+Target Rank r
+10-2
+10-1
+Relative error in Frobenius norm
+TSVD
+plain
+shift
+trunc
+backslash
+(a) ijcnn1
+100
+200
+300
+400
+500
+Target Rank r
+10-16
+10-14
+10-12
+10-10
+10-8
+10-6
+10-4
+Relative error in Frobenius norm
+TSVD
+plain
+shift
+trunc
+backslash
+(b) skin nonskin
+Figure 2: Relative error in Frobenius norm versus target rank r for kernels with σ = 3.
+Left (ijcnn1): all four Nystr¨om variants (plain, shifted, truncated, and backslash) achieve
+virtually identical accuracy. Right (skin nonskin): the kernel becomes ill-conditioned as r
+grows; the plain method fails beyond r = 240, and the stabilized method outperforms the
+shifted variant by roughly two orders of magnitude, while the backslash implementation lies
+in between the two.
+(Figure 2a), the error curves of the plain, shifted, truncated, and backslash implementations
+are essentially identical across all ranks. The same pattern is observed on the other datasets
+not shown in the figure. This occurs because, with this bandwidth, the kernel matrices retain
+relatively large singular values, and the pseudoinversion of the core matrix remains stable. In
+contrast, the skin nonskin dataset (Figure 2b) behaves differently: as r increases, the matrix
+becomes ill-conditioned, the relative error drops to nearly the level of machine precision, and
+the plain Nystr¨om method fails beyond r = 240 as the Cholesky factorization breaks down. In
+this regime, the truncated implementation (Algorithm 1.2) achieves an error that is roughly
+two order of magnitude smaller than the shifted variant, while the backslash implementation
+performs in between the two. To test the methods on more strongly low-rank kernels, we next
+increase the bandwidth to σ = 30
+√
+d, where d denotes the feature dimension.
+Large Bandwidth (σ = 30
+√
+d). For the second experiment, we choose σ = 30
+√
+d, making
+the kernels closer to low-rank. The results are summarized in Figure 3. For ijcnn1, the four
+methods again produce essentially indistinguishable accuracy across all ranks. We observe
+the same behavior for all the other datasets not shown here. The remaining plots show that
+for skin nonskin, cod-rna, and cadata, the plain Nystr¨om method fails due to Cholesky
+breakdown and the stabilized algorithm consistently achieves errors that are one to two orders
+of magnitude smaller than the shifted variant for larger ranks. The backslash implementation
+shows more irregular behavior, sometimes performing better or worse than the shifted and
+truncated methods.
+Uniform sampling (poor index selection). In the final experiment, we keep σ = 30
+√
+d, but
+use a potentially poor set of indices obtained via uniform column sampling. In this setting,
+the plain Nystr¨om method often fails due to Cholesky breakdown. When this occurs, the
+backslash implementation either fails as well or becomes unstable, producing errors several
+
+
+20
+A. BUCCI, Y. NAKATSUKASA, T. PARK
+100
+200
+300
+400
+500
+Target Rank r
+10-12
+10-10
+10-8
+10-6
+Relative error in Frobenius norm
+TSVD
+plain
+shift
+trunc
+backslash
+(a) ijcnn1
+100
+200
+300
+400
+500
+Target Rank r
+10-17
+10-16
+10-15
+10-14
+10-13
+10-12
+Relative error in Frobenius norm
+TSVD
+plain
+shift
+trunc
+backslash
+(b) skin nonskin
+100
+200
+300
+400
+500
+Target Rank r
+10-16
+10-14
+10-12
+10-10
+10-8
+Relative error in Frobenius norm
+TSVD
+plain
+shift
+trunc
+backslash
+(c) cod-rna
+100
+200
+300
+400
+500
+Target Rank r
+10-16
+10-14
+10-12
+10-10
+10-8
+Relative error in Frobenius norm
+TSVD
+plain
+shift
+trunc
+backslash
+(d) cadata
+Figure 3: Relative approximation error versus rank r for kernels with σ = 30
+√
+d. Top left
+(ijcnn1): all four methods again coincide.
+The remaining panels show the behavior for
+skin nonskin, cod-rna, and cadata: the plain method fails at moderate ranks due to break-
+down in the Cholesky factorization, while the truncated method consistently achieves lower
+error than the shifted variant for larger target rank. The behaviour for the backslash imple-
+mentation is more irregular.
+orders of magnitude larger than those of the shifted and truncated implementations. The
+shifted and truncated implementations yield essentially the same accuracy, and the observed
+instability and error stagnation in these methods are likely due to the use of a poor set of
+indices.
+Beyond the accuracy advantages shown, the stabilized Nystr¨om algorithm (Algorithm 1.2)
+also offers lower computational cost than the shifted variant because it avoids the QR fac-
+torization of AS, as discussed in Subsection 1.2. In double precision, the performance gap is
+visible only when the approximation error approaches machine precision; for moderate accu-
+racy (i.e. for small r) all implementations give comparable results. However, for computations
+in lower precision, say single or half precision, the numerical accuracy is limited by a much
+larger machine precision, and the differences among the methods may become pronounced
+
+
+NUMERICAL STABILITY OF THE NYSTR¨OM METHOD
+21
+100
+200
+300
+400
+500
+Target Rank r
+10-10
+10-5
+100
+105
+Relative error in Frobenius norm
+TSVD
+plain
+shift
+trunc
+backslash
+(a) a9a
+100
+200
+300
+400
+500
+Target Rank r
+10-10
+10-5
+100
+105
+1010
+Relative error in Frobenius norm
+TSVD
+plain
+shift
+trunc
+backslash
+(b) phising
+Figure 4: Relative error in Frobenius norm versus target rank r for kernels with σ = 30
+√
+d
+using uniform sampling. In both datasets, a9a and phising, the plain and backslash im-
+plementations fail or become unstable, while the shift and truncated versions yield similar
+accuracy throughout.
+even when a relatively modest accuracy is acceptable.
+REFERENCES
+[1] A. Alaoui and M. W. Mahoney, Fast randomized kernel ridge regression with statistical guarantees,
+in Advances in Neural Information Processing Systems (NeurIPS) 28, 2015, pp. 775–783, https:
+//doi.org/10.5555/2969239.2969326.
+[2] K. Allen, M.-J. Lai, and Z. Shen, Maximal volume matrix cross approximation for image compression
+and least squares solution, Advances in Computational Mathematics, 50 (2024), p. 102, https://doi.
+org/10.1007/s10444-024-10196-7.
+[3] E. Anderson, Z. Bai, C. Bischof, J. Demmel, J. Dongarra, J. Du Croz, A. Greenbaum,
+S. Hammarling, A. McKenney, S. Ostrouchov, et al., LAPACK Users’ guide, SIAM, 1995,
+https://doi.org/10.1137/1.9780898719604.
+[4] M.-A. Belabbas and P. J. Wolfe, On landmark selection and sampling in high-dimensional data
+analysis, Philosophical Transactions of the Royal Society A: Mathematical, Physical and Engineering
+Sciences, 367 (2009), pp. 4295–4312, https://doi.org/10.1098/rsta.2009.0161.
+[5] E. Carson and I. Dauˇzickait˙e, Single-Pass Nystr¨om Approximation in Mixed Precision, SIAM J.
+Matrix Anal. Appl., 45 (2024), pp. 1361–1391, https://doi.org/10.1137/22M154079X.
+[6] C.-C. Chang and C.-J. Lin, LIBSVM: A library for support vector machines, ACM Trans. Intell. Syst.
+Technol., 2 (2011), https://doi.org/10.1145/1961189.1961199.
+[7] Y. Chen, E. N. Epperly, J. A. Tropp, and R. J. Webber, Randomly pivoted cholesky: Practical
+approximation of a kernel matrix with few entry evaluations, Communications on Pure and Applied
+Mathematics, 78 (2025), pp. 995–1041, https://doi.org/10.1002/cpa.22234.
+[8] J. Chiu and L. Demanet, Sublinear randomized algorithms for skeleton decompositions, SIAM J. Matrix
+Anal. Appl., 34 (2013), pp. 1361–1383, https://doi.org/10.1137/110852310.
+[9] C. Cortes, M. Mohri, and A. Talwalkar, On the impact of kernel approximation on learning accuracy,
+in AISTATS 2010, vol. 9 of JMLR Workshop and Conference Proceedings, JMLR.org, 2010, pp. 113–
+120, https://proceedings.mlr.press/v9/cortes10a.html.
+[10] A. Cortinovis and D. Kressner, Adaptive randomized pivoting for column subset selection, deim, and
+low-rank approximation, arXiv preprint arXiv:2412.13992, (2024), https://arxiv.org/abs/2412.13992.
+[11] A. Cortinovis, D. Kressner, and S. Massei, On maximum volume submatrices and cross approxima-
+
+
+22
+A. BUCCI, Y. NAKATSUKASA, T. PARK
+tion for symmetric semidefinite and diagonally dominant matrices, Linear Algebra and its Applica-
+tions, 593 (2020), pp. 251–268, https://doi.org/10.1016/j.laa.2020.02.010.
+[12] N. Cristianini and J. Shawe-Taylor, An Introduction to Support Vector Machines and Other
+Kernel-based Learning Methods,
+Cambridge
+University
+Press,
+2000,
+https://doi.org/10.1017/
+CBO9780511801389.
+[13] T. A. Davis and Y. Hu, The University of Florida sparse matrix collection, ACM Trans. Math. Softw.,
+38 (2011), https://doi.org/10.1145/2049662.2049663.
+[14] M. Derezi´nski and M. Mahoney, Determinantial point processes in randomized numerical linear alge-
+bra, Notices of the American Mathematical Society, 60 (2021), p. 1, https://doi.org/10.1090/noti2202.
+[15] Y. Dong and P.-G. Martinsson, Simpler is better: a comparative study of randomized pivoting algo-
+rithms for CUR and interpolative decompositions, Adv. Comput. Math., 49 (2023), https://doi.org/
+10.1007/s10444-023-10061-z.
+[16] P. Drineas and M. W. Mahoney, On the Nystr¨om method for approximating a Gram matrix for
+improved kernel-based learning, Journal of Machine Learning Research, 6 (2005), pp. 2153–2175,
+http://jmlr.org/papers/v6/drineas05a.html.
+[17] P. Drineas, M. W. Mahoney, and S. Muthukrishnan, Relative-error CUR matrix decompositions,
+SIAM J. Matrix Anal. Appl., 30 (2008), pp. 844–881, https://doi.org/10.1137/07070471X.
+[18] D. Dua and C. Graff, UCI machine learning repository, 2017, http://archive.ics.uci.edu/ml.
+[19] E. N. Epperly, J. A. Tropp, and R. J. Webber, Embrace rejection: Kernel matrix approximation by
+accelerated randomly pivoted Cholesky, arXiv preprint arXiv:2410.03969, (2024), https://arxiv.org/
+abs/2410.03969.
+[20] A. Gittens and M. W. Mahoney, Revisiting the Nystr¨om method for improved large-scale machine
+learning, J. Mach. Learn. Res., 17 (2016), p. 3977–4041, https://doi.org/10.5555/2946645.3007070.
+[21] S. Goreinov, E. Tyrtyshnikov, and N. Zamarashkin, A theory of pseudoskeleton approximations,
+Linear Algebra Appl., 261 (1997), pp. 1–21, https://doi.org/10.1016/S0024-3795(96)00301-1.
+[22] S. A. Goreinov and E. E. Tyrtyshnikov, The maximal-volume concept in approximation by low-rank
+matrices, in Structured Matrices in Mathematics, Computer Science, and Engineering I, vol. 280 of
+Contemporary Mathematics, American Mathematical Society, 2001, pp. 47–51, https://doi.org/10.
+1090/conm/280/4620.
+[23] N. J. Higham, Analysis of the Cholesky decomposition of a semi-definite matrix, in Reliable Numerical
+Commputation, Oxford University Press, 09 1990, https://doi.org/10.1093/oso/9780198535645.003.
+0010.
+[24] N. J. Higham, Accuracy and Stability of Numerical Algorithms, SIAM, second ed., 2002, https://doi.
+org/10.1137/1.9780898718027.
+[25] N. J. Higham, The matrix computation toolbox, 2025, https://www.mathworks.com/matlabcentral/
+fileexchange/2360-the-matrix-computation-toolbox. Retrieved August 26, 2025.
+[26] T. Hofmann, B. Sch¨olkopf, and A. J. Smola, Kernel methods in machine learning, The Annals of
+Statistics, 36 (2008), pp. 1171 – 1220, https://doi.org/10.1214/009053607000000677.
+[27] R. A. Horn and C. R. Johnson, Matrix Analysis, Cambridge University Press, 2 ed., 2012, https:
+//doi.org/10.1017/9781139020411.
+[28] A. Krizhevsky, Learning multiple layers of features from tiny images, master’s thesis, Univer-
+sity of Toronto,
+Department of Computer Science,
+2009,
+https://www.cs.toronto.edu/∼kriz/
+learning-features-2009-TR.pdf.
+[29] H. Liu, Y.-S. Ong, X. Shen, and J. Cai, When Gaussian Process meets big data: A review of scalable
+GPs, IEEE Trans. Neural Netw. Learn. Syst., 31 (2020), pp. 4405–4423, https://doi.org/10.1109/
+TNNLS.2019.2957109.
+[30] M. W. Mahoney and P. Drineas, CUR matrix decompositions for improved data analysis, Proc. Natl.
+Acad. Sci., 106 (2009), pp. 697–702, https://doi.org/10.1073/pnas.0803205106.
+[31] P.-G. Martinsson and J. A. Tropp, Randomized numerical linear algebra: Foundations and algorithms,
+Acta Numer., 29 (2020), p. 403–572, https://doi.org/10.1017/s0962492920000021.
+[32] S. Massei, Some algorithms for maximum volume and cross approximation of symmetric semidefinite
+matrices, BIT, 62 (2022), pp. 195–220, https://doi.org/10.1007/s10543-021-00872-1.
+[33] Y.
+Nakatsukasa,
+Fast and stable randomized low-rank matrix approximation,
+arXiv
+preprint
+arXiv:2009.11392, (2020), https://arxiv.org/abs/2009.11392.
+
+
+NUMERICAL STABILITY OF THE NYSTR¨OM METHOD
+23
+[34] Y. Nakatsukasa and N. J. Higham, Backward stability of iterations for computing the polar de-
+composition, SIAM Journal on Matrix Analysis and Applications, 33 (2012), pp. 460–479, https:
+//doi.org/10.1137/110857544.
+[35] E. J. Nystr¨om, ¨Uber die praktische aufl¨osung von integralgleichungen mit anwendungen auf randwer-
+taufgaben, Acta Math., 54 (1930), pp. 185 – 204, https://doi.org/10.1007/BF02547521.
+[36] A. Osinsky, Close to optimal column approximation using a single SVD, Linear Algebra Appl., 725
+(2025), pp. 359–377, https://doi.org/10.1016/j.laa.2025.07.016.
+[37] T. Park and Y. Nakatsukasa, Accuracy and stability of cur decompositions with oversampling, SIAM
+Journal on Matrix Analysis and Applications, 46 (2025), pp. 780–810, https://doi.org/10.1137/
+24M1660346.
+[38] P. Parker, P. Wolfe, and V. Tarokh, A signal processing application of randomized low-rank ap-
+proximations, in IEEE/SP 13th Workshop on Statistical Signal Processing, 2005, 2005, pp. 345–350,
+https://doi.org/10.1109/SSP.2005.1628618.
+[39] B. Sch¨olkopf and A. Smola, Learning with Kernels: Support Vector Machines, Regularization, Op-
+timization, and Beyond, Adaptive computation and machine learning, MIT Press, 2002, https:
+//doi.org/doi.org/10.7551/mitpress/4175.001.0001.
+[40] D. C. Sorensen and M. Embree, A DEIM induced CUR factorization, SIAM J. Sci. Comp., 38 (2016),
+pp. A1454–A1482, https://doi.org/10.1137/140978430.
+[41] A. Talwalkar, S. Kumar, M. Mohri, and H. Rowley, Large-scale svd and manifold learning, Journal
+of Machine Learning Research, 14 (2013), pp. 3129–3152, http://jmlr.org/papers/v14/talwalkar13a.
+html.
+[42] J. A. Tropp, A. Yurtsever, M. Udell, and V. Cevher, Fixed-rank approximation of a positive-
+semidefinite matrix from streaming data, in NeurIPS 2017, 2017, pp. 1225–1234, https://doi.org/10.
+5555/3294771.3294888.
+[43] M. Udell and A. Townsend, Why Are Big Data Matrices Approximately Low Rank?, SIAM J. Math.
+Data Sci., 1 (2019), pp. 144–160, https://doi.org/10.1137/18M1183480.
+[44] S. Voronin and P.-G. Martinsson, Efficient algorithms for CUR and interpolative matrix decomposi-
+tions, Adv. Comput. Math., 43 (2017), pp. 495–516, https://doi.org/10.1007/s10444-016-9494-8.
+[45] S. Wang, A. Gittens, and M. W. Mahoney, Scalable kernel k-means clustering with nystr¨om ap-
+proximation: Relative-error bounds, Journal of Machine Learning Research, 20 (2019), pp. 1–49,
+https://doi.org/10.5555/3322706.3322718.
+[46] C. K. I. Williams and M. Seeger, Using the nystr¨om method to speed up kernel machines, in NIPS
+2000, 2000, pp. 682–688, https://doi.org/10.5555/3008751.3008847.
+[47] X. Xing, Strong rank revealing QR decomposition, 2024, https://www.mathworks.com/matlabcentral/
+fileexchange/69139-strong-rank-revealing-qr-decomposition. Retrieved October 13, 2024.
+[48] N. L. Zamarashkin and A. I. Osinsky, On the existence of a nearly optimal skeleton approximation
+of a matrix in the Frobenius norm, Dokl. Math., 97 (2018), pp. 164–166, https://doi.org/10.1134/
+S1064562418020205.

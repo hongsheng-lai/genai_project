@@ -1,0 +1,2394 @@
+Exponential Lasso: robust sparse penalization under
+heavy-tailed noise and outliers with exponential-type loss
+The Tien Mai
+Norwegian Institute of Public Health, Oslo, 0456, Norway
+email: the.tien.mai@fhi.no
+Abstract
+In high-dimensional statistics, the Lasso is a cornerstone method for simultaneous variable
+selection and parameter estimation. However, its reliance on the squared loss function renders
+it highly sensitive to outliers and heavy-tailed noise, potentially leading to unreliable model se-
+lection and biased estimates. To address this limitation, we introduce the Exponential Lasso, a
+novel robust method that integrates an exponential-type loss function within the Lasso frame-
+work. This loss function is designed to achieve a smooth trade-oﬀbetween statistical eﬃciency
+under Gaussian noise and robustness against data contamination. Unlike other methods that
+cap the inﬂuence of large residuals, the exponential loss smoothly redescends, eﬀectively down-
+weighting the impact of extreme outliers while preserving near-quadratic behavior for small
+errors. We establish theoretical guarantees showing that the Exponential Lasso achieves strong
+statistical convergence rates, matching the classical Lasso under ideal conditions while main-
+taining its robustness in the presence of heavy-tailed contamination.
+Computationally, the
+estimator is optimized eﬃciently via a Majorization-Minimization (MM) algorithm that itera-
+tively solves a series of weighted Lasso subproblems. Numerical experiments demonstrate that
+the proposed method is highly competitive, outperforming the classical Lasso in contaminated
+settings and maintaining strong performance even under Gaussian noise.
+Our method is implemented in the R package heavylasso available on Github: https://github.com/tienmt/heavylasso.
+Keywords: heavy-tailed noise; Lasso; robust regression; sparsity; soft-thresholding; non-asymptotic
+bounds, outliers.
+1
+Introduction
+In modern data analysis, it is common to encounter datasets where the number of features (p)
+greatly exceeds the number of samples (n), a setting that breaks down classical statistical methods.
+When faced with this high-dimensionality, the traditional least squares estimator becomes unreliable
+and ill-posed. This has spurred the development of regularization methods, which are designed to
+impose structure, prevent overﬁtting, and improve the model’s interpretability by favoring simpler,
+sparser solutions [11, 3, 9].
+A pioneering and widely adopted technique in this domain is the Lasso (least absolute shrinkage
+and selection operator) [30]. It provides a powerful framework for performing both variable selection
+and parameter estimation simultaneously. The Lasso ﬁnds the coeﬃcient vector β by solving the
+1
+arXiv:2511.15332v1  [stat.ML]  19 Nov 2025
+
+
+following optimization problem:
+bβ
+lasso = arg min
+β∈Rp
+ 1
+2n∥y −Xβ∥2
+2 + λ∥β∥1
+
+In this formulation, the ﬁrst term is the standard least squares loss function, while the second is an
+L1 penalty weighted by a tuning parameter λ > 0. By penalizing the sum of the absolute values
+of the coeﬃcients, the Lasso eﬀectively shrinks many of them to exactly zero, thus performing
+automated feature selection. The foundational principles of the Lasso have ignited a vast body of
+research, leading to numerous advancements in sparse estimation and high-dimensional inference
+[38, 4, 36, 20, 2].
+However, the squared loss underlying the classical Lasso implicitly assumes light-tailed, approx-
+imately Gaussian errors. In many real-world datasets—such as those arising in genomics, ﬁnance,
+and environmental monitoring—this assumption is frequently violated. Outliers or heavy-tailed
+noise can exert a disproportionate inﬂuence on the squared loss, leading to biased estimates and
+poor variable selection performance [17, 19]. To mitigate such sensitivity, numerous robust variants
+of the Lasso have been proposed, often by replacing the squared loss with more robust alternatives
+such as the Huber loss [26, 17, 18], Tukey’s biweight loss [5, 28], Student’s loss [22], or rank-based
+and median-of-means losses [24, 15, 32]. These methods reduce the impact of extreme residuals but
+may introduce additional tuning complexity or require nontrivial optimization schemes when the
+loss becomes nonconvex.
+In this work, we consider a novel robust loss function—the exponential-type loss—within the
+Lasso penalization framework, designed to achieve a smooth trade-oﬀbetween eﬃciency under
+Gaussian noise and robustness under heavy-tailed contamination. The proposed estimator, termed
+the Exponential Lasso, is deﬁned as
+bβ = arg min
+β∈Rp
+(
+1
+n
+n
+X
+i=1
+1
+τ
+
+1 −exp
+
+−τ(yi −x⊤
+i β)2
+2
+
++ λ∥β∥1
+)
+,
+where τ > 0 controls the degree of robustness. When τ →0, the exponential loss approaches
+the squared loss, recovering the classical Lasso.
+For ﬁnite τ, large residuals are exponentially
+downweighted, eﬀectively limiting their inﬂuence on parameter estimation.
+The intuition behind this exponential-type loss is simple yet powerful: it penalizes small residuals
+nearly quadratically—preserving statistical eﬃciency under light-tailed noise—while suppressing
+the contribution of extreme deviations through the exponential term. In contrast to the Huber
+loss, which caps the linear growth of large residuals, the exponential loss smoothly redescends,
+assigning progressively smaller weights to extreme outliers. This property aligns with the inﬂuence-
+function perspective in robust statistics [10], where bounded and redescending functions provide
+strong resistance to contamination. As a result, the Exponential Lasso achieves both robustness
+and diﬀerentiability, enabling eﬃcient optimization and stability in high-dimensional regimes.
+From a computational standpoint, the exponential loss admits a natural Majorization–Minimization
+(MM) algorithmic interpretation. Each iteration reweights the residuals according to their expo-
+nential downweighting factor, leading to a sequence of weighted Lasso subproblems. This results in
+a fast, stable, and interpretable algorithm with minimal modiﬁcation to standard Lasso solvers.
+Our theoretical results establishe that the proposed Exponential Lasso estimator achieves reli-
+able estimation accuracy even in high-dimensional settings and under the presence of outliers or
+heavy-tailed noise. The theoretical result guarantees that, with an appropriate choice of the tuning
+2
+
+
+parameter, the estimator attains the same convergence rate as the classical Lasso under ideal con-
+ditions. This robustness is ensured under a mild assumption on the noise distribution, requiring
+only that the errors have a positive probability of lying within a central region rather than hav-
+ing light tails. The proof combines a local curvature argument showing that the exponential loss
+remains well-behaved near the true parameter with concentration techniques that control random
+ﬂuctuations in the data [17, 18].
+To demonstrate the eﬀectiveness of our method, we conduct extensive simulation studies under
+a variety of settings involving heavy-tailed noise and outliers. We compare our approach to several
+Lasso variants that employ diﬀerent loss functions, including the squared loss [30], ℓ1 loss [31], Huber
+loss [35] and Student’s loss [22].
+The simulation results indicate that our method consistently
+exhibits strong empirical performance relative to these alternatives, particularly in challenging
+settings with non-Gaussian errors or contaminated by outliers. Moreover, our proposed method
+outperforms classical Lasso even in the Gaussian noise. In addition to simulations, we present real
+data applications that further supports the utility of our approach. Numerical results show that
+our proposed method are very competitive and promising.
+The remainder of the paper is organized as follows. Section 2 introduces the proposed methodol-
+ogy alongside the Exponential Lasso approach and provides theoretical insights into the robustness
+properties of the loss function.
+This section also establishes non-asymptotic statistical guaran-
+tees for the proposed estimator. Section 3 details the algorithmic implementation and includes a
+convergence analysis of the proposed optimization scheme. Simulation studies evaluating empirical
+performance are presented in Section 4. Applications to two real datasets are discussed in Section 5.
+Finally, concluding remarks and discussions are provided in Section 6, while all technical proofs are
+collected in Appendix A.
+2
+Model and method
+2.1
+Robust Lasso with Exponential-type loss
+Let {(xi, yi)}n
+i=1 denote a collection of independent and identically distributed (i.i.d) observations
+arising from the linear model
+yi = x⊤
+i β∗+ ǫi,
+(1)
+where xi ∈Rp is the i-th row of the design matrix X and β∗∈Rp is the unknown vector of regression
+coeﬃcients that we seek to estimate. The condition on the random noise is given below in which
+we consider a very wild class of noise that cover both heavy-tailed noise and outlier contaminated
+models.
+Let
+Lτ(β) = 1
+n
+n
+X
+i=1
+ℓτ(yi −x⊤
+i β),
+where
+ℓτ(r) = 1
+τ
+ 1 −e−τ
+2 r2
+.
+(2)
+We consider the following robust penalized regression estimator, called Exponential Lasso:
+bβ := arg min
+β∈Rp {Lτ(β) + λ∥β∥1} ,
+(3)
+where τ > 0 controls the degree of robustness and λ > 0 is a regularization parameter. For small
+τ, the loss approximates the quadratic loss and (3) reduces to the standard Lasso. For larger τ, the
+exponential term strongly downweights large residuals, thus providing robustness against outliers.
+3
+
+
+2.2
+Robustness of the loss
+Some intuitions:
+One can explicitly show the connection to the standard Lasso. The exponential
+loss ℓτ(r) can be analyzed using a Taylor expansion for ex around 0. Let u = −τ
+2 r2. Since eu ≈1+u
+for small u:
+ℓτ(r) = 1
+τ
+
+1 −e−τ
+2 r2
+≈1
+τ
+
+1 −
+
+1 −τ
+2 r2
+= 1
+τ
+τ
+2 r2
+= 1
+2r2.
+This formally demonstrates that as τ →0, your objective function Lτ(β) converges to the standard
+least-squares loss, and thus bβ converges to the classical Lasso estimator. This highlights that our
+proposed method is a natural generalization of the classical Lasso. See Figure 1 for a detailed
+visualization comparison between diﬀerent losses: squared loss, Tukey’s biweight loss, absolute (ℓ1)
+loss, and Huber loss. The plot illustrates that, unlike Huber loss, our loss is much less sensitive to
+large residuals while closely resembling the squared loss for small residual values.
+The Inﬂuence Function:
+A key concept in robust statistics is the inﬂuence function [10], which
+measures the eﬀect of an inﬁnitesimal outlier on the estimator. The inﬂuence function is propor-
+tional to the ﬁrst derivative of the loss function, ψ(r) = ℓ′
+τ(r), where
+ψ(r) = ∂
+∂r
+1
+τ
+
+1 −e−τ
+2 r2
+= re−τ
+2 r2.
+• The inﬂuence function is bounded: The maximum value of |r exp (−τ
+2r2)| is ﬁnite.
+This
+contrasts with the L2 loss, where ψ(r) = r, which is unbounded. An unbounded inﬂuence
+function means a single large outlier can have an arbitrarily large (i.e., inﬁnite) inﬂuence on
+the estimate.
+• It is redescending: As the residual r →∞(a gross outlier), the inﬂuence ψ(r) →0. This
+is a very strong form of robustness. The estimator completely ignores data points that are
+suﬃciently far from the bulk of the data. This is an advantage over other robust losses like the
+Huber loss, whose inﬂuence function is bounded but not redescending (it becomes constant,
+ψ(r) = sign(r) · k, for large r).
+Other insights:
+The proposed loss function can also be viewed as a correntropy or Welsch-type
+loss that downweights large residuals through an exponential kernel, thereby enhancing robustness
+against outliers, which is known in the robust signal-processing literature [16, 12] .
+Moreover,
+from an information-theoretic perspective, it is also closely connected to the α-divergence, where
+τ acts analogously to the divergence parameter controlling the trade-oﬀbetween eﬃciency and
+robustness [14, 25].
+This dual interpretation highlights the method’s grounding in both robust
+estimation and divergence-based statistical learning. We also note that similar exponential-type loss
+functions have been explored in prior studies as in [33, 29, 34], where the loss takes the form ℓτ(t) =
+1 −e−t2/τ. In contrast, our proposed formulation is more directly connected to the α-divergence
+family. Furthermore, while the aforementioned works primarily address low-dimensional settings
+and provide asymptotic analyses, our study focuses on high-dimensional regimes and establishes
+non-asymptotic theoretical guarantees.
+4
+
+
+−4
+−2
+0
+2
+4
+0
+1
+2
+3
+4
+5
+x
+Loss
+−0.10
+−0.05
+0.00
+0.05
+0.10
+0.000
+0.002
+0.004
+0.006
+0.008
+0.010
+x
+our loss
+x2
+|x|
+Tukey
+Huber
+Figure 1: Comparison of our loss function (τ = 0.5) with other common losses: squared loss,
+absolute (ℓ1) loss, Tukey’s biweight loss, and Huber loss. The plot illustrates that, unlike Huber
+loss, our loss is much less sensitive to large residuals while closely resembling the squared loss for
+small residual values. Left: full-scale plot. Right: zoomed-in view near zero residuals.
+2.3
+Statistical guarantee
+We now demonstrate that, under suitable assumptions, our Exponential-Lasso method achieves
+strong non-asymptotic theoretical guarantees comparable to those established for the Huber loss.
+We make the following assumptions.
+Assumption 1 (Design and sparsity). We assume that:
+a). The rows xi ∈Rp are non-random or random but satisfy ∥xi∥∞≤K almost surely for a
+known constant K > 0.
+b). Let β∗be the true parameter with support S = supp(β∗) and sparsity s := |S| < n < p.
+c). There exists φmin > 0 and a radius r > 0 such that for all ∆∈Rp with ∥∆∥2 ≤r and
+∥∆Sc∥1 ≤3∥∆S∥1,
+1
+n
+n
+X
+i=1
+(x⊤
+i ∆)2 ≥φmin ∥∆∥2
+2.
+Assumption 2 (Noise). The errors εi are i.i.d. with the following properties:
+(i). εi are symmetric about 0.
+(ii). There exists a constant c ∈(0, 1/√τ) and p0 := P(|εi| ≤c) > 0.
+Remarks: symmetry can be relaxed by replacing the centering step with the population bias, but
+symmetry keeps statements concise. The choice c < 1/√τ ensures positive curvature of the per-
+observation second derivative inside |r| ≤c.
+5
+
+
+Discussion on noise assumptions.
+The noise conditions assumed above are notably weaker
+than the conventional sub-Gaussian or even sub-exponential assumptions often imposed in high-
+dimensional regression analysis. In particular, condition (ii) only requires that the noise distribution
+has some probability mass around zero, ensuring that the majority of samples are not dominated
+by extreme outliers, while symmetry guarantees that the noise has zero median.
+No moment
+or exponential tail condition is imposed, allowing the framework to accommodate a broad class
+of heavy-tailed or contamination models, such as Student’s t distributions with small degrees of
+freedom or Huber error models of the form
+εi ∼(1 −π) N(0, σ2) + π G,
+where G may represent a heavy-tailed or outlier-generating component (e.g., Cauchy or Laplace).
+Therefore, this assumption captures realistic data-generating mechanisms with occasional large
+deviations, while retaining suﬃcient regularity for establishing estimation error bounds. It is thus
+particularly suitable for robust (penalized) regression models designed to handle impulsive noise or
+mild contamination in the observations.
+Deﬁne the positive curvature on the interval [−c, c],
+γ := min
+|u|≤c e−τ
+2 u2(1 −τu2) = e−τ
+2 c2(1 −τc2) > 0.
+Theorem 1. Under Assumptions 1–2, ﬁx δ ∈(0, 1). Choose the tuning parameter
+λ =
+4K
+√eτ
+r
+2 log(2p/δ)
+n
+.
+(4)
+Assume r > 0 in Assumption 1 is small enough so that for all ∆in the cone {∥∆∥2 ≤r, ∥∆Sc∥1 ≤
+3∥∆S∥1} it holds that |x⊤
+i ∆| ≤c/2 for all i (this is satisﬁed when r is chosen such that K√s r ≤
+c/2).
+Then with probability at least 1−δ−2 exp(−np2
+0/8) any global minimizer bβ satisfying ∥bβ−β∗∥2 ≤
+r obeys
+∥bβ −β∗∥2 ≤12 λ√s
+κ
+,
+and
+∥bβ −β∗∥1 ≤48 λs
+κ
+,
+(5)
+where the constant κ > 0 can be taken as κ
+=
+p0
+2 γ φmin. In particular, with the choice (4) we
+obtain the explicit bound
+∥bβ −β∗∥2 ≤
+48K
+κ√eτ
+r
+s log(2p/δ)
+n
+.
+The theoretical analysis is based on the Local Restricted Strong Convexity (LRSC) condition,
+with a full proof provided in Appendix A. The methodology largely adopts the general framework
+proposed in [17, 18], and as such, our results parallel those obtained for the Huber-loss Lasso. The
+primary contribution of our approach is the reliance on a substantially weaker noise condition, as
+we do not assume the existence of any moments for the noise distribution.
+6
+
+
+3
+Majorization–Minimization Algorithm
+3.1
+Algorithm development
+The exponential-type loss in (3) is nonconvex but smooth. To derive an eﬃcient iterative algorithm,
+we adopt a majorization–minimization (MM) approach. Let us deﬁne for each observation
+ℓi(β) = 1
+τ
+
+1 −exp
+
+−τ
+2ri(β)2 
+,
+ri(β) = yi −x⊤
+i β.
+Consider the function φ(u) = 1 −exp(−τ
+2u) for u ≥0. Since φ′′(u) = −( τ
+2)2 exp(−τ
+2u) < 0, the
+function φ is concave. For any ﬁxed u(t), the ﬁrst-order Taylor expansion provides a global upper
+bound (a tight majorizer):
+φ(u) ≤φ(u(t)) + φ′(u(t))(u −u(t)),
+∀u ≥0.
+(6)
+Substituting ui = ri(β)2 and summing over i yields the following upper bound for the empirical
+loss:
+1
+n
+n
+X
+i=1
+ℓi(β) ≤C + 1
+2n
+n
+X
+i=1
+v(t)
+i ri(β)2,
+(7)
+where C is a constant independent of β, and
+v(t)
+i
+= exp
+
+−τ
+2ri(β(t))2
+(8)
+acts as an adaptive weight. Minimizing the right-hand side of the above inequality thus deﬁnes the
+MM update.
+Given the current estimate β(t), the MM procedure alternates between updating the weights
+v(t)
+i
+according to (8) and solving a weighted Lasso subproblem:
+• (Step 1) Compute residuals r(t)
+i
+= yi −x⊤
+i β(t) and update the weights
+v(t)
+i
+= exp
+
+−τ
+2(r(t)
+i )2
+,
+i = 1, . . . , n.
+These weights downweight observations with large residuals, thereby reducing the inﬂuence
+of outliers.
+• (Step 2) Update the regression coeﬃcients by solving the weighted Lasso problem
+β(t+1) = arg min
+β∈Rp Q(t)(β) := arg min
+β∈Rp
+(
+1
+2n
+n
+X
+i=1
+v(t)
+i (yi −x⊤
+i β)2 + λ∥β∥1
+)
+.
+(9)
+The above two steps are repeated until convergence, e.g., until ∥β(t+1) −β(t)∥2/(1+∥β(t)∥2) < ε
+for a small tolerance ε > 0. Step 2 can be eﬃciently implemented using standard coordinate-descent
+algorithms or existing Lasso solvers (e.g., glmnet in R) by specifying the observation weights {v(t)
+i }.
+The outline of our proposed algorithm given in Algorithm 1.
+7
+
+
+3.2
+Coordinate descent updates using soft-thresholding
+We estimate the regression coeﬃcients in (9) via a coordinate descent algorithm. Let denote the
+residual vector at iteration t as
+r(t) = y −Xβ(t) .
+For the j-th coordinate, we deﬁne the
+corresponding partial residual — that is, the residual excluding the contribution of variable j — as
+rj = r(t) + Xjβ(t)
+j .
+The objective function restricted to the single coeﬃcient βj can then be expressed as:
+1
+2n
+n
+X
+i=1
+vi(rij −xijβj)2 + λ|βj|.
+Minimization of this univariate problem yields a closed-form update via the soft-thresholding op-
+erator, [7]:
+zj :=
+n
+X
+i=1
+vixijrij,
+Uj :=
+n
+X
+i=1
+vix2
+ij,
+βj ←1
+Uj
+S(zj, λ),
+where
+S(z, λ) = sign(z) · max(|z| −λ, 0),
+denotes the soft-thresholding function.
+Discussion.
+The proposed algorithm can be viewed as an EM-like procedure, where the weights
+{v(t)
+i } play a role analogous to latent variables that reﬂect the reliability of each observation. As
+τ →0, all v(t)
+i
+→1, and the algorithm reduces to the ordinary Lasso. For larger τ, the exponential
+decay of v(t)
+i
+produces strong robustness to large residuals.
+Algorithm 1 MM Algorithm for Exponential-type robust Lasso
+1: Input: data (xi, yi)n
+i=1, tuning parameters τ > 0, λ ≥0.
+2: Initialize β(0) (e.g., by ordinary Lasso).
+3: repeat
+4:
+Compute residuals r(t)
+i
+= yi −x⊤
+i β(t).
+5:
+Update weights v(t)
+i
+= exp
+
+−τ
+2(r(t)
+i )2
+.
+6:
+Solve weighted Lasso:
+β(t+1) = arg min
+β
+(
+1
+2n
+n
+X
+i=1
+v(t)
+i (yi −x⊤
+i β)2 + λ∥β∥1
+)
+.
+7: until convergence criterion is met.
+8: Output: ﬁnal estimate bβ = β(t+1).
+Under standard regularity conditions for MM algorithms, the sequence {β(t)} monotonically
+decreases the objective in (3) and converges to a stationary point.
+8
+
+
+3.3
+Convergence analysis of the MM algorithm
+We analyze the Majorization–Minimization (MM) algorithm given in Algorithm 1 for the exponential-
+type robust Lasso objective
+F(β) = 1
+n
+n
+X
+i=1
+ℓi(β) + λ∥β∥1
+with
+ℓi(β) = 1
+τ
+
+1 −exp
+ −τ
+2 ri(β)2
+,
+ri(β) = yi −x⊤
+i β, (10)
+where τ > 0 and λ ≥0. For convenience write the smooth (nonconvex) loss part as
+L(β) := 1
+n
+n
+X
+i=1
+ℓi(β),
+so F(β) = L(β) + λ∥β∥1.
+We ﬁrst show that the MM iterates produce a monotone decreasing sequence of objective values
+and remain in a bounded level set.
+Theorem 2 (Monotone decrease and boundedness). Assume that each row xi satisﬁes ∥xi∥2 < ∞.
+Let {β(t)} be the sequence produced by Algorithm 1 where in each M-step we compute an exact
+minimizer of the surrogate Q(t)(β) in (9). Then:
+(i). (Descent) The sequence of objective values {F(β(t))} is nonincreasing: F(β(t+1)) ≤F(β(t)), ∀t ≥
+0.
+(ii). (Lower bounded) F(β) ≥0 for all β, hence {F(β(t))} converges to a ﬁnite limit F ⋆.
+(iii). (Bounded iterates) The iterates {β(t)} lie in the sublevel set {β : F(β) ≤F(β(0))}, which is
+bounded under the mild condition that λ > 0 or that X has full column rank; hence {β(t)} is
+bounded.
+Next we establish that any accumulation point of the MM iterates is a stationary point of
+the nonconvex objective F(β). Because F contains the nondiﬀerentiable ℓ1 term, stationarity is
+understood in the subgradient/KKT sense.
+Theorem 3 (Cluster points are stationary). Let assume that each row xi satisﬁes ∥xi∥2 < ∞and
+let {β(t)} be generated by Algorithm 1 with exact M-steps (exact minimizer of the surrogate). Then
+every limit point β⋆of {β(t)} is a stationary point of F, i.e. 0 ∈∇L(β⋆) + λ∂∥β⋆∥1. Consequently,
+the whole sequence has its set of cluster points contained in the set of stationary points of F.
+Corollary 1 (Convergence of objective and subsequential stationarity). Under the hypotheses of
+Theorems 2–3, the objective values F(β(t)) converge to a ﬁnite F ⋆and every cluster point of {β(t)}
+is a stationary point of F. If, in addition, the set of stationary points at level F ⋆is ﬁnite and the
+sequence has a unique cluster point, then β(t) →β⋆.
+The objective F(β) is nonconvex because L(β) is nonconvex; therefore MM can only be expected
+to converge to a local stationary point in general. Uniqueness of the weighted Lasso minimizer in
+each M-step holds when X⊤˜V (t)X is positive deﬁnite (e.g. full column rank and all ˜v(t)
+i
+> 0). In
+practice ˜v(t)
+i
+∈(0, 1], so strict positive deﬁniteness reduces to conditions on X.
+9
+
+
+3.4
+Tuning the regularization parameter λ
+We select the regularization parameter λ in the exponential Lasso method primarily using K-fold
+cross-validation (CV), which serves as the default option.
+Cross-validation evaluates predictive
+performance by partitioning the data into training and validation folds and choosing the λ that
+minimizes the average prediction error. This provides a practical, data-driven balance between
+model sparsity and predictive accuracy.
+Our method is implemented in the R package heavylasso available on Github: https://github.com/tienmt/heavyla
+.
+4
+Simulation studies
+4.1
+Setup
+Compared methods
+The central aim of this simulation is to evaluate how diﬀerent robust loss functions aﬀect the
+performance of the Lasso estimator. Accordingly, our investigation is strictly focused on regression
+methods that incorporate the Lasso penalty, to the exclusion of other regularization approaches.
+The following four estimators are included in our comparative analysis:
+• Classical Lasso, which minimizes a squared loss function, implemented in the R package glmnet
+[8].
+• Huber Lasso, which employs the hybrid Huber loss function.
+• LAD Lasso, which is based on the ℓ1 loss function. Both the LAD and Huber variants are
+implemented in the R package hqreg.
+• Heavy Lasso, which utilizes a Student loss function, available in the R package heavylasso
+[22].
+Simulation settings
+In our data generation process, the predictors Xi follow a N(0, Σ) distribution. We investigate two
+speciﬁc covariance scenarios: (i) an identity matrix (Σ = Ip), representing independent predictors,
+and (ii) an autoregressive correlation structure (Σij = ρ|i−j|
+X
+).
+The ground-truth vector β0 is s-sparse, with the s non-zero coeﬃcients split evenly, taking values
+of 1 (for s/2 entries) and −1 (for the remaining s/2 entries). The responses yi are then produced
+via the linear model (1) under the following noise conditions:
+• Gaussian noise, ǫi ∼N(0, 1). This serves as a baseline to assess how various robust methods
+perform under ideal (light-tailed) conditions.
+• Gaussian noise with large variance. ǫi ∼N(0, 32). This setting introduces moderate heavy-
+tailed behavior through increased variance.
+• Student noise. ǫi ∼t3. This case represents heavy-tailed noise with ﬁnite variance.
+10
+
+
+• Cauchy noise. ǫi ∼Cauchy. This represents a more extreme heavy-tailed setting with inﬁnite
+variance.
+• Contaminated with outliers. ǫi ∼N(0, 1) or ǫi ∼t3 but some portion of the observed responses
+are further contaminated by outliers. This setting evaluates robustness to contamination.
+We assessed the performance of each method from three diﬀerent angles: parameter estimation,
+prediction on new data, and variable selection accuracy. We used two metrics to evaluate how
+accurately each model estimated the true coeﬃcients.
+First, we measured the estimation error
+using the squared ℓ2 norm, which calculates the distance between the estimated coeﬃcients (bβ) and
+the true coeﬃcients (β0):
+∥bβ −β0∥2
+2. Second, we evaluated the error in the model’s ﬁtted values
+on the training data, captured by the linear predictor error:
+ℓ(X⊤β0) := 1
+n∥X⊤(bβ −β0)∥2
+2
+To measure prediction accuracy, we calculated the mean squared prediction error (MSPE) on a
+large, independent test set. This test set, (Xtest, ytest), was generated from the same model as the
+training data, with a ﬁxed size of ntest = 5000. The MSPE is deﬁned as:
+MSPEtest :=
+1
+ntest
+ntest
+X
+i=1
+
+ytest,i −X⊤
+test,i bβ
+2
+.
+Finally, we assessed each method’s ability to correctly identify the relevant predictors in the model.
+This was measured using two standard metrics: the True Positive Rate (TPR) and the False
+Discovery Rate (FDR).
+Each simulation setting is repeated 100 times, and we report the mean and standard deviation
+of the results. The outcomes are presented in Tables 1, 2, 3, 4 and 5. The regularized parameters
+for all ﬁve methods are selected via 5-fold cross-validation. The tuning parameter τ in our method
+is set to 0.1, which is motivated from sensitivity analysis in Subsection 4.2.3 below.
+4.2
+Simulations results
+4.2.1
+Results with Heavy-tailed noises
+We ﬁrst examine the performance of our method against competing approaches across several noise
+settings. This comparison is conducted in two distinct regimes: a small scale setting with p = 120
+and n = 100 (Tables 1, 2), and a medium scale setting with p = 500 and n = 300 (Tables 3, 4).
+The true sparsity s∗is ﬁxed at 10 for all experiments.
+In both settings, particularly under Gaussian noise, our proposed method and the Heavy Lasso
+are shown to be highly competitive. They frequently outperform the classical Lasso, a level of
+performance not attained by the Huber Lasso or the L1 Lasso in these experiments. The robustness
+and superiority of these results appear to improve in the larger-scale data scenarios, as evidenced
+in Tables 3 and 4.
+A general observation is that our proposed method and the Heavy Lasso, both being non-convex,
+tend to return more small non-zero coeﬃcients. This characteristic typically leads to a higher false
+positive rate (or false discovery rate) when compared to convex alternatives like the Huber Lasso
+or the L1 Lasso. Despite this, a crucial advantage is their ability to consistently select the true
+support.
+11
+
+
+When considering heavy-tailed noise, such as the Student’s t3 or Cauchy distributions, our
+proposed method and the Heavy Lasso invariably provide the best results regarding both estimation
+and prediction errors. More particularly, in the challenging Cauchy noise scenario, our method
+demonstrates clear superiority across all metrics, including estimation, prediction, and variable
+selection accuracy.
+4.2.2
+Results with Outliers
+We next evaluate the behavior of all considered methods in the presence of outliers.
+For this
+purpose, we ﬁx the simulation parameters at p = 500, s∗= 10, and n = 300. We investigate two
+underlying noise distributions: standard normal, N(0, 1), and Student’s t3. The proportion of the
+response data contaminated by outliers is varied among 10%, 20%, and 30%. The results of this
+analysis are presented in Table 5.
+The results indicate that our proposed method outperforms both the Huber Lasso and the
+L1 Lasso. As expected, the classical Lasso breaks down entirely under these conditions. When
+the underlying noise is Gaussian, our method is signiﬁcantly better than the Heavy Lasso (which
+utilizes a Student’s loss). This performance gap is particularly pronounced when a larger fraction
+of the responses are contaminated, for example, at the 30% level. In the presence of Student’s t3
+noise, the Heavy Lasso exhibits a slight advantage at lower contamination levels. However, as the
+contamination fraction increases to 30%, our proposed method once again outperforms the Heavy
+Lasso. These ﬁndings clearly highlight the superior robustness of our proposed methodology.
+4.2.3
+On sensitivity of tuning parameter τ
+To evaluate the sensitivity of our proposed method to the tuning parameter τ, we conducted a
+dedicated simulation study. We ﬁxed the problem dimensions at p = 120, s∗= 10, and n = 100,
+while varying τ over the grid {0.001, 0.1, 1, 10}.
+The results, averaged over 100 replications under various noise distributions and outlier settings,
+are presented in Table 6. This analysis demonstrates that τ = 0.1 consistently yields the best and
+most stable performance. Based on this ﬁnding, we adopted τ = 0.1 as the ﬁxed value for this
+hyperparameter in all other experiments and the real-data application.
+4.3
+Results with increasing sparsity
+We further investigate how the sparsity level (s∗) inﬂuences the performance of the various methods
+under conditions of heavy-tailed noise and outliers. In this analysis, we ﬁxed the dimensionality
+at p = 500 and n = 300 with independent predictors (Σ = Ip). We then vary the true sparsity s∗
+across the values {4, 8, 16}.
+The averaged results from 100 simulation repetitions, presented in Table 7, conﬁrm that all
+methods exhibit a natural increase in both estimation and prediction errors as the sparsity increases.
+Crucially, our proposed method consistently maintains its position as the top performer across all
+sparsity levels in terms of both error metrics. The superiority of our method is most pronounced
+in the highly sparse setting where s∗= 16, where it signiﬁcantly outperforms all other considered
+approaches. This comprehensive test demonstrates that the robustness of our method extends not
+only to non-Gaussian noise but also to increased model complexity due to higher sparsity.
+12
+
+
+Table 1: Simulation for various loss functions with Lasso penalization, under the setting p = 120, s∗=
+10, n = 100 and independent predictors. The reported values are the mean across 100 simulation repetitions,
+with the standard deviation provided in parentheses. Bold font highlights the superior method. TPR: true
+positive rate; FDR: false discovery rate; MSPEtest: mean squared prediction error on testing data.
+Noise
+Method (loss)
+∥bβ −β0∥2
+2
+ℓ(X⊤β0)
+MSPEtest
+TPR
+FPR
+N(0, 1)
+proposed loss
+0.62 (0.22)
+0.40 (0.11)
+1.62 (0.22)
+1.00 (0.00)
+0.75 (0.06)
+Student’s loss
+0.64 (0.26)
+0.40 (0.11)
+1.64 (0.26)
+1.00 (0.00)
+0.75 (0.06)
+squared loss
+0.78 (0.26)
+0.55 (0.18)
+1.82 (0.26)
+1.00 (0.00)
+0.45 (0.13)
+ℓ1 loss
+1.09 (0.43)
+0.71 (0.24)
+2.02 (0.43)
+1.00 (0.00)
+0.65 (0.10)
+Huber loss
+0.95 (0.41)
+0.65 (0.27)
+1.93 (0.40)
+1.00 (0.00)
+0.57 (0.10)
+N(0, 3)
+proposed loss
+7.06 (2.01)
+5.34 (1.77)
+16.0 (2.07)
+0.78 (0.28)
+0.78 (0.13)
+Student’s loss
+5.24 (1.67)
+3.79 (1.17)
+14.3 (1.74)
+0.89 (0.17)
+0.72 (0.10)
+squared loss
+7.00 (2.26)
+6.31 (2.52)
+16.0 (2.32)
+0.52 (0.36)
+0.25 (0.23)
+ℓ1 loss
+8.29 (1.91)
+7.82 (2.50)
+17.3 (1.96)
+0.32 (0.33)
+0.22 (0.28)
+Huber loss
+7.89 (1.94)
+7.23 (2.41)
+16.9 (1.99)
+0.40 (0.33)
+0.26 (0.27)
+t3
+proposed loss
+1.20 (0.52)
+0.77 (0.37)
+4.15 (0.78)
+1.00 (0.00)
+0.76 (0.06)
+Student’s loss
+1.29 (0.61)
+0.81 (0.32)
+4.25 (0.78)
+1.00 (0.00)
+0.75 (0.06)
+squared loss
+2.72 (2.29)
+2.10 (2.06)
+5.67 (2.27)
+0.93 (0.24)
+0.37 (0.17)
+ℓ1 loss
+1.87 (1.05)
+1.27 (0.70)
+5.03 (1.14)
+0.99 (0.04)
+0.61 (0.12)
+Huber loss
+1.73 (0.87)
+1.20 (0.63)
+4.71 (1.03)
+0.99 (0.04)
+0.53 (0.11)
+Cauchy
+proposed loss
+5.17 (3.23)
+3.71 (2.10)
+>105
+0.89 (0.25)
+0.71 (0.21)
+Student’s loss
+5.82 (5.19)
+4.01 (4.33)
+>105
+0.91 (0.24)
+0.71 (0.25)
+squared loss
+9.97 (0.14)
+9.95 (1.33)
+>105
+0.01 (0.06)
+0.01 (0.11)
+ℓ1 loss
+9.19 (2.11)
+8.57 (2.72)
+>105
+0.13 (0.31)
+0.13 (0.24)
+Huber loss
+9.13 (2.14)
+8.59 (2.71)
+>105
+0.15 (0.33)
+0.10 (0.18)
+5
+Application examples with real data
+5.1
+Analyzing cancer cell line NCI-60 data
+We evaluate the proposed method using the NCI-60 cancer cell line panel, a benchmark dataset
+widely used in genomic and proteomic modeling studies [23]. A pre-processed version of the data,
+available in the R package robustHD [1], was employed in our analysis. The dataset comprises
+n = 59 human cancer cell lines, each characterized by gene and protein expression measurements.
+One sample with missing gene expression values was excluded from the analysis.
+The gene expression data form a matrix with 22,283 features, while the protein expression data
+consist of 162 features measured using reverse-phase protein lysate arrays. The protein data were
+log2-transformed and standardized to have zero mean, following the preprocessing steps in [1]. This
+dataset provides a rich setting for studying the relationship between high-dimensional genomic
+proﬁles and proteomic responses. Consistent with prior work, we model protein 92 as the response
+variable and select the 300 gene expression features exhibiting the highest marginal correlations
+with it to form the predictor matrix.
+For model evaluation, nine samples were randomly set aside as a test set, and the remaining 50
+samples were used for model training. This random partitioning was repeated 100 times, and the
+mean squared prediction error (MSPE) on the held-out test data was averaged across replications.
+Table 8 summarizes the results.
+13
+
+
+Table 2: Simulation for various loss functions with Lasso penalization, under the setting p = 120, s∗=
+10, n = 100 and correlated design ρX = 0.5.
+The reported values are the mean across 100 simulation
+repetitions, with the standard deviation provided in parentheses. Bold font highlights the superior method.
+TPR: true positive rate; FDR: false discovery rate; MSPEtest: mean squared prediction error on testing
+data.
+Noise
+Method (loss)
+∥bβ −β0∥2
+2
+ℓ(X⊤β0)
+MSPEtest
+TPR
+FPR
+N(0, 1)
+proposed loss
+0.52 (0.27)
+0.30 (0.09)
+1.42 (0.20)
+1.00 (0.00)
+0.70 (0.08)
+Student’s loss
+0.50 (0.22)
+0.29 (0.11)
+1.41 (0.22)
+1.00 (0.00)
+0.75 (0.06)
+squared loss
+0.72 (0.26)
+0.45 (0.18)
+1.59 (0.26)
+1.00 (0.00)
+0.31 (0.13)
+ℓ1 loss
+0.94 (0.43)
+0.59 (0.24)
+1.77 (0.43)
+1.00 (0.00)
+0.48 (0.10)
+Huber loss
+0.79 (0.41)
+0.50 (0.27)
+1.65 (0.40)
+1.00 (0.00)
+0.38 (0.10)
+N(0, 3)
+proposed loss
+5.17 (1.85)
+3.67 (1.16)
+13.7 (1.86)
+0.91 (0.09)
+0.72 (0.06)
+Student’s loss
+3.96 (1.67)
+2.61 (1.17)
+12.4 (1.74)
+0.92 (0.10)
+0.66 (0.10)
+squared loss
+4.55 (2.26)
+4.31 (2.52)
+14.0 (2.32)
+0.76 (0.36)
+0.15 (0.23)
+ℓ1 loss
+5.37 (1.91)
+5.43 (2.50)
+15.3 (1.96)
+0.67 (0.33)
+0.24 (0.28)
+Huber loss
+5.25 (1.94)
+5.29 (2.41)
+15.1 (1.99)
+0.69 (0.33)
+0.21 (0.27)
+t3
+proposed loss
+0.98 (0.40)
+0.56 (0.19)
+3.91 (1.14)
+1.00 (0.00)
+0.67 (0.10)
+Student’s loss
+1.03 (0.46)
+0.59 (0.21)
+3.95 (1.16)
+1.00 (0.00)
+0.68 (0.10)
+squared loss
+2.16 (2.29)
+1.75 (2.16)
+5.28 (2.27)
+0.93 (0.24)
+0.24 (0.17)
+ℓ1 loss
+1.83 (1.05)
+1.09 (0.70)
+4.61 (1.14)
+0.96 (0.04)
+0.43 (0.12)
+Huber loss
+1.65 (0.87)
+1.06 (0.63)
+4.51 (1.03)
+0.97 (0.04)
+0.34 (0.11)
+Cauchy
+proposed loss
+3.34 (2.71)
+2.26 (2.10)
+>105
+0.96 (0.11)
+0.60 (0.21)
+Student’s loss
+4.48 (4.72)
+2.73 (2.21)
+>105
+0.94 (0.24)
+0.62 (0.25)
+squared loss
+9.80 (0.14)
+9.95 (1.33)
+>105
+0.03 (0.06)
+0.00 (0.11)
+ℓ1 loss
+7.90 (2.11)
+8.57 (2.72)
+>105
+0.34 (0.31)
+0.03 (0.24)
+Huber loss
+7.71 (2.14)
+8.59 (2.71)
+>105
+0.35 (0.33)
+0.03 (0.18)
+Our proposed estimator and the heavy-tailed Lasso based on Student’s loss achieved the lowest
+prediction errors, indicating superior robustness to outliers and noise.
+Methods employing the
+Huber and ℓ1 losses also outperformed the standard Lasso with the squared loss.
+In terms of
+variable selection, all ﬁve methods consistently identiﬁed one common predictor (gene ID 8502),
+highlighting its potential biological relevance.
+5.2
+Analyzing gene expression TRIM32 data
+In this application, we conduct an analysis using high-dimensional genomics data from [27]. The
+study by [27] involved analyzing RNA from the eyes of 120 twelve-week-old male rats, using 31,042
+diﬀerent probe sets.
+Our focus is on modeling the expression of the gene TRIM32, as it was
+identiﬁed by [6] as a gene associated with Bardet-Biedl syndrome, a condition that includes retinal
+degeneration among its symptoms. Since [27] observed that many probes were not expressed in the
+eye, we follow the approach of [13] and [21], limiting our analysis to the 500 genes with the highest
+absolute Pearson correlation with TRIM32 expression. The data for this analysis is available from
+the R package abess, [37].
+To assess the methods, we randomly allocate 84 of the 120 samples for training and the remaining
+36 for testing, maintaining an approximate 70/30 percent of the data split.
+The methods are
+executed using the training set, and their prediction accuracy is evaluated on the test set. This
+14
+
+
+Table 3:
+Simulation results for various loss functions with Lasso penalization, under the setting p =
+500, s∗= 10, n = 300 and independent predictors. The reported values are the mean across 100 simulation
+repetitions, with the standard deviation provided in parentheses. Bold font highlights the superior method.
+TPR: true positive rate; FDR: false discovery rate; MSPEtest: mean squared prediction error on testing
+data.
+Noise
+Method (loss)
+∥bβ −β0∥2
+2
+ℓ(X⊤β0)
+MSPEtest
+TPR
+FPR
+N(0, 1)
+proposed loss
+0.23 (0.08)
+0.19 (0.06)
+1.23 (0.08)
+1.00 (0.00)
+0.85 (0.04)
+Student’s loss
+0.23 (0.08)
+0.19 (0.06)
+1.23 (0.08)
+1.00 (0.00)
+0.85 (0.04)
+squared loss
+0.31 (0.10)
+0.28 (0.08)
+1.31 (0.10)
+1.00 (0.00)
+0.42 (0.17)
+ℓ1 loss
+0.44 (0.16)
+0.38 (0.12)
+1.44 (0.16)
+1.00 (0.00)
+0.54 (0.16)
+Huber loss
+0.39 (0.14)
+0.35 (0.10)
+1.39 (0.14)
+1.00 (0.00)
+0.48 (0.19)
+N(0, 3)
+proposed loss
+3.49 (1.32)
+3.00 (1.11)
+12.4 (1.46)
+1.00 (0.01)
+0.89 (0.04)
+Student’s loss
+2.36 (0.59)
+2.04 (0.51)
+11.3 (0.67)
+1.00 (0.00)
+0.87 (0.03)
+squared loss
+2.95 (0.83)
+2.72 (0.80)
+11.9 (0.84)
+0.99 (0.04)
+0.35 (0.18)
+ℓ1 loss
+4.41 (1.38)
+4.05 (1.31)
+13.3 (1.44)
+0.91 (0.12)
+0.44 (0.21)
+Huber loss
+4.09 (1.19)
+3.74 (1.15)
+13.0 (1.25)
+0.94 (0.10)
+0.44 (0.19)
+t3
+proposed loss
+0.41 (0.14)
+0.34 (0.11)
+3.50 (0.66)
+1.00 (0.00)
+0.83 (0.05)
+Student’s loss
+0.40 (0.12)
+0.33 (0.09)
+3.48 (0.66)
+1.00 (0.00)
+0.83 (0.04)
+squared loss
+1.13 (0.63)
+1.05 (0.62)
+4.21 (1.00)
+1.00 (0.00)
+0.23 (0.16)
+ℓ1 loss
+0.66 (0.18)
+0.59 (0.16)
+3.74 (0.67)
+1.00 (0.00)
+0.47 (0.19)
+Huber loss
+0.64 (0.19)
+0.58 (0.16)
+3.73 (0.68)
+1.00 (0.00)
+0.38 (0.17)
+Cauchy
+proposed loss
+2.56 (2.33)
+2.17 (1.92)
+>105
+1.00 (0.00)
+0.82 (0.20)
+Student’s loss
+2.79 (4.03)
+2.31 (3.16)
+>105
+1.00 (0.00)
+0.81 (0.15)
+squared loss
+10.0 (0.00)
+10.0 (0.73)
+>105
+0.00 (0.00)
+0.00 (0.00)
+ℓ1 loss
+7.97 (3.00)
+7.85 (3.08)
+>105
+0.33 (0.44)
+0.03 (0.08)
+Huber loss
+8.02 (2.92)
+7.89 (3.00)
+>105
+0.33 (0.43)
+0.02 (0.07)
+procedure is repeated 100 times, each with a diﬀerent random partition of the data. The outcomes
+of these iterations are displayed in Table 9.
+For this data set, we see that Huber and L1 Lasso methods return higher prediction errors
+compared to the standard lasso. On the other hand, our proposed method and heavy lasso method
+are the best methods. In terms of variable selection, all ﬁve methods consistently identiﬁed six
+common predictors 1371614, 1375833, 1377836, 1388491, 1389910, 1393736, highlighting its
+potential biological relevance.
+6
+Discussion and Conclusion
+In this paper, we introduced the Exponential Lasso, a novel robust estimator for high-dimensional
+linear regression. Our goal was to address the well-known sensitivity of the classical Lasso’s squared-
+error loss to outliers and heavy-tailed noise. By replacing the squared loss with an exponential-type
+loss function, our method successfully integrates the L1 penalty for sparse estimation with the
+principles of robust M-estimation, as the loss function smoothly and automatically downweights
+the inﬂuence of large residuals.
+From a theoretical standpoint, we established strong non-asymptotic guarantees, proving that
+the Exponential Lasso achieves reliable estimation accuracy, matching the standard Lasso or Huber
+15
+
+
+Table 4:
+Simulation results for various loss functions with Lasso penalization, under the setting p =
+500, s∗= 10, n = 300 and correlated design ρX = 0.5.
+The reported values are the mean across 100
+simulation repetitions, with the standard deviation provided in parentheses. Bold font highlights the superior
+method. TPR: true positive rate; FDR: false discovery rate; MSPEtest: mean squared prediction error on
+testing data.
+Noise
+Method (loss)
+∥bβ −β0∥2
+2
+ℓ(X⊤β0)
+MSPEtest
+TPR
+FPR
+N(0, 1)
+proposed loss
+0.20 (0.08)
+0.15 (0.04)
+1.17 (0.06)
+1.00 (0.00)
+0.80 (0.04)
+Student’s loss
+0.21 (0.08)
+0.15 (0.05)
+1.17 (0.07)
+1.00 (0.00)
+0.80 (0.05)
+squared loss
+0.31 (0.13)
+0.24 (0.07)
+1.26 (0.09)
+1.00 (0.00)
+0.22 (0.16)
+ℓ1 loss
+0.44 (0.16)
+0.32 (0.09)
+1.35 (0.10)
+1.00 (0.00)
+0.35 (0.16)
+Huber loss
+0.38 (0.15)
+0.28 (0.08)
+1.31 (0.10)
+1.00 (0.00)
+0.28 (0.16)
+N(0, 3)
+proposed loss
+2.47 (0.86)
+2.08 (0.88)
+11.2 (1.05)
+0.99 (0.03)
+0.84 (0.06)
+Student’s loss
+1.83 (0.63)
+1.48 (0.57)
+10.6 (0.68)
+1.00 (0.00)
+0.82 (0.05)
+squared loss
+2.48 (0.84)
+2.18 (0.83)
+11.3 (1.00)
+0.92 (0.08)
+0.17 (0.16)
+ℓ1 loss
+3.00 (0.97)
+2.77 (1.07)
+11.9 (1.19)
+0.89 (0.09)
+0.27 (0.20)
+Huber loss
+2.92 (0.93)
+2.65 (0.99)
+11.8 (1.16)
+0.89 (0.09)
+0.25 (0.18)
+t3
+proposed loss
+0.34 (0.12)
+0.25 (0.08)
+3.16 (0.31)
+1.00 (0.00)
+0.79 (0.06)
+Student’s loss
+0.35 (0.14)
+0.27 (0.12)
+3.18 (0.32)
+1.00 (0.00)
+0.79 (0.06)
+squared loss
+1.22 (0.93)
+1.08 (1.20)
+4.04 (1.27)
+0.98 (0.08)
+0.10 (0.15)
+ℓ1 loss
+0.63 (0.23)
+0.51 (0.15)
+3.43 (0.34)
+1.00 (0.00)
+0.25 (0.15)
+Huber loss
+0.58 (0.22)
+0.46 (0.15)
+3.38 (0.32)
+1.00 (0.00)
+0.20 (0.16)
+Cauchy
+proposed loss
+2.85 (3.41)
+1.96 (2.13)
+>106
+1.00 (0.00)
+0.83 (0.16)
+Student’s loss
+4.64 (8.29)
+2.84 (4.43)
+>106
+1.00 (0.00)
+0.82 (0.15)
+squared loss
+9.92 (0.53)
+18.3 (1.88)
+>106
+0.01 (0.10)
+0.00 (0.00)
+ℓ1 loss
+6.33 (2.89)
+10.1 (6.68)
+>106
+0.52 (0.38)
+0.01 (0.05)
+Huber loss
+6.39 (2.90)
+10.2 (6.69)
+>106
+0.52 (0.38)
+0.01 (0.05)
+Lasso but under much milder assumptions that permit heavy-tailed noise. Computationally, the
+estimator’s smooth and non-convex objective function is well-suited for a Majorization-Minimization
+(MM) algorithm. This framework is stable and eﬃcient, iteratively solving a sequence of reweighted
+Lasso problems. Empirically, our extensive simulations demonstrated that the Exponential Lasso
+consistently outperforms competitors like the classical, L1 (LAD), and Huber Lasso, especially in
+settings with signiﬁcant data contamination. Notably, it remained highly competitive even under
+standard Gaussian noise, suggesting a “premium” for its robustness. Our real-data application
+further validated these ﬁndings, conﬁrming its practical relevance.
+The primary advantage of the Exponential Lasso lies in its unique balance of eﬃciency and
+robustness. However, the method introduces the practical challenge of tuning two parameters: the
+regularization parameter λ and the robustness parameter τ. Developing a data-driven, computa-
+tionally eﬃcient strategy for this joint tuning is a critical next step. Furthermore, the objective
+function’s non-convexity means our MM algorithm guarantees convergence to only a stationary
+point, not necessarily the global optimum.
+These limitations point toward clear avenues for future research. A more comprehensive study
+of parameter tuning is essential for broad practical adoption. Additionally, exploring initialization
+strategies or alternative global optimization algorithms could further bolster the method against
+the challenges of non-convexity. Finally, the robust exponential loss framework is highly adaptable.
+It could be extended to other high-dimensional problems, such as the Group Lasso, the Elastic Net,
+16
+
+
+Table 5:
+Simulation results for various loss functions with Lasso penalization, under the setting p =
+500, s∗= 10, n = 300 and independent predictors.
+The outliers are increased by 10%, 20% and 30%.
+The reported values are the mean across 100 simulation repetitions, with the standard deviation provided
+in parentheses. Bold font highlights the best method. TPR: true positive rate; FDR: false discovery rate;
+MSPEtest: mean squared prediction error on testing data.
+Noise
+Method (loss)
+∥bβ −β0∥2
+2
+ℓ(X⊤β0)
+MSPEtest
+TPR
+FPR
+N(0, 1),
+proposed loss
+0.40 (0.37)
+0.33 (0.27)
+1.41 (0.39)
+1.00 (0.00)
+0.76 (0.17)
+10%
+Student’s loss
+0.39 (0.17)
+0.34 (0.16)
+1.40 (0.18)
+1.00 (0.00)
+0.76 (0.16)
+outliers
+squared loss
+10.0 (0.00)
+9.95 (0.83)
+10.9 (0.26)
+0.00 (0.00)
+0.00 (0.00)
+ℓ1 loss
+1.57 (0.41)
+1.46 (0.34)
+2.58 (0.43)
+1.00 (0.00)
+0.11 (0.08)
+Huber loss
+1.57 (0.35)
+1.46 (0.29)
+2.57 (0.37)
+1.00 (0.00)
+0.07 (0.08)
+N(0, 1),
+proposed loss
+0.71 (0.74)
+0.61 (0.64)
+1.70 (0.72)
+1.00 (0.00)
+0.80 (0.15)
+20%
+Student’s loss
+0.77 (0.58)
+0.68 (0.64)
+1.76 (0.57)
+1.00 (0.00)
+0.78 (0.14)
+outliers
+squared loss
+10.0 (0.00)
+10.0 (0.78)
+11.0 (0.20)
+0.00 (0.00)
+0.00 (0.00)
+ℓ1 loss
+2.67 (1.00)
+2.47 (0.81)
+3.68 (0.98)
+0.99 (0.03)
+0.15 (0.12)
+Huber loss
+2.63 (0.80)
+2.45 (0.61)
+3.64 (0.78)
+1.00 (0.00)
+0.12 (0.10)
+N(0, 1),
+proposed loss
+0.93 (0.94)
+0.82 (0.94)
+1.93 (0.95)
+1.00 (0.00)
+0.79 (0.15)
+30%
+Student’s loss
+1.50 (2.02)
+1.30 (1.99)
+2.50 (2.02)
+1.00 (0.00)
+0.78 (0.11)
+outliers
+squared loss
+10.0 (0.00)
+10.0 (0.83)
+11.0 (0.19)
+0.00 (0.00)
+0.00 (0.00)
+ℓ1 loss
+4.44 (1.77)
+4.18 (1.62)
+5.45 (1.79)
+0.88 (0.20)
+0.15 (0.11)
+Huber loss
+4.47 (1.57)
+4.22 (1.45)
+5.49 (1.60)
+0.90 (0.16)
+0.11 (0.10)
+t3
+proposed loss
+0.71 (0.75)
+0.57 (0.53)
+3.63 (0.87)
+1.00 (0.00)
+0.81 (0.10)
+10%
+Student’s loss
+0.64 (0.27)
+0.53 (0.22)
+3.56 (0.46)
+1.00 (0.00)
+0.78 (0.11)
+outliers
+squared loss
+10.0 (0.02)
+9.82 (0.84)
+12.9 (0.42)
+0.00 (0.01)
+0.00 (0.00)
+ℓ1 loss
+2.12 (0.66)
+1.93 (0.58)
+5.05 (0.80)
+1.00 (0.00)
+0.16 (0.10)
+Huber loss
+2.02 (0.58)
+1.85 (0.51)
+4.95 (0.74)
+1.00 (0.00)
+0.12 (0.11)
+t3
+proposed loss
+1.11 (1.30)
+0.94 (1.03)
+4.09 (1.46)
+1.00 (0.00)
+0.75 (0.20)
+20%
+Student’s loss
+0.99 (0.54)
+0.85 (0.50)
+3.96 (0.93)
+1.00 (0.00)
+0.75 (0.14)
+outliers
+squared loss
+10.0 (0.00)
+9.98 (0.64)
+12.9 (0.87)
+0.00 (0.00)
+0.00 (0.00)
+ℓ1 loss
+3.48 (1.12)
+3.24 (0.99)
+6.46 (1.34)
+0.97 (0.07)
+0.17 (0.11)
+Huber loss
+3.40 (1.06)
+3.17 (0.94)
+6.38 (1.26)
+0.98 (0.05)
+0.15 (0.11)
+t3
+proposed loss
+1.67 (1.60)
+1.48 (1.60)
+4.98 (3.59)
+1.00 (0.01)
+0.81 (0.13)
+30%
+Student’s loss
+2.32 (2.48)
+2.08 (2.63)
+5.63 (3.97)
+1.00 (0.00)
+0.81 (0.08)
+outliers
+squared loss
+10.0 (0.00)
+9.79 (0.70)
+13.2 (3.41)
+0.00 (0.00)
+0.00 (0.00)
+ℓ1 loss
+6.90 (2.25)
+6.50 (2.14)
+10.1 (3.81)
+0.60 (0.35)
+0.11 (0.12)
+Huber loss
+6.95 (2.30)
+6.55 (2.19)
+10.2 (3.84)
+0.58 (0.34)
+0.10 (0.13)
+the SCAD or MCP, or robust graphical model estimation, representing an exciting and practical
+path forward for analysis in data-rich but outlier-prone domains.
+Acknowledgments
+The ﬁndings, interpretations, and conclusions expressed in this paper are entirely those of the
+author and do not reﬂect the views or positions of the Norwegian Institute of Public Health in any
+forms.
+17
+
+
+Table 6: Simulation results for changing τ with p = 120, s∗= 10, n = 100 and independent pre-
+dictors.
+The reported values are the mean across 100 simulation repetitions, with the standard
+deviation provided in parentheses. Bold font highlights the best method. TPR: true positive rate;
+FDR: false discovery rate; MSPEtest: mean squared prediction error on testing data.
+Noise
+τ
+∥bβ −β0∥2
+2
+ℓ(X⊤β0)
+MSPEtest
+TPR
+FDR
+N(0, 1)
+τ = 0.01
+0.23 (0.07)
+0.19 (0.05)
+1.23 (0.07)
+1.00 (0.00)
+0.84 (0.04)
+τ = 0.1
+0.24 (0.07)
+0.20 (0.05)
+1.24 (0.07)
+1.00 (0.00)
+0.85 (0.04)
+τ = 1
+3.62 (1.09)
+2.55 (0.90)
+4.62 (1.08)
+1.00 (0.00)
+0.97 (0.01)
+τ = 10
+9.99 (0.11)
+9.78 (0.74)
+10.9 (0.25)
+0.10 (0.14)
+0.75 (0.42)
+N(0, 1)
+τ = 0.01
+2.97 (1.35)
+2.63 (1.27)
+3.97 (1.35)
+1.00 (0.02)
+0.88 (0.02)
+outliers
+τ = 0.1
+0.58 (0.58)
+0.50 (0.51)
+1.59 (0.59)
+1.00 (0.00)
+0.78 (0.17)
+20%
+τ = 1
+5.24 (1.29)
+4.26 (1.31)
+6.25 (1.30)
+0.96 (0.20)
+0.95 (0.14)
+τ = 10
+10.0 (0.08)
+9.91 (0.80)
+11.0 (0.26)
+0.07 (0.11)
+0.70 (0.44)
+N(0, 3)
+τ = 0.01
+2.29 (0.47)
+2.00 (0.37)
+11.2 (0.46)
+1.00 (0.00)
+0.89 (0.01)
+τ = 0.1
+3.39 (1.03)
+2.94 (0.96)
+12.3 (1.03)
+0.99 (0.03)
+0.89 (0.03)
+τ = 1
+9.21 (0.67)
+8.64 (0.91)
+18.2 (0.79)
+0.74 (0.37)
+0.93 (0.19)
+τ = 10
+10.0 (0.09)
+9.76 (0.86)
+19.0 (0.37)
+0.05 (0.09)
+0.70 (0.44)
+t3
+τ = 0.01
+0.56 (0.18)
+0.47 (0.14)
+3.49 (0.36)
+1.00 (0.00)
+0.83 (0.05)
+τ = 0.1
+0.42 (0.14)
+0.35 (0.10)
+3.35 (0.32)
+1.00 (0.00)
+0.84 (0.04)
+τ = 1
+4.98 (0.65)
+3.79 (0.75)
+7.93 (0.74)
+1.00 (0.01)
+0.97 (0.01)
+τ = 10
+9.97 (0.12)
+9.84 (0.86)
+12.98 (0.37)
+0.08 (0.12)
+0.59 (0.49)
+Cauchy
+τ = 0.01
+3.99 (4.65)
+3.48 (3.91)
+>104
+1.00 (0.00)
+0.90 (0.03)
+τ = 0.1
+1.66 (1.50)
+1.42 (1.18)
+>104
+1.00 (0.00)
+0.79 (0.19)
+τ = 1
+6.93 (1.31)
+6.09 (1.50)
+>104
+0.91 (0.23)
+0.96 (0.03)
+τ = 10
+10.0 (0.13)
+9.98 (0.69)
+>104
+0.09 (0.11)
+0.80 (0.38)
+Author contributions
+I am the only author of this paper.
+Conﬂicts of interest/Competing interests
+The author declares no potential conﬂict of interests.
+A
+Proof
+Proof of Theorem 1.
+Step A — Optimality and cone decomposition.
+The estimator bβ satisﬁes, through its optimality deﬁnition,
+Lτ(bβ) + λ∥bβ∥1 ≤Lτ(β∗) + λ∥β∗∥1.
+Set ∆:= bβ −β∗. Rearranging and using the standard bound ∥β∗∥1 −∥β∗+∆∥1 ≤∥∆S∥1 −∥∆Sc∥1
+yields
+Lτ(β∗+ ∆) −Lτ(β∗) ≤λ
+ ∥∆S∥1 −∥∆Sc∥1
+
+.
+(11)
+18
+
+
+Table 7: Simulation results with increasing sparsity s∗= 4, 8, 16 with p = 500, n = 300 and independent
+predictors. The reported values are the mean across 100 simulation repetitions, with the standard deviation
+provided in parentheses. Bold font highlights the best method. TPR: true positive rate; FDR: false discovery
+rate; MSPEtest: mean squared prediction error on testing data.
+Noise
+Method (loss)
+∥bβ −β0∥2
+2
+ℓ(X⊤β0)
+MSPEtest
+TPR
+FPR
+s∗= 4
+N(0, 1),
+proposed loss
+0.52 (0.85)
+0.49 (0.79)
+1.51 (0.85)
+1.00 (0.00)
+0.76 (0.32)
+20%
+Student’s loss
+0.62 (1.01)
+0.65 (1.13)
+1.62 (1.00)
+1.00 (0.00)
+0.79 (0.26)
+outliers
+squared loss
+4.00 (0.00)
+3.99 (0.31)
+5.01 (0.10)
+0.00 (0.00)
+0.00 (0.00)
+ℓ1 loss
+2.23 (0.56)
+2.18 (0.50)
+3.23 (0.56)
+0.92 (0.20)
+0.00 (0.00)
+Huber loss
+2.19 (0.54)
+2.15 (0.48)
+3.20 (0.54)
+0.94 (0.16)
+0.00 (0.03)
+s∗= 8
+N(0, 1),
+proposed loss
+0.57 (0.61)
+0.51 (0.56)
+1.57 (0.63)
+1.00 (0.00)
+0.80 (0.18)
+20%
+Student’s loss
+0.59 (0.52)
+0.55 (0.54)
+1.59 (0.51)
+1.00 (0.00)
+0.78 (0.17)
+outliers
+squared loss
+8.00 (0.00)
+7.97 (0.58)
+8.99 (0.19)
+0.00 (0.00)
+0.00 (0.00)
+ℓ1 loss
+2.49 (0.63)
+2.35 (0.55)
+3.49 (0.64)
+0.99 (0.04)
+0.04 (0.07)
+Huber loss
+2.47 (0.54)
+2.34 (0.47)
+3.47 (0.55)
+1.00 (0.02)
+0.03 (0.06)
+s∗= 16
+N(0, 1),
+proposed loss
+0.74 (0.33)
+0.56 (0.24)
+1.73 (0.33)
+1.00 (0.00)
+0.77 (0.08)
+20%
+Student’s loss
+1.11 (0.54)
+0.86 (0.42)
+2.11 (0.54)
+1.00 (0.00)
+0.75 (0.08)
+outliers
+squared loss
+16.0 (0.00)
+16.0 (1.21)
+16.9 (0.32)
+0.00 (0.00)
+0.00 (0.00)
+ℓ1 loss
+3.13 (0.92)
+2.65 (0.67)
+4.12 (0.93)
+1.00 (0.02)
+0.37 (0.11)
+Huber loss
+3.18 (1.00)
+2.75 (0.72)
+4.18 (1.01)
+0.99 (0.02)
+0.28 (0.10)
+s∗= 4
+t3
+proposed loss
+0.15 (0.06)
+0.14 (0.06)
+2.14 (0.13)
+1.00 (0.00)
+0.88 (0.04)
+20%
+Student’s loss
+0.15 (0.06)
+0.14 (0.05)
+2.14 (0.13)
+1.00 (0.00)
+0.87 (0.06)
+outliers
+squared loss
+0.52 (0.34)
+0.51 (0.31)
+2.51 (0.37)
+1.00 (0.00)
+0.05 (0.12)
+ℓ1 loss
+0.31 (0.13)
+0.30 (0.12)
+2.30 (0.18)
+1.00 (0.00)
+0.26 (0.23)
+Huber loss
+0.31 (0.12)
+0.30 (0.11)
+2.30 (0.16)
+1.00 (0.00)
+0.22 (0.20)
+s∗= 8
+t3
+proposed loss
+0.27 (0.11)
+0.24 (0.09)
+2.28 (0.15)
+1.00 (0.00)
+0.84 (0.05)
+20%
+Student’s loss
+0.27 (0.10)
+0.24 (0.08)
+2.27 (0.14)
+1.00 (0.00)
+0.84 (0.05)
+outliers
+squared loss
+0.66 (0.35)
+0.63 (0.31)
+2.66 (0.36)
+1.00 (0.00)
+0.21 (0.17)
+ℓ1 loss
+0.51 (0.18)
+0.47 (0.16)
+2.51 (0.21)
+1.00 (0.00)
+0.37 (0.17)
+Huber loss
+0.47 (0.16)
+0.44 (0.14)
+2.47 (0.18)
+1.00 (0.00)
+0.31 (0.16)
+s∗= 16
+t3
+proposed loss
+0.47 (0.16)
+0.44 (0.14)
+2.47 (0.18)
+1.00 (0.00)
+0.31 (0.16)
+20%
+Student’s loss
+0.57 (0.14)
+0.43 (0.10)
+2.57 (0.19)
+1.00 (0.00)
+0.81 (0.04)
+outliers
+squared loss
+1.02 (0.43)
+0.84 (0.35)
+3.02 (0.43)
+1.00 (0.00)
+0.47 (0.10)
+ℓ1 loss
+0.87 (0.29)
+0.67 (0.22)
+2.87 (0.33)
+1.00 (0.00)
+0.67 (0.09)
+Huber loss
+0.79 (0.24)
+0.64 (0.18)
+2.80 (0.28)
+1.00 (0.00)
+0.55 (0.10)
+Step B — Taylor expansion and LRSC lower bound.
+By Taylor expansion in direction ∆(componentwise),
+Lτ(β∗+ ∆) −Lτ(β∗) = ⟨∇Lτ(β∗), ∆⟩+ 1
+2∆⊤ 1
+n
+n
+X
+i=1
+ψ′
+τ(ξi) xix⊤
+i
+
+∆,
+19
+
+
+Table 8: Results on prediction errors and selected variables for the NCI-60 cancer cell line data.
+Method
+MSPEtest
+model size
+proposed loss
+0.398 (0.266)
+39
+Student’s loss
+0.395 (0.259)
+73
+squared loss
+0.509 (0.225)
+26
+ℓ1 loss
+0.474 (0.350)
+19
+Huber loss
+0.479 (0.334)
+5
+Table 9: Results on prediction errors and selected variables for the gene expression TRIM32 data.
+Method
+MSPEtest
+model size
+proposed loss
+0.351 (0.102)
+85
+Student’s loss
+0.353 (0.096)
+56
+squared loss
+0.472 (0.266)
+29
+ℓ1 loss
+0.543 (0.336)
+24
+Huber loss
+0.540 (0.313)
+19
+where ψ′
+τ(u) = e−τ
+2 u2(1 −τu2) and each ξi lies on the line segment between εi and εi −x⊤
+i ∆.
+Let G = {i : |εi| ≤c/2}. If ∥∆∥2 ≤r and r is small enough so that |x⊤
+i ∆| ≤c/2 for all i, then
+for any i ∈G we have |ξi| ≤c and hence ψ′
+τ(ξi) ≥γ. Therefore
+∆⊤ 1
+n
+n
+X
+i=1
+ψ′
+τ(ξi) xix⊤
+i
+
+∆≥γ · |G|
+n · 1
+|G|
+X
+i∈G
+(x⊤
+i ∆)2.
+By Assumption 1 (restricted eigenvalue) applied to the same cone, for every ∆in the cone we have
+1
+n
+Pn
+i=1(x⊤
+i ∆)2 ≥φmin∥∆∥2
+2. Restricting to the subset G can only decrease the quadratic form, but
+we lower bound it by using the trivial relation
+1
+|G|
+X
+i∈G
+(x⊤
+i ∆)2 ≥1
+n
+n
+X
+i=1
+(x⊤
+i ∆)2 ≥φmin∥∆∥2
+2,
+so
+∆⊤ 1
+n
+n
+X
+i=1
+ψ′
+τ(ξi) xix⊤
+i
+
+∆≥γ · |G|
+n · φmin∥∆∥2
+2.
+By Hoeﬀding’s inequality for the binomial variable |G| ∼Bin(n, p0),
+P
+
+|G| ≤np0
+2
+
+≤exp
+
+−np2
+0
+8
+
+.
+Hence with probability at least 1−exp(−np2
+0/8) we have |G|/n ≥p0/2, and therefore the quadratic
+remainder satisﬁes the LRSC inequality
+Lτ(β∗+ ∆) −Lτ(β∗) −⟨∇Lτ(β∗), ∆⟩≥κ∥∆∥2
+2,
+(12)
+with
+κ = p0
+2 γ φmin.
+20
+
+
+Step C — Stochastic bound for the gradient sup-norm.
+Compute the gradient at β∗:
+∇Lτ(β∗) = −1
+n
+n
+X
+i=1
+ψτ(εi) xi,
+ψτ(u) := ue−τ
+2 u2.
+By symmetry of εi we have E[ψτ(εi)] = 0, hence each coordinate [ ∇Lτ(β∗) ]j = −1
+n
+Pn
+i=1 Zij with
+Zij := ψτ(εi)xij mean zero and bounded: |Zij| ≤KBτ where Bτ = 1/√eτ. Further, Var(Zij) ≤
+E[Z2
+ij] ≤K2B2
+τ.
+Apply Bernstein’s inequality coordinatewise: for any t > 0,
+P
+[∇Lτ(β∗)]j
+ ≥t
+
+≤2 exp
+
+−
+nt2/2
+K2B2τ + (KBτ)t/3
+
+.
+Set t = t0 := BτK
+q
+2 log(2p/δ)
+n
+. For this choice the denominator satisﬁes K2B2
+τ + (KBτ)t0/3 ≤
+2K2B2
+τ (for n large enough; more generally the exact Bernstein algebra yields the same type of
+bound). Hence
+P
+[∇Lτ(β∗)]j
+ ≥t0
+
+≤δ
+p.
+By union bound over j = 1, . . . , p, with probability at least 1 −δ,
+∥∇Lτ(β∗)∥∞≤t0 = BτK
+r
+2 log(2p/δ)
+n
+.
+Therefore with the choice λ in (4) we have ∥∇Lτ(β∗)∥∞≤λ/4.
+Step D — Combine LRSC and stochastic control to get the rate.
+From (11) and (12),
+⟨∇Lτ(β∗), ∆⟩+ κ∥∆∥2
+2 ≤λ(∥∆S∥1 −∥∆Sc∥1).
+Use |⟨∇Lτ(β∗), ∆⟩| ≤∥∇Lτ(β∗)∥∞∥∆∥1 ≤(λ/4)∥∆∥1 to get
+κ∥∆∥2
+2 ≤λ
+ ∥∆S∥1 −∥∆Sc∥1
+
++ λ
+4 ∥∆∥1 = 5λ
+4 ∥∆S∥1 −3λ
+4 ∥∆Sc∥1.
+Discard the negative term and apply ∥∆S∥1 ≤√s∥∆∥2:
+κ∥∆∥2
+2 ≤5λ
+4
+√s∥∆∥2
+=⇒
+∥∆∥2 ≤5λ√s
+4κ
+≤12λ√s
+κ
+,
+where the last inequality is numeric (one may sharpen constants; we keep a conservative factor 12
+to account for small-sample Bernstein second-order terms). The bound on ℓ1-error follows from the
+cone relation: ∥∆Sc∥1 ≤3∥∆S∥1, which implies ∥∆∥1 ≤4∥∆S∥1 ≤4√s∥∆∥2.
+Step E — Probability union.
+The two high-probability events used are:
+• gradient sup-norm event: probability at least 1 −δ;
+• good indices proportion event: probability at least 1 −exp(−np2
+0/8).
+21
+
+
+Union bound gives the claimed probability 1 −δ −exp(−np2
+0/8). (We wrote 1 −δ −2 exp(−np2
+0/8)
+in the theorem to be conservative in accounting for other small-probability concentration steps; the
+constants may be tightened.)
+This completes the proof of Theorem 1.
+Proof of Theorem 2. Point (i): By construction of the majorizer, for any β,
+L(β) ≤Q(t)(β) −λ∥β∥1 + C(t).
+Because Q(t)(·) coincides with L(·) + λ∥· ∥1 at β = β(t) (the majorizer is tight at the expansion
+point), we have Q(t)(β(t)) = F(β(t)). Let β(t+1) be the minimizer of Q(t). Then
+F(β(t+1)) ≤Q(t)(β(t+1)) ≤Q(t)(β(t)) = F(β(t)).
+The ﬁrst inequality follows from L(·) ≤surrogate −C(t); the second because β(t+1) minimizes Q(t).
+This proves the descent property.
+Point (ii): Since ℓi(β) ≥0 for all i and λ∥β∥1 ≥0, we have F(β) ≥0. From point (i) the
+nonincreasing bounded-below sequence F(β(t)) converges to some ﬁnite limit F ⋆≥0.
+Point (iii): Because F(β(t)) ≤F(β(0)) for all t, all iterates belong to the sublevel set {β : F(β) ≤
+F(β(0))}. If λ > 0, then ∥β∥1 ≤F(β(0))/λ on this sublevel set, which implies boundedness. If λ = 0
+and X has full column rank, then the loss L(β) is coercive (grows at least quadratically) and hence
+the sublevel set is bounded. Thus under these mild alternatives the iterates are bounded.
+Proof of Theorem 3. Let β(tk) →β⋆be any convergent subsequence; such subsequences exist
+because {β(t)} is bounded. Denote by ˜v(t)
+i
+= exp(−τ
+2 ri(β(t))2) the weights used in the surrogate at
+step t. Because the mapping β 7→˜vi(β) is continuous, ˜v(tk)
+i
+→˜v⋆
+i := exp(−τ
+2ri(β⋆)2) as k →∞for
+each i.
+By the optimality of β(tk+1) for the convex surrogate Q(tk) we have the KKT condition for the
+weighted Lasso:
+0 ∈−1
+nX⊤  ˜V (tk)(y −Xβ(tk+1))
+
++ λ∂∥β(tk+1)∥1,
+(13)
+where ˜V (tk) = diag(˜v(tk)
+1
+, . . . , ˜v(tk)
+n
+). Rearranging,
+1
+nX⊤˜V (tk)(y −Xβ(tk+1)) ∈λ∂∥β(tk+1)∥1.
+Because β(tk+1) and ˜V (tk) are bounded and the functions are continuous, passing to the limit
+along the subsequence yields
+1
+nX⊤˜V ⋆(y −Xβ⋆) ∈λ∂∥β⋆∥1.
+It remains to show that the limiting left-hand side equals ∇L(β⋆). Direct diﬀerentiation of L(β)
+gives
+∇L(β) = −1
+n
+n
+X
+i=1
+exp
+
+−τ
+2 ri(β)2
+xiri(β) = −1
+nX⊤ ˜V (β)(y −Xβ)
+
+,
+so indeed
+−∇L(β⋆) = 1
+nX⊤˜V ⋆(y −Xβ⋆).
+Combining with the limit KKT condition gives 0 ∈∇L(β⋆) + λ∂∥β⋆∥1, i.e. β⋆is stationary for
+F.
+22
+
+
+References
+[1] Alfons, A. (2021). robustHD: An R package for robust regression with high-dimensional data.
+Journal of Open Source Software, 6(67):3786.
+[2] Bellec, P. C., Lecu´e, G., and Tsybakov, A. B. (2018). Slope meets lasso: improved oracle bounds
+and optimality. The Annals of Statistics, 46(6B):3603–3642.
+[3] B¨uhlmann, P. and Van De Geer, S. (2011). Statistics for high-dimensional data: methods, theory
+and applications. Springer Science & Business Media.
+[4] Bunea, F., Tsybakov, A., and Wegkamp, M. (2007). Sparsity oracle inequalities for the lasso.
+Electronic Journal of Statistics, 1:169–194.
+[5] Chang, L., Roberts, S., and Welsh, A. (2018). Robust lasso regression using Tukey’s biweight
+criterion. Technometrics, 60(1):36–47.
+[6] Chiang, A. P., Beck, J. S., Yen, H.-J., Tayeh, M. K., Scheetz, T. E., Swiderski, R. E., Nishimura,
+D. Y., Braun, T. A., Kim, K.-Y. A., Huang, J., et al. (2006). Homozygosity mapping with SNP
+arrays identiﬁes TRIM32, an E3 ubiquitin ligase, as a Bardet–Biedl syndrome gene (BBS11).
+Proceedings of the National Academy of Sciences, 103(16):6287–6292.
+[7] Donoho, D. L. and Johnstone, I. M. (1994). Ideal spatial adaptation by wavelet shrinkage.
+biometrika, 81(3):425–455.
+[8] Friedman, J., Hastie, T., and Tibshirani, R. (2010). Regularization Paths for Generalized Linear
+Models via Coordinate Descent. Journal of Statistical Software, 33(1):1–22.
+[9] Giraud, C. (2021). Introduction to high-dimensional statistics. Chapman and Hall/CRC.
+[10] Hampel, F. R. (1974). The inﬂuence curve and its role in robust estimation. Journal of the
+american statistical association, 69(346):383–393.
+[11] Hastie, T., Tibshirani, R., Friedman, J. H., and Friedman, J. H. (2009). The elements of
+statistical learning: data mining, inference, and prediction, volume 2. Springer.
+[12] He, R., Hu, B.-G., Zheng, W.-S., and Kong, X.-W. (2011).
+Robust principal component
+analysis based on maximum correntropy criterion.
+IEEE Transactions on Image Processing,
+20(6):1485–1494.
+[13] Huang, J., Horowitz, J. L., and Wei, F. (2010). Variable selection in nonparametric additive
+models. Annals of statistics, 38(4):2282.
+[14] Iqbal, A. and Seghouane, A.-K. (2019). An alpha-divergence-based approach for robust dic-
+tionary learning. IEEE Transactions on Image Processing, 28(11):5729–5739.
+[15] Lecu´e, G. and Lerasle, M. (2020). Robust machine learning by median-of-means: theory and
+practice. The Annals of Statistics, 48(2):906–931.
+[16] Liu, W., Pokharel, P. P., and Principe, J. C. (2007). Correntropy: Properties and applications
+in non-gaussian signal processing. IEEE Transactions on signal processing, 55(11):5286–5298.
+23
+
+
+[17] Loh, P.-L. (2017). Statistical consistency and asymptotic normality for high-dimensional robust
+M-estimators. The Annals of Statistics, 45(2):866.
+[18] Loh, P.-L. (2021). Scale calibration for high-dimensional robust regression. Electronic Journal
+of Statistics, 15(2):5933–5994.
+[19] Loh, P.-L. (2024). A theoretical review of modern robust statistics. Annual Review of Statistics
+and Its Application, 12.
+[20] Lounici, K. (2008). Sup-norm convergence rate and sign concentration property of Lasso and
+Dantzig estimators. Electronic Journal of Statistics, 2:90–102.
+[21] Mai, T. T. (2025a). A sparse PAC-Bayesian approach for high-dimensional quantile prediction.
+Statistics and Computing, 35(4):93.
+[22] Mai, T. T. (2025b). Heavy Lasso: sparse penalized regression under heavy-tailed noise via
+data-augmented soft-thresholding. arXiv preprint arXiv:2506.07790.
+[23] Reinhold, W. C., Sunshine, M., Liu, H., Varma, S., Kohn, K. W., Morris, J., Doroshow, J., and
+Pommier, Y. (2012). Cellminer: a web-based suite of genomic and pharmacologic tools to explore
+transcript and drug patterns in the nci-60 cell line set. Cancer research, 72(14):3499–3511.
+[24] Rejchel, W. and Bogdan, M. (2020). Rank-based lasso-eﬃcient methods for high-dimensional
+robust model selection. Journal of Machine Learning Research, 21(244):1–47.
+[25] Rekavandi, A. M., Seghouane, A.-K., and Evans, R. J. (2021). Robust subspace detectors
+based on α-divergence with application to detection in imaging. IEEE Transactions on Image
+Processing, 30:5017–5031.
+[26] Sardy, S., Tseng, P., and Bruce, A. (2001). Robust wavelet denoising. IEEE transactions on
+signal processing, 49(6):1146–1152.
+[27] Scheetz, T. E., Kim, K.-Y. A., Swiderski, R. E., Philp, A. R., Braun, T. A., Knudtson, K. L.,
+Dorrance, A. M., DiBona, G. F., Huang, J., Casavant, T. L., et al. (2006). Regulation of gene
+expression in the mammalian eye and its relevance to eye disease. Proceedings of the National
+Academy of Sciences, 103(39):14429–14434.
+[28] Smucler, E. and Yohai, V. J. (2017). Robust and sparse estimators for linear regression models.
+Computational Statistics & Data Analysis, 111:116–130.
+[29] Song, Y., Liang, X., Zhu, Y., and Lin, L. (2021). Robust variable selection with exponential
+squared loss for the spatial autoregressive model. Computational Statistics & Data Analysis,
+155:107094.
+[30] Tibshirani, R. (1996). Regression shrinkage and selection via the lasso. Journal of the Royal
+Statistical Society Series B: Statistical Methodology, 58(1):267–288.
+[31] Wang, H., Li, G., and Jiang, G. (2007). Robust regression shrinkage and consistent variable
+selection through the lad-lasso. Journal of Business & Economic Statistics, 25(3):347–355.
+24
+
+
+[32] Wang, L., Peng, B., Bradic, J., Li, R., and Wu, Y. (2020). A tuning-free robust and eﬃ-
+cient approach to high-dimensional regression. Journal of the American Statistical Association,
+115(532):1700–1714.
+[33] Wang, X., Jiang, Y., Huang, M., and Zhang, H. (2013). Robust variable selection with expo-
+nential squared loss. Journal of the American Statistical Association, 108(502):632–643.
+[34] Wang, X., Shao, J., Wu, J., and Zhao, Q. (2023). Robust variable selection with exponential
+squared loss for partially linear spatial autoregressive models. Annals of the Institute of Statistical
+Mathematics, 75(6):949–977.
+[35] Yi, C. and Huang, J. (2017). Semismooth newton coordinate descent algorithm for elastic-net
+penalized huber loss regression and quantile regression. Journal of Computational and Graphical
+Statistics, 26(3):547–557.
+[36] Zhao, P. and Yu, B. (2006). On model selection consistency of lasso. Journal of Machine
+learning research, 7(Nov):2541–2563.
+[37] Zhu, J., Wang, X., Hu, L., Huang, J., Jiang, K., Zhang, Y., Lin, S., and Zhu, J. (2022). abess:
+a fast best-subset selection library in python and R. Journal of Machine Learning Research,
+23(202):1–7.
+[38] Zou, H. (2006). The adaptive lasso and its oracle properties. Journal of the American statistical
+association, 101(476):1418–1429.
+25

@@ -1,0 +1,1592 @@
+FlashMesh: Faster and Better Autoregressive Mesh Synthesis
+via Structured Speculation
+Tingrui Shen*
+South China University of Technology
+Yiheng Zhang*
+Tsinghua University
+Chen Tang*
+South China University of Technology
+Chuan Ping
+Zhejiang University
+Zixing Zhao
+Tencent VISVISE
+Le Wan
+Tencent VISVISE
+Yuwang Wang
+Tsinghua University
+Ronggang Wang
+Peking University
+Shengfeng He†
+Singapore Management University
+Meshtron
+Ours
+Better
+2x Speed-up
+with
+Better Quality
+CD  0.092
+TPS 67.3 
+CD  0.089
+TPS 136.6 
+Figure 1. We propose FlashMesh, an efficient and high-quality autoregressive mesh generation framework. Compared to the baseline
+Meshtron, FlashMesh produces visually superior results with 2× faster inference. Quantitative comparisons on the right, using Chamfer
+Distance (CD) and Tokens per Second (TPS), show consistent improvements over multiple baselines.
+Abstract
+Autoregressive models can generate high-quality 3D
+meshes by sequentially producing vertices and faces, but
+their token-by-token decoding results in slow inference, lim-
+iting practical use in interactive and large-scale applica-
+tions. We present FlashMesh, a fast and high-fidelity mesh
+generation framework that rethinks autoregressive decod-
+ing through a predict-correct-verify paradigm. The key in-
+sight is that mesh tokens exhibit strong structural and geo-
+metric correlations that enable confident multi-token specu-
+lation. FlashMesh leverages this by introducing a specula-
+tive decoding scheme tailored to the commonly used hour-
+*Equal Contribution
+†Corresponding author: shengfenghe@smu.edu.sg
+glass transformer architecture, enabling parallel prediction
+across face, point, and coordinate levels. Extensive exper-
+iments show that FlashMesh achieves up to a 2× speedup
+over standard autoregressive models while also improving
+generation fidelity. Our results demonstrate that structural
+priors in mesh data can be systematically harnessed to ac-
+celerate and enhance autoregressive generation.
+1. Introduction
+High-quality 3D mesh generation is a fundamental task in
+virtual reality [1, 20], gaming [8], and digital content cre-
+ation [5, 13]. Meshes offer a compact, editable represen-
+tation of geometry, supporting fine surface detail, efficient
+rendering, and direct topological control. Unlike dense for-
+1
+arXiv:2511.15618v1  [cs.CV]  19 Nov 2025
+
+
+mats such as voxels [22, 33] or implicit fields [7, 9], meshes
+represent surfaces explicitly through vertices and faces,
+making them well-suited for high-fidelity and resource-
+efficient applications. As a result, learning-based mesh gen-
+eration has become an increasingly important focus within
+3D vision and graphics.
+Recent autoregressive models [4, 16, 23, 29, 31] have
+shown promising results by generating mesh elements (e.g.,
+vertices, faces, and coordinates) token by token, capturing
+complex topology and geometric structure with high accu-
+racy. However, their strictly sequential decoding process
+creates a fundamental bottleneck: each token must be pre-
+dicted before the next can be generated, leading to long in-
+ference times. This inefficiency severely limits their usabil-
+ity in interactive scenarios or large-scale pipelines where
+speed is critical.
+To overcome this bottleneck, we revisit the decoding
+process itself. Speculative decoding strategies [11, 17] in
+large language models provide a promising direction: a
+lightweight draft model predicts multiple tokens in paral-
+lel, and a main model verifies them. Adapting this idea
+to mesh generation, however, is far from straightforward.
+Mesh data are not flat sequences but hierarchical structures
+composed of faces, vertices, and coordinates, each with
+strong geometric and topological dependencies. Moreover,
+modern mesh generation models typically use Hourglass
+Transformer architectures that compress and expand these
+hierarchical features, which differ fundamentally from the
+flat transformer decoders used in text models. These ar-
+chitectural and structural differences imply that speculative
+decoding must be redesigned to align with the unique prop-
+erties of mesh representations.
+Guided by this observation, we propose FlashMesh, a
+fast and high-quality autoregressive mesh generation frame-
+work based on a predict-correct-verify paradigm. The core
+rationale of FlashMesh is that hierarchical mesh data con-
+tains predictable structural patterns that allow the model to
+confidently speculate multiple future tokens, provided that
+the speculative process respects geometric consistency and
+the architecture’s feature hierarchy. FlashMesh operational-
+izes this idea through three coordinated components.
+In the predict stage, we introduce a speculative decod-
+ing strategy tailored to the hourglass architecture.
+Two
+lightweight modules, the SP-Block and HF-Block, exploit
+hierarchical feature compression to generate multiple fu-
+ture tokens in parallel. The SP-Block predicts future tokens
+from current-layer features, and the HF-Block incorporates
+information from coarser levels to refine these predictions
+and maintain hierarchical coherence.
+In the correct stage, we incorporate mesh-specific struc-
+tural priors to resolve inconsistencies that arise from spec-
+ulative prediction. A correction algorithm enforces vertex-
+sharing consistency among adjacent faces and adjusts geo-
+metrically incoherent coordinate predictions.
+In the verify stage, the backbone network evaluates cor-
+rected tokens in a single forward pass, ensuring that the fi-
+nal outputs remain faithful to the underlying autoregressive
+model.
+Through this design, FlashMesh enables parallel gener-
+ation of multiple tokens per step while preserving the fi-
+delity advantages of autoregressive modeling. The frame-
+work leverages structural constraints rather than ignoring
+them, which leads to both faster inference and improved
+geometric and topological quality (see Fig. 1). FlashMesh
+represents a principled step toward scalable and accessible
+3D mesh generation.
+In summary, our contributions are fourfold:
+• We introduce FlashMesh, a novel autoregressive mesh
+generation framework based on a predict-correct-verify
+paradigm for efficient and high-quality synthesis.
+• We propose a hierarchical speculative decoding strategy
+tailored to Hourglass Transformers, enabling parallel to-
+ken prediction across face, point, and coordinate levels.
+• We develop a structure-aware correction module that
+enforces vertex-sharing consistency by leveraging mesh
+connectivity priors.
+• Extensive experiments show that FlashMesh achieves up
+to a 2× speedup over baselines while improving gen-
+eration fidelity, advancing efficient autoregressive mesh
+modeling.
+2. Related work
+Autoregressive Mesh Generation.
+Autoregressive mod-
+els have recently shown strong performance in mesh gener-
+ation by modeling the sequential distribution of faces, ver-
+tices, and coordinates directly from handcrafted datasets.
+Meshtron [12] introduced an Hourglass Transformer that
+factorizes the generation process into hierarchical face, ver-
+tex, and coordinate streams.
+Building on this founda-
+tion, DeepMesh [32] and Mesh-RFT [18] adopt reinforce-
+ment learning to enhance generation quality. ARMesh [15]
+and VertexRegen [31] generate meshes in a partial-to-
+complete manner.
+Other methods such as BPT [30],
+TreeMeshGPT [16], MeshAnything v2 [6], EdgeRun-
+ner [27], and MeshSilksong [24] propose various token
+compression techniques to reduce sequence length. Despite
+these advances, the sequential nature of autoregressive de-
+coding remains a bottleneck. Since each token depends on
+the previous context, inference becomes slow, limiting de-
+ployment in large-scale applications. Addressing this limi-
+tation requires rethinking the decoding process itself.
+Efficient Decoding in Autoregressive Models.
+To ac-
+celerate autoregressive inference, recent work in language
+modeling has explored speculative and Jacobi-style decod-
+2
+
+
+SP-Block
+Cache
+HF-Block
+LH
+Label s
+Label (s+1) . . .
+Predict
+in
+Parallel
+Current
+Split Node
+n-1
+n
+Cache
+n+1
+n+2
+n+d+1
+n+1
+n+2
+n+d+1
+n+1
+n+2
+n+d+1
+n+2
+n+3
+n+d+2
+n+3
+n+d+2
+n+4
+n+d+3
+n+d+3
+n+2d+2
+Next Iteration
+Verify
+SP Block
+Correct
+Accept
+HF Block
+Transformer
+Up/Down
+Sampling
+Label Head
+Main
+Token
+Draft
+Token
+Verify
+Hourglass
+Transformer
+...
+Previous
+Token
+...
+Figure 2. Overall architecture of the proposed predict-correct-verify framework. Predict: the original Hourglass Transformer generates
+main tokens, while the lightweight SP-Block and HF-Block parallelly produce draft tokens. Correct: a correction mechanism enforces
+vertex-sharing consistency. Verify: the backbone re-evaluates main and corrected draft tokens in a single forward pass and accepts the
+verified ones. Bottom right: Point-level pipeline of multi-layer multi-head speculative decoding.
+ing. Speculative decoding [3, 19, 25] uses a lightweight
+draft model to propose multiple tokens in parallel, followed
+by verification through a stronger main model.
+Jacobi-
+based approaches [10, 14, 21, 28] generate multiple tokens
+simultaneously and iteratively refine them for consistency.
+In mesh generation, Iflame [29] proposes an interleaved de-
+coding scheme, while XSpecMesh [4] applies speculative
+decoding with LoRA-tuned draft models. These methods
+primarily focus on speed and often sacrifice geometric fi-
+delity or structural consistency. Addressing these limita-
+tions, FlashMesh builds on speculative decoding by intro-
+ducing a predict–correct–verify paradigm designed specifi-
+cally for hierarchical mesh representations. It incorporates
+structure-aware correction and token verification aligned
+with the hourglass architecture, enabling parallel decoding
+with better mesh quality.
+3. Predict–Correct–Verify Paradigm
+Autoregressive models are capable of generating high-
+quality meshes, yet their strictly sequential token-by-token
+inference severely limits generation speed. To overcome
+this bottleneck, we propose an efficient and high-quality
+predict–correct–verify framework for accelerating autore-
+gressive mesh generation. This framework unifies parallel
+prediction and autoregressive precision by predicting mul-
+tiple future tokens, correcting local geometric inconsisten-
+cies, and verifying the results progressively through the
+backbone network. Our overall architecture is illustrated
+in Fig. 2.
+Specifically, the Predict stage (see Sec. 3.1) employs
+a Multi-Layer Multi-Head Speculative Decoding structure
+to predict multiple future tokens in parallel. In this stage,
+the backbone network (the original Hourglass Transformer)
+predicts the next token, referred to as the main token, while
+our proposed SP-Block and HF-Block collaboratively pre-
+dict multiple subsequent draft tokens in parallel. Subse-
+quently, the Correct stage (see Sec. 3.2) performs point-
+level label prediction and geometric correction to ensure
+the local topological consistency of the simultaneously gen-
+erated faces and vertices.
+Finally, the Verify stage (see
+Sec. 3.3) adopts a speculative decoding strategy, enabling
+the backbone to verify multiple draft tokens within a single
+forward pass, automatically discarding inconsistent predic-
+tions and significantly accelerating inference while enhanc-
+ing generation quality.
+Through the collaboration of these three stages, the pre-
+dict–correct–verify framework achieves substantial gener-
+ation acceleration while improving both efficiency and fi-
+delity. This paradigm not only reduces redundant autore-
+gressive computation but also provides a new pathway to-
+ward efficient parallel generation of high-dimensional geo-
+metric structures.
+3.1. Multi-Layer Multi-Head Speculative Decoding
+Building upon this paradigm, we introduce the multi-layer
+multi-head speculative decoding framework, which serves
+3
+
+
+as the core of the predict stage. It is designed to accelerate
+autoregressive mesh generation by predicting multiple fu-
+ture tokens in parallel. Our design is based on an hourglass-
+style hierarchical decoder, which organizes mesh tokens
+across three levels—faces, vertices, and coordinates. The
+decoder first compresses coordinate-level embeddings into
+higher-level vertex and face embeddings to capture global
+geometry, and then progressively upsamples them back to
+low-level finer resolutions to recover local details. During
+this upsampling process, each transition node between lev-
+els (called split nodes) expands coarse features into finer-
+grained mesh representations.
+When the backbone reaches a split node, the SP-Block
+performs speculative prediction for the corresponding hier-
+archical features in parallel. The HF-Block then receives
+speculative hidden states from the upper level and inter-
+acts with the cached key–value states of the current layer.
+Through this hierarchical fusion, it integrates high-level
+structural cues with local context to produce the final fea-
+tures of the current layer. As illustrated in the bottom right
+of Fig. 2, we visualize a representative speculative decod-
+ing process that begins from the point-level split nodes.
+The original point features are processed by the SP-Block
+and then upsampled to obtain the predicted coordinate-level
+features, which are subsequently refined by the HF-Block
+to produce the final features.
+Similarly, speculative de-
+coding from face-level split nodes passes through one SP-
+Block followed by two HF-Blocks to generate the final
+features, while speculative decoding from coordinate-level
+split nodes directly applies a single SP-Block to obtain the
+final features.
+Each input coordinate token is processed by the back-
+bone network to generate a main token, and by three levels
+of SP-Blocks and HF-Blocks to produce multiple draft to-
+kens. Specifically, given an input token xn at position n, the
+backbone network outputs the main token xn+1, represent-
+ing the predicted value of the next token. Meanwhile, the
+three levels of SP-Blocks and HF-Blocks simultaneously
+generate several draft token xn+2:n+D+1 representing the
+predicted value for positions n+2 through n+D+1, where
+D denotes the number of the predicted draft tokens. Due to
+space limitations, we provide the detailed information about
+multi-layer multi-head speculative decoding (i.e. definition
+of the split node and the speculative decoding processes for
+the three levels) in the supplementary material.
+Speculative Prediction Block. The speculative predic-
+tion block (SP-Block) is composed of multiple Transformer
+layers. Specifically, as illustrated in Fig. 3 (a), the main
+backbone network preceding the SP-Block consists of N−1
+transformer blocks, each containing a self-attention layer, a
+cross-attention layer for injecting the generation condition
+c, and a feed-forward network. Let s denote the current to-
+ken position, and define the input hidden state of the first
+Figure 3. (a) The Speculative Prediction Block (SP-Block) pre-
+dicts multiple draft tokens in parallel from the current hidden state.
+(b) The Hierarchical Fusion Block (HF-Block) refines speculative
+embeddings by fusing them with cached local context for accurate
+token prediction.
+layer as h(0)
+s
+= Emb(xs), where Emb(·) denotes the to-
+ken embedding function and xs means the token at the po-
+sition s. For each layer l = 1, 2, . . . , N −1, the output
+hidden state is computed as h(l)
+s
+= Block(l)(h(l−1)
+s
+, c), and
+we denote the hidden state after the (N −1)-th layer as
+hs = h(N−1)
+s
+. The backbone model then continues through
+the N-th layer to produce the final hidden state h(N)
+s
+. The
+SP-Block takes hs as input and processes it through D
+parameter-independent transformer blocks, where the d-th
+decoding head predicts the token features at position s + d
+as
+h(d)
+s+d = Linear
+ CA(d)(SA(d)(hs), c)
+
++ hs,
+(1)
+where SA(d) and CA(d) denote the self-attention and cross-
+attention operations in the d-th speculative prediction block,
+respectively.
+Hierarchical Fusion Block. After speculative predic-
+tion by the SP-Block, the outputs h(d)
+s+d remain high-level
+representations and must interact with local, low-level con-
+text to yield accurate token predictions. To this end, we first
+convert each speculative high-level features into a short se-
+quence of lower-level features via an upsampling module:
+
+h(3d)′
+s+3d, h(3d+1)′
+s+3d+1, h(3d+2)′
+s+3d+2
+
+= Upsample
+ h(d)
+s+d
+
+,
+(2)
+4
+
+
+Figure 4. Example of vertex misalignment in parallel face genera-
+tion and our correction mechanism.
+where Upsample(·) denotes the hourglass-style operator
+that expands a single high-level features into multiple finer-
+grained token features.
+We then apply the Hierarchical Fusion Block (HF-
+Block) to let these upsampled features interact with current-
+layer key–value cache. Specifically, as shown in Fig. 3 (b),
+for each upsampled features h(t)′
+s+t (where t ∈{3d, 3d +
+1, 3d + 2}), we compute a query and retrieve the shared
+cached keys and values:
+Q(t)
+s+t = W (t)
+q
+h(t)′
+s+t,
+(3)
+K<s = Wk Xk
+<s,
+V<s = Wv Xv
+<s,
+(4)
+where W (t)
+q
+is a layer-specific query projection for position
+t, while Wk and Wv are shared linear projections applied to
+the kv-cache sequence Xk
+<s and Xv
+<s of prior token features
+produced by main backbone network.
+Finally, the HF-Block produces the refined low-level fea-
+tures by applying an attention, an output projection, and a
+residual connection to the upsampled input:
+˜h(t)
+s+t = h(t)′
+s+t + FFN(t)
+Attn
+ Q(t)
+s+t, K<s, V<s
+
+,
+(5)
+where FFN(t)(·) denotes a feed-forward network for posi-
+tion t.
+Loss Function. The coordinate prediction loss is defined
+as the average cross-entropy between the predicted token
+(i.e. main tokens and draft tokens) distributions and ground-
+truth tokensdistributions:
+Lcoord = −1
+Nc
+Nc
+X
+t=1
+log pt(xt),
+(6)
+where Nc means the total number of the predicted tokens
+and pt(xt) denotes the predicted probability of the ground-
+truth token xt at position t.
+3.2. Correction Mechanism
+When the model generates multiple faces in parallel, a fun-
+damental issue arises: when one face is being generated,
+the exact coordinates of the other faces within the same
+batch are still unknown. As a result, adjacent faces that
+should share common vertices may instead produce mis-
+aligned points.
+As shown in Fig. 4, the blue triangles denote previously
+generated faces, while the red ones represent the newly gen-
+erated batch. Here, vertex 8 should coincide with vertex 6,
+and vertex 9 with vertex 3, but they are displaced.
+To mitigate this issue, we attach a label head (i.e.
+a
+linear layer) after each point-level feature (see the bottom
+right of Fig. 2) to classify every generated point into three
+categories: (1) historical points—coinciding with vertices
+generated in the previous batch; (2) new points—novel spa-
+tial positions; and (3) intra-batch points—duplicating new
+points generated earlier within the same batch.
+For each intra-batch point, we first check for overlaps
+with other vertices in the same batch. If none are found,
+we duplicate the nearest new point outside the current trian-
+gle to ensure local geometric consistency. Finally, vertices
+are re-sorted along the z–y–x axes to maintain the required
+autoregressive ordering. All these correction operations are
+applied only to the draft tokens, without modifying the main
+tokens. As illustrated in Fig. 4, points 8 and 9 are corrected
+by duplicating points 6 and 3, respectively, followed by re-
+ordering according to their z-y-x coordinates.
+The label prediction head is supervised by a standard
+cross-entropy loss that encourages accurate classification of
+each point into the three categories described above. For-
+mally, the label loss is defined as
+Llabel = −1
+Np
+Np
+X
+t=1
+log pt(yt),
+(7)
+where Np means the total number of predicted label and
+pt(yt) denotes the predicted probability of the ground-truth
+label yt for the t-th point.
+The overall training objective combines the coordinate
+prediction loss and the label classification loss as
+Ltotal = Lcoord + γLlabel,
+(8)
+where γ is a balancing weight that controls the contribution
+of the label supervision.
+3.3. Verify Mechanism
+After generating the next D+1 tokens from position s using
+the backbone network, SP-Block and HF-Block, followed
+by the correction step, a straightforward approach would
+be to append these tokens to the existing sequence and con-
+tinue prediction from position s+D+1. However, due to the
+potential inaccuracy of the draft tokens, this strategy may
+degrade the overall sequence quality. To address this issue,
+we follow speculative decoding strategy [11] from large lan-
+guage field, which enables the backbone model to verify
+multiple predicted tokens within a single forward pass.
+5
+
+
+Figure 5. Example of the verify mechanism with D = 2. The
+backbone verifies draft tokens in parallel, accepts consistent to-
+kens up to S∗, and reprocesses the subsequent segment.
+Specifically, let s denote the position of the most recently
+accepted token. In the previous forward pass, the backbone
+predicted main token xs+1, while the SP-Block and HF-
+Block simultaneously predicted draft tokens xs+2:s+D+1.
+After applying the correction step, these tokens are fed into
+the next forward pass, where the backbone performs causal
+masking over xs+1:s+D+1 to obtain x′
+s+2:s+D+2.
+Since
+main token xs+1 was generated by the backbone itself, we
+directly accept this token. We then compare xs+2:s+D+1
+with x′
+s+2:s+D+1 to identify the latest match, denoted as
+xs∗, and accept all tokens up to and including xs∗. Sub-
+sequently, the main token xs∗+1 together with the corre-
+sponding D draft tokens xs∗+2:s∗+D+1 are corrected and
+fed into the next forward pass. We illustrate our verification
+mechanism in Fig. 5, where D = 2 is used for clarity of
+presentation.
+4. Experiments
+4.1. Experiment Settings
+Datasets.
+The model is trained on a mixture of
+ShapeNetV2 [2], Toys4K [26], and internal data licensed
+from 3D content providers, comprising approximately
+100K meshes without manual selection. Meshes with face
+lengths greater than 10,000 are filtered out. For evaluation,
+we select 500 meshes from ShapeNetV2 (excluded from the
+training set) and 500 meshes from gObjaverse [34] as the
+test dataset.
+Metrics.
+We evaluate our method using four metrics:
+Bounding Box IoU (bbox IoU), Chamfer Distance (CD),
+Hausdorff Distance (HD), Tokens per Second (TPS) and
+Speed-up.
+BBox IoU measures the overlap between the
+bounding boxes of generated and ground-truth meshes, re-
+flecting global spatial consistency. CD and HD are com-
+puted from 5,000 uniformly sampled surface points of both
+meshes, quantifying overall geometric similarity and local
+reconstruction accuracy, respectively. TPS reflects the gen-
+eration efficiency, defined as the total number of generated
+tokens divided by the total generation seconds, measured
+Table 1. Quantitative comparison of mesh generation methods.
+FlashMesh (Ours) achieves the best trade-off between quality (CD,
+HD, BBox-IoU), efficiency (TPS) and Speed-up. All results are
+measured on the H20 GPU.
+Method
+Param. (B)
+CD ↓
+HD ↓
+BBox-IoU ↑
+TPS ↑
+Speed-up ↑
+BPT [30]
+0.7
+0.128
+0.280
+0.894
+29.1
+-
+DeepMesh [32]
+0.5
+0.139
+0.297
+0.870
+40.6
+-
+Mesh-RFT [18]
+1.1
+0.114
+0.254
+0.912
+95.5
+-
+Meshtron (1B) [12]
+1.1
+0.121
+0.269
+0.901
+98.6
+-
+Meshtron (2B) [12]
+2.3
+0.092
+0.206
+0.942
+67.3
+-
+Ours (Mesh-RFT)
+1.6
+0.114
+0.252
+0.913
+179.2
+× 1.87
+Ours (Meshtron 1B)
+1.6
+0.120
+0.267
+0.905
+180.4
+× 1.83
+Ours (Meshtron 2B)
+3.4
+0.089
+0.198
+0.949
+136.6
+× 2.03
+on an NVIDIA H20 GPU. Finally, we computed the actual
+speedup ratio (Speed-up) based on TPS.
+Baselines. We compare our method against four state-of-
+the-art autoregressive mesh generation models: BPT [30],
+DeepMesh [32], Mesh-RFT [18], and Meshtron [12]. Since
+DeepMesh has only released a 0.5B-parameter configura-
+tion, we use this version for evaluation. In addition, because
+Mesh-RFT is not publicly available, we reproduce only its
+Hourglass Transformer architecture without including the
+M-DPO component.
+Implementary details.
+All experiments are conducted
+on 16 NVIDIA H20 GPUs.
+FlashMesh is implemented
+based on the Hourglass Transformer architecture with layer
+configuration 4–8–12.
+We train four variants with dif-
+ferent capacities: FlashMesh (Meshtron-0.5B) uses a hid-
+den size of 768 and a window size of 18K, trained for
+3 days; FlashMesh (Meshtron-1B) increases the hidden
+size to 1536 and is trained for 5 days; FlashMesh (Mesh-
+RFT) further scales window size to 36k, trained for 5 days;
+FlashMesh (Meshtron-2B) further scales the hidden size
+to 2048, trained for 10 days. The learning rate is set to
+8×10−5. During speculative decoding, each face-level step
+predicts 18 tokens and each point-level step predicts 15 to-
+kens. The loss balancing factor γ is set to 0.3. Additional
+implementation and optimization details are provided in the
+supplementary material.
+4.2. Quantitative Results
+Tab. 1 reports the quantitative comparison. We first com-
+pare with two methods, BPT and DeepMesh. We do not in-
+tegrate our framework to BPT or DeepMesh since both em-
+ploy token compression techniques that are not compatible
+with our framework, and such compression also contributes
+to their lower generation quality. We also experiment with
+two hourglass-transformer–based methods, Meshtron and
+Mesh-RFT. We integrate our framework into both baselines:
+“Ours (Meshtron)” denotes FlashMesh built on Meshtron,
+and “Ours (Mesh-RFT)” denotes FlashMesh built on Mesh-
+RFT. For completeness, we report Mesh-RFT results as well
+as Meshtron results for both the 1B and 2B configurations.
+The results show that FlashMesh achieves substantial run-
+6
+
+
+Original Mesh
+Ours
+BPT
+DeepMesh
+Point Cloud
+Meshtron
+Original Mesh
+Ours
+BPT
+DeepMesh
+Point Cloud
+Mesh-RFT
+Figure 6. Qualitative comparison of mesh generation results. We compare FlashMesh against baseline methods including BPT and
+DeepMesh. Besides, in the top three samples, we also show the results of Ours (Meshtron-2B) and Meshtron-2B, while in the bottom three
+samples, we also present Ours (Mesh-RFT) and Mesh-RFT. Our method, FlashMesh, achieving high geometric fidelity while significantly
+accelerating the generation process.
+time improvements while enhancing mesh generation qual-
+ity.
+4.3. Qualitative Results
+We conduct a qualitative comparison of our method against
+established baselines and present several challenging exam-
+ples in Fig. 6. Specifically, we highlight failure modes of
+BPT, DeepMesh, Mesh-RFT and Meshtron (2B) in terms of
+generation quality. Through these qualitative examples, we
+demonstrate the effectiveness of our method in achieving
+faster and higher-quality mesh generation.
+4.4. Ablation
+Speculative decoding and correction mechanism.
+We
+first compare the generation quality and acceleration per-
+formance under different configurations of the speculative
+decoding and correction mechanisms. (A) The baseline is
+the Meshtron model with 1B parameters. (B) On top of the
+7
+
+
+Table 2. Ablation study on different speculative decoding and cor-
+rection configurations.
+Configuration
+CD ↓
+HD ↓
+BBox-IoU ↑
+TPS ↑
+A Meshtron 1B
+0.121
+0.269
+0.901
+95.5
+B w. SP-Block
+0.122
+0.269
+0.903
+109.7
+C w. SP-Block + HF-Block
+0.120
+0.268
+0.904
+176.5
+D w. SP-Block + HF-Block + Correction
+0.120
+0.267
+0.905
+180.4
+Table 3. Effect of different face-level and point-level draft token
+numbers on generation quality and speed. n−m in configuration
+means the number of draft tokens from face-level and point-level
+are n and m, respectively. Face-Acc and Point-Acc denote the
+average number of correctly verified tokens per draft prediction.
+Configuration
+Face-Acc
+Point-Acc
+CD ↓
+HD ↓
+TPS ↑
+Speed-up ↑
+Ori Meshtron 1B
+-
+-
+0.121
+0.269
+98.6
+×1.00
+9–9
+6.43/9
+6.97/9
+0.121
+0.270
+139.9
+×1.52
+27–27
+8.24/27
+8.39/27
+0.127
+0.278
+114.4
+×1.16
+27–9
+10.07/27
+7.04/9
+0.121
+0.269
+143.0
+×1.45
+18–18
+9.84/18
+10.35/18
+0.120
+0.269
+179.9
+×1.82
+18–12
+9.85/18
+9.16/12
+0.120
+0.266
+178.1
+×1.81
+18–15
+9.80/18
+10.04/15
+0.120
+0.267
+180.4
+×1.83
+baseline, we add the SP-Block. Since both the face-level
+and point-level decoding require the participation of the HF-
+Block, the SP-Block is applied only at the coordinate level.
+(C) We then add both the SP-Block and the HF-Block to
+the baseline. (D) Finally, we introduce the SP-Block, HF-
+Block, and the correction mechanism together.
+Tab. 2 presents the evaluation results of these configura-
+tions. After adding the SP-Block, the model begins specu-
+lative decoding and achieves a certain acceleration, though
+the improvement remains limited. With the HF-Block in-
+corporated, the model gains access to higher-level contex-
+tual information, enabling more accurate multi-token pre-
+dictions and achieving a more significant speedup. When
+the correction mechanism is further introduced, the parallel
+predictions are refined with higher accuracy, leading to the
+best acceleration while enhancing mesh quality.
+Number of draft token in face-level and point-level. In-
+creasing the number of predicted draft tokens allows the
+model to generate more tokens in parallel. However, as
+the prediction extends further into future positions, accu-
+racy tends to decrease, and excessive token prediction also
+increases computational cost. Therefore, a trade-off must
+be made in determining the optimal number of predicted to-
+kens to maximize acceleration. In our framework, specula-
+tive decoding occurs at least at the point or face level every
+three coordinate tokens. Consequently, the number of draft
+tokens at the point level is fixed at two. When the number of
+predicted tokens exceeds this value, overlapping predictions
+inevitably occur between coordinate-, point-, and face-level
+decoding, which in turn limits the acceleration efficiency.
+The detailed analysis of this phenomenon is provided in the
+supplementary material. Hence, the number of draft tokens
+predicted at the face and point levels directly determines
+Table 4. Quantitative comparison of different parameters. We
+conduct experiments based on 0.5B, 1B and 2B of the original
+Meshtron method as well as that of our FlashMesh method. All
+results are measured on the H20 GPU.
+Method
+Param. (B)
+CD ↓
+HD ↓
+BBox-IoU ↑
+TPS ↑
+Speed-up ↑
+Meshtron (0.5B)
+0.5
+0.137
+0.296
+0.852
+112.1
+-
+Meshtron (1B)
+1.1
+0.121
+0.269
+0.901
+98.6
+-
+Meshtron (2B)
+2.3
+0.092
+0.206
+0.942
+67.3
+-
+Ours (Meshtron 0.5B)
+0.8
+0.140
+0.305
+0.843
+164.4
+× 1.47
+Ours (Meshtron 1B)
+1.6
+0.120
+0.267
+0.905
+180.4
+× 1.83
+Ours (Meshtron 2B)
+3.4
+0.089
+0.198
+0.949
+136.6
+× 2.03
+Table 5. Ablation study on different values of γ.
+The value of γ
+CD ↓
+HD ↓
+BBox-IoU ↑
+TPS ↑
+0.1
+0.120
+0.267
+0.905
+180.3
+0.3
+0.120
+0.267
+0.905
+180.4
+0.5
+0.120
+0.269
+0.904
+180.1
+the overall runtime performance. Specifically, the number
+of face-level draft tokens must be a multiple of nine (as one
+face token corresponds to nine coordinate tokens), and the
+number of point-level draft tokens must be a multiple of
+three (as one point token corresponds to three coordinate
+tokens). Tab. 3 summarizes the impact of different draft to-
+ken configurations on runtime efficiency. n −m means the
+number of draft token from face-level and point-level are
+n and m, respectively. Face-Acc and Point-Acc denote the
+average number of correctly verified tokens per draft pre-
+diction. We observe that using too few draft tokens results
+in limited acceleration, while predicting too many leads to
+accuracy degradation and much computational cost, even
+affecting the overall mesh generation quality.
+Parameters of model.
+We further investigate the im-
+pact of model size on generation quality and runtime effi-
+ciency. Specifically, we apply our FlashMesh framework
+to Meshtron models with 0.5B, 1B, and 2B parameters.
+Tab. 4 shows that larger models gain better generation qual-
+ity while achieving higher acceleration efficiency. In addi-
+tion, we observe a slight degradation in generation quality
+when the model size is very small (0.5B). Following the
+conclusion of [11], we attribute this to the limited represen-
+tational and reasoning capacity of smaller models, which
+may be insufficient to support multi-token prediction with-
+out sacrificing quality.
+Loss weight γ.
+We further investigate the effect of the
+weighting coefficient γ in the loss function.
+As shown
+in Tab. 5, the results indicate that varying this hyperparam-
+eter has minimal impact on model performance. Therefore,
+we set γ = 0.3 in our final configuration.
+5. Conclusion
+In this paper, we presented FlashMesh, an efficient and
+high-quality framework for autoregressive mesh genera-
+tion.
+By introducing a predict–correct–verify paradigm,
+FlashMesh enables parallel multi-token prediction while
+maintaining geometric consistency and topological fi-
+8
+
+
+delity. Our speculative decoding strategy, combined with
+a structure-aware correction mechanism, significantly im-
+proves both inference speed and generation quality. Experi-
+ments validate that FlashMesh outperforms existing base-
+lines in both efficiency and fidelity.
+FlashMesh offers a
+promising step toward fast, scalable 3D content creation in
+practical applications.
+Limitations and Future Work. While FlashMesh substan-
+tially accelerates mesh generation, it still inherits the inher-
+ent limitations of autoregressive models, such as sensitiv-
+ity to early prediction errors. In future work, we aim to
+explore hybrid decoding strategies and integrate geometric
+priors more explicitly to further enhance robustness.
+References
+[1] Kanchan Bahirat, Chengyuan Lai, Ryan P Mcmahan, and
+Balakrishnan Prabhakaran. Designing and evaluating a mesh
+simplification algorithm for virtual reality.
+ACM transac-
+tions on multimedia computing, communications, and appli-
+cations (TOMM), 14(3s):1–26, 2018.
+[2] Angel X Chang, Thomas Funkhouser, Leonidas Guibas,
+Pat Hanrahan, Qixing Huang, Zimo Li, Silvio Savarese,
+Manolis Savva, Shuran Song, Hao Su, et al.
+Shapenet:
+An information-rich 3d model repository.
+arXiv preprint
+arXiv:1512.03012, 2015.
+[3] Charlie Chen, Sebastian Borgeaud, Geoffrey Irving, Jean-
+Baptiste Lespiau, Laurent Sifre, and John Jumper. Acceler-
+ating large language model decoding with speculative sam-
+pling. arXiv preprint arXiv:2302.01318, 2023.
+[4] Dian Chen, Yansong Qu, Xinyang Li, Ming Li, and
+Shengchuan Zhang. Xspecmesh: Quality-preserving auto-
+regressive mesh generation acceleration via multi-head spec-
+ulative decoding. arXiv preprint arXiv:2507.23777, 2025.
+[5] Kaiqi Chen and Libby Ramsey. Deep generative models for
+3d content creation: A comprehensive survey of architec-
+tures, challenges, and emerging trends. 2024.
+[6] Yiwen Chen, Yikai Wang, Yihao Luo, Zhengyi Wang, Zilong
+Chen, Jun Zhu, Chi Zhang, and Guosheng Lin. Meshany-
+thing v2: Artist-created mesh generation with adjacent mesh
+tokenization. arXiv preprint arXiv:2408.02555, 2024.
+[7] Zhiqin Chen and Hao Zhang. Learning implicit fields for
+generative shape modeling. In Proceedings of the IEEE/CVF
+conference on computer vision and pattern recognition,
+pages 5939–5948, 2019.
+[8] Danyil D Chornyi, Natalia V Moiseienko, Mykhailo V Moi-
+seienko, and Kateryna V Vlasenko. Development of 3d mod-
+els for implementing game environments. In CEUR Work-
+shop Proceedings, pages 80–90, 2025.
+[9] Ziya Erkoc¸, Fangchang Ma, Qi Shan, Matthias Nießner,
+and Angela Dai. Hyperdiffusion: Generating implicit neu-
+ral fields with weight-space diffusion.
+In Proceedings of
+the IEEE/CVF international conference on computer vision,
+pages 14300–14310, 2023.
+[10] Yichao Fu, Peter Bailis, Ion Stoica, and Hao Zhang. Break
+the sequential dependency of llm inference using lookahead
+decoding. arXiv preprint arXiv:2402.02057, 2024.
+[11] Fabian Gloeckle, Badr Youbi Idrissi, Baptiste Rozi`ere, David
+Lopez-Paz, and Gabriel Synnaeve.
+Better & faster large
+language models via multi-token prediction. arXiv preprint
+arXiv:2404.19737, 2024.
+[12] Zekun Hao, David W Romero, Tsung-Yi Lin, and Ming-Yu
+Liu. Meshtron: High-fidelity, artist-like 3d mesh generation
+at scale. arXiv preprint arXiv:2412.09548, 2024.
+[13] Chenhan Jiang. A survey on text-to-3d contents generation
+in the wild. arXiv preprint arXiv:2405.09431, 2024.
+[14] Siqi Kou, Lanxiang Hu, Zhezhi He, Zhijie Deng, and Hao
+Zhang. Cllms: Consistency large language models. In Forty-
+first International Conference on Machine Learning, 2024.
+[15] Jiabao Lei, Kewei Shi, Zhihao Liang, and Kui Jia. Armesh:
+Autoregressive mesh generation via next-level-of-detail pre-
+diction. arXiv preprint arXiv:2509.20824, 2025.
+[16] Stefan Lionar, Jiabin Liang, and Gim Hee Lee. Treemeshgpt:
+Artistic mesh generation with autoregressive tree sequenc-
+ing.
+In Proceedings of the Computer Vision and Pattern
+Recognition Conference, pages 26608–26617, 2025.
+[17] Aixin Liu, Bei Feng, Bing Xue, Bingxuan Wang, Bochao
+Wu, Chengda Lu, Chenggang Zhao, Chengqi Deng, Chenyu
+Zhang, Chong Ruan, et al. Deepseek-v3 technical report.
+arXiv preprint arXiv:2412.19437, 2024.
+[18] Jian Liu, Jing Xu, Song Guo, Jing Li, Jingfeng Guo, Jiaao
+Yu, Haohan Weng, Biwen Lei, Xianghui Yang, Zhuo Chen,
+et al. Mesh-rft: Enhancing mesh generation via fine-grained
+reinforcement fine-tuning. arXiv preprint arXiv:2505.16761,
+2025.
+[19] Xiaoxuan Liu, Lanxiang Hu, Peter Bailis, Alvin Cheung,
+Zhijie Deng, Ion Stoica, and Hao Zhang. Online specula-
+tive decoding. arXiv preprint arXiv:2310.07177, 2023.
+[20] Pablo Martinez-Gonzalez, Sergiu Oprea, Alberto Garcia-
+Garcia, Alvaro Jover-Alvarez, Sergio Orts-Escolano, and
+Jose Garcia-Rodriguez. Unrealrox: an extremely photoreal-
+istic virtual reality environment for robotics simulations and
+synthetic data generation. Virtual Reality, 24(2):271–288,
+2020.
+[21] Andrea Santilli,
+Silvio Severino,
+Emilian Postolache,
+Valentino Maiorca, Michele Mancusi, Riccardo Marin,
+and Emanuele Rodol`a.
+Accelerating transformer infer-
+ence for translation via parallel decoding.
+arXiv preprint
+arXiv:2305.10427, 2023.
+[22] Katja Schwarz, Axel Sauer, Michael Niemeyer, Yiyi Liao,
+and Andreas Geiger. Voxgraf: Fast 3d-aware image synthe-
+sis with sparse voxel grids. Advances in Neural Information
+Processing Systems, 35:33999–34011, 2022.
+[23] Yawar Siddiqui, Antonio Alliegro, Alexey Artemov, Ta-
+tiana Tommasi, Daniele Sirigatti, Vladislav Rosov, Angela
+Dai, and Matthias Nießner. Meshgpt: Generating triangle
+meshes with decoder-only transformers. In Proceedings of
+the IEEE/CVF conference on computer vision and pattern
+recognition, pages 19615–19625, 2024.
+[24] Gaochao Song, Zibo Zhao, Haohan Weng, Jingbo Zeng,
+Rongfei Jia, and Shenghua Gao.
+Mesh silksong: Auto-
+regressive mesh generation as weaving silk. arXiv preprint
+arXiv:2507.02477, 2025.
+9
+
+
+[25] Benjamin Spector and Chris Re.
+Accelerating llm in-
+ference with staged speculative decoding.
+arXiv preprint
+arXiv:2308.04623, 2023.
+[26] Stefan Stojanov, Anh Thai, and James M Rehg. Using shape
+to categorize: Low-shot learning with an explicit shape bias.
+In Proceedings of the IEEE/CVF conference on computer vi-
+sion and pattern recognition, pages 1798–1808, 2021.
+[27] Jiaxiang Tang, Zhaoshuo Li, Zekun Hao, Xian Liu, Gang
+Zeng, Ming-Yu Liu, and Qinsheng Zhang.
+Edgerunner:
+Auto-regressive auto-encoder for artistic mesh generation.
+arXiv preprint arXiv:2409.18114, 2024.
+[28] Yao Teng, Han Shi, Xian Liu, Xuefei Ning, Guohao Dai,
+Yu Wang, Zhenguo Li, and Xihui Liu. Accelerating auto-
+regressive text-to-image generation with training-free spec-
+ulative jacobi decoding. arXiv preprint arXiv:2410.01699,
+2024.
+[29] Hanxiao Wang, Biao Zhang, Weize Quan, Dong-Ming Yan,
+and Peter Wonka.
+iflame:
+Interleaving full and linear
+attention for efficient mesh generation.
+arXiv preprint
+arXiv:2503.16653, 2025.
+[30] Haohan Weng, Zibo Zhao, Biwen Lei, Xianghui Yang, Jian
+Liu, Zeqiang Lai, Zhuo Chen, Yuhong Liu, Jie Jiang, Chun-
+chao Guo, et al. Scaling mesh generation via compressive
+tokenization.
+In Proceedings of the Computer Vision and
+Pattern Recognition Conference, pages 11093–11103, 2025.
+[31] Xiang Zhang, Yawar Siddiqui, Armen Avetisyan, Chris Xie,
+Jakob Engel, and Henry Howard-Jenkins.
+Vertexregen:
+Mesh generation with continuous level of detail. In Proceed-
+ings of the IEEE/CVF International Conference on Com-
+puter Vision, pages 12570–12580, 2025.
+[32] Ruowen Zhao, Junliang Ye, Zhengyi Wang, Guangce Liu,
+Yiwen Chen, Yikai Wang, and Jun Zhu. Deepmesh: Auto-
+regressive artist-mesh creation with reinforcement learning.
+In Proceedings of the IEEE/CVF International Conference
+on Computer Vision, pages 10612–10623, 2025.
+[33] Linqi Zhou, Yilun Du, and Jiajun Wu. 3d shape generation
+and completion through point-voxel diffusion. In Proceed-
+ings of the IEEE/CVF international conference on computer
+vision, pages 5826–5835, 2021.
+[34] Qi Zuo, Xiaodong Gu, Yuan Dong, Zhengyi Zhao, Weihao
+Yuan, Lingteng Qiu, Liefeng Bo, and Zilong Dong. High-
+fidelity 3d textured shapes generation by sparse encoding and
+adversarial decoding. In European Conference on Computer
+Vision, pages 52–69. Springer, 2024.
+10
+
+
+FlashMesh: Faster and Better Autoregressive Mesh Synthesis
+via Structured Speculation
+Supplementary Material
+Figure 7. Artistic meshes generated by FLASHMESH.
+6. Supplementary Material Overview
+This supplementary document provides additional techni-
+cal and empirical details to support the main paper. An
+overview of artistic meshes generated by FlashMesh is
+shown in Figure 7, demonstrating its capability to produce
+diverse, high-fidelity 3D content. The supplementary is or-
+ganized into five sections:
+Sec. 7 Model Architecture.
+We provide detailed explana-
+tions of the hourglass Transformer, node splitting strategy,
+and the hierarchical three-level speculative decoding pro-
+cess. We also describe the optimization techniques used in
+our methods.
+Sec. 8 Why Does It Work? Theoretical Insights.
+We
+present concise mathematical analysis to explain how struc-
+tured multi-token speculation improves both speed and gen-
+eration quality.
+Sec. 9 Dataset Statistics.
+We summarize the mesh data
+distribution used for training, including the face-count
+statistics after filtering out overly complex samples.
+Sec. 10 Training Configuration.
+We provide full details
+on training schedules, hyperparameters, and optimization
+strategies for all model variants.
+Sec. 11 Additional Results.
+We include extended qualita-
+tive results showing that FlashMesh consistently generates
+more coherent and visually accurate meshes compared to
+baseline methods.
+7. Model Details
+7.1. Hourglass Transformer
+Hourglass Transformer is designed to explicitly model the
+hierarchical structure of meshes across three levels: faces,
+vertices, and coordinates. As shown in the left panel of
+11
+
+
+Figure 8. Overall architecture of the multi-layer multi-head speculative decoding. Left: original hourglass transformer. Red box in the
+middle: face-level pipeline of multi-layer multi-head speculative decoding. Pink box on the right: point-level pipeline of multi-layer multi-
+head speculative decoding. Orange box on the right: coordinate-level pipeline of multi-layer multi-head speculative decoding.
+Fig. 8, the network begins with a sequence of coordinate
+tokens, where every three coordinates form a vertex, and ev-
+ery three vertices (i.e., nine tokens) define a triangular face.
+The hourglass architecture processes these tokens through
+successive shortening layers, which compress groups of to-
+kens into higher-level representations: coordinate embed-
+dings are aggregated into vertex embeddings, and vertex
+embeddings are further compressed into face embeddings.
+These compact representations capture coarse geometric
+and topological information.
+Then, through correspond-
+ing upsampling layers, the model expands face-level em-
+beddings back to vertex- and coordinate-level sequences,
+progressively refining details while maintaining global con-
+sistency. Residual connections between levels enable in-
+formation flow across different resolutions. This hierarchi-
+cal compression–expansion mechanism allows the model to
+efficiently capture both local geometric relationships and
+global structural dependencies, leading to improved qual-
+ity and efficiency compared to conventional flat transformer
+decoders.
+7.2. Split Nodes
+Within the hourglass hierarchy, the upsampling split nodes
+serve as transition points where higher-level features are
+expanded into finer-grained mesh representations.
+They
+are located between the up/down-sampling layers and the
+Transformer layers. Specifically, the split nodes fall into
+three categories: face split nodes, point split nodes, and co-
+ordinate split nodes, which are depicted in Fig. 8 (left) as
+red, pink, and orange squares, respectively.
+7.3. Three-Level Speculative Decoding
+We now introduce how the three types of split nodes gener-
+ate multiple future tokens through the SP-Block and HF-
+Block, and how their predictions are merged to produce
+draft tokens.
+Face-level speculative decoding.
+When the token
+passes through the face-level split nodes, it is processed
+by one SP-Block and two HF-Blocks, enabling multi-token
+prediction. As illustrated by the red block in Fig. 8 (middle),
+the face split nodes first go through a transformer layer and
+the SP-Block to produce several future face tokens. These
+predictions are then refined by two HF-Blocks, which in-
+teract with the previously generated backbone tokens, ulti-
+mately producing multiple future draft tokens.
+Point-level speculative decoding.
+When the token
+reaches the point-level split nodes, it is processed by one
+SP-Block followed by one HF-Block.
+As shown by the
+pink block in Fig. 8 (right), the point split nodes generate
+several future point tokens after passing through the trans-
+former and SP-Block. These predictions are then refined by
+a single HF-Block and interact with the backbone tokens to
+produce additional future draft tokens.
+Coordinate-level speculative decoding. When the to-
+12
+
+
+ken reaches the coordinate-level split nodes, it passes only
+through one SP-Block. As indicated by the orange block
+in Fig. 8 (right), the coordinate split nodes directly generate
+one main token through transformer and several future draft
+tokens through SP-Block.
+Integrating the three levels. During a single forward
+pass, multiple types of split nodes may be triggered, result-
+ing in multiple predictions for the same future position. To
+address this, we average the predicted distributions from all
+active levels and treat the averaged distribution as the fi-
+nal prediction for that position. In addition, some forward
+passes may not encounter face- or vertex-level split nodes,
+but we can still reuse the most recently generated draft to-
+kens from those levels.
+7.4. Optimizations
+We observe that a single position may be predicted by multi-
+ple levels of speculative decoding, which leads to redundant
+computation and reduced efficiency. Our goal is to allow
+each position to be predicted by exactly one level whenever
+possible. We introduce two optimization rules:
+(A) Remove point-level predictions immediately follow-
+ing face-level predictions.
+As shown on the left side
+of Fig. 8, the row corresponding to S8 receives both face-
+level and point-level predictions. Because their prediction
+ranges heavily overlap, this causes unnecessary duplicated
+computation. We therefore remove the point-level predic-
+tions in such cases and keep the higher-level face predic-
+tions.
+(B) Remove the first three draft token predictions from
+face- and point-level decoding. We observe that the predic-
+tions made at the coordinate level overlap substantially with
+those from the point- and face-levels. To reduce duplica-
+tion, we remove the first point token (i.e. the first three co-
+ordinate tokens) predictions from face-level and point-level
+decoding, and let the coordinate-level modules exclusively
+predict the first three future tokens for each position. Al-
+ternatively, we could remove the first two point tokens and
+let the coordinate-level modules exclusively predict the first
+six future tokens for each position. However, since every in-
+put token must pass through the coordinate-level modules,
+this approach would significantly increase the number of
+predicted tokens and thereby reduce the overall inference
+efficiency.
+Together, these optimizations significantly reduce redun-
+dant predictions and improve model efficiency.
+We illustrate two representative steps using a 9-9
+FlashMesh model: (1) When predicting S5, the point-level
+modules output ˜S8– ˜S13, while the coordinate-level SP-
+Block outputs ˜S6 and ˜S7, and the backbone outputs ˜S5. In
+total, we obtain one main token and eight draft tokens. (2)
+When predicting S6, the coordinate-level SP-Block outputs
+˜S7 and ˜S8, and the backbone outputs ˜S6. We also reuse the
+Table 6. Ablation study on different optimizations.
+Configuration
+CD ↓
+HD ↓
+BBox-IoU ↑
+TPS ↑
+A w/o any optimizations
+0.120
+0.267
+0.905
+176.0
+B w. (A)
+0.120
+0.267
+0.905
+178.3
+C w. (A) + (B)
+0.120
+0.267
+0.905
+180.4
+Table 7. Ablation study on the variant.
+Configuration
+CD ↓
+HD ↓
+BBox-IoU ↑
+TPS ↑
+A Variant
+0.120
+0.268
+0.906
+166.1
+B Ours
+0.120
+0.267
+0.905
+180.4
+previously generated point-level predictions ˜S8– ˜S13, aver-
+aging the two predictions for ˜S8. This produces one main
+token and seven draft tokens.
+7.5. Experiments
+Ablation on optimization rules.
+We conduct ablations
+to evaluate the effect of the two optimization rules.
+As
+shown in Tab. 6, none of the optimizations degrade gen-
+eration quality, and both of them contribute to improved in-
+ference speed.
+Ablation on multi-level speculative decoding. A sim-
+ple baseline is to remove the face- and point-level modules
+and directly predict a large number of tokens at the coor-
+dinate level. To validate the advantage of our hierarchi-
+cal three-level design, we implement this variant of predict-
+ing 18 tokens at the coordinate level. Tab. 7 shows that our
+multi-level approach achieves superior speedup, as the vari-
+ant generates roughly twice as many tokens, which slows
+down inference.
+8. Why Does It Work? Theoretical Insights.
+Why can our structured speculating method both acceler-
+ate inference and improve generation quality? We provide
+explanations from two complementary perspectives: speed
+and quality.
+Specifically,
+Sec. 8.1 derives the expected
+speedup formula and explains the underlying computational
+advantage, while Sec. 8.2 analyzes the quality improve-
+ment from an information-theoretic viewpoint.
+8.1. Why It Is Fast: A Computational Efficiency
+Analysis
+A standard autoregressive model consumes one token and
+predicts the next-token distribution, generating outputs
+strictly one-by-one.
+This inherently sequential process
+leads to slow inference. As described in the main paper,
+our method employs lightweight SP-Blocks and HF-Blocks
+to predict multiple future tokens in parallel. After the pre-
+diction, a correction and verification stage determines how
+many of these draft tokens can be safely accepted, thus re-
+ducing the total number of forward passes.
+13
+
+
+We find that the effective speedup is governed by sev-
+eral factors: the original per-token generation latency of the
+baseline model (Tori), the cost of our model when consum-
+ing n input tokens and speculating k future tokens (T n,k
+ours),
+and the average number of accepted tokens m per specula-
+tion cycle. The overall speedup ratio S can be expressed
+as:
+S = Tori · m
+T n,k
+ours
+.
+(9)
+These observations indicate that the speedup increases
+when (1) the average number of accepted tokens m grows,
+(2) the speculative forward pass remains lightweight, and
+(3) the ratio between accepted tokens and computation cost
+improves. In practice, our structured design keeps the spec-
+ulative forward pass extremely lightweight, enabling scal-
+able acceleration across different model sizes.
+8.2. Why It Has Better Quality: An Information-
+Theoretic Argument
+We now give a compact information-theoretic argument ex-
+plaining why structured multi-token speculation improves
+generation quality in the mesh-generation setting. Let each
+token denote a discrete mesh-generation unit (for example:
+a face token, a vertex token, or a coordinate token). Con-
+sider two successive future tokens denoted by random vari-
+ables X and Y (e.g. the tokens that encode two adjacent
+faces or two consecutive vertex coordinates). All probabil-
+ities below are implicitly conditioned on the observed con-
+text C (previously generated or given mesh context); we
+omit C from the notation for brevity.
+A standard next-token objective trains the model to min-
+imize the (cross-entropy) loss for X alone, which is driven
+by the entropy H(X). In contrast, a 2-token (multi-token)
+objective minimizes the joint loss for (X, Y ), driven by
+H(X, Y ) = H(X) + H(Y | X). To compare these quan-
+tities and make explicit the role of dependencies between
+X and Y , we use the mutual information I(X; Y ) and the
+conditional entropies. The following equalities hold:
+H(X) = H(X | Y ) + I(X; Y ),
+(10)
+H(X) + H(Y ) = H(X | Y ) + 2I(X; Y ) + H(Y | X).
+(11)
+Equation (10) simply decomposes the marginal uncer-
+tainty of X into the uncertainty of X given Y plus the mu-
+tual information. Equation (11) follows by writing H(Y ) =
+H(Y | X) + I(X; Y ) and substituting.
+Now inspect what changes when the training / decod-
+ing objective moves from single-step prediction (minimiz-
+ing terms proportional to H(X)) to multi-step prediction
+(minimizing terms proportional to H(X) + H(Y )). Com-
+paring (10) and (11) shows that the multi-token objective
+places a larger emphasis on the mutual-information term
+I(X; Y ): in the two-token objective I(X; Y ) appears with
+coefficient 2, whereas in the single-token objective it effec-
+tively appears with coefficient 1. Intuitively, multi-token
+prediction amplifies the contribution of pairwise (and, by
+extension, higher-order) dependencies among neighboring
+tokens.
+Why does this matter for mesh generation? In meshes,
+nearby tokens are strongly coupled: adjacent faces share
+vertices; vertex coordinate tokens enforce geometric con-
+tinuity; semantic groups of faces follow global shape con-
+straints. These couplings imply substantial mutual informa-
+tion between tokens that are nearby in the generation or-
+der. By increasing the effective weight on mutual informa-
+tion during learning / speculation, the multi-token objective
+encourages the model to (a) allocate more representational
+capacity to capture dependencies across multiple future to-
+kens, and (b) reduce uncertainty about tokens that are infor-
+mative for the future structure of the mesh.
+Formally, suppose the model capacity and training pro-
+cedure allow a reduction in the joint entropy H(X, Y ) rela-
+tive to optimizing only H(X). Since
+H(X, Y ) = H(X) + H(Y | X),
+a reduction in joint entropy implies either a reduction in
+H(X) (per-token uncertainty) or in H(Y | X) (better mod-
+eling of how Y depends on X), or both. Because mesh
+coherence is largely enforced by such conditional relations
+(shared vertices, consistent normals, edge-adjacency), im-
+proving H(Y | X) directly reduces structural errors that
+would otherwise accumulate when tokens are generated
+strictly one-by-one.
+A final, practical point connects this information view to
+our structured speculating pipeline: speculation that pro-
+duces multiple draft tokens, then corrects and accepts a
+subset effectively trains and evaluates the model on multi-
+step predictions at inference time. This alignment between
+the model’s training signal (which emphasizes joint / multi-
+token objectives) and the inference behavior reduces expo-
+sure bias and the compounding of short-term errors. The net
+result is a lower expected per-token error in geometrically
+relevant quantities (shared-vertex indices, coordinate con-
+tinuity, face-consistency), which manifests as visibly im-
+proved mesh quality.
+In summary, multi-token structured speculation ampli-
+fies the learning signal for mutual dependencies among ad-
+jacent mesh tokens, lowers joint and conditional entropies
+relevant to geometric consistency, and thus yields more co-
+herent and accurate mesh generations compared to purely
+single-step autoregressive decoding.
+14
+
+
+Figure 9. Data distribution: mesh amount of different faces.
+Table 8. Training configurations for different models.
+Setting
+Ours (Meshtron 0.5B)
+Ours (Meshtron 1B)
+Parameter count
+0.8B
+1.6B
+Architecture
+4-8-12
+4-8-12
+Batch size
+64
+64
+Layers
+24
+24
+Heads
+8
+16
+Dimension
+768
+1536
+Learning rate
+1e-4
+1e-4
+Training time
+∼3 days
+∼5 days
+Setting
+Ours (Mesh-RFT)
+Ours (Meshtron 2B)
+Parameter count
+1.6B
+3.4B
+Architecture
+4-8-12
+4-10-18
+Batch size
+64
+64
+Layers
+24
+32
+Heads
+16
+16
+Dimension
+1536
+2048
+Learning rate
+1e-4
+1e-4
+Training time
+∼5 days
+∼10 days
+9. Data Distribution
+For mesh generation models, the quality and statistical dis-
+tribution of the training data have a substantial impact on
+model performance. To address this, we filtered out meshes
+with more than 10,000 faces and analyzed the face-count
+distribution of the training set. As shown in Fig. 9, approx-
+imately 55% of the meshes contain fewer than 3,000 faces,
+about 27% fall within the range of 3,000 to 6,000 faces, and
+roughly 18% contain between 6,000 and 10,000 faces. This
+strategy removes overly complex meshes and helps main-
+tain stable and reliable model performance.
+10. More Training Details
+We evaluate our FlashMesh framework on Meshtron
+(0.5B) [12], Meshtron (1B) [12], Mesh-RFT [18], and
+Meshtron (2B) [12]. The detailed training configurations of
+these models are summarized in Tab. 8. Specifically, we re-
+port each model’s parameter count, architecture, batch size,
+number of layers, number of heads, dimension of the model,
+learning rate, and total training time. All models are trained
+for 30k iteration steps to ensure convergence. In addition,
+we adopt the Adam optimizer (β1 = 0.9, β2 = 0.99). In our
+setting, we use gradient accumulation with an accumulation
+step of 8, meaning that gradients from 8 mini-batches (each
+of size 8) are accumulated before one update, resulting in an
+effective batch size of 64. Moreover, we employ FlashAt-
+tention and ZeRO-2 to reduce GPU memory consumption.
+11. More Results
+We further collected more examples and presented the
+generation results of Meshtron (2B) and our FlashMesh
+(Meshtron 2B) in Fig. 10 and Fig. 11. Across these com-
+plex cases, our model consistently produces meshes with
+coherent shapes and correct topology, whereas Meshtron
+sometimes yields results of noticeably lower quality. This
+demonstrates that our method not only accelerates inference
+but also improves generation quality.
+15
+
+
+Original Mesh
+Ours
+Meshtron
+Figure 10. More results of Meshtron and Flashmesh. We present more high-fidelity results generated by our method.
+16
+
+
+Original Mesh
+Ours
+Meshtron
+Figure 11. More results of Meshtron and Flashmesh. We present more high-fidelity results generated by our method.
+17

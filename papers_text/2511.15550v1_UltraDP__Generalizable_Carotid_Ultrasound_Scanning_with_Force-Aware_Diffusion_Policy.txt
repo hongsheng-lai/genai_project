@@ -1,0 +1,817 @@
+UltraDP: Generalizable Carotid Ultrasound Scanning with Force-Aware
+Diffusion Policy
+Ruoqu Chen, Xiangjie Yan, Kangchen Lv, Gao Huang, Zheng Li, and Xiang Li
+Abstract— Ultrasound scanning is a critical imaging tech-
+nique for real-time, non-invasive diagnostics. However, vari-
+ations in patient anatomy and complex human-in-the-loop
+interactions pose significant challenges for autonomous robotic
+scanning. Existing ultrasound scanning robots are commonly
+limited to relatively low generalization and inefficient data
+utilization. To overcome these limitations, we present UltraDP,
+a Diffusion-Policy-based method that receives multi-sensory in-
+puts (ultrasound images, wrist camera images, contact wrench,
+and probe pose) and generates actions that are fit for multi-
+modal action distributions in autonomous ultrasound scanning
+of carotid artery. We propose a specialized guidance module
+to enable the policy to output actions that center the artery in
+ultrasound images. To ensure stable contact and safe interaction
+between the robot and the human subject, a hybrid force-
+impedance controller is utilized to drive the robot to track such
+trajectories. Also, we have built a large-scale training dataset for
+carotid scanning comprising 210 scans with 460k sample pairs
+from 21 volunteers of both genders. By exploring our guidance
+module and DP’s strong generalization ability, UltraDP achieves
+a 95% success rate in transverse scanning on previously unseen
+subjects, demonstrating its effectiveness.
+I. INTRODUCTION
+Ultrasound scanning is a crucial imaging method that
+allows real-time, radiation-free, non-invasive, and cost-
+effective evaluation of multiple organs, such as the carotid
+artery, heart, and liver, to support clinical diagnostics. It
+is a high-cognitive-burden task, as it requires a trained
+sonographer (training can last up to several years) with
+specialized knowledge of the specific organ—something that
+can be challenging to fulfill in medically underserved areas.
+Additionally, it is a high-intensity, repetitive job [1] for
+sonographers due to the growing demand for ultrasound di-
+agnostics. These two factors have brought robotic ultrasound
+scanning to the forefront of discussion.
+One of the key performance indicators of ultrasound robots
+is generalization. In the context of ultrasound, generalization
+refers to the ability of the robot to adapt and perform
+accurately across a wide range of different patient conditions
+and anatomical variations without requiring extensive repro-
+gramming or adjustments. This capability is crucial because
+it ensures that ultrasound robots can function effectively
+R. Chen, X. Yan, K. Lv, G. Huang, and X. Li are with the Department
+of Automation, Tsinghua University. Zheng Li is with the Department of
+Surgery, Chow Yuk Ho Technology Centre for Innovative Medicine, Li
+Ka Shing Institute of Health Science and Multi-scale Medical Robotics
+Center, The Chinese University of Hong Kong, Hong Kong. This work
+was supported in part by the National Key R&D Program of China under
+Grant 2024YFB4708200, in part by Tsinghua University Initiative Scientific
+Research Program, in part by the National Natural Science Foundation of
+China under Grant U21A20517 and 62461160307, and in part by the BNRist
+project under Grant BNR2024TD03003.
+Traditional
+Sonographer
+UltraDP
+F
+Ultrasound
+Image
+Depth Image
+Wrench
+Pose
+Fig. 1.
+Demonstration of carotid artery ultrasound scanning task. Top:
+traditional sonographer. Bottom: the ultrasound robot with the proposed
+method UltraDP, which takes ultrasound images, depth images, contact
+wrench, and probe pose as input and outputs the desired pose and contact
+wrench.
+in real-world clinical settings where patients present with
+diverse conditions and characteristics.
+Achieving generalization in ultrasound robots is challeng-
+ing because it demands the navigation system to comprehend
+organ anatomy, interpret ultrasound images, and possess
+spatial imagination skills to map 2D ultrasound images
+onto 3D organ structures. Each probe adjustment made by
+sonographers during a scan is, in fact, the outcome of the
+integrated application of these specialized knowledge and
+skills. Researchers tried to depict the “knowledge and skills”
+using well-designed rules [2]–[5], which was called rule-
+based methods, usually with a specialized perception sys-
+tem. However, despite meticulous designs, the generalization
+ability remained limited, especially when scaling to a larger
+number of patients with diverse body types. For example, a
+set of parameters suitable for an overweight male may not
+work for a slim female.
+Another attempt to improve generalization ability is
+learning-based methods like imitation learning [6]–[11]. It
+has gained popularity for discovering the underutilized value
+in thousands of routine ultrasound scans. However, existing
+works did not consider the multi-modal action distributions
+featured by ultrasound scanning tasks: if the ultrasound
+image is blurred or contains significant portions lacking visi-
+arXiv:2511.15550v1  [cs.RO]  19 Nov 2025
+
+
+bility (e.g., appearing black), multiple corrective actions can
+be taken to improve image quality, such as changing probe
+directions, translations, or adjusting the contact force/torque.
+Hence, the generalization ability could fall short on real-
+world scanning tasks.
+Recently, Diffusion Policy (DP) has shown strong potential
+in learning multi-modal action distributions and generating
+smooth trajectories in robotic manipulation tasks [12], [13].
+This paper takes advantage of DP and offers new possibilities
+for generating actions that align with the essence of the
+ultrasound task. Such an application is not trivial because the
+target of ultrasound scanning is different from other tasks
+achieved by DP (for example, ensuring a clear ultrasound
+image and keeping the carotid artery in the center of the
+image in the carotid scanning task) and cannot be learned
+without any modification. Also, the subject is a dynamic
+human, posing new implementation challenges.
+To achieve this, we propose UltraDP, a learning-based
+method for transverse section ultrasound scanning of carotid
+artery that mimics human sonographers’ hand-eye coordi-
+nation and takes ultrasound images, wrist camera images,
+contact wrenches, and probe poses as multi-modal inputs
+and predicts the desired pose and contact wrench for nav-
+igation; at the lower control level, it employs a hybrid
+force-impedance controller. This paper makes the following
+contributions to integrate DP into ultrasound systems and
+hence strengthening its generalization ability:
+1) We constructed a large-scale dataset of expert sono-
+graphers’ demonstrations, including ultrasound im-
+ages, wrist camera images, probe poses, and contact
+wrenches. The dataset comprises 210 scans with 460k
+sample pairs collected from 21 volunteers of both
+genders. The dataset will be published after careful
+processing to prevent information leakage.
+2) We designed a specialized guidance module in dif-
+fusion policy for the transverse carotid ultrasound
+scanning task to enable UltraDP to keep the artery
+horizontally centered in the ultrasound image, which
+is an important requirement for carotid scanning.
+3) We conducted extensive real-world experiments on
+previously unseen volunteers and showed UltraDP’s
+superior performance and better generalization ability.
+We trained our policy with real-world data from 210
+scans (460k sample pairs) collected from 21 volunteers by
+two certified sonographers, and collected 54k sample pairs
+from new male and female volunteers to further validate its
+generalization ability. We conducted experiments comparing
+UltraDP with a rule-based Visual servoing method [3] and
+the classic Behavior Cloning method. We also did ablation
+studies for the sensory modalities and a subjective study.
+The results showed better generalization ability, the necessity
+of the modalities, and improved comfort for subjects using
+UltraDP.
+Before proceeding, let’s delve into the requirements of
+the carotid artery transverse section ultrasound scanning task
+(see Fig. 1 and Fig. 2(a)). Carotid artery ultrasound scanning
+is typically performed to check for plaque build-up or blood
+y
+z
+Transverse 
+Section
+End of
+Scanning
+x
+Internal
+Carotid 
+artery
+External
+Carotid 
+artery
+Bifurcation
+Carotid artery, being horizontally centered
+(a)
+y
+z
+Neck
+Artery
+Ultrasound
+Wave
+(b)
+Fig. 2.
+(a) Probe positions and the corresponding ultrasound images for
+transverse section and at the end of scanning. (b) Illustration of ultrasound
+imaging principle.
+clots that could restrict blood flow and potentially lead to
+a stroke [14]. The task procedure unfolds as follows: a
+sonographer, holding an ultrasound probe, begins at the lower
+part of the neck and moves upwards along its length to
+capture transverse-section ultrasound images (see Fig. 2(a)),
+upon identifying the bifurcation of the internal and external
+carotid arteries. Throughout the procedure, an important
+requirement is to keep the artery centered horizontally in the
+image so that during subsequent longitudinal scanning, the
+longitudinal section of the artery can be more easily located.
+II. RELATED WORKS
+A. Rule-Based Ultrasound Systems
+Many existing works rely on rule-based navigation [3],
+[15]–[17]. Researchers achieved scans by setting simple rules
+like keeping the anatomic landmark in the center of the
+ultrasound image [2], or designing a finite-state machine for
+different scanning modes [3]. These methods are easy to
+implement but lack generalization to unforeseen situations.
+For example, if the perception system fails to recognize an
+anatomical landmark [2], the entire system breaks down.
+More commonly, when model parameters — such as neck
+length, artery angle, and other offsets described in [18] —
+do not fit a new patient, the resulting ultrasound images are
+consistently poor.
+B. Learning-Based Ultrasound Systems
+As examples of supervised learning, in [9], [10], authors
+trained a set of networks, including Transformer and ResNet,
+to form a world model for cardiac scanning; researchers in
+[19] trained a self-supervised network based on synthetic
+data from simulations. These methods trained huge networks
+for robots with large-scale clinical data but gained limited
+ability to generalize. DP is a state-of-the-art imitation learn-
+ing method boasting the multi-modal action representation
+ability and has achieved success on some contact-rich ma-
+nipulation tasks [20]–[22]. In [20], authors achieved force-
+aware imitation learning using DP with a lower-level hybrid
+force-position controller to do the vegetable peeling task. A
+similar solution was used to do the peg-in-hole task in [21].
+In [22], force data was processed by Fast Fourier Transform
+before input into diffusion policy, and the action is not the
+desired force but stiffness and virtual target. However, DP
+has not been validated in ultrasound scanning tasks.
+
+
+Navigation System
+Encoder
+Diffusion Policy
+with Guidance
+10 Hz
+...
+Guidance
+Control System
+Perception
+System
+Hybrid Force-
+Impedance
+Controller
+Data Collection
+Large-scale Dataset
+Expert Demonstration 
+ 
+Pretrain
+Expert Labeling
+: landmark
+x-distance
+Pretrained
+Fig. 3.
+The structure of UltraDP, including data collection, pretrain, navigation system and control system. In the navigation system module, only the
+inference process is illustrated, where the “ResNet” block within the dashed box means the trained network on the pretrained parameters, and the “ResNet”
+block with a “frozen” sign within the dashed box equals the one in the pretrain module.
+Compared to previous works on DP-based contact-rich
+manipulation tasks [20]–[22], our ultrasound scanning task
+presents a significantly greater challenge for DP to learn.
+This is because (i) it involves a dynamic human subject rather
+than a static environment. The contact wrench and the action
+ranges vary among different people, causing difficulties in
+the training of the policy (ii). It requires the policy to
+interpret ultrasound images, which means the task is not
+just in cartesian space (trajectory-based or goal-based) but
+a “higher-level-goal-based” task, which is difficult to learn.
+III. METHODOLOGY
+The proposed method utilized a modified diffusion policy
+to learn the desired wrench and pose from sonographer
+demonstrations. The structure of the UltraDP system is
+shown in Fig. 3. There are four main modules: Data collec-
+tion, Pretrain, Navigation system, and Control system, which
+will be discussed in the following sections.
+A. Data Collection
+We collected real-world demonstration data by recording
+the ultrasound images U ∈RH1×W1, the probe poses x ∈
+SE(3), the contact wrench w ∈R6, and the RGBD images
+I ∈RH1×W1×4 from the wrist camera while a sonographer
+performed a complete scan, holding the manipulator flange
+where the force sensor was mounted. We collected multiple
+demonstration trajectories for each volunteer, ensuring slight
+variations in position and posture across different trajectories
+from the same volunteer. Thus, we got a demonstration
+trajectory dataset:
+D = {d1, d2, · · · , dn|di = (Ut, It, xt, wt)t=1:Tn}.
+(1)
+Then we formed it into observation-action pairs:
+Ot = (Ut, It, xt, wt)
+(2)
+At = (diff(xt+1, xt), wt) ,
+(3)
+where diff() calculated the relative pose from xi+1 to xi.
+We did data augmentation that each demonstration trajectory
+was diffused by several random transformations noise in
+cartesian space. While preprocessing the RGBD images I
+from the wrist camera, a mask was generated according to the
+depth channel, removing the irrelevant background. The end
+effector pose was represented using a 3D Cartesian position
+and a 6D rotation representation as proposed in [23]. The
+observation and action pair sequences {(O, A)} are then
+taken by the model for training with a receding horizon.
+During data collection, our hybrid force-impedance inter-
+action controller was activated with all stiffness and damping
+parameters set to zero, except for the force control, which
+assisted the sonographer in establishing contact effortlessly
+while remaining fully compliant with his or her movements
+along the skin surface. This support enables the sonographer
+to complete a high-quality scan in approximately 30 seconds
+— less than half the time required without assistance. The
+entire data collection process was approved and supervised
+by the University Science and Technology Ethics Committee.
+Note that these demonstration data were collected by
+experts with proficient ultrasound scanning experience. The
+anatomical landmark positions in the images in the demon-
+strations were always the center. It is rather difficult for DP
+to learn automatically the centering movement during the
+training. So we designed a guidance step, which will be
+discussed later in Sec III-C.
+B. Pretrain
+The encoder for Ultrasound images U (implemented as a
+ResNet in our approach) was pretrained on a classification-
+and-regression task using a small ultrasound image dataset
+including 6k pairs of(U, l), where l ∈R denotes the
+position of the artery landmark along the x-dimension of the
+image. If the carotid artery is not present in the image, the
+classification head outputs 0 and the regression head outputs
+
+
+RealSense
+Camera
+Ultrasound
+Machine
+Probe
+Franka
+Manipulator
+ATI FT sensor
+Control
+Computer
+Hospital
+Chair
+Fig. 4.
+Demonstration of the experiment setup, which consists of a
+Franka manipulator, an ultrasound machine with a probe, an ATI mini 40
+force/torque sensor connected between the arm flange and the ultrasound
+probe, and a RealSense D405 camera mounted on the arm flange.
+invalid values. If it is present, the classification head outputs
+1, and the regression head predicts the position of the carotid
+artery l ∈[0, 1]. The ground truth of the dataset was labeled
+by expert sonographers.
+After pretraining, the fully connected layers were re-
+moved, allowing the encoder—now enriched with artery
+landmark information—to serve as the initialization for sub-
+sequent training in the downstream encoder layer in the DP
+part.
+Furthermore, the pretrained ResNet was also employed as
+a module to output the x-dimension coordinate of the carotid
+artery (measured in pixels) within the Navigation system.
+C. Navigation System for Ultrasound Scanning
+The main part of the navigation is a diffusion model that
+represents the robot’s visuomotor policy using Denoising
+Diffusion Probabilistic Models (DDPM) [12], [24], which
+generates output actions through a denoising process as
+follows
+ak−1 = α(ak −γεθ(o, ak, k) + N(0, σ2I)),
+(4)
+where k denotes the steps of the denoising process,
+N(0, σ2I)) represents the Gaussian noise introduced at each
+iteration of the process, and εθ is the noise prediction
+network. Notice that here o denotes the observation.
+As mentioned earlier, the centering movement from expert
+sonographers is hard for DP to learn. Hence, during the
+inference process, the original denoising step (4) is added
+by a guidance term gk = ∇aku:
+ak−1 = α(ak + ρgk −γεθ(o, ak, k) + N(0, σ2I)),
+(5)
+where ρ is a scaling factor, and the gradient ∇aku can be
+obtained by the imaging principle of ultrasound. For a linear
+array probe that performs a straight-line scan (see Fig. 2(b)),
+the mapping is linear:
+∆y = a∆u,
+(6)
+where a is a known probe parameter, ∆y is a displacement
+of the probe in cartesian y axis, ∆u is the difference of
+pixel position of the artery. From (6), we can get a constant
+gradient. Hence the guidance made every sample towards the
+position centering the carotid in the ultrasound image.
+TABLE I
+TRACKING AND FORCE STATS ON VOLUNTEERS
+Tracking
+Error (m)
+Wrench
+Transverse
+Force
+(N)
+Torque
+(Nm)
+dFz/dt
+(N/s)
+Unknown
+Mean
+0.0135
+2.503
+0.259
+0.159
+Max
+0.0221
+3.699
+0.526
+Known
+Mean
+0.0104
+1.889
+0.262
+0.154
+Max
+0.0178
+3.728
+0.533
+D. Hybrid Force Impedance Interaction Control
+The dynamic model of the ultrasound scanning robot can
+be described as
+M(q)¨q + C( ˙q, q) ˙q + g(q) = τ + τe,
+(7)
+where M(q) ∈ℜn×n, C( ˙q, q) ˙q ∈ℜn, g(q) ∈ℜn denote the
+mass matrix, Coriolis and centrifugal term, and gravity vector
+respectively, and τ, τe ∈ℜn represent the control torque and
+the external torque that applied by the environment to the end
+effector respectively. In our setting, a Franka robot was used,
+so n = 7. Then, to ensure a safe interaction, the controller
+is proposed as
+τ = τm + τn + g(q) + C( ˙q, q) ˙q,
+(8)
+where τm is the control torque for the main scanning task,
+τn is that for the null-space task:
+τm = JT Si (−K1 ˜x −D1 ˙x) +
+JT Sf(Fd + Kf(Fd −Fe)),
+(9)
+τn = (I −JT J†T ) (−K2 ˜q −D2 ˙q) .
+(10)
+In (9), J is the Jacobian matrix, Si and Sf are selection
+matrix for impedance control and force control, ˜x is the
+cartesian pose error ˜x = x −xd, Fd ∈R6 is the desired
+contact wrench given by navigation module, Fe is the exter-
+nal wrench measured by the wristed-mounted force sensor.
+To maintain a steady and comfortable contact between the
+probe and the patient’s neck, the force along the z axis is
+assigned to be force controlled (see Fig. 2), so the selection
+matrix for force is eeSf = diag([0, 0, 1, 0, 0, 0]), and the
+remaining dimensions are controlled with impedance; the se-
+lection matrix for impedance is eeSi = diag([1, 1, 0, 1, 1, 1]).
+After transformation, the selection matrix in base frame used
+in the main task controller (9) Si, Sf is obtained.
+Note that the inference frequency of the upper navigation
+level is nearly 10 Hz, and the control frequency is 1kHz, so
+we adopted a low-pass filter to make the actions smoother.
+IV. EXPERIMENTS
+Our hardware system consists of five parts, as shown in
+Fig. 4: a Franka manipulator, an ultrasound machine with a
+probe, an ATI mini 40 force/torque sensor connected between
+the arm flange and the ultrasound probe, a RealSense D405
+camera mounted on the arm flange, a control computer with
+an AMD Ryzen 5 5600G CPU and a Nvidia RTX 3060 GPU
+in Ubuntu 20.04 system. The navigation module operates at
+
+
+Ours: UltraDP
+(a)
+(b)
+(c)
+(d)
+Baseline:BC
+(e)
+(f)
+(g)
+(h)
+Baseline: VS
+(i)
+(j)
+(k)
+(l)
+Fig. 5.
+Real-World Experiment - Snapshots and ultrasound images, the red lines are the output of our pretrained regressor. No red line means the network
+can not detect the artery position. First row: UltraDP. (a) The policy began, and the artery was on the right of the image; (b) The policy output actions
+to guide the robot to make the artery center while going upwards; (c) The policy detected the bifurcation of the artery; (d) The external and internal
+arteries were clear in the image, and the scanning was over. Second row: Baseline, behavior cloning. (e)-(h): The BC policy (baseline 1) did not center
+the artery; And in the end, the policy drove the probe away from the neck, showing the unsatisfying generalization ability. Third row: Baseline, visual
+serving. (i)-(l) The VS controller (baseline 2) had the ability to center the artery; however, because some parameters like offset_z did not suit the female,
+the probe detached her neck, and the regressor couldn’t work when the image was incomplete; at last the probe kept going up, losing the image and hit
+her in the jaw.
+10 Hz, while the hybrid force-impedance controller runs at
+1kHz. More experiment details can be found on our website1.
+We conducted a series of simulation studies and exper-
+iments to validate: (i) UltraDP’s learned understanding of
+scanning knowledge in simulation (in Sec. IV-A); (ii) the
+generalization ability of UltraDP system on unseen human
+subjects compared to a rule-based Visual Servoing (VS)
+method and a classic learning-based Behavior Cloning (BC)
+method in real-world (in Sec. IV-B); (iii) the effect of
+wrench and multi-sensory observation (in Sec. IV-C); (iv)
+subjects’ feelings on UltraDP system based on their scanning
+experience (in Sec. IV-D).
+A. Simulation Studies
+We first evaluate our policy on a set of trajectories ran-
+domly sampled from the training dataset in simulation. Then,
+we asked the same sonographer to demonstrate several new
+volunteers (including both male and female) that were com-
+pletely unseen to our policy. The new demonstrations were
+then used in evaluation to assess the model’s generalization
+ability: the trajectories were converted to observations and
+input to the policy, then the action of next time predicted by
+the policy was taken to be compared with the real trajectory.
+The predicted force and torque are shown in Tab. I, where the
+metric dFz/dt denotes the average changing rate of predicted
+force (also referred to as the force rate) throughout the entire
+trajectory, serving as an indicator of the subject’s comfort.
+As shown in Table I, we can tell that compared to “known”
+trajectories, the performance of “unknown” did decline,
+1https://ultradp.github.io/
+−10
+−5
+0
+Fz/N
+UltraDP - Fz
+UltraDP - Predicted Fz
+BC - Fz
+BC - Predicted Fz
+VS - Fz
+0.0
+2.5
+5.0
+7.5
+10.0
+12.5
+15.0
+17.5
+Time/s
+0.20
+0.25
+Xz/m
+UltraDP - Xz
+BC - Xz
+VS - Xz
+Fig. 6.
+Real-World Experiment - Fz in probe frame and Xz in base frame
+during the whole process: When the experiment started, the VS method
+exerted excessive force on the volunteer’s clavicle, causing a large contact
+force during this stage. The VS pushed the neck and the jaw of the volunteer,
+reflecting in the increasing force. The BC method failed to keep track of
+the target, moving sideway during the scanning. In contrast, our method
+guided the probe to maintain a steady ultrasound image while effectively
+preventing excessive contact with the patient.
+but not much, indicating UltraDP had a certain degree of
+generalization ability.
+The force prediction on unknown subjects increased within
+a small range, which can be interpreted as an attempt to
+acquire a better image when unfamiliar scenarios occur. The
+desired force predicted by UltraDP is within the range of 4N
+and maintains minimal fluctuation in all trajectories, show-
+casing steady performance and generalization capability.
+B. Real-World Experiment
+We evaluated UltraDP alongside a rule-based Visual Servo
+(VS) method modified from [3] and Behavior Cloning (BC)
+as baselines on two female and two male volunteers not
+included in the training data, conducting five trials per
+participant. Note that [3] only proposed a cartesian space
+
+
+TABLE II
+COMPARATIVE EXPERIMENTS WITH BASELINE ON 20 REAL-WORLD ULTRASOUND SCANNING TRIALS
+Success Rate (↑)
+Mean Landmark Distance
+to Center on x axis
+during Transverse(↓)/pixel
+Mean SSIM Distance
+with Human Expert
+Videos (↑)
+Mean Expert
+Score(↑)
+Mean Contact Force
+Rate on z axis
+(dFz/dt))(↓)/(N/s)
+UltraDP
+19/20
+5.71
+76.83%
+7.11
+0.187
+Baseline VS [3]
+17/20
+6.52
+71.24%
+6.76
+0.329
+Baseline BC
+6/20
+25.44
+62.19%
+6.14
+0.189
+impedance controller. We added an ultrasound image space
+servoing term for fairness, with the aid of our pretrained
+network: If an artery was detected, the servoing term was
+activated, otherwise not. The model parameters, such as
+artery angle, target offsets, and neck length, were calibrated
+on testers and then averaged. The baseline BC was trained
+with the same data and implemented with the same hybrid
+force impedance controller.
+Statistical results are shown in Tab. II. We define "Success
+Rate" as whether the ultrasound image shows a clear centered
+transverse view more than 60% of the scanning period and
+the probe stops upon detecting a bifurcation. The metric
+"Landmark Distance to Center on x axis" is calculated with
+the help of our pretrained encoder. “SSIM Distance with
+Human Expert Videos” measures the Structural Similarity
+Index (SSIM) between experiment videos and an expert
+video recorded by a sonographer scanning the same subject
+after aligning the video timelines. Finally, the "Expert Score"
+is obtained by sending the videos single-blindly to expert
+sonographers, who rated them from 0 to 10. Across these five
+metrics, UltraDP consistently outperformed the rule-based
+method and BC, demonstrating superior generalization across
+different subjects.
+Snapshots of one typical trial and the force and pose
+information are presented in Fig. 5, 6, involving a female
+volunteer unknown to the policy. The Fz curve shows the
+significant force exerted by VS method as it pushes on the
+volunteer’s clavicle and neck in the beginning. While the BC
+method with our controller maintained a consistent force, it
+failed to track the landmark, producing incorrect movements
+that drove the probe away from the volunteer’s neck. In
+contrast, UltraDP maintained stable contact and accurately
+predicted a suitable force for scanning.
+C. Ablation Study
+We did an ablation study of the modalities of the obser-
+vation, the results are listed in Tab. III. “UltraDP obs w/o
+{pose, wrench}” showed no convergence during training, so
+we didn’t test it on a human subject. We could conclude
+that both pose and wrench information were important for
+success, but wrench information appeared to be even more
+critical in UltraDP’s framework.
+During the testing, we also found that the failure modes
+of the same method were often similar. For example, “obs
+w/o wrench” frequently failed to make contact with the neck
+because it outputs an inappropriate predicted contact force to
+the low-level controller, as illustrated in Fig. 7. On the other
+hand, “obs w/o pose” usually managed to make contact but
+TABLE III
+ABLATION STUDY OF COMPONENTS IN OBSERVATION
+Success Rate (↑)
+UltraDP
+19/20
+UltraDP, obs w/o wrench
+0/20
+UltraDP, obs w/o pose
+8/20
+UltraDP, obs w/o {pose, wrench}
+/
+0
+2
+4
+6
+8
+10
+Time/s
+−3
+−2
+−1
+0
+1
+Fz/N
+UltraDP - Fz
+UltraDP - Predicted Fz
+UltraDP-obs w/o wrench - Fz
+UltraDP-obs w/o wrench - Predicted Fz
+Fig. 7.
+Ablation Study - The force and torque of UltraDP and UltraDP
+obs w/o force. UltraDP successfully executed the desired trajectory with
+stable contact behavior, while the model trained without force input failed
+to estimate the correct wrench, leading to the probe losing contact with the
+neck.
+Comfort level
+Time satisfaction
+Overall acceptance
+4
+5
+6
+7
+8
+9
+10
+Scores
+UltraDP
+Baseline - VS
+Baseline - BC
+Fig. 8.
+Subjective Study - Statistic results from questionnaires
+struggled to keep the artery centered in the ultrasound image,
+often causing the landmark to drift out of view and leading
+to failure. This showed that wrench information ensured
+proper contact, while pose information helped keep the artery
+centered in our framework.
+D. Subjective Study
+To assess the volunteers’ evaluation on our UltraDP sys-
+tem, we did a questionnaire survey after they experienced the
+robotic scanning using UltraDP and two baseline methods.
+A total of 24 valid responses were collected, with the results
+presented in Fig. 8. The feedback indicates that UltraDP
+excels in comfort and efficiency, making it well-suited for
+human-in-the-loop scenarios.
+V. CONCLUSION
+This paper deals with the generalization problem in au-
+tonomous robotic ultrasound scanning, which is important as
+it guarantees the practical value of the robot across multiple
+human subjects with different backgrounds and medical
+conditions. To improve the generalization ability, we refer to
+
+
+the recent progress of diffusion policy and develop UltraDP,
+a force-aware diffusion policy that can better represent
+multi-modal action distributions, utilize the multi-sensory
+information and generate smooth scanning trajectories. Such
+a trajectory is further tracked and hence realized with a
+hybrid force impedance control scheme so that the safety
+of physical interaction is achieved. The safety, effectiveness,
+and generalization of the developed robot are validated in
+real-world experiments. The scaling-up validation will be our
+future work.
+REFERENCES
+[1] G. Harrison and A. Harris, “Work-related musculoskeletal disorders in
+ultrasound: Can you reduce risk?,” Ultrasound, vol. 23, no. 4, pp. 224–
+230, 2015.
+[2] G. Wu, S. Luo, G. Huang, and X. Li, “Vision-based detection and real-
+time adaptive control schemes for autonomous ultrasound scanning
+robots,” in 2024 International Conference on Advanced Robotics and
+Mechatronics (ICARM), pp. 631–636, 2024.
+[3] X. Yan, S. Luo, Y. Jiang, M. Yu, C. Chen, S. Zhu, G. Huang, S. Song,
+and X. Li, “A unified interaction control framework for safe robotic
+ultrasound scanning with human-intention-aware compliance,” in 2024
+IEEE/RSJ International Conference on Intelligent Robots and Systems
+(IROS), pp. 14004–14011, IEEE, 2024.
+[4] Q. Huang, B. Wu, J. Lan, and X. Li, “Fully automatic three-
+dimensional ultrasound imaging based on conventional b-scan,” IEEE
+transactions on biomedical circuits and systems, vol. 12, no. 2,
+pp. 426–436, 2018.
+[5] Z. Wang, Y. Han, B. Zhao, H. Xie, L. Yao, B. Li, M. Q.-H. Meng,
+and Y. Hu, “Autonomous robotic system for carotid artery ultrasound
+scanning with visual servo navigation,” IEEE Transactions on Medical
+Robotics and Bionics, vol. 6, no. 4, pp. 1436–1447, 2024.
+[6] W. Si, C. Guo, N. Wang, M. Yang, R. Harris, and C. Yang, “A unified
+deep imitation learning and control framework for robot-assisted
+sonography,” in 2023 IEEE International Conference on Development
+and Learning (ICDL), pp. 318–323, IEEE, 2023.
+[7] X. Deng, Y. Chen, F. Chen, and M. Li, “Learning robotic ultrasound
+scanning skills via human demonstrations and guided explorations,”
+in 2021 IEEE International Conference on Robotics and Biomimetics
+(ROBIO), pp. 372–378, IEEE, 2021.
+[8] Y. Bi, Y. Su, N. Navab, and Z. Jiang, “Gaze-guided robotic vascular
+ultrasound leveraging human intention estimation,” IEEE Robotics and
+Automation Letters, vol. 10, no. 4, pp. 3078–3085, 2025.
+[9] H. Jiang, Z. Sun, N. Jia, M. Li, Y. Sun, S. Luo, S. Song, and G. Huang,
+“Cardiac Copilot: Automatic Probe Guidance for Echocardiography
+with World Model,” in Medical Image Computing and Computer
+Assisted Intervention – MICCAI 2024 (M. G. Linguraru, Q. Dou,
+A. Feragen, S. Giannarou, B. Glocker, K. Lekadir, and J. A. Schnabel,
+eds.), (Cham), pp. 190–199, Springer Nature Switzerland, 2024.
+[10] H. Jiang, M. Li, Z. Sun, N. Jia, Y. Sun, S. Luo, S. Song, and
+G. Huang, “Structure-aware World Model for Probe Guidance via
+Large-scale Self-supervised Pre-train,” in Simplifying Medical Ultra-
+sound (A. Gomez, B. Khanal, A. King, and A. Namburete, eds.),
+(Cham), pp. 58–67, Springer Nature Switzerland, 2025.
+[11] H. Jiang, Z. Sun, Y. Sun, N. Jia, M. Li, S. Luo, S. Song, and G. Huang,
+“Sequence-aware Pre-training for Echocardiography Probe Guidance,”
+2024.
+[12] C. Chi, Z. Xu, S. Feng, E. Cousineau, Y. Du, B. Burchfiel, R. Tedrake,
+and S. Song, “Diffusion policy: Visuomotor policy learning via
+action diffusion,” The International Journal of Robotics Research,
+p. 02783649241273668, 2023.
+[13] Y. Ze, G. Zhang, K. Zhang, C. Hu, M. Wang, and H. Xu, “3d
+diffusion policy: Generalizable visuomotor policy learning via simple
+3d representations,” arXiv preprint arXiv:2403.03954, 2024.
+[14] “Mayo clinic: Carotid ultrasound.” https://www.mayoclinic.org/tests-
+procedures/carotid-ultrasound/about/pac-20393399.
+Accessed: 2025-
+02-22.
+[15] A. Duan, M. Victorova, J. Zhao, Y. Sun, Y. Zheng, and D. Navarro-
+Alarcon, “Ultrasound-guided assistive robots for scoliosis assess-
+ment with optimization-based control and variable impedance,” IEEE
+Robotics and Automation Letters, vol. 7, no. 3, pp. 8106–8113, 2022.
+[16] R. Goel, F. Abhimanyu, K. Patel, J. Galeotti, and H. Choset, “Au-
+tonomous ultrasound scanning using bayesian optimization and hybrid
+force control,” in 2022 International Conference on Robotics and
+Automation (ICRA), pp. 8396–8402, IEEE, 2022.
+[17] Y. Huang, W. Xiao, C. Wang, H. Liu, R. Huang, and Z. Sun, “Towards
+fully autonomous ultrasound scanning robot with imitation learning
+based on clinical protocols,” IEEE Robotics and Automation Letters,
+vol. 6, no. 2, pp. 3671–3678, 2021.
+[18] X. Yan, Y. Jiang, G. Wu, C. Chen, G. Huang, and X. Li, “Multi-modal
+interaction control of ultrasound scanning robots with safe human
+guidance and contact recovery,” arXiv preprint arXiv:2302.05685,
+2023.
+[19] A. Ranne, L. Kuang, Y. Velikova, N. Navab, and F. R. Y. Baena,
+“Cathflow: Self-supervised segmentation of catheters in interventional
+ultrasound using optical flow and transformers,” in 2024 IEEE/RSJ
+International Conference on Intelligent Robots and Systems (IROS),
+pp. 2436–2443, 2024.
+[20] W. Liu, J. Wang, Y. Wang, W. Wang, and C. Lu, “Forcemimic:
+Force-centric imitation learning with force-motion capture system for
+contact-rich manipulation,” arXiv preprint arXiv:2410.07554, 2024.
+[21] Y. Wu, Z. Chen, F. Wu, L. Chen, L. Zhang, Z. Bing, A. Swikir,
+A. Knoll, and S. Haddadin, “TacDiffusion: Force-domain Diffusion
+Policy for Precise Tactile Manipulation,” 2024.
+[22] Y. Hou, Z. Liu, C. Chi, E. Cousineau, N. Kuppuswamy, S. Feng,
+B. Burchfiel, and S. Song, “Adaptive compliance policy: Learning
+approximate compliance for diffusion guided control,” arXiv preprint
+arXiv:2410.09309, 2024.
+[23] Y. Zhou, C. Barnes, J. Lu, J. Yang, and H. Li, “On the continuity
+of rotation representations in neural networks,” in Proceedings of the
+IEEE/CVF conference on computer vision and pattern recognition,
+pp. 5745–5753, 2019.
+[24] J. Ho, A. Jain, and P. Abbeel, “Denoising diffusion probabilistic
+models,” Advances in neural information processing systems, vol. 33,
+pp. 6840–6851, 2020.

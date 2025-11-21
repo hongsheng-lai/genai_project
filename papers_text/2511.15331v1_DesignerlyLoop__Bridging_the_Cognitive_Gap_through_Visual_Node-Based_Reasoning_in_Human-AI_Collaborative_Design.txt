@@ -1,0 +1,3227 @@
+DesignerlyLoop: Bridging the Cognitive Gap through Visual
+Node-Based Reasoning in Human–AI Collaborative Design
+Anqi Wang
+Hong Kong University of Science and Technology
+Hong Kong, Hong Kong SAR
+Zhengyi Li
+Central South University
+Changsha, China
+Xin Tong
+Hong Kong University of Science and Technology
+(Guangzhou)
+Guangzhou, China
+Pan Hui
+Hong Kong University of Science and Technology
+(Guangzhou)
+Guangzhou, China
+Figure 1: Overview of DesignerlyLoop, an LLM-based design tool, highlighting its three key mechanisms. The workflow
+starts with (1) Input Design Context. Then, (2) Map to Node-linked Diagram enables the Customized Structure
+mechanism (B). Finally, (3) LLM Chain leverages the Curated Reasoning mechanism to generate solutions (C). An
+Iterative Loop allows for continuous refinement by switching between the design canvas and reasoning views (B, C).
+Abstract
+Large language models (LLMs) offer powerful support for
+design tasks, yet their goal-oriented, single-turn responses
+often misalign with the nonlinear, exploratory nature of de-
+sign processes. This mismatch creates a cognitive gap, limiting
+designers’ ability to articulate evolving intentions, critically
+evaluate outputs, and maintain creative agency. To address
+Permission to make digital or hard copies of all or part of this work for personal
+or classroom use is granted without fee provided that copies are not made or
+distributed for profit or commercial advantage and that copies bear this notice
+and the full citation on the first page. Copyrights for components of this work
+owned by others than the author(s) must be honored. Abstracting with credit is
+permitted. To copy otherwise, or republish, to post on servers or to redistribute
+to lists, requires prior specific permission and/or a fee. Request permissions
+from permissions@acm.org.
+Conference acronym ’XX, Woodstock, NY
+© 2018 Copyright held by the owner/author(s). Publication rights licensed to
+ACM.
+ACM ISBN 978-1-4503-XXXX-X/2018/06
+https://doi.org/XXXXXXX.XXXXXXX
+these challenges, we developed DesignerlyLoop, a visual node-
+based system that embeds LLM reasoning chains into the de-
+sign workflow. The system enables designers to externalize
+and curate reasoning structures, iteratively organize inten-
+tions, and interact with LLMs as dynamic cognitive engines
+rather than static answer providers. We conducted a within-
+subject study with 20 designers, combining qualitative and
+quantitative methods, and found that DesignerlyLoop enhanced
+creative reflection, design quality, and interaction experience
+by supporting systematic engagement with both human and
+machine reasoning. These findings highlight the potential of
+structured, interactive visualization to transform human–AI
+co-creation into a reflective and iterative design process.
+CCS Concepts
+• Human-centered computing →Human computer in-
+teraction (HCI); Empirical studies in HCI; • Applied com-
+puting →Computer-aided design.
+arXiv:2511.15331v1  [cs.HC]  19 Nov 2025
+
+
+Conference acronym ’XX, June 03–05, 2018, Woodstock, NY
+Anqi Wang et al.
+Keywords
+human-AI collaboration, reasoning, design, creativity, AI-assisted
+design, Large language model (LLM), LLM chain
+ACM Reference Format:
+Anqi Wang, Zhengyi Li, Xin Tong, and Pan Hui. 2018. DesignerlyLoop:
+Bridging the Cognitive Gap through Visual Node-Based Reasoning
+in Human–AI Collaborative Design. In Proceedings of Make sure to
+enter the correct conference title from your rights confirmation email
+(Conference acronym ’XX). ACM, New York, NY, USA, 27 pages. https:
+//doi.org/XXXXXXX.XXXXXXX
+1
+Introduction
+Recent works support the superior capabilities of large lan-
+guage models (LLMs), such as Generative Pre-trained Trans-
+former 4 (GPT-4) [68], in addressing the diverse needs of design
+process [6, 86]: design ideation [16, 36, 83], concept develop-
+ment [3, 49, 98, 100, 117], assistant materials [7], and problem-
+solving [26, 95, 105]. As design is a cognitive demanding ac-
+tivity that involves navigating ambiguity while iteratively
+refining outputs toward an intended goal [10, 48, 54], designer
+often engage with LLMs through multi-turn dialogues to clar-
+ify core ideas or address complex problems. In such scenarios,
+designers frequently encounter challenges when attempting to
+explore open-ended design intent. To address this, building a
+tool to support “exploratory design intent” during a non-linear
+process is significant. This capability is crucial for fostering
+open-ended exploration [20, 31], enabling designers to exter-
+nalize evolving ideas [27, 91], navigate ambiguity [5, 79], and
+iteratively refine intent [23, 69] through structured yet flexible
+interaction with LLMs. It empowers designers to maintain
+creative agency while benefiting from the generative and ana-
+lytical strengths of the model.
+However, a fundamental cognitive gap exists between de-
+signers and LLMs. While LLMs typically operate through di-
+rect, goal-oriented reasoning to produce definitive answers,
+design processes are nonlinear, ambiguous, and exploratory,
+driven by loosely defined intent and iterative sense-making.
+This mismatch forces designers to navigate the black-box
+nature of LLMs with little visibility into underlying reason-
+ing [58, 108, 114], making it difficult to evaluate or steer sys-
+tem behavior. Moreover, single-turn interaction patterns con-
+strain the articulation of vague intent, often yielding generic
+or irrelevant responses [38, 113]. These limitations reduce
+opportunities for critical thinking and intentional direction-
+setting [2, 109, 117]. Without scaffolding, designers risk skip-
+ping key cognitive steps such as planning, execution, and
+reflection, leading to over-reliance on LLM outputs and weak-
+ened independent judgment [93]. Addressing these gaps re-
+quires systems that not only generate outputs but also scaffold
+exploratory reasoning, reflection, and interpretability through-
+out the design process.
+One promising solution is visualizing structured cognitive
+representations used by designers (e.g., through mind map
+diagrams)- to define goals, apply reasoning strategies, and nav-
+igate ambiguous problems [44, 76, 80, 81, 93, 96, 104]. Design
+field often employs this visualizing method. Current graphic-
+based LLM tools have focused on mapping iterative ideas or
+externalizing evolving contexts in a designer-LLM co-creation
+(e.g., [16, 83, 109]), as well as non-linear organization and
+interaction (e.g., in design [56, 57] and non-design context
+(e.g., [47, 116]). By articulating and visualizing their evolving
+design intent and underlying reasoning structures, designers
+can create shared representations that contextualize LLM out-
+puts, reduce ambiguity, and support reflective iteration [109].
+In this way, this visualized method not only scaffold human
+thinking but also enable LLMs to participate in the co-creation
+of design, forming a dynamic and collaborative reasoning pro-
+cess [4, 9, 41].
+However, existing studies overlooked intentionally curated
+reasoning in the co-creation design process. Despite explored
+LLM-driven reasoning strategies in co-creation (e.g. Ideation-
+Web [83] and CoExploreDS [16]), designers have limitation
+on controllability of reasoning during evolving context. For
+instance, CoExploreDS applies various reasoning strategies but
+still produces single-turn outputs, lacking user controllability
+supporting for interactive, multi-turn reasoning that aligns
+with the evolving needs of design. In addition, bridging the
+cognitive gap requires iterative evaluation and customized
+structure (e.g., representing hierarchy, order, relationship)
+using graphic-based tools. First, this process requires iterative
+loops to support reflective evaluation of both human- and
+machine-generated reasoning [93]. Second, this process need
+to support designers to organize intent using hierarchical, tem-
+poral, or relational logic, rather than fixed-structure graphs in
+most existing tools. Supporting diverse organizational formats
+is essential for externalizing varied cognitive process.
+Inspired current tools curating LLM chains that benefit
+user controllability using explicitly exposing reasoning logic
+and connection structure that allows to continuous iteration
+(e.g., [46, 93, 107, 108]), we highlights the significance of sup-
+porting design intent is that tools must support “articulating
+reasoning structures” and “mapping system behaviors” [93].
+Using graphic visualizing method, this involves (1) curating
+system reasoning models (2) modelling user intent, and (3)
+supporting user-driven iteration. Thus, our research questions
+are: How can a graphic co-creative system be designed to sup-
+port reasoning process of LLM during exploring design intent,
+bridging the cognitive gap between designer and LLMs?
+To address these challenges, we propose DesignerlyLoop, a
+visual node-based system that integrates a curated LLM rea-
+soning chain into designer–LLM co-creation. DesignerlyLoop
+combines a diagrammatic interface with real-time LLM execu-
+tion, enabling designers to construct, test, and iterate on multi-
+step reasoning. By embedding LLMs directly in the design
+environment, the system offers immediate semantic feedback,
+supports prompt chaining, and externalizes users’ evolving
+design logic. In a within-subject study with 20 designers, De-
+signerlyLoop supported both the formation of design intent
+and critical reflection. Qualitative and quantitative results indi-
+cated improvements in interaction experience, creativity, and
+
+
+DesignerlyLoop
+Conference acronym ’XX, June 03–05, 2018, Woodstock, NY
+design quality, as participants systematically engaged with rea-
+soning and actively curated LLM outputs rather than passively
+accepting suggestions. These findings suggest that embedding
+LLMs as structured, interactive reasoning engines can fos-
+ter more reflective, iterative, and higher-quality human–AI
+co-creation.
+Our contributions are threefold: (1) Proposing key insights
+of graphic-based designer-AI collaborative tools for forming
+design intent, including three challenges and design guidelines
+in a formative study; (2) Developing DesignerlyLoop process-
+ing a two-tied structure reasoning process with customized
+organization and iterative evaluation by combining the design
+process and AI thinking path; (3) Demonstrating the bene-
+fits of DesignerlyLoop in supporting design intent with better
+experience and higher creativity supports during human-AI
+collaboration process.
+2
+Related Works
+2.1
+Forming Design Intent
+2.1.1
+Defining Design Intent. Design intent rarely emerges
+fully formed. Instead, it unfolds iteratively through sense-
+making, prototyping, and reflection as designers engage with
+evolving constraints and materials [35]. In such exploratory
+process, intent may manifest as ambiguous metaphors or af-
+fective narratives in the early phrase, later refined into clearer
+propositions [90]. HCI tools—such as sketch canvases, ver-
+sioned annotations, and timeline overlays—can scaffold this
+gradual externalization and stabilization of intent over time [16,
+22, 59, 82, 83, 94].
+2.1.2
+Forming Intent from Diverse Supports. Creative design
+processes oriented around the articulation and refinement of
+intent require nuanced system support that accommodates
+the evolving and situated nature of intent formation. Drawing
+from cognitive models of creativity and interaction design
+literature [30, 45, 65, 74, 81, 84, 103], we identify three critical
+dimensions along which design tools must support intent-
+driven practices:
+Non-Linear design loops. Creative design intent does not
+progress linearly but evolves through recursive loops involv-
+ing exploration, reinterpretation, and reformulation [13, 24, 29,
+117]. Designers fluidly transition between divergent/conver-
+gent thinking across research, ideation, and critique phases [10,
+57] This loop feature necessitates tools that accommodate:
+(1) Intent reformulation triggered by new constraints, user
+feedback, or serendipitous discoveries; (2) Stage-agnostic in-
+put mechanisms that allow ideation at any point in the pro-
+cess [32, 40]; (3) Concept tracing features and timeline visual-
+ization to revisit and branch design paths [93]. Systems should
+thus enable temporal fluidity, branching, and re-entry, rather
+than enforce prescriptive workflows.
+Diverse representational forms. Design intent manifest het-
+erogeneously across practitioners even when addressing iden-
+tical goals. Diverse solutions emerge through varied empha-
+sis on visual semantics, functional aims, user considerations,
+or prototype fidelity, reflecting distinct value judgments and
+objectives [15, 52]. This diversity necessitates interfaces that
+fluidly adapt to individual designer’s evolving representational
+needs.
+Dialogic co-creation. Building on Schön’s notion of “conver-
+sation with materials”, design is an iterative dialogue where
+emerging artifacts influence cognition and action. Intent for-
+mation is not solely internal but shaped through back-and-
+forth interaction with evolving prototypes, sketches, and other
+intermediaries [74]. Design tools should therefore treat arti-
+facts not just as outputs but as conversational partners—surfacing
+meaningful responses that invite reflection, reinterpretation,
+and thematic development.
+2.1.3
+LLM Capabilities for Building Design Around Intent. The
+breakthrough of prompting LLMs (e.g. GTP-4o [68], Deepseek,
+Claude) exhibit three core capabilities enabling novel approaches
+to intent-driven design: First, LLMs’ advanced natural lan-
+guage comprehension allows designers to verbally externalize
+and refine ambiguous intent through iterative dialogue [68].
+This capability transforms linguistic expressions directly into
+executable specifications, facilitating on-demand tool creation
+without technical retraining. The recursive interaction pat-
+tern supports continuous intent disambiguation via semantic
+negotiation [14].
+Second, as reflective collaborators, LLMs demonstrate cog-
+nitive partnership across creative domains [12, 71, 112]. They
+enable bidirectional sense-making where both human and AI
+agents progressively adapt their reasoning, surpassing tools
+requiring unilateral user adaptation [30, 85].
+Third, LLMs perform abductive inference—generating plau-
+sible hypotheses under uncertainty—through frameworks like
+ReAct that integrate reasoning with action [111]. This capabil-
+ity facilitates contextual intent inference with under-specified
+goals, consequence anticipation prior to implementation, and
+comparative solution evaluation. Crucially, LLMs enable ana-
+logical adaptation of known forms to novel problems through
+cross-domain knowledge transfer. This aligns with Peirce’s
+conception of abduction as “inference to the best explana-
+tion” [1]. By translating abstract concepts into executable
+specifications while maintaining semantic coherence across it-
+erative refinements, LLMs scaffold design intent as a dynamic
+cognitive process co-negotiated between human and artificial
+agents.
+2.2
+AI Graph-Based Creativity Tool and
+Human-AI Co-Creation
+The fundamental cognitive gap between LLM and designer
+makes it difficult for designers to align their evolving de-
+sign process with the structured outputs provided by LLMs.
+LLM often response with direct, objective-driven, and turn-
+based outputs (e.g., via instructive prompts like “You are a
+[role]”) [2, 93, 109, 117]. In contrast, design is inherently non-
+linear, iterative, and ambiguous, often characterized as dealing
+with “ill-defined problems” due to incomplete or evolving
+problem information [88].
+
+
+Conference acronym ’XX, June 03–05, 2018, Woodstock, NY
+Anqi Wang et al.
+Graph-based interfaces resolve this gap by enhancing ed-
+itability and information representation, thereby supporting
+nonlinear design workflows. Such interfaces enable refine-
+ment, regeneration, and navigation across design iterations
+[16, 19, 47, 56, 57, 75, 83, 87, 107, 109]. These tools extend es-
+tablished visual methods (e.g., mind maps, concept maps, node-
+link diagrams) that scaffold ideation and systems thinking in
+design research [11, 67]. By facilitating multi-turn iteration
+and pipeline composition, they introduce novel LLM interac-
+tion paradigms. Shokrizadeh et al. [87] enables UI ideation
+through version navigation on a canvas. Lin and Martelaro
+[57]’s Jigsaw system supports cross-modal AI pipeline con-
+struction (e.g., integrating ChatGPT and Midjourney). He et al.
+[36] employs an LLM-enhanced canvas for group ideation with
+structured sticky notes. Graph structures further serve as inter-
+mediary representations for prompt steering by decomposing
+text prompts into hierarchical elements [74, 110]. Systems like
+AI-Instruments [74] utilize fragmented prompt cards to en-
+able continuous intent refinement. However, some inherent
+limitations of current graph-based approaches constrain their
+design support capability. Limited controllability and inter-
+pretability can erode human trust in AI systems [55, 72, 97].
+Moreover, users may become overwhelmed by the accumu-
+lation of prompts and AI-generated outputs during extended
+exploration [33].
+Designer-LLM co-creation shows particular promise dur-
+ing conceptualization. AI agents function as co-creators that
+introduce varied inputs in parallel, enhancing conceptual di-
+versity [39, 62, 63]. Empirical evidence indicates that even
+brief exposure to AI-generated ideas stimulates novel concep-
+tual directions [53]. However, persistent concerns regarding
+authorship ambiguity, over-reliance, and diminished human
+agency require resolution [73]. Scholars have increasingly
+employed visualized approaches to represent co-creation pro-
+cess, not only increasing model understanding but also pre-
+serving user ownership and intentionality [2, 74, 83, 94, 109].
+IdeationWeb [83], for instance, empirically applied four distinct
+human-AI co-creation strategies in design ideas, yet its single-
+turn generation mechanism still limited user controllability.
+One type of these studies focusing on reasoning processes in
+such co-creation processes have shown potential to address
+this issue. Jamplate [109] employs design templates (i.e., Five
+Whys, Competitive Analysis) to facilitate progressive, step-
+wise solution refinement and cognitive elicitation. However,
+its use of fixed node-link structures inadequately captures
+the evolving nature of design processes, thereby constrain-
+ing emergent exploration. CoExploreDS [16] fills this gap by
+employing node-linked diagram enables track and visualize
+idea development, capturing logical relationships and concep-
+tual similarities. Furthermore, this work leverage analogical,
+inductive, abductive and analogical reasoning to guide LLM
+thinking during ideation [16].
+Nevertheless, these systems still provide insufficient user
+control over the underlying reasoning processes. Users are left
+with multiple rounds of what is essentially one-time generated
+content to continually refine. Externalizing reasoning paths
+enables designers to evaluate LLM cognition and better align
+outputs with design goals. Our work aims to explore a more
+explicit externalization of reasoning strategies to extend this
+boundary by enabling bidirectional integration between de-
+sign representations and LLM reasoning—transforming visual
+design diagrams into editable interfaces for AI interaction.
+3
+Formative Study
+Study Goal. The formative study aimed to explore how de-
+signers construct and externalize their design intentions with
+the support of LLMs. We focused on identifying current prac-
+tices, challenges, and expectations for LLM-assisted design
+tools, in order to inform the design of our prototype system.
+Participants. We recruited eight designers (5 female, 3 males)
+aged 23-30 year. Among them, four were experienced experts
+(e.g., visual communication designer, UX designer, urban de-
+signs) with over eight years of professional practice. Given the
+prevalence of ChatGPT as a widely adopted LLM, our study
+centered on participants’ experiences with ChatGPT or similar
+tools.
+Procedure. The study consisted of two parts. First, we con-
+ducted a 30-minute hands-on task with three participants,
+asking them to create a design concept using GPT and present
+their outcomes in Figma, a popular visual design tool. We
+recorded the prompts they used and thematically coded the
+resulting use cases. After this task, participants engaged in a
+short semi-structured interview reflecting on their workflow
+and tool experience. Second, we conducted in-depth semi-
+structured interviews with the remaining participants. These
+interviews focused on three core areas: (1) how designers
+typically form design intent, (2) what kinds of information
+they provide to GPT during this process, and (3) how they
+envision future AI-based tools to better support conceptual
+development.
+Data Collection and Analysis. All interviews were conducted
+in Chinese via video calls and lasted 45–90 minutes. Audio
+recordings were transcribed using iFlytek and manually cor-
+rected for accuracy. Chinese excerpts used in analysis or re-
+porting were translated into English with DeepL; translations
+were subsequently reviewed and revised to maintain concep-
+tual fidelity and preserve design-specific terminology.
+We employed reflexive thematic analysis [8]. Two researchers
+independently performed open coding on the full Chinese
+transcripts and field notes from the 30-minute hands-on ses-
+sions. Code sets were compared in weekly calibration meet-
+ings, during which discrepancies were resolved and the code-
+book was iteratively refined. A senior researcher audited the
+evolving codebook and thematic structure to ensure coherence
+and methodological rigor. After finalizing the codebook, both
+coders applied it across the dataset using an inductive–deductive
+strategy aligned with the research questions. Analytic memos
+were maintained throughout to document coding decisions
+
+
+DesignerlyLoop
+Conference acronym ’XX, June 03–05, 2018, Woodstock, NY
+and translation clarifications. Themes were derived by syn-
+thesizing recurring patterns and triangulating insights from
+interviews and observed design practices.
+3.1
+Forming Design Intent and AI Support
+Needs
+Designers typically initiate the formation of design intent
+through a non-linear, internally guided process grounded
+in personal philosophies, contextual awareness, and domain
+knowledge. Rather than using GPT to define initial goals, par-
+ticipants emphasized leveraging their own frameworks and
+relying on the model to support specific sub-tasks. For exam-
+ple, P4 remarked that “designers already have their own logic
+and frameworks in mind,” using GPT primarily for assistance
+with underexplored areas such as demographic scenarios or
+spatial constraints.
+Participants described interacting with GPT as if it were
+an all-knowing interlocutor, integrating it across all stages
+of the design process. As P2 noted, “I use GPT whenever I’m
+stuck or need a new perspective—it’s like chatting with someone
+who knows everything.” Designers often input large amounts
+of fragmented thoughts—“bits and pieces”—which GPT helps
+to structure into coherent concept maps. It also excels at sum-
+marizing, expanding, and organizing these fragmented inputs,
+thereby enabling clarity during early ideation. P6 described
+a practice of creating project-specific folders, each contain-
+ing multiple conversations, noting that “the more we talk, the
+more it understands the project.” In addition, GPT was valued
+for accelerating research tasks such as user journey mapping,
+persona creation, and gathering background information. It
+was also used to simulate stakeholder perspectives, aiding
+empathy-driven design.
+3.2
+Challenges of Using AI to Construct
+Design Intent
+3.2.1
+C1: Shallow Reasoning and Fragile Conceptual
+Development. Participants frequently used GPT to articu-
+late and shape design ideas, but consistently faced shallow
+reasoning and fragile conceptual outputs. Responses were
+often generic, repetitive, and risk-averse, limiting meaning-
+ful synthesis. As P1 noted, “It talks a lot, but nothing really
+useful”; P5 added that GPT “rarely makes explicit how those
+patterns are reasoned”. Experienced users mitigated issues via
+curated examples or structured templates (P3), but novices
+struggled without extensive prompt engineering. GPT was
+mainly employed for narrow tasks such as generating point-
+of-view statements or blueprints (P4, P8), acting as a modular
+assistant rather than a co-creator (P7).
+3.2.2
+C2: Contextual Forgetfulness and Information Frag-
+mentation. Participants reported breakdowns in contextual
+continuity after 5–10 conversational turns, with GPT losing
+track of earlier references or reusing terms inconsistently. P4
+remarked, “Sometimes it brings in examples from another project
+I mentioned days ago”. This necessitated repeated restatements
+of goals, increasing cognitive load. Experts occasionally used
+“design folders” to preserve topic fidelity, but novices were more
+prone to drifting focus. Designers highlighted that multiple
+factors (e.g., safety regulations, lighting) intersect, requiring
+GPT to link and contextualize concepts across turns, a capa-
+bility currently limited.
+3.2.3
+C3: Limited Support for Core Design Intent and
+Multi-Dimensional Integration. GPT struggled to engage
+with core design intent and conceptual frameworks, producing
+outputs often generic and lacking nuanced rationale. P7 ob-
+served, “GPT’s outputs tend to miss the subtle reasoning required
+to align with established design ideologies”. Participants used
+GPT mainly for pattern recognition after intent formation
+(P5, P2), and envisioned future systems allowing intervention
+checkpoints and modular assistance to integrate fragmented
+knowledge (P8).
+3.3
+Design Goals
+3.3.1
+DG1: Node-Based Scaffolding for Structured De-
+sign Reasoning. To address shallow reasoning (C1), LLM
+tools should support decomposition of abstract ideas into
+modular reasoning tasks, enabling stepwise exploration of
+metaphors, aesthetics, and design logic [38, 113]. Nodes host
+focused prompt templates targeting specific cognitive func-
+tions (P1, P6), enhancing conceptual depth. P2 noted, “It helps
+me push my ideas deeper when the model knows exactly what
+kind of decision I’m trying to make”.
+3.3.2
+DG2: Cross-Node Context Persistence for Sustained
+Conceptual Coherence. To mitigate contextual forgetful-
+ness (C2), systems should embed memory slots or topic an-
+chors within nodes, tracking evolving goals. P7 commented, “If
+it could just remember what I told it three nodes ago, I wouldn’t
+have to reset everything all the time”. Linking related nodes
+enables LLMs to synthesize insights across threads, supporting
+layered, long-range ideation (P4).
+3.3.3
+DG3: Configurable LLM Chains for Multi-Dimensional
+Design Integration. For holistic synthesis (C3), systems should
+allow users to configure LLM chains integrating diverse con-
+cerns such as environmental, demographic, regulatory, and aes-
+thetic factors. P3 highlighted, “It’s not about listing ideas—it’s
+about threading them into something meaningful”. Chains or-
+chestrate multi-node reasoning and provide checkpoints for
+intermediate synthesis (P8, P4).
+3.4
+Prototyping Design and Iteration
+3.4.1
+Initial Prototype Design. To translate the design goals
+(DG1–DG3) into a tangible system, we first developed a mini-
+mum viable prototype (MVP) that captured the essential mech-
+anisms of our approach. The MVP was organized around three
+core panels: Based on DG1–DG3, the prototype supports cu-
+rated reasoning at both design and LLM levels, with three
+panels: 1) design pipeline grounding (Design Context Builder);
+
+
+Conference acronym ’XX, June 03–05, 2018, Woodstock, NY
+Anqi Wang et al.
+2) design canvas (Design Reasoning Canvas); 3) LLM chain
+(LLM Reasoning Chain Viewer).
+3.4.2
+Prototype Iteration. We then conducted two co-design
+workshops with six HCI and UX experts to iteratively refine
+the prototype. Each workshop began with a demonstration
+of the prototype, then walkthrough of the MVP and a guided
+design task, followed by critical reflection and structured feed-
+back. This process enabled us to assess the usability of core
+features, identify breakdowns in workflow alignment, and
+prioritize enhancements that would increase reflective engage-
+ment without overloading users.
+3.4.3
+Iteration Outcomes. Insights from the workshops in-
+formed a set of key refinements to the prototype: (1) exporting
+AI chain node outputs to the main design canvas; (2) auto-
+matic chain generation from design-level prompts; (3) LLM-
+driven determination of reasoning type per node; (4) unique
+LLM chain usage per node; (5) grouping/classifying nodes; (6)
+user-customizable editing and organization of LLM outputs.
+Collectively, these refinements advanced the prototype from a
+proof-of-concept to a more robust system aligned with expert
+design practices.
+4
+System Design
+To support designers in co-creating with LLMs and forming
+design intent, we developed DesignerlyLoop—a visual node-
+link diagram system that scaffolds controllable LLM reasoning
+for goal-aligned human–AI collaboration. The system forms
+a continuous iterative loop that enables users to articulate
+high-level design goals, externalize their cognitive process,
+and iteratively engage with LLM-generated reasoning chains.
+DesignerlyLoop’s integrating capabilities help users: (1) under-
+stand and evaluate the LLM’s cognitive process; (2) re-align
+LLM behavior with user intent.
+4.1
+DesignerlyLoop Interaction Design
+As illustrated in Figure 2, DesignerlyLoop comprises three pri-
+mary panels: Panel A Design Context Builder, Panel B Design
+Reasoning Canvas, and Panel C LLM Reasoning Chain Viewer.
+Design intent is treated not as a fixed goal but as a moving
+target shaped through iterative loops.
+4.1.1
+Panel A: Design Context Builder. Panel A supports align-
+ment between high-level design intent and concrete execution-
+level steps (DG3). Users define design background, goals, and
+stylistic preferences (Figure 2-A). Based on this input, the
+system automatically generates a sequenced design nodes—a
+structured list of design process (Figure 2 a.2) forming the foun-
+dation for downstream processes. Users can edit keywords to
+tailor the node-link diagram in Panel B (Section 4.1.2).
+4.1.2
+Panel B: Design Reasoning Canvas. Panel B externalizes
+and structures evolving design steps via a customizable, node-
+based digital canvas (Figure 2-B). Each node contains editable
+content, including a title and segmented blocks documenting
+subgoals, hypotheses, or cognitive tasks (e.g. “Concept De-
+sign,”“Dynamic Learning Island Design” in Figure 2-B). Users
+can flexibly add, remove, reorder, or connect design nodes, as
+well as using a node with content generated by AI, AI node,
+to override or supplement existing diagram structures. Node
+colors, layouts, and link can be customized to indicate cogni-
+tive paths or design phases. Multi-path linking and reordering
+enable parallel exploration of alternative directions. Panel B
+scaffolds alignment between the user’s design cognition (DG2)
+and the LLM’s structured understanding.
+4.1.3
+Panel C: LLM Reasoning Chain Viewer. Panel C enables
+the generation of an LLM reasoning chain (Figure 2 c.2) embed-
+ded within a design node within Panel B. By double-clicking a
+design node, users open Panel C and specify a “goal” in natural
+language, which guides LLM reasoning style and exploratory
+scope (Figure 3). The panel then produces a multi-step chain
+with sequential or divergent (parallel) structures, making the
+LLM’s reasoning process explicit. Each chain node is aligned
+with both a design stage of the Double Diamond model [77]
+and one of four reasoning methods—inductive, deductive, ab-
+ductive, or analogical [16] (Figure 4; detailed prompts in Ap-
+pendix A.3.1). Figure 5 illustrates two representative chain
+forms, showing how reasoning methods are applied at the
+node level.
+For co-creation, users can add, delete, revise, annotate, and
+reorder nodes (Figure 2 c.4). LLM Reasoning Chain Viewer
+further supports human–AI collaboration through functions
+such as: Addition—introducing new ideas or contextual de-
+tails, which the LLM integrates into supplementary nodes;
+Deletion—removing irrelevant nodes, prompting the LLM to
+adapt reasoning paths; Revision—adjusting wording or scope,
+leading the LLM to regenerate content; and Prompt refine-
+ment—reformulating inputs to explore alternative trajecto-
+ries. Users can also regenerate content by editing the node
+title and clicking “Regenerate” (Figure 2 c.5).
+Once refined, nodes can be externalized as sticky notes in
+Panel B or C via “Create Node”, integrated into the evolving
+diagram through “Output to Canvas” (c.6), or saved for later
+iteration (c.7). This reciprocal workflow enables designers
+to steer ideation through targeted interventions, while the
+LLM expands and operationalizes their intent into structured
+reasoning artifacts.
+Panel C addresses DG1: Enabling curated construction
+and adjustment of LLM reasoning chains by supporting
+controllability, co-creation, and subgoal iteration. By mapping
+LLM outputs to interpretable reasoning categories, the system
+enhances transparency and empowers users to direct problem-
+solving. Bidirectional linkage between reasoning structures
+and design representations enables fluid co-creation where
+visual structure actively embody reasoning logic, deepening
+human–AI alignment.
+
+
+DesignerlyLoop
+Conference acronym ’XX, June 03–05, 2018, Woodstock, NY
+Figure 2: DesignerlyLoop comprises three main interfaces: (A) Design Context Builder Panel, (B) Design Reasoning
+Canvas, and (C) LLM Reasoning Chain Viewer. Users input design context in (a.1), generating an editable keyword
+pipeline (a.2). Clicking “Generate” (a.3) produces a node-link diagram in (B), supporting customized edits (e.g., add,
+delete, modify nodes). Double-clicking a node (b.1) opens (C-1), where users specify goals (c.1) and obtain LLM-
+generated reasoning nodes (c.2). Each node offers multiple design suggestions (c.3) and co-creation functions (c.4),
+including content addition, deletion, revision, or regeneration via prompt refinement (c.5). Finalized outputs can be
+“Output to Canvas” (c.6), saved (c.7) and checked alongside the canvas (C-2).
+Figure 3: Pipeline for LLM chain generation by the designer in Panel C. When double-clicking a design node, Panel C
+opens as a popup, where users (A) input a specific “goal” for in-depth exploration under the current design node; (B)
+click “Generate” to (C) map the input into structured prompts, including task, requirements, context, output, and
+examples; and (D) produce an LLM chain that generates both sequential and parallel chain structures with prompt
+requirements and output formats.
+4.2
+DesignerlyLoop for Human–LLM
+Collaboration
+These three panels collectively form an integrated reasoning
+loop that supports designers in iterating between goal articu-
+lation, design structuring, and LLM collaboration. Specifically,
+
+
+Conference acronym ’XX, June 03–05, 2018, Woodstock, NY
+Anqi Wang et al.
+Figure 4: Pipeline for LLM output generation within each chain node in Panel C, where users (A) “Run” a chain node to
+obtain the initial LLM output. The system then (B) applies an LLM prompt to identify the corresponding design stage
+in the Double Diamond model (Appendix A.3.2) and (C) applies another prompt to specify the reasoning method(s)
+(Appendix A.3.1). Finally, (D) the system generates the refined LLM output accordingly.
+Figure 5: Generated reasoning chains in LLM Reason-
+ing Chain Viewer may be sequential or parallel. Each
+chain node combines a primary and secondary reasoning
+method, selected from inductive, deductive, abductive,
+or analogical reasoning.
+Panel A Design Context Builder captures abstract design goals
+and preferences, Panel B Design Reasoning Canvas external-
+izes and elaborates the user’s cognitive process via node-based
+mapping, and Panel C LLM Reasoning Chain Viewer visualizes
+and supports revision of the LLM reasoning chain in response
+to user feedback. This loop enables designers to reflectively
+engage with the LLM, enhancing transparency, creative con-
+trol, and alignment between intent and generation throughout
+the co-design process.
+4.2.1
+Example User Walkthrough. To illustrate DesignerlyLoop
+in action, we present a walkthrough scenario based on an
+interface design. Designer Lin explores layout strategies for
+an interactive storytelling app for children.
+The session begins in Panel A Design Context Builder, where
+Lin defines a high-level design brief: “Create a playful and
+accessible storytelling interface for children aged 5–8.” They
+specify preferred goals and constraints in the “Design Goal”
+field (e.g., “low reading level,” “visual-first interaction”) and tag
+the style as “whimsical and exploratory.” The system uses this
+input to generate a sequenced design pipeline, such as: (1) story
+background, (2) onboarding interaction, (3) layout structure, (4)
+navigation flow, (5) personalization options.
+Next, the user moves to Panel B Design Reasoning Canvas,
+where the pipeline is visualized as editable design nodes. Lin
+inspects and refines the structure, adding a node for “multi-
+sensory interaction” that was absent in the generated pipeline.
+Each node can be annotated and expanded with subthreads of
+exploration, creating a cognitive map of the evolving design
+process.
+When deeper reasoning is required—e.g., structuring “on-
+boarding for non-readers”—Lin double-clicks the relevant node,
+triggering Panel C LLM Reasoning Chain Viewer. The system
+generates a multi-step LLM reasoning chain, with sugges-
+tions such as “use audio prompts,” “add avatar-based guidance,”
+and “progressive disclosure of functionality.” Lin evaluates, re-
+orders, and revises steps, updating the underlying reasoning
+graph.
+Throughout the session, Lin iteratively switches between
+panels, refining goals (Panel A), restructuring the conceptual
+map (Panel B), and interrogating or editing LLM outputs (Panel
+C). This dynamic interplay fosters not only idea generation
+but also reflection, traceability, and cognitive alignment across
+the design process.
+4.3
+System Implementation
+We implement the DesignerlyLoop as node-based application,
+technical framework is illustrated in Figure 6. The critical in-
+formation regarding design process and its associated LLM
+reasoning chains are stored as node-based graph data struc-
+ture in the frontend. This approach provides a powerful model
+that both frontend and backend can take advantage of. For
+frontend, the graph serves as an intuitive visual representa-
+tion that directly supports non-linear design evolution and
+supports complex design trajectories, giving users the free-
+dom to explore multiple creative directions simultaneously
+without losing design context. And while the frontend pro-
+vides an intuitive interface, the true power of DesignerlyLoop
+lies in the backend’s ability to process the graph-based design
+data. Specifically, backend is implemented to go beyond simple
+
+
+DesignerlyLoop
+Conference acronym ’XX, June 03–05, 2018, Woodstock, NY
+Figure 6: Technical framework of DesignerlyLoop, indicating interaction workflow includes three main steps: (1)
+mapping design process to customized node-linked diagram via inputting design context, (2) curating design reasoning
+and (3) co-creation process in the LLM reasoning chain.
+nodes and edges and extract complex correlations between
+different design elements and LLM outputs, providing deeper
+insights and enabling more powerful automated processes.
+4.3.1
+Backend implement. The core of the backend in Design-
+erlyLoop is a set of LLM-empowered API calls. The implemen-
+tation mainly involves context management, reasoning mode
+classification, dynamic prompt templates, and the generation
+of AI-driven design processes and LLM reasoning chains. This
+architecture enables an adaptive workflow that transcends
+simple query-response, allowing the system to handle the
+complex, non-linear nature of creative design. The two pri-
+mary functionalities of backend design are the design process
+generation and the LLM reasoning chain generation.
+Design Process Generation. Design process generation fo-
+cuses on transforming a user’s abstract design goal into a
+concrete, executable design pipeline. We employ two separate
+LLM API calls to generate design plans based on given de-
+sign goal and design background and later fulfill the concrete
+content of each design step. In prompt design of the first gen-
+eration, the LLM acts as a "Project Architect" and structures a
+list of high-level design steps (e.g., "User Research," "Concept
+Ideation," "Prototyping"). Then, the dynamic prompt templates
+are used to guide the LLM’s later generation process. To popu-
+late each step with detailed content, the DesignerlyLoop system
+provide LLM with the context of previously completed steps
+along with semantically similar “golden examples” retrieved
+from a case study library. These "golden examples" are essen-
+tially high-quality few-shot prompting, which helps the LLM
+to understand the pattern of the desired output, significantly
+improving both the quality and consistency of its generations.
+By injecting both the project’s evolving context and relevant
+examples into the prompt, the system ensures the design pro-
+cess generation is logical and coherent.
+The DesignerlyLoop system uses “design reasoning canvas”
+to complete focused exploration of a specific design problem.
+Its core function is to generate a structured, multi-step “LLM
+thinking chain" along with rationales that guide the user’s
+creative process. The generation process is two-staged. In the
+first phase, the system uses an LLM-powered classifier to an-
+alyze the user’s goal and categorize it into one or two core
+reasoning modes from a predefined set (i.e., Inductive, Deduc-
+tive, Abductive, and Analogical) (Appendix A.3.1). This step
+ensures the generated thought path is logically aligned with
+the user’s specific problem-solving needs. Each combination
+of reasoning mode enables a dynamic prompt template that
+group corresponding methodology and few-shot examples
+along with the user’s goal and the structured context for LLM
+to demonstrate the ideal thought process. This directs the LLM
+to generate a coherent, multi-step thinking chain.
+In the final stage, the system first classifies each thinking
+chain step into a specific design phase in double-diamond
+model [77] (e.g., Discover_Divergent, Develop_Convergent)
+to ensure purpose-driven content (Appendix A.3.2). It then
+produces detailed rationales by providing the LLM with a rich
+context of prior nonlinear nodes and relevant examples. The
+detailed implementation is discussed in Section 4.3.2.
+4.3.2
+System Implementation. The DesignerlyLoop system is
+implemented as a web-based application, where the frontend
+is built with Vue 3 1 in JavaScript, and the backend is devel-
+oped in Python using the FastAPI framework. Specifically, we
+utilize the Vue Flow 2 as the very foundation for frontend
+interface. And for backend, it is implemented using FastAPI 3
+framework, with Uvicorn as the server. We use LangChain 4 to
+1https://vuejs.org/
+2https://vueflow.dev/
+3https://fastapi.tiangolo.com/
+4https://www.langchain.com/
+
+
+Conference acronym ’XX, June 03–05, 2018, Woodstock, NY
+Anqi Wang et al.
+build the whole pipeline of API-based LLM service, integrat-
+ing the gpt-4o model and the text-embedding-ada-002 model
+through Microsoft Azure OpenAI together with ChromaDB 5.
+5
+User Study
+To validate the effectiveness of curated reasoning scaffolds in
+DesignerlyLoop in supporting human–AI collaborative design
+intention, we conducted a within-subjects experiment with
+20 professional designers comparing it to a baseline system.
+The study examined whether DesignerlyLoop enhances design-
+ers’ ability to articulate, refine, and reflect on evolving design
+intentions relative to traditional AI-assisted tools.
+5.1
+Participants
+We recruited 20 professional designers with experience in
+LLM-assisted design and balanced expertise in industrial and
+art design (Appendix Table 1). Participants were recruited
+through purposive sampling via posts on social media plat-
+forms (Xiaohongshu, Weibo) and professional online design
+communities (Xiaohongshu, Wechat), targeting individuals
+with prior experience using LLMs. Screening collected (1) de-
+mographics (age, gender, profession), (2) design experience
+(duration, field), and (3) GenAI tool experience (types, use
+cases). Only participants meeting the balanced background
+criteria were included. Participants received $22 USD for a
+120-minute session. The study received approval from the
+university’s Institutional Review Board (IRB).
+5.2
+Study Design
+5.2.1
+Goal and Method. We conducted a within-subjects study
+with 20 designers, each completing two conceptual design
+tasks using DesignerlyLoop and a baseline system. The com-
+parison isolates the contribution of curated reasoning—by
+holding representational diagramming format and generative
+AI capability.
+5.2.2
+Baseline System. The baseline served as a control con-
+dition representing a standard AI-assisted diagramming tool.
+It was a simplified version of DesignerlyLoop, retaining only
+the essential components for node-link diagramming and ba-
+sic AI generation. Specifically, the baseline preserved Panel
+A (design node canvas) and Panel B (AI node generation),
+enabling participants to construct and connect conceptual
+elements while receiving direct AI suggestions through the
+same underlying LLM. To isolate the effects of curated reason-
+ing and co-creation mechanism, the baseline excluded Panel
+C—the “LLM reasoning” panel—along with mechanisms for
+design-intent articulation, and co-creation mechanisms. These
+features in DesignerlyLoop were purposefully designed to scaf-
+fold reasoning rather than expand functional capacity. Thus,
+both systems offered equivalent generative capabilities and
+interaction flow, differing only in the presence of reflection-
+and reasoning-oriented scaffolds.
+5https://docs.trychroma.com/
+5.2.3
+Study Design. The independent variable was the system
+used (DesignerlyLoop vs. baseline). Dependent variables in-
+cluded (1) self-reported SUS (System Usability Scale), (2) AI in-
+teraction experience (controllability, collaboration, trust, cog-
+nitive load, and enjoyment), (3) agency (artists’ self-confidence,
+AI reliance), (4) creativity support (via the Creativity Support
+Index), and (5) participants’ creative design quality.
+5.3
+Procedure
+5.3.1
+Introduction. Participants signed an informed consent
+and were introduced to the study context and procedure (as
+shown in Figure 7). Subsequently, participants watched the
+tutorial slides with examples for either DesignerlyLoop or the
+baseline system, then lets the participant explore (10 min).
+5.3.2
+Design Tasks. For each of the two tasks, participants
+completed a 30-minute design session using both systems.
+They created a node-linked diagram with 5–10 design steps
+narrating the main design intent, selecting from six design
+problems (Appendix B.2). To counterbalance potential task
+bias, half of participants started with the baseline system and
+half with DesignerlyLoop (Figure 7). To diminish biases re-
+lated to personal preferences or familiarity for the external
+evaluation of responses, we ask each participant to use the
+same topic and concept group for each pair of DesignerlyLoop-
+Baseline conditions. To minimize interference between two de-
+sign sessions, there is a 20-minute break between the two tasks.
+Think-aloud protocols were encouraged during the tasks.
+5.3.3
+Post-Study Feedback. Participants completed question-
+naires and semi-structured interviews over 20 minutes. In-
+terviews addressed the following five aspects: (1) usages and
+experience on design processes using DesignerlyLoop and base-
+line; (2) differences between these two LLM tools, focusing on
+aspects such as creative stimulation, collaboration experience,
+and AI performances; (3) evaluation of DesignerlyLoop’s fea-
+tures (curate reasoning; user intent; customized iteration using
+graph); (4) challenges encountered and impressive moments
+when using DesignerlyLoop; and (5) participants’ willingness
+in using DesignerlyLoop for conceptual design in the future,
+along with suggestions for improvement.
+Last, participants were asked to complete self-report ques-
+tionnaires in five minutes using a 7-point Likert scale [50], to
+evaluate their design processes with AI. These included the
+Creativity Support Index (CSI) questionnaire [17], a question-
+naire assessing overall human-AI interaction experience (i.e.,
+controllable, transparent, cognitive load, collaboration, trust)
+(Appendix B.3, Table 2), and a scale reporting designers’ confi-
+dence and reliance (Appendix B.4). Participants also rated their
+creative design outcomes based on two metrics: novelty (𝑁)
+and usefulness (𝑈) (Appendix B.4). Additionally, participants
+were asked to articulate their design concepts and describe
+outcomes for both tasks in a structured form, in preparation
+for subsequent expert evaluation using the same assessment
+criteria as self-rated outcome (Section 6.3.2).
+
+
+DesignerlyLoop
+Conference acronym ’XX, June 03–05, 2018, Woodstock, NY
+Figure 7: User study procedure for the design task comparing DesignerlyLoop and the baseline system.
+5.4
+Data Analysis
+Quantitative comparisons within participants began with Shapiro–Wilk
+tests for normality. Normally distributed differences were an-
+alyzed using paired-sample t-tests, non-normal differences
+with Wilcoxon signed-rank tests. Pearson correlations were
+used for normally distributed data and Spearman correlations
+when assumptions were unmet. Expert ratings were assessed
+for inter-rater consistency using Kendall’s W test [51] (Sec-
+tion B.5.2).
+Qualitative interview data were thematically coded using
+an inductive–deductive approach [28] to complement and ex-
+plain the quantitative findings. First, all audio recordings were
+transcribed verbatim and verified for accuracy. Identifying
+information was removed, and each transcript was assigned
+a pseudonym. Transcripts, along with captured interaction
+logs and screenshots, were imported into NVivo to facilitate
+systematic coding and maintain an audit trail.
+Second, two researchers independently conducted line-by-
+line open (inductive) coding [92] on an initial purposively
+selected subset of data designed to maximize variation in par-
+ticipant background and usage patterns. During this stage,
+coders documented analytic memos capturing emergent ideas,
+questions, and provisional interpretations. Third, the coders
+met regularly to compare codes, resolve discrepancies through
+discussion, and iteratively construct a shared codebook [60].
+Each code entry included a concise label, a clear definition,
+inclusion/exclusion criteria, and exemplar quotations or in-
+teraction snippets. Successive drafts of the codebook were
+versioned and retroactively applied to earlier transcripts when
+new codes were added. Interrater agreement was assessed on
+a sample of transcripts using percent agreement and Cohen’s
+𝜅[61], with remaining disagreements resolved through con-
+sensus discussion. Finally, the finalized codebook was applied
+deductively to the remaining dataset. Codes were clustered
+into higher-level themes and subthemes through collaborative
+mapping sessions. The resulting main themes and subthemes,
+reflecting user benefits, human–AI collaboration experiences,
+and creative outcomes, are reported in Section 6, accompanied
+by representative quotations and, where appropriate, counts
+of coded instances.
+6
+Findings
+6.1
+Benefits of the System
+6.1.1
+Support for Constructing Design Intent with High Usabil-
+ity. According to the SUS standard, both DesignerlyLoop (𝑀𝐷𝐿=
+77.6, 𝑆𝐷𝐷𝐿= 13.0) achieved usability score above the ac-
+ceptance threshold of 70-“Good” level, the baseline system
+(𝑀𝑏𝑎𝑠𝑒𝑙𝑖𝑛𝑒= 69, 𝑆𝐷𝑏𝑎𝑠𝑒𝑙𝑖𝑛𝑒= 19.1)’s score achieved the “OK”
+level. The difference was significant, 𝑡(19) = 2.34, 𝑝= .030*.
+Quantitative results reveal the underlying reasons: all par-
+ticipants highlighted the tool’s capacity to scaffold the con-
+struction and refinement of design intent through its unique
+integration of design nodes, AI nodes, and the LLM reasoning
+chain. The initial design nodes generated from the design con-
+text provided a flexible yet structured starting point for their
+ideation process. For example, P4 noted, “When I first saw
+the keywords in the entire pipeline, I thought about whether
+this matches the process I had in mind,” while P6 described
+the pipeline as “giving me directions I hadn’t thought of before,
+which I later added back into my design.” Additionally, “It can
+serve as a positioning anchor point to help me review the overall
+picture, recall my initial goal, and check the steps that were not
+considered” (P8). Participants further described how the added
+AI nodes and design nodes enabled them to customize this ini-
+tial structure to better reflect their evolving understanding and
+priorities. P2 stated, “The AI-generated outputs (on AI nodes)
+inspired me, and I usually revise it into my own wording,” and
+P7 added, “I don’t fully rely on the AI; I add my own nodes to
+organize the ideas in my mind.” This interplay between AI-
+generated outputs and user curation was seen as essential for
+articulating and expressing nuanced design ideas. Crucially,
+
+
+Conference acronym ’XX, June 03–05, 2018, Woodstock, NY
+Anqi Wang et al.
+most participants identified the LLM reasoning chain as a core
+feature supporting an iterative loop of reasoning, reflection,
+and refinement. P1 explained, “When I think on my own, my
+thoughts tend to jump around, but the chain helps me clarify how
+the logic flows between steps,” and P11 reflected, “This reasoning
+chain process actually lets me go back and confirm whether my
+intent holds up.” The ability to iteratively manipulate the LLM
+reasoning chain, while simultaneously organizing ideas via
+layered nodes, was reported to foster deeper engagement with
+design problems and clearer intent formation. Together, these
+features facilitated situated, iterative, and curated reasoning
+processes that helped participants externalize and evolve their
+design intent throughout the workflow.
+6.1.2
+Supporting Reflecting and Articulating Reasoning Struc-
+ture. Participants emphasized how the system’s integration
+of LLM reasoning chain within each design node allowed them
+not only to access richer outputs but to reflect on the
+AI’s underlying reasoning process. This capacity to surface
+the “thought process” behind the AI-generated outputs helped
+participants critically assess and modify the AI’s logic. All par-
+ticipants described, “I became more willing to adjust its outputs
+because I could see how it thought about the problem through
+four steps.” (P9) Similarly, P5 noted that this reasoning process
+was more transparent than in one-shot AI-generated outputs,
+stating, “When I click in, I can see the logic unfold—that gives
+me confidence and helps me spot where to revise.” Participants
+saw the customized structure of each LLM reasoning chain as
+essential for supporting reflective reasoning and maintaining
+coherence across iterations. The combination of the LLM’s
+multi-step reasoning and the user’s ability to inspect and in-
+tervene at each step helped solidify internal logic and surface
+latent assumptions. These reflective practices were described
+as key to enhancing both individual understanding and the
+quality of AI-assisted design decisions.
+6.1.3
+Supporting Diverse and Non-linear Intent Understanding
+Paths. This support is scaffolded by features in customized
+structure and iterative loop. Based on the use of design nodes,
+AI nodes, and LLM chain nodes, this system enabled non-linear
+exploration through the design process rather than adher-
+ing to a fixed linear structure. While the design nodes offered
+an initial flow, participants frequently added design nodes to
+branch off into alternative directions or revisit earlier steps.
+P3 described this flexibility as “more seamless than task a,”
+highlighting how they could “regenerate or deepen” questions
+without restarting the conversation. P9 further articulated how
+this non-linear organization mirrored the actual rhythms of
+creative work: “Sometimes I go back and add a step 2.1 or 1.2
+because a new idea comes up—it’s not just a straight line.” This
+capacity to remix and restructure idea development was also
+seen as enabling deeper exploration of concepts. As P12 re-
+flected, “The whole process didn’t feel rigid—when my thinking
+shifted, the system let me shift, too.” Rather than locking partic-
+ipants into a pre-defined sequence, the system’s support for
+flexible, recursive iterative loop and reorganization of nodes
+was central to enabling diverse paths toward clarifying design
+intent.
+6.2
+Human-AI Interaction and
+Collaboration Experience
+6.2.1
+Overall Human-AI Interaction Experience. Self-reported
+ratings of overall human-AI interaction experience revealed
+that DesignerlyLoop received better evaluations across all five
+dimensions (as shown in Table 3) (Figure 8a). Paired-sample
+t-tests revealed significant increases in perceived Controlla-
+bility (𝑀𝐷𝐿= 2.70, 𝑡(19) = 3.65, 𝑝= .002**), Collaboration
+(𝑀𝐷𝐿= 2.60, 𝑡(19) = 2.80, 𝑝= .012**), and Cognitive Load
+(𝑀𝐷𝐿= 2.40, 𝑡(19) = −1.76, 𝑝= .094) in DesignerlyLoop com-
+pared to baseline. The Wilcoxon signed-rank tests showed a
+significant difference between the two tasks in Transparent
+(𝑉= 135, 𝑝= .006**), and Trust (𝑉= 136, 𝑝< .001***) (Ta-
+ble 3), indicating that the interface change had a significant
+impact on participants’ perceptions of transparency, cognitive
+effort, and trust.
+The qualitative analysis results showed participants con-
+sistently reported that the DesignerlyLoop system offered en-
+hanced controllability during the design process, especially
+when engaging with the LLM reasoning chain through iterative
+loop to construct the reasoning process. As P3 described, “I
+could deepen the question without retyping it each time... De-
+signerlyLoop lets me quickly regenerate or remove unwanted
+ideas, which keeps my thinking more cohesive.” AI node also
+provide cognitively-intensive collaboration in iteration and
+exploration, by “frequently think about and make use of prompt
+words for communication” (P18). Overall, this controllability
+derive from precise configuration of design pipeline and AI
+nodes, and flexible on-the-fly refinement of flexible interaction
+with AI nodes (Controllability). Collaboration with the AI was
+perceived as more reciprocal in the DesignerlyLoop system.
+Several participants described task a as “directive,” while task
+b fostered a more “co-creative” relationship. P5 remarked, “In
+baseline task, the AI is more like a colleague—we think together
+and refine each other’s inputs through the LLM reasoning chain.”
+The visualized pipeline structure reinforced shared problem-
+solving rhythms and a sense that “both sides are thinking si-
+multaneously,” as P20 stated, “I constantly reviewing whether its
+thinking chain and outputs are consistent with what I imagined,
+then determine if I adjust them” (Collaboration). Participants
+found task b more transparent due to the explicit representa-
+tion of the LLM reasoning chain. This made them “more willing
+to adjust AI-generated outputs” and supported reflective, in-
+tentional decisions (Transparent). While initial AI-generated
+outputs were mixed, all participants eventually found the mod-
+ular structure helpful. As one noted, “Once familiar, it’s much
+easier to adjust one part of the idea without redoing everything.”
+The segmented reasoning process aided complexity manage-
+ment (Cognitive Load). The ability to trace idea evolution in
+the pipeline fostered trust. P5 said, “With the LLM reasoning
+chain showing step-by-step thinking, I know where each idea
+
+
+DesignerlyLoop
+Conference acronym ’XX, June 03–05, 2018, Woodstock, NY
+(a)
+(b)
+(c)
+Figure 8: Comparison between DesignerlyLoop (Task 1) and the baseline (Task 2) across (a) overall AI interaction
+experience metrics, (b) CSI metrics, and (c) design quality scores across participants and expert evaluations.
+Figure 9: CSI questionnaire results (-: 𝑝> .05, *: 𝑝< .05,
+**: 𝑝< .01, ***: 𝑝< .001)
+comes from—it’s not random.” During this process, participants
+first read then determine add, revise, or delete, “The process of
+deleting AI-generated outputs is also the process of understand-
+ing them” (P20). This implies participants “understanding” and
+“internalizing” the AI-generated outputs instead of merely us-
+ing them during co-creation process (Trust).
+6.3
+Creativity Supported Design Outcomes
+6.3.1
+Creativity Supports. For the design process, the CSI re-
+sults indicated that DesignerlyLoop (𝑀𝐷𝐿= 95.2, 𝑆𝐷𝐷𝐿= 12.4)
+significantly enhanced creativity compared to the baseline
+system (𝑀𝑏𝑎𝑠𝑒𝑙𝑖𝑛𝑒= 78.7, 𝑆𝐷𝑏𝑎𝑠𝑒𝑙𝑖𝑛𝑒= 17.9), with a p-value of
+𝑝< .001***. This demonstrates DesignerlyLoop’s impact on
+fostering creativity over the baseline system. Paired 𝑡-tests
+and Wilcoxon singed-rank tests revealed significant improve-
+ments were observed in five out of six factors after correction
+(as shown in Figure 9) (Figure 8b): Collaboration (𝑀𝐷𝐿= 3.1,
+𝑡(19) = 3.78, 𝑝= .0013**), Enjoyment (𝑀𝐷𝐿= 3.7, 𝑉= 164,
+𝑝< .001**), Exploration (𝑀𝐷𝐿= 3.4, 𝑡(19) = 4.25, 𝑝< .001***),
+Expressiveness (𝑀𝐷𝐿= 2.7, 𝑡(19) = 4.70, 𝑝< .001***) and Im-
+mersion (𝑀𝐷𝐿= 1.9, 𝑡(19) = 2.65, 𝑝= 0.0159*). The difference
+in Worth Effort was marginal (𝑀= 1.8, 𝑉= 116, 𝑝= .0067).
+Interview analysis indicated that the significant increases
+in creativity supports were closely tied to the system’s abil-
+ity to support curated reasoning at both the design process
+and LLM reasoning chain levels. P4 described the ability to
+quickly iterate through design nodes and receive coherent out-
+puts from the LLM chain (node) as “surprisingly smooth and
+coherent” (Collaboration). The customized structure, combined
+with iterative loop support, was frequently associated with
+heightened enjoyment; P19 appreciated “the AI generating de-
+tailed inspiring new design concepts,” and P13 valued being
+able to “explore many novel ideas following my train of thought”
+and export them to the external canvas, making the process
+more rewarding (Enjoyment). Exploration benefits arose from
+the system’s facilitation of branching and sub-goal genera-
+tion through curated reasoning. P12 noted, “I clicked into each
+sticky note... and continued to develop detailed steps,” demon-
+strating how iterative loop navigation within design nodes
+encouraged non-linear ideation between AI nodes and new
+nodes (Exploration). For Expressiveness, the LLM chain (node)
+helped articulate abstract or latent ideas with adaptive granu-
+larity. As P16 remarked, “reasoning chain changes as the level
+of detail of the user’s input prompt varies, which was a pleasant
+surprise”, illustrating how the customized structure scaffolded
+communication of nuanced concepts (Expressiveness). Immer-
+sion improvements were linked to seamless information flow
+across design nodes and AI nodes, allowing designers to re-
+main embedded in their creative trajectory without frequent
+context-switching. P13 observed that “the information flow
+was better connected” in the enhanced version, enabling cu-
+rated reasoning to sustain narrative continuity across iterative
+loops (Immersion). While Worth the Effort did not reach the
+highest significance, participants acknowledged that refined
+ideas generated via AI nodes and structured design nodes jus-
+tified the effort. P15 stated they could “refine their ideas via
+more AI generation with structure supports,” though some, like
+P13, cautioned against “too many parallel and dispersion points”
+when tasks required direct convergence rather than dispersed
+sub-goals (Worth the Effort).
+6.3.2
+Self and Expert Rating Evaluation. Participants created
+40 pairs of DesignerlyLoop-Baseline-conditioned design (i.e.,
+each pair with the same topic and design question; diverse
+
+
+Conference acronym ’XX, June 03–05, 2018, Woodstock, NY
+Anqi Wang et al.
+across design solutions and intent. Self-assessment and expert
+rating results demonstrated the design outcomes Designerly-
+Loop is better than baseline system (Figure 8c) (Table 5 and
+6). In self-assessment, the DesignerlyLoop system significantly
+outperformed baseline on all 𝑁(𝑝= .001**), 𝑈(𝑝< .001***),
+and𝑄𝑢𝑎𝑙𝑖𝑡𝑦measures (𝑝= .001**). In expert rating, the Design-
+erlyLoop system still outperformed baseline on 𝑈(𝑝= .004**),
+and 𝑄𝑢𝑎𝑙𝑖𝑡𝑦(𝑝= .006**), but the difference was marginal
+significance on 𝑁(𝑝= .058). The DesignerlyLoop system sig-
+nificantly increased users’ self-efficacy and self-reported in-
+novativeness, as well as the usefulness and design quality of
+both self-reported and expert assessments. Users generally
+perceived the ideas they generated as more novel and valuable
+after using DesignerlyLoop.
+Qualitative analysis of participant interviews revealed sev-
+eral underlying mechanisms behind the observed improve-
+ments in creativity and output quality. Users generally per-
+ceived the ideas they generated as more novel and valuable
+after using DesignerlyLoop. First, the iterative expansion sup-
+ported in DesignerlyLoop system allowed participants to re-
+fine, branch, and enrich initial outputs while preserving con-
+textual continuity. As P12 said, “this process encouraged sys-
+tematic comparison of alternatives and fostered deeper explo-
+ration,” leading to more polished outcomes. Second, “some
+AI-generated outputs proactively incorporated multi-perspective
+considerations,” through a explicit prompt with exploratory
+goals, which “broadened users’ design scope and inclusivity”
+meanwhile “helped users clarify their thoughts and reflect on
+further decisions.” Overall, the curated reasoning process al-
+lowed designers to feel like they were in charge of the design
+process, thus increasing their self-confidence.
+6.4
+User Perception with Design Outcomes
+and Tool Experience
+6.4.1
+Cognitive Augmentation and Process-Driven Design Qual-
+ity.
+Our quantitative and qualitative findings revealed that the
+correlation between AI interaction, reliance and design out-
+comes exhibited a diminishing trend within DesignerlyLoop
+(Figure 10) (Appendix, Table 8) (Appendix, Table 7). Coupled
+with improvements across variables in DesignerlyLoop, this
+demonstrated that baseline outcomes were highly dependent
+on individual AI interaction experience and proficiency. How-
+ever, DesignerlyLoop mitigated this dependency, supported in-
+ternal cognitive scaffolding, enabling consistent enhancements
+in design outcomes. We elaborated these patterns underlying
+the following causes:
+First, structured AI support via multi-stage thinking nodes
+provided systematic guidance and process intervention, re-
+inforcing cognitive strategies and task decomposition. This
+enabled users to achieve higher-quality designs independent
+of immediate subjective experience. Second, increased cog-
+nitive load from the DesignerlyLoop system’s complex multi-
+node interface decoupled instant experience from outcome
+metrics, yet promoted deeper reflection, iterative refinement,
+and ultimately higher design quality. Third, users exhibited a
+shift toward systemic, reflective design thinking, moving
+from intuition-driven approaches to more structured, critical
+strategies, further enhancing novelty and usefulness.
+6.4.2
+Psychological Drivers of Task Load and Usability Percep-
+tion. Behavioral observations revealed distinct psychological
+mechanisms governing task performance and system eval-
+uation across interface conditions. These patterns provide
+explanatory context for correlational findings.
+Within the high-complexity DesignerlyLoop system, task
+load management and emotional regulation were governed
+by perceived agency and process control. Participants who
+developed systematic interaction strategies—such as dimen-
+sional filtering or progressive refinement—exhibited reduced
+frustration and enhanced performance. These individuals fre-
+quently articulated analytical approaches, indicating conscious
+load management. Conversely, participants struggling to estab-
+lish system mental models demonstrated cognitive overload
+through hesitation, repetitive actions, and confusion. Their
+usability assessments emphasized analytical process difficulty
+over interface aesthetics.
+The low-complexity baseline system exhibited contrasting
+behavioral patterns. Engagement and immediate positive ex-
+perience dominated task execution and system perception.
+Participants demonstrating exploratory behavior or express-
+ing enjoyment through unsolicited positive feedback reported
+lower workload and higher usability scores. Their interac-
+tions reflected fluid confidence rather than deliberate caution.
+Notably, these participants seldom referenced control or cogni-
+tive load unless prompted, instead emphasizing visualization
+engagement and discovery satisfaction.
+Cross-system analysis confirmed cognitive load manage-
+ment as critical to performance and usability assessments. Par-
+ticipants employing effective mental demand reduction strate-
+gies achieved superior outcomes regardless of system complex-
+ity. Enjoyment expressions consistently predicted favorable
+evaluations. While controllability’s influence was attenuated
+in aggregate analysis, its distinctive role in high-complexity
+environments remained evident through participant strategies.
+7
+Discussion
+Building on prior human–AI collaborative systems empha-
+sizing structured interaction (e.g., [16, 83, 109]), our work ad-
+dresses the gap in supporting designers’ nonlinear, exploratory
+reasoning and reflective engagement during multi-turn hu-
+man–AI co-creation. Through a within-subject study with
+20 designers, we found that DesignerlyLoop enhanced reflec-
+tive engagement, iterative refinement, and multi-dimensional
+integration of design intentions (Section 6.1, 6.2, 6.3) We high-
+light three main novelties in human-AI collaboration: explicit
+structuring reasoning, and shaping evaluation loop from both
+design and AI level (Section 7.1), as well as illuminating affec-
+tive and cognitive pathways to usability and creative outcomes
+(Section 7.2).
+
+
+DesignerlyLoop
+Conference acronym ’XX, June 03–05, 2018, Woodstock, NY
+(a)
+(b)
+Figure 10: (a) Distribution of self-confidence (Agency1) and AI reliance (Agency2), and (b) correlation between self-rated
+design outcomes with self-confidence and AI reliance, showing baseline (Task A) vs. DesignerlyLoop (Task B).
+7.1
+Structuring Reasoning and Dynamic
+Curating in Human–AI Collaboration
+Design
+Prior work highlights that designers often rely on intuition
+and tacit experience rather than explicit methodological adher-
+ence [64, 99]. While efficient, this strategy risks opportunistic
+ideation [21, 102] and loss of conceptual coherence in com-
+plex tasks. Firstly, this externalizing structure represents a
+fundamental cognitive role shift. Designers inspect and
+curate the AI’s reasoning frameworks to ensure align-
+ment with their own intent. This shift—from “dialogue with
+AI” to “architecting reasoning with AI”—encouraged partici-
+pants to critically filter, reconfigure, and embed AI reasoning
+into their workflows. This process deepened reflective engage-
+ment and supported systematic, personalized design practices.
+To this regard, our work consistent with distributed cognition
+and external representation studies [37, 42, 115]. This studies
+emphasized that cognitive work can be offloaded onto struc-
+tured artifacts, allowing users to redirect resources toward
+higher-level reasoning. In such interaction, AI-generated com-
+plex reasoning structures play a role similar to that of “cogni-
+tive scaffolding.” Secondly, our findings show that human–AI
+collaboration introduces an external mechanism for dy-
+namically regulating reasoning. Designers were able to
+flexibly shift between implicit and explicit modes, balancing
+opportunistic exploration with systematic interaction.
+As P16 explained, “the degree of detail (structure representa-
+tion) varied as I input” (Section 6.3.1). This interplay between
+explicit and implicit reasoning reveals a novel insight: by exter-
+nalizing reasoning structures, designers gain selective control
+over transparency and agency, extending prior systems where
+reasoning methods remained opaque (e.g., [16]).
+Compared to prior “turn-taking” [83] and “implicit inte-
+gration” approaches on exchanging or merging ideas [16],
+our findings highlight a deeper form of collaboration: hu-
+mans and AI jointly maintaining and evolving reason-
+ing structures, with flexible and dynamic features. This
+dynamic cycle of curation and reflection, where mirrored rea-
+soning structures on both sides cultivate systematic and inten-
+tional creativity, underscores a transferable design principle.
+Importantly, effective collaboration is not about producing
+more collaborative ideas but about providing designers with
+composable and controllable reasoning structures that
+adapt across diverse contexts, sustaining both agency and
+high-quality outcomes.
+7.2
+Affective and Cognitive Pathways to
+Usability and Creative Outcomes in
+Human-AI Collaborative Design
+Our findings reveal a dynamic moderating relationship be-
+tween user experience and design outcomes in human-AI
+collaborative design. In structured, multi-node systems,
+reflective and strategy-oriented engagement alongside
+effective cognitive load management drive high-quality
+design. Such complex interactions transform the simple cor-
+relation between subjective enjoyment, usability (SUS) (Sec-
+tion 6.4.2), and final design quality (Section 6.4.1). Specifically,
+in low-complexity baseline systems, subjective experience
+metrics such as enjoyment and exploration positively corre-
+late with both SUS ratings (Section 6.4.2) and task outcomes
+(Section 6.4.1). This suggests that affect-driven engagement
+in simple interactions directly supports usability and design
+performance. However, with increasing system complexity, as
+in the DesignerlyLoop system, this relationship changes fun-
+damentally. SUS scores become strongly associated with user
+controllability and tool transparency, and negatively corre-
+lated with cognitive load (Section 6.4.2), while pleasure and
+immediate explorability are no longer reliable predictors of
+design outcomes (Section 6.4.1). Qualitative evidence rein-
+forces this interpretation: the underlying mechanism lies in
+
+
+Conference acronym ’XX, June 03–05, 2018, Woodstock, NY
+Anqi Wang et al.
+the interplay of system complexity, process transparency, and
+user control. As complexity increases, users must deliberately
+allocate cognitive resources and coordinate AI guidance, shift-
+ing engagement from affective to strategic. Taken together,
+these results demonstrate that in complex AI systems, affec-
+tive and cognitive drivers operate through partially orthogonal
+mechanisms: positive emotions underpin usability in baseline
+systems, whereas structured control and cognitive scaffolding
+drive performance under complexity.
+Our findings resonate with, yet critically extend prior lit-
+erature cautioning that high cognitive load can foster com-
+placency or overreliance [70, 89], thereby reducing critical en-
+gagement. However, our results complicate this view. Glinka
+et al. [34] argue that “misalignment” between AI and user per-
+spectives can foster productive reflection if users consciously
+engage with the output. Similarly, we show that externaliz-
+ing multi-node reasoning structures means that increased
+cognitive load does not render users passive but instead
+necessitates orchestration and reflective oversight. This
+suggests that higher cognitive demands, when paired with
+transparency and controllability, promote strategic rather than
+undermining engagement, with active review and critique
+tools at the core.
+7.3
+Design Implications
+7.3.1
+Structuring AI as Cognitive Scaffolds with Pro-
+gressive Disclosure. Our integrated findings suggest that
+multi-node AI collaboration and staged reasoning prompts
+function not merely as creative generators, but as cognitive
+scaffolds shaping both perceived usability and design outcomes.
+In complex systems, affective engagement alone is insufficient;
+high-quality outcomes rely on reflective, strategy-oriented
+engagement supported by controllable AI structures. Future
+HCI systems for creative design should embed AI within lay-
+ered, user-controllable scaffolds that guide task decomposition,
+iterative exploration, and decision-making, rather than only
+producing immediate outputs. To operationalize this, systems
+can leverage progressive disclosure of AI functionality, dynam-
+ically adjusting node quantity, task complexity, and feature
+exposure according to real-time cognitive load and interac-
+tion context. This approach balances structured intervention
+with user autonomy, aligns with reflective practice and scaf-
+folding theories [18, 101, 106], and ensures users remain both
+empowered and cognitively supported throughout the design
+process.
+7.3.2
+Embracing Complexity to Foster Reflective and Strate-
+gic Creativity. In high-complexity AI collaboration, increased
+cognitive load weakens direct correlations between enjoy-
+ment or exploration and design outcomes, yet simultaneously
+fosters reflective thinking and iterative improvement. Future
+HCI systems in such high-complexity AI collaboration tasks
+should should intentionally embrace structured complexity and
+multi-round AI interactions to cultivate critical, systemic, and
+strategy-oriented design thinking, rather than prioritizing sim-
+plicity or transient satisfaction [25, 66]. The key design chal-
+lenge is to transform cognitive load into a driver of creativity
+by providing progressive task structuring, transparent control
+mechanisms, and reflection-oriented prompts, while carefully
+mitigating user fatigue and frustration.
+7.4
+Limitation and Future Work
+Several limitations should be noted. First, our evaluation tasks
+focused on design scenarios that benefit from iterative reason-
+ing and multi-node AI interaction, which may not generalize to
+domains where tasks are more constrained or require minimal
+reasoning, such as simple layout adjustments or single-step
+content generation. Future work could explore the applicabil-
+ity of DesignerlyLoop across diverse design domains and task
+types. Second, our user study was conducted in controlled,
+short-term sessions. Participants’ engagement with cognitive
+scaffolds and reasoning nodes might differ over prolonged
+or repeated use, where factors such as cognitive fatigue or
+learning effects could emerge. Third, the current design of
+reasoning nodes and prompt chaining was informed by the-
+ory and prior literature on cognitive scaffolding, but its op-
+timal configuration remains unexplored. Future work could
+investigate adaptive or personalized node arrangements that
+dynamically adjust complexity, guidance, and feedback based
+on user expertise or task difficulty.
+8
+Conclusion
+Our study demonstrates that embedding LLMs as structured,
+interactive reasoning process within a visual node-based inter-
+face can significantly enhance human–AI co-creation. Design-
+erlyLoop enables designers to systematically curate, test, and
+iterate on AI-generated suggestions, fostering both higher-
+quality design outcomes and deeper reflective engagement.
+Importantly, improvements in creativity and design quality
+arise not merely from immediate subjective experience but
+from structured cognitive scaffolding, iterative reflection, and
+deliberate management of cognitive load. These findings un-
+derscore the value of designing AI tools not solely as content
+generators but as dynamic collaborators that augment hu-
+man reasoning, promote agency, and support critical, systemic
+thinking. Future work should investigate scalable mechanisms
+for adaptive scaffolding and personalized interaction to bal-
+ance cognitive challenge, creative flow, and user autonomy in
+complex design tasks.
+9
+Acknowledgment about the Use of LLM
+The authors would like to acknowledge the use of the genera-
+tive AI tool in this work. Specifically, GPT-4o mini by OpenAI
+was utilized to: (1) assist in language refinement, including
+grammar and style corrections of existing manuscript text,
+(2) generate R code for data analysis based on our proposed
+analytical procedures, and (3) generate LaTeX tables from
+
+
+DesignerlyLoop
+Conference acronym ’XX, June 03–05, 2018, Woodstock, NY
+the analyzed data results. Moreover, GPT-4o model and text-
+embedding-ada-002 model API service was used through Mi-
+crosoft Azure interface during system implementation. All
+interpretations, conclusions, and final content remain the re-
+sponsibility of the authors.
+References
+[1] Douglas R. Anderson. 1986. The Evolution of Peirce’s Concept of Abduc-
+tion. Transactions of the Charles S. Peirce Society 22, 2 (1986), 145–164.
+http://www.jstor.org/stable/40320131
+[2] Tyler Angert, Miroslav Suzara, Jenny Han, Christopher Pondoc, and Har-
+iharan Subramonyam. 2023. Spellburst: A Node-based Interface for Ex-
+ploratory Creative Coding with Natural Language Prompts. In Proceedings
+of the 36th Annual ACM Symposium on User Interface Software and Tech-
+nology. ACM, San Francisco CA USA, 1–22. doi:10.1145/3586183.3606719
+TLDR: Spellburst provides a node-based interface that allows artists to cre-
+ate generative art and explore variations through branching and merging
+operations, expressive prompt-based interactions to engage in semantic
+programming, and dynamic prompt-driven interfaces and direct code
+editing to seamlessly switch between semantic and syntactic exploration..
+[3] Asad Anjum, Yuting Li, Noelle Law, M Charity, and Julian Togelius. 2024.
+The Ink Splotch Effect: A Case Study on ChatGPT as a Co-Creative
+Game Designer. In Proceedings of the 19th International Conference on the
+Foundations of Digital Games. ACM, Worcester MA USA, 1–15. doi:10.
+1145/3649921.3650010
+[4] Chris Argyris. 2002. Teaching Smart People How to Learn. Reflections:
+The SoL Journal 4, 2 (Dec. 2002), 4–15. doi:10.1162/152417302762251291
+[5] Anne Arzberger, Vera van der Burg, Senthil K. Chandrasegaran, and P.
+Lloyd. 2022. Triggered: Using Human-AI Dialogue for Problem Under-
+standing in Collaborative Design. In 34th International Conference on De-
+sign Theory and Methodology (DTM). V006T06A006. doi:10.1115/detc2022-
+89273
+[6] Amir Reza Asadi. 2023. LLMs in Design Thinking: Autoethnographic
+Insights and Design Implications. In 2023 The 5th World Symposium on
+Software Engineering (WSSE). ACM, Tokyo Japan, 55–60. doi:10.1145/
+3631991.3631999 TLDR: This autoethnographic approach provides a
+unique perspective on the integration of LLMs in design thinking, shed-
+ding light on their potentials as tools for innovation and fostering the
+insights of their implications for design practitioners and UX researchers..
+[7] Jeffrey Bardzell, Shaowen Bardzell, Peter Dalsgaard, Shad Gross, and Kim
+Halskov. 2016. Documenting the Research Through Design Process. In
+Proceedings of the 2016 ACM Conference on Designing Interactive Systems.
+ACM, Brisbane QLD Australia, 96–107. doi:10.1145/2901790.2901859
+TLDR: This work presents a framework for planning and evaluating
+RtD documentation that addresses three core concerns: the medium of
+documentation, the performativity of Documentation, and providing
+equal support for both research and design..
+[8] Virginia Braun and Victoria Clarke. 2006.
+Using thematic analy-
+sis in psychology.
+Qualitative Research in Psychology 3, 2 (2006),
+77–101. arXiv:https://doi.org/10.1191/1478088706qp063oa doi:10.1191/
+1478088706qp063oa
+[9] Meagan E. Brock, Andrew Vert, Vykinta Kligyte, Ethan P. Waples, Syd-
+ney T. Sevier, and Michael D. Mumford. 2008. Mental Models: An Alterna-
+tive Evaluation of a Sensemaking Approach to Ethics Instruction. Science
+and Engineering Ethics 14, 3 (Sept. 2008), 449–472. doi:10.1007/s11948-008-
+9076-3 TLDR: The study shows that sensemaking training has a potential
+to induce shifts in researchers’ mental models by making them more
+cognitively complex via the use of metacognitive reasoning strategies..
+[10] Tim Brown et al. 2008. Design thinking. Harvard business review 86, 6
+(2008), 84.
+[11] Alice Cai, Steven R Rick, Jennifer L Heyman, Yanxia Zhang, Alexandre
+Filipowicz, Matthew Hong, Matt Klenk, and Thomas Malone. 2023. Desig-
+nAID: Using Generative AI and Semantic Diversity for Design Inspiration.
+In Proceedings of The ACM Collective Intelligence Conference. ACM, Delft
+Netherlands, 1–11. doi:10.1145/3582269.3615596 TLDR: DesignAID is
+introduced, a generative AI tool that supports broader design space explo-
+ration by first using large language models to produce a range of diverse
+ideas expressed in words, and then using image generation software to
+create images from these words..
+[12] Runze Cai, Nuwan Janaka, Yang Chen, Lucia Wang, Shengdong Zhao, and
+Can Liu. 2024. PANDALens: Towards AI-Assisted In-Context Writing on
+OHMD During Travels. In Proceedings of the CHI Conference on Human
+Factors in Computing Systems. ACM, Honolulu HI USA, 1–24. doi:10.1145/
+3613904.3642320
+[13] Linda Candy. 2020. The Creative Reflective Practitioner: Research Through
+Making and Practice. Routledge, Abingdon, Oxon New York, NY.
+[14] Baptiste Caramiaux and Sarah Fdili Alaoui. 2022. " Explorers of Unknown
+Planets" Practices and Politics of Artificial Intelligence in Visual Arts.
+Proceedings of the ACM on Human-Computer Interaction 6, CSCW2 (2022),
+1–24.
+[15] John M. Carroll. 1995. Scenario-Based Design: Envisioning Work and
+Technology in System Development. Wiley, New York, NY.
+[16] Pei Chen, Jiayi Yao, Zhuoyi Cheng, Yichen Cai, Jiayang Li, Weitao You, and
+Lingyun Sun. 2025. CoExploreDS: Framing and Advancing Collaborative
+Design Space Exploration Between Human and AI. In Proceedings of
+the 2025 CHI Conference on Human Factors in Computing Systems. ACM,
+Yokohama Japan, 1–20. doi:10.1145/3706598.3713869
+[17] Erin Cherry and Celine Latulipe. 2014. Quantifying the creativity support
+of digital tools through the creativity support index. ACM Trans. Comput.-
+Hum. Interact. 21, 4 (June 2014). doi:10.1145/2617588 Number of pages:
+25 Place: New York, NY, USA Publisher: Association for Computing
+Machinery tex.articleno: 21 tex.issue_date: August 2014.
+[18] Michelene T.H. Chi, Nicholas De Leeuw, Mei-Hung Chiu, and
+Christian
+Lavancher.
+1994.
+Eliciting
+Self-Explanations
+Im-
+proves Understanding.
+Cognitive Science 18, 3 (1994), 439–477.
+arXiv:https://onlinelibrary.wiley.com/doi/pdf/10.1207/s15516709cog1803_3
+doi:https://doi.org/10.1207/s15516709cog1803_3
+[19] DaEun Choi, Sumin Hong, Jeongeon Park, John Joon Young Chung, and
+Juho Kim. 2024. CreativeConnect: Supporting Reference Recombination
+for Graphic Design Ideation with Generative AI. In Proceedings of the
+CHI Conference on Human Factors in Computing Systems. ACM, Honolulu
+HI USA, 1–25. doi:10.1145/3613904.3642794 TLDR: This work proposes
+CreativeConnect, a system with generative AI pipelines that helps users
+discover useful elements from the reference image using keywords, rec-
+ommends relevant keywords, generates diverse recombination options
+with user-selected keywords, and shows recombinations as sketches with
+text descriptions..
+[20] DaEun Choi, Kihoon Son, Hyunjoon Jung, and Juho Kim. 2025. Expandora:
+Broadening Design Exploration with Text-to-Image Model. In Proceedings
+of the ACM CHI Conference on Human Factors in Computing Systems.
+doi:10.1145/3706599.3720189
+[21] Nigel Cross. 2004. Expertise in design: an overview. Design Studies 25, 5
+(2004), 427–441. doi:10.1016/j.destud.2004.06.002 Expertise in Design.
+[22] Zijian Ding, Michelle Brachman, Joel Chan, and Werner Geyer. 2025.
+Structuring GenAI-assisted Hypotheses Exploration with an Interactive
+Shared Representation. In Companion Proceedings of the 30th International
+Conference on Intelligent User Interfaces. ACM, Cagliari Italy, 167–171.
+doi:10.1145/3708557.3716364 TLDR: An ordered node-link tree interface
+augmented with AI-generated information hints and visualizations is
+proposed, as a shared representation for hypothesis exploration, poten-
+tially enhancing the breadth and depth of human-AI collaborative data
+analysis..
+[23] Kees Dorst and Nigel Cross. 2001. Problem solving in design. Design
+Studies 22, 5 (2001), 425–437. doi:10.1016/S0142-694X(01)00009-6
+[24] Stefania Druga and Nancy Otero. 2023. Scratch Copilot Evaluation: As-
+sessing AI-Assisted Creative Coding for Families. http://arxiv.org/abs/
+2305.10417 arXiv:2305.10417 [cs].
+[25] K. Anders Ericsson, Neil Charness, Paul J. Feltovich, and Robert R. Hoff-
+man. 2006. The Cambridge handbook of expertise and expert performance.
+(2006).
+[26] Sidong Feng, Mingyue Yuan, Jieshan Chen, Zhenchang Xing, and Chun-
+yang Chen. 2023. Designing with Language: Wireframing UI Design
+Intent with Generative Large Language Models. doi:10.48550/arXiv.2312.
+07755 arXiv:2312.07755 [cs] TLDR: The effectiveness of WireGen is
+demonstrated in producing 77.5% significantly better wireframes, outper-
+forming two widely-used in-context learning baselines, and its potential
+value to enhance UI design process is highlighted..
+[27] Sidong Feng, Mingyue Yuan, Jieshan Chen, Zhenchang Xing, and Chun-
+yang Chen. 2023. Designing with Language: Wireframing UI Design
+Intent with Generative Large Language Models. arXiv:2312.07755 [cs.HC]
+https://consensus.app/papers/designing-with-language-wireframing-
+ui-design-intent-with-feng-yuan/0a1c1ffdc87c5d4d82dcd15596c59327/
+?utm_source=chatgpt
+[28] Jennifer Fereday and Eimear Muir-Cochrane. 2006.
+Demon-
+strating
+Rigor
+Using
+Thematic
+Analysis:
+A
+Hybrid
+Approach
+of
+Inductive
+and
+Deductive
+Coding
+and
+Theme
+Develop-
+ment.
+International Journal of Qualitative Methods 5, 1 (2006),
+80–92.
+arXiv:https://doi.org/10.1177/160940690600500107
+doi:10.1177/160940690600500107
+
+
+Conference acronym ’XX, June 03–05, 2018, Woodstock, NY
+Anqi Wang et al.
+[29] Corey Ford and Nick Bryan-Kinns. [n. d.]. On the Role of Reflection and
+Digital Tool Design for Creative Practitioners. ([n. d.]).
+[30] Corey Ford, Ashley Noel-Hirst, Sara Cardinale, Jackson Loth, Pedro
+Sarmento, Elizabeth Wilson, Lewis Wolstanholme, Kyle Worrall, and
+Nick Bryan-Kinns. 2024.
+Reflection Across AI-based Music Compo-
+sition. In Creativity and Cognition. ACM, Chicago IL USA, 398–412.
+doi:10.1145/3635636.3656185
+[31] Bill Gaver, Tony Dunne, and Elena Pacenti. 1999. Design: Cultural probes.
+Interactions 6, 1 (1999), 21–29. doi:10.1145/291224.291235
+[32] Xun Ge, Ching-Huei Chen, and Kendrick A. Davis. 2005. Scaffolding
+Novice Instructional Designers’ Problem-Solving Processes Using Ques-
+tion Prompts in a Web-Based Learning Environment. Journal of Educa-
+tional Computing Research 33, 2 (Sept. 2005), 219–248. doi:10.2190/5F6J-
+HHVF-2U2B-8T3G TLDR: The qualitative findings supported the pre-
+vious research on the advantages of question prompts in scaffolding
+ill-structured problem solving and shed light on the specific cognitive
+and metacognitive functions, as well as limitations, of question Prompts
+in different conditions..
+[33] Katy Ilonka Gero, Chelse Swoopes, Ziwei Gu, Jonathan K. Kummerfeld,
+and Elena L. Glassman. 2024. Supporting Sensemaking of Large Language
+Model Outputs at Scale. In Proceedings of the CHI Conference on Human
+Factors in Computing Systems. 1–21. doi:10.1145/3613904.3642139
+[34] Katrin Glinka and Claudia Müller-Birn. 2023. Critical-Reflective Human-
+AI Collaboration: Exploring Computational Tools for Art Historical Im-
+age Retrieval. Proceedings of the ACM on Human-Computer Interaction 7,
+CSCW2 (Sept. 2023), 1–33. doi:10.1145/3610054 TLDR: A qualitative inter-
+view study with art historians to explore what potentials and affordances
+art historians ascribe to human-AI collaboration and CV in particular, and
+in what ways art historians conceptualize critical reflection in the context
+of human- AI collaboration found that critical reflection constitutes a
+core prerequisite for ’meaningful’ human-ai collaboration in humanities
+research contexts..
+[35] John R. Hayes. 1996. A new framework for understanding cognition and
+affect in writing. In The science of writing: Theories, methods, individual
+differences, and applications. Lawrence Erlbaum Associates, Inc, 1–27.
+[36] Jessica He, Stephanie Houde, Gabriel E. Gonzalez, Darío Andrés
+Silva Moran, Steven I. Ross, Michael Muller, and Justin D. Weisz. 2024. AI
+and the Future of Collaborative Work: Group Ideation with an LLM in a
+Virtual Canvas. In Proceedings of the 3rd Annual Meeting of the Symposium
+on Human-Computer Interaction for Work. ACM, Newcastle upon Tyne
+United Kingdom, 1–14. doi:10.1145/3663384.3663398 TLDR: A user study
+with 17 professionals experienced with virtual group ideation workshops
+found value in using generative AI to assist with group facilitation and
+to augment perspectives and ideas, but also worried about losing human
+perspectives and critical thinking, as well as reputational harms resulting
+from harmful AI outputs..
+[37] James Hollan, Edwin Hutchins, and David Kirsh. 2000. Distributed cog-
+nition: toward a new foundation for human-computer interaction re-
+search. ACM Trans. Comput.-Hum. Interact. 7, 2 (June 2000), 174–196.
+doi:10.1145/353485.353487
+[38] Ari Holtzman, Peter West, Vered Shwartz, Yejin Choi, and Luke Zettle-
+moyer. 2021. Surface Form Competition: Why the Highest Probabil-
+ity Answer Isn’t Always Right. In Proceedings of the 2021 Conference
+on Empirical Methods in Natural Language Processing. Association for
+Computational Linguistics, Online and Punta Cana, Dominican Repub-
+lic, 7038–7051. doi:10.18653/v1/2021.emnlp-main.564 TLDR: Domain
+Conditional Pointwise Mutual Information is introduced, an alternative
+scoring function that directly compensates for surface form competition
+by simply reweighing each option according to its a priori likelihood
+within the context of a specific task..
+[39] Stephanie Houde, Kristina Brimijoin, Michael Muller, Steven I. Ross,
+Dario Andres Silva Moran, Gabriel Enrique Gonzalez, Siya Kunde, Mor-
+gan A. Foreman, and Justin D. Weisz. 2025. Controlling AI Agent Par-
+ticipation in Group Conversations: A Human-Centered Approach. In
+Proceedings of the 30th International Conference on Intelligent User Inter-
+faces (IUI ’25). Association for Computing Machinery, New York, NY,
+USA, 390–408. doi:10.1145/3708359.3712089
+[40] Jiaxiong Hu, Junze Li, Yuhang Zeng, Dongjie Yang, Danxuan Liang, Helen
+Meng, and Xiaojuan Ma. 2024. Designing Scaffolding Strategies for Con-
+versational Agents in Dialog Task of Neurocognitive Disorders Screening.
+In Proceedings of the CHI Conference on Human Factors in Computing
+Systems. ACM, Honolulu HI USA, 1–21. doi:10.1145/3613904.3642960
+TLDR: A scaffolding framework is designed for a Conversational agents
+empowered by ChatGPT to administer dialog-based NCD screening tests
+and implications for the future design of CAs that enable scaffolding for
+scalable NCD screening are proposed..
+[41] Xinhui Hu and Michael Twidale. 2023. A Scoping Review of Mental
+Model Research in HCI from 2010 to 2021. In HCI International 2023 –
+Late Breaking Papers, Masaaki Kurosu, Ayako Hashizume, Aaron Marcus,
+Elizabeth Rosenzweig, Marcelo M. Soares, Don Harris, Wen-Chin Li,
+Dylan D. Schmorrow, Cali M. Fidopiastis, and Pei-Luen Patrick Rau (Eds.).
+Vol. 14054. Springer Nature Switzerland, Cham, 101–125. doi:10.1007/978-
+3-031-48038-6_7 Series Title: Lecture Notes in Computer Science.
+[42] Edwin Hutchins. 1995. Cognition in the Wild. MIT Press.
+[43] Dongwook Hwang and Woojin Park. 2018. Design heuristics set for X:
+A design aid for assistive product concept generation. Design Studies 58
+(2018), 89–126. doi:10.1016/j.destud.2018.04.003
+[44] Ayu Iida, Kohei Okuoka, Satoko Fukuda, Takashi Omori, Ryoichi
+Nakashima, and Masahiko Osawa. 2024. Integrating Large Language
+Model and Mental Model of Others: Studies on Dialogue Communication
+Based on Implicature. In Proceedings of the 12th International Conference
+on Human-Agent Interaction. ACM, Swansea United Kingdom, 260–269.
+doi:10.1145/3687272.3688303
+[45] Interaction Design Foundation - IxDF. 2015. Gulf of Evaluation and Gulf
+of Execution. https://www.interaction-design.org/literature/book/the-
+glossary-of-human-computer-interaction/gulf-of-evaluation-and-gulf-
+of-execution Retrieved July 10, 2025.
+[46] Ellen Jiang, Kristen Olson, Edwin Toh, Alejandra Molina, Aaron Donsbach,
+Michael Terry, and Carrie J Cai. 2022. PromptMaker: Prompt-based
+Prototyping with Large Language Models. In CHI Conference on Human
+Factors in Computing Systems Extended Abstracts. ACM, New Orleans LA
+USA, 1–8. doi:10.1145/3491101.3503564
+[47] Peiling Jiang, Jude Rayan, Steven P. Dow, and Haijun Xia. 2023. Grapho-
+logue: Exploring Large Language Model Responses with Interactive Di-
+agrams. In Proceedings of the 36th Annual ACM Symposium on User In-
+terface Software and Technology. ACM, San Francisco CA USA, 1–20.
+doi:10.1145/3586183.3606737 TLDR: Graphologue is an interactive system
+that converts text-based responses from LLMs into graphical diagrams to
+facilitate information-seeking and question-answering tasks, and enables
+graphical, non-linear dialogues between humans and LLMs, facilitating
+information exploration, organization, and comprehension..
+[48] Xiaoneng Jin, Mark Evans, Hua Dong, and Anqi Yao. 2021. Design Heuris-
+tics for Artificial Intelligence: Inspirational Design Stimuli for Supporting
+UX Designers in Generating AI-Powered Ideas. In Extended Abstracts of
+the 2021 CHI Conference on Human Factors in Computing Systems. ACM,
+Yokohama Japan, 1–8. doi:10.1145/3411763.3451727 TLDR: Case studies
+suggest that AI design heuristics can be used as design stimuli in the
+early conceptual design phase to support practitioners in exploring a
+larger design space for the generation of AI-powered ideas..
+[49] Martin Jonsson and Jakob Tholander. 2022. Cracking the code: Co-coding
+with AI in creative programming education. In Creativity and Cognition.
+ACM, Venice Italy, 5–14. doi:10.1145/3527927.3532801 TLDR: A study
+of a group of university students using generative machine learning to
+translate from natural language to computer code explores how the use
+of the AI tool can be understood in terms of co-creation, focusing on how
+the tool may serve as a resource for understanding and learning..
+[50] Ankur Joshi, Saket Kale, Satish Chandel, and D Kumar Pal. 2015. Lik-
+ert scale: Explored and explained. British Journal of Applied Science &
+Technology 7, 4 (2015), 396–403. doi:10.9734/BJAST/2015/14975
+[51] M. G. Kendall and B. Babington Smith. 1939. The Problem of m Rankings.
+The Annals of Mathematical Statistics 10, 3 (1939), 275–287. http://www.
+jstor.org/stable/2235668
+[52] Klaus Krippendorff. 2006. The Semantic Turn: A New Foundation for Design.
+CRC Press, Boca Raton, FL. doi:10.1201/9780203299951
+[53] Franc Lavrič and Andrej Škraba. 2023. Brainstorming will never be the
+same again—a human group supported by artificial intelligence. Machine
+Learning and Knowledge Extraction 5, 4 (2023), 1282–1301.
+[54] Matthew V Law, Amritansh Kwatra, Nikhil Dhawan, Matthew Einhorn,
+Amit Rajesh, and Guy Hoffman. 2020. Design intention inference for
+virtual co-design agents. In Proceedings of the 20th ACM International
+Conference on Intelligent Virtual Agents. 1–8.
+[55] Q. Vera Liao, Hariharan Subramonyam, Jennifer Wang, and Jennifer Wort-
+man Vaughan. 2023. Designerly Understanding: Information Needs for
+Model Transparency to Support Design Ideation for AI-Powered User
+Experience. In Proceedings of the 2023 CHI Conference on Human Factors
+in Computing Systems. 1–21. doi:10.1145/3544548.3580652
+[56] David Chuan-En Lin, Hyeonsu B. Kang, Nikolas Martelaro, Aniket Kit-
+tur, Yan-Ying Chen, and Matthew K. Hong. 2025. Inkspire: Supporting
+Design Exploration with Generative AI through Analogical Sketching.
+doi:10.1145/3706598.3713397 arXiv:2501.18588 [cs] TLDR: Inkspire is a
+sketch-driven tool that supports designers in prototyping product design
+
+
+DesignerlyLoop
+Conference acronym ’XX, June 03–05, 2018, Woodstock, NY
+concepts with analogical inspirations and a complete sketch-to-design-
+to-sketch feedback loop, and improved aspects of the co-creative process
+by allowing designers to effectively grasp the current state of the AI to
+guide it towards novel design intentions..
+[57] David Chuan-En Lin and Nikolas Martelaro. 2024. Jigsaw: Supporting De-
+signers to Prototype Multimodal Applications by Chaining AI Foundation
+Models. In Proceedings of the CHI Conference on Human Factors in Comput-
+ing Systems. ACM, Honolulu HI USA, 1–15. doi:10.1145/3613904.3641920
+TLDR: Jigsaw enhanced designers’ understanding of available foundation
+model capabilities, provided guidance on combining capabilities across
+different modalities and tasks, and served as a canvas to support design
+exploration, prototyping, and documentation..
+[58] Yuwen Lu, Chengzhi Zhang, Iris Zhang, and Toby Jia-Jun Li. 2022. Bridg-
+ing the Gap Between UX Practitioners’ Work Practices and AI-Enabled
+Design Support Tools. In CHI Conference on Human Factors in Com-
+puting Systems Extended Abstracts. ACM, New Orleans LA USA, 1–7.
+doi:10.1145/3491101.3519809
+[59] Donghyeok Ma, Joon Hyub Lee, Junwoo Yoon, Taegyu Jin, and Seok-
+Hyung Bae. 2023. SketchingRelatedWork: Finding and Organizing Papers
+through Inking a Node-Link Diagram. In Adjunct Proceedings of the 36th
+Annual ACM Symposium on User Interface Software and Technology. ACM,
+San Francisco CA USA, 1–3. doi:10.1145/3586182.3616685 TLDR: This
+work presents a novel interactive system that allows users to perform
+these tasks quickly and easily on the 2D canvas with pen and multitouch
+inputs and turns users’ sketches and handwriting into a node-link diagram
+of papers and citations that users can iteratively expand in situ toward
+constructing a coherent narrative when writing Related Work sections..
+[60] Kathleen M MacQueen, Eleanor McLellan, Kelly Kay, and Bobby Milstein.
+1998. Codebook development for team-based qualitative analysis. Cam
+Journal 10, 2 (1998), 31–36.
+[61] Matthew B Miles and A Michael Huberman. 1994. Qualitative data anal-
+ysis: An expanded sourcebook. sage.
+[62] Michael Muller, Lydia B Chilton, Mary Lou Maher, Charles Patrick Mar-
+tin, Minsik Choi, Greg Walsh, and Anna Kantosalo. 2025. GenAICHI
+2025: Generative AI and HCI at CHI 2025. In Proceedings of the Extended
+Abstracts of the CHI Conference on Human Factors in Computing Systems
+(CHI EA ’25). Association for Computing Machinery, New York, NY, USA,
+Article 782, 9 pages. doi:10.1145/3706599.3707213
+[63] Michael Muller and Justin Weisz. 2022. Extending a Human-AI Collabora-
+tion Framework with Dynamism and Sociality. In Proceedings of the 1st An-
+nual Meeting of the Symposium on Human-Computer Interaction for Work
+(Durham, NH, USA) (CHIWORK ’22). Association for Computing Machin-
+ery, New York, NY, USA, Article 10, 12 pages. doi:10.1145/3533406.3533407
+[64] Gjoko Muratovski. 2021. Research for Designers: A Guide to Methods and
+Practice. SAGE Publications Ltd, London. 100 pages.
+https://digital.
+casalini.it/9781529767568 Casalini id: 5282254.
+[65] Donald A. Norman. 1986. Cognitive Engineering. In User Centered System
+Design. 31–61. Chapter 2.
+[66] Donald A. Norman. 2013. The design of everyday things: Revised and
+expanded edition. Basic Books.
+[67] Peter O’Donovan, Aseem Agarwala, and Aaron Hertzmann. 2015. De-
+signScape: Design with Interactive Layout Suggestions. In Proceedings
+of the 33rd Annual ACM Conference on Human Factors in Computing Sys-
+tems (Seoul, Republic of Korea) (CHI ’15). Association for Computing
+Machinery, New York, NY, USA, 1221–1224. doi:10.1145/2702123.2702149
+[68] OpenAI. 2024. Hello GPT-4o. https://openai.com/index/hello-gpt-4o/
+[69] Swaroop Panda. 2025. A Framework for LLM-powered Design Assistants.
+(2025).
+https://consensus.app/papers/a-framework-for-llmpowered-
+design-assistants-panda/412b8a148d805cf798fa1e60bb02c5d8/?utm_
+source=chatgpt
+[70] Raja Parasuraman and Victor Riley. 1997.
+Humans and Automa-
+tion: Use, Misuse, Disuse, Abuse.
+Human Factors 39, 2 (1997), 230–
+253.
+arXiv:https://doi.org/10.1518/001872097778543886 doi:10.1518/
+001872097778543886
+[71] Hua Xuan Qin, Guangzhi Zhu, Mingming Fan, and Pan Hui. 2025. Toward
+Personalizable AI Node Graph Creative Writing Support: Insights on
+Preferences for Generative AI Features and Information Presentation
+Across Story Writing Processes. (2025).
+[72] Arun Rai. 2020. Explainable AI: From Black Box to Glass Box. Journal of
+the Academy of Marketing Science 48 (2020), 137–141. doi:10.1007/s11747-
+019-00710-5
+[73] Jeba Rezwana and Mary Lou Maher. 2023. User Perspectives on Ethical
+Challenges in Human-AI Co-Creativity: A Design Fiction Study. In Pro-
+ceedings of the 15th Conference on Creativity and Cognition (Virtual Event,
+USA) (C&C ’23). Association for Computing Machinery, New York, NY,
+USA, 62–74. doi:10.1145/3591196.3593364
+[74] Nathalie Riche, Anna Offenwanger, Frederic Gmeiner, David Brown, Hugo
+Romat, Michel Pahud, Nicolai Marquardt, Kori Inkpen, and Ken Hinckley.
+2025. AI-Instruments: Embodying Prompts as Instruments to Abstract
+& Reflect Graphical Interface Commands as General-Purpose Tools. In
+Proceedings of the 2025 CHI Conference on Human Factors in Computing
+Systems. ACM, Yokohama Japan, 1–18. doi:10.1145/3706598.3714259
+[75] Nathalie Riche, Anna Offenwanger, Frederic Gmeiner, David Brown, Hugo
+Romat, Michel Pahud, Nicolai Marquardt, Kori Inkpen, and Ken Hinckley.
+2025. AI-Instruments: Embodying Prompts as Instruments to Abstract
+& Reflect Graphical Interface Commands as General-Purpose Tools. In
+Proceedings of the 2025 CHI Conference on Human Factors in Computing
+Systems (CHI ’25). Association for Computing Machinery, New York, NY,
+USA, Article 1104, 18 pages. doi:10.1145/3706598.3714259
+[76] Phillip Richter, Heiko Wersing, and Anna-Lisa Vollmer. 2024. Reduc-
+ing Mental Model Mismatch with Intention-Based Feedback in Human-
+Robot Teaching. In Proceedings of the 12th International Conference on
+Human-Agent Interaction. ACM, Swansea United Kingdom, 399–401.
+doi:10.1145/3687272.3690896 TLDR: The MMM Score is introduced, a
+feedback mechanism designed to align human teaching behavior with
+robot learning by quantifying mismatches between the human teacher’s
+mental model and the robot’s learning capabilities..
+[77] Alan M. Rugman and Joseph R. D’Cruz. 1993. The "double diamond"
+model of international competitiveness: The canadian experience. MIR:
+Management International Review 33 (1993), 17–39.
+http://www.jstor.
+org/stable/40228188 Publisher: Springer.
+[78] Prabir Sarkar and Amaresh Chakrabarti. 2011. Assessing design creativity.
+Design Studies 32, 4 (2011), 348–383. doi:10.1016/j.destud.2011.01.002
+[79] Donald A. Schön. 1983.
+The Reflective Practitioner: How Pro-
+fessionals Think in Action.
+Basic Books.
+https://consensus.
+app/papers/the-reflective-practitioner-how-professionals-
+schon/7f1fcb05627a5e24ae491d27f8b7f89f/?utm_source=chatgpt
+[80] Norbert M. Seel, Dirk Ifenthaler, and Pablo Pirnay-Dummer. 2009. Mental
+models and problem solving: Technological solutions for measurement
+and assessment of the development of expertise. Brill, Leiden, The Nether-
+lands, 17 – 40. doi:10.1163/9789087907112_004
+[81] Stefan Seidel, Nicholas Berente, Aron Lindberg, Kalle Lyytinen, and Jef-
+frey V Nickerson. 2018. Autonomous tools and design: a triple-loop
+approach to human-machine learning. Commun. ACM 62, 1 (2018), 50–
+57.
+[82] Orit Shaer, Angelora Cooper, Osnat Mokryn, Andrew L Kun, and Hagit
+Ben Shoshan. 2024. AI-Augmented Brainwriting: Investigating the use of
+LLMs in group ideation. In Proceedings of the CHI Conference on Human
+Factors in Computing Systems. ACM, Honolulu HI USA, 1–17. doi:10.
+1145/3613904.3642414 TLDR: This paper devised a collaborative group-
+AI Brainwriting ideation framework, which incorporated an LLM as an
+enhancement into the group ideation process, and evaluated the idea
+generation process and the resulted solution space..
+[83] Hanshu Shen, Lyukesheng Shen, Wenqi Wu, and Kejun Zhang. 2025.
+IdeationWeb: Tracking the Evolution of Design Ideas in Human-AI Co-
+Creation. In Proceedings of the 2025 CHI Conference on Human Factors in
+Computing Systems. ACM, Yokohama Japan, 1–19. doi:10.1145/3706598.
+3713375
+[84] Helen Sheridan, Emma Murphy, and Dympna O’Sullivan. 2023. Exploring
+Mental Models for Explainable Artificial Intelligence: Engaging Cross-
+disciplinary Teams Using a Design Thinking Approach. In Artificial
+Intelligence in HCI, Helmut Degen and Stavroula Ntoa (Eds.). Vol. 14050.
+Springer Nature Switzerland, Cham, 337–354. doi:10.1007/978-3-031-
+35891-3_21 Series Title: Lecture Notes in Computer Science.
+[85] Yang Shi, Tian Gao, Xiaohan Jiao, and Nan Cao. 2023. Understanding De-
+sign Collaboration Between Designers and Artificial Intelligence: A Sys-
+tematic Literature Review. Proceedings of the ACM on Human-Computer
+Interaction 7, CSCW2 (Sept. 2023), 1–35. doi:10.1145/3610217 TLDR: A
+landscape analysis of AI for design is conducted via a systematic literature
+review of 93 papers, which provides a bird’s eye view of overall patterns
+and reveals three themes interpreted from the paper corpus associated
+withAI for design, including AI assisting designers, designers assisting
+AI, and characterizing designer-AI collaboration..
+[86] Donghoon Shin, Lucy Lu Wang, and Gary Hsieh. 2024. From paper to
+card: Transforming design implications with generative AI. In Proceedings
+of the 2024 CHI conference on human factors in computing systems (Chi ’24).
+Association for Computing Machinery, Honolulu, HI, USA and New York,
+NY, USA. doi:10.1145/3613904.3642266 Number of pages: 15 tex.articleno:
+13 TLDR: Through an iterative design process, a system is built that helps
+create design cards from academic papers using an LLM and text-to-image
+model and is revealed that designers perceived the design implications
+from the design cards as more inspiring and generative compared to
+
+
+Conference acronym ’XX, June 03–05, 2018, Woodstock, NY
+Anqi Wang et al.
+reading original paper texts..
+[87] Atefeh Shokrizadeh, Boniface Bahati Tadjuidje, Shivam Kumar, Sohan
+Kamble, and Jinghui Cheng. 2025. Dancing With Chains: Ideating Under
+Constraints With UIDEC in UI/UX Design. In Proceedings of the 2025 CHI
+Conference on Human Factors in Computing Systems (CHI ’25). Association
+for Computing Machinery, New York, NY, USA, Article 1106, 23 pages.
+doi:10.1145/3706598.3713785
+[88] Herbert A Simon and Allen Newell. 1971. Human problem solving: The
+state of the theory in 1970. American psychologist 26, 2 (1971), 145.
+[89] LINDA J. SKITKA, KATHLEEN L. MOSIER, and MARK BURDICK. 1999.
+Does automation bias decision-making? International Journal of Human-
+Computer Studies 51, 5 (1999), 991–1006. doi:10.1006/ijhc.1999.0252
+[90] Nancy Staggers and A.F. Norcio. 1993. Mental models: concepts for
+human-computer interaction research. International Journal of Man-
+Machine Studies 38, 4 (1993), 587–605. doi:10.1006/imms.1993.1028
+[91] Erik Stolterman. 2008. The nature of design practice and implications for
+interaction design research. International Journal of Design 2, 1 (2008),
+55–65.
+https://consensus.app/papers/the-nature-of-design-practice-
+and-implications-stolterman/1ef65fb0ed5051539f5db7989a4385c1/
+?utm_source=chatgpt
+[92] Anselm Strauss and Juliet Corbin. 1998. Basics of qualitative research
+techniques. (1998).
+[93] Hari Subramonyam, Roy Pea, Christopher Pondoc, Maneesh Agrawala,
+and Colleen Seifert. 2024. Bridging the Gulf of Envisioning: Cognitive
+Challenges in Prompt Based Interactions with LLMs. In Proceedings of the
+CHI Conference on Human Factors in Computing Systems. ACM, Honolulu
+HI USA, 1–19. doi:10.1145/3613904.3642754
+[94] Sangho Suh, Meng Chen, Bryan Min, Toby Jia-Jun Li, and Haijun Xia.
+2024. Luminate: Structured Generation and Exploration of Design Space
+with Large Language Models for Human-AI Co-Creation. In Proceedings
+of the CHI Conference on Human Factors in Computing Systems. ACM,
+Honolulu HI USA, 1–26. doi:10.1145/3613904.3642400 TLDR: This work
+proposes a framework that facilitates the structured generation of design
+space in which users can seamlessly explore, evaluate, and synthesize a
+multitude of responses in large language models, introducing a way to
+harness the creative potential of LLMs..
+[95] Layla Sun, Mengmeng Qin, and Benji Peng. 2024. LLMs and Diffusion
+Models in UI/UX: Advancing Human-Computer Interaction and Design.
+doi:10.31219/osf.io/y38ux
+[96] Michael J. Tauber and David Ackermann. 1991. Mental models and human-
+computer interaction 2. Number 7 in Human factors in information tech-
+nology. North-Holland Distributors for the U.S.A. and Canada, Elsevier
+Science Pub. Co, Amsterdam New York New York, N.Y., U.S.A.
+[97] Michael Terry, Chinmay Kulkarni, Martin Wattenberg, Lucas Dixon, and
+Meredith Ringel Morris. 2023. AI Alignment in the Design of Interactive
+AI: Specification Alignment, Process Alignment, and Evaluation Support.
+arXiv preprint arXiv:2311.00710 (2023). doi:10.48550/arXiv.2311.00710
+[98] Jakob Tholander and Martin Jonsson. 2023. Design Ideation with AI
+- Sketching, Thinking and Talking with Generative Machine Learning
+Models. In Proceedings of the 2023 ACM Designing Interactive Systems
+Conference. ACM, Pittsburgh PA USA, 1930–1940. doi:10.1145/3563657.
+3596014
+[99] Karl T Ulrich, Steven D Eppinger, and Maria C Yang. 1995. Product design
+and development. Vol. 384. McGraw-hill New York.
+[100] Josh Urban Davis, Fraser Anderson, Merten Stroetzel, Tovi Grossman,
+and George Fitzmaurice. 2021. Designing Co-Creative AI for Virtual
+Environments. In Creativity and Cognition. ACM, Virtual Event Italy, 1–
+11. doi:10.1145/3450741.3465260 TLDR: Calliope is a virtual reality (VR)
+system that enables users to explore and manipulate generative design
+solutions in real time and provides design guidelines to aid others in the
+development of co-creative AI systems in virtual environments..
+[101] Janneke van de Pol, Monique Volman, and Jos Beishuizen. 2010. Scaffold-
+ing in Teacher–Student Interaction: A Decade of Research. Educational
+Psychology Review 22, 3 (2010), 271–296.
+[102] Willemien Visser. 1994. Organisation of design activities: opportunistic,
+with hierarchical episodes. Interacting with Computers 6, 3 (1994), 239–274.
+doi:10.1016/0953-5438(94)90015-9 Retrieved on 9/8/2025.
+[103] Anqi Wang, Zhizhuo Yin, Yulu Hu, Yuanyuan Mao, and Pan Hui. 2024.
+Exploring the Potential of Large Language Models in Artistic Creation:
+Collaboration and Reflection on Creative Programming. arXiv preprint
+arXiv:2402.09750 (2024).
+[104] Xingyi Wang, Xiaozheng Wang, Sunyup Park, and Yaxing Yao. 2025.
+Mental Models of Generative AI Chatbot Ecosystems. In Proceedings
+of the 30th International Conference on Intelligent User Interfaces. ACM,
+Cagliari Italy, 1016–1031. doi:10.1145/3708359.3712125 TLDR: This paper
+investigates users’ mental models of how GenAI Chatbot Ecosystems
+work, and finds that participants held a more consistent and simpler
+mental model towards third-party ecosystems than the first-party ones,
+resulting in higher trust and fewer concerns towards the third-party
+ecosystems..
+[105] Justin D. Weisz, Jessica He, Michael Muller, Gabriela Hoefer, Rachel
+Miles, and Werner Geyer. 2024. Design Principles for Generative AI
+Applications. In Proceedings of the 2024 CHI Conference on Human Fac-
+tors in Computing Systems (Honolulu, HI, USA) (CHI ’24). Association
+for Computing Machinery, New York, NY, USA, Article 378, 22 pages.
+doi:10.1145/3613904.3642466
+[106] David Wood, Jerome S. Bruner, and Gail Ross. 1976. The role of tutoring
+in problem solving. Journal of Child Psychology and Psychiatry 17, 2
+(1976), 89–100.
+[107] Tongshuang Wu, Ellen Jiang, Aaron Donsbach, Jeff Gray, Alejandra
+Molina, Michael Terry, and Carrie J Cai. 2022. PromptChainer: Chain-
+ing Large Language Model Prompts through Visual Programming. In
+CHI Conference on Human Factors in Computing Systems Extended Ab-
+stracts. ACM, New Orleans LA USA, 1–10. doi:10.1145/3491101.3519729
+TLDR: This work explores the LLM chain authoring process, and designs
+PromptChainer, an interactive interface for visually programming chains
+that supports building prototypes for a range of applications, as well as
+supporting low-fi chain prototyping..
+[108] Tongshuang Wu, Michael Terry, and Carrie Jun Cai. 2022. AI Chains:
+Transparent and Controllable Human-AI Interaction by Chaining Large
+Language Model Prompts. In CHI Conference on Human Factors in Com-
+puting Systems. ACM, New Orleans LA USA, 1–22. doi:10.1145/3491102.
+3517582 TLDR: Chaining LLM steps together is introduced, where the
+output of one step becomes the input for the next, thus aggregating the
+gains per step, and found that Chaining not only improved the quality
+of task outcomes, but also significantly enhanced system transparency,
+controllability, and sense of collaboration..
+[109] Xiaotong (Tone) Xu, Jiayu Yin, Catherine Gu, Jenny Mar, Sydney Zhang,
+Jane L. E, and Steven P. Dow. 2024. Jamplate: Exploring LLM-Enhanced
+Templates for Idea Reflection. In Proceedings of the 29th International Con-
+ference on Intelligent User Interfaces. ACM, Greenville SC USA, 907–921.
+doi:10.1145/3640543.3645196 TLDR: Jamplate integrates LLM capabilities
+into design templates, streamlining the collection and organization of
+user-generated content and LLM responses within the template struc-
+ture, and discusses the potential of designing LLM-enhanced templates
+to instigate critical reflection..
+[110] Zihan Yan, Chunxu Yang, Qihao Liang, and Xiang ’Anthony’ Chen. 2023.
+XCreation: A Graph-based Crossmodal Generative Creativity Support
+Tool. In Proceedings of the 36th Annual ACM Symposium on User In-
+terface Software and Technology. ACM, San Francisco CA USA, 1–15.
+doi:10.1145/3586183.3606826 TLDR: This work introduces XCreation, a
+novel CST that leverages generative AI to support cross-modal story-
+book creation and integrates an interpretable entity-relation graph to
+intuitively represent picture elements and their relations, improving the
+usability of the underlying generative structures..
+[111] Shunyu Yao, Jeffrey Zhao, Dian Yu, Nan Du, Izhak Shafran, Karthik
+Narasimhan, and Yuan Cao. 2023. ReAct: Synergizing Reasoning and
+Acting in Language Models. arXiv:2210.03629 [cs.CL] https://arxiv.org/
+abs/2210.03629
+[112] Ann Yuan, Andy Coenen, Emily Reif, and Daphne Ippolito. 2022. Word-
+craft: Story Writing With Large Language Models. In 27th International
+Conference on Intelligent User Interfaces. ACM, Helsinki Finland, 841–852.
+doi:10.1145/3490099.3511105 TLDR: This work built Wordcraft, a text edi-
+tor in which users collaborate with a generative language model to write
+a story, and shows that large language models enable novel co-writing
+experiences..
+[113] J.D. Zamfirescu-Pereira, Richmond Y. Wong, Bjoern Hartmann, and Qian
+Yang. 2023. Why Johnny Can’t Prompt: How Non-AI Experts Try (and
+Fail) to Design LLM Prompts. In Proceedings of the 2023 CHI Conference
+on Human Factors in Computing Systems. ACM, Hamburg Germany, 1–21.
+doi:10.1145/3544548.3581388 TLDR: This work explores whether non-AI-
+experts can successfully engage in “end-user prompt engineering” using
+a design probe—a prototype LLM-based chatbot design tool supporting
+development and systematic evaluation of prompting strategies..
+[114] Jingyue Zhang and Ian Arawjo. 2025. ChainBuddy: An AI-assisted Agent
+System for Generating LLM Pipelines. In Proceedings of the 2025 CHI
+Conference on Human Factors in Computing Systems. ACM, Yokohama
+Japan, 1–21. doi:10.1145/3706598.3714085 TLDR: It is found that when
+using AI assistance, participants reported a less demanding workload, felt
+more confident, and produced higher quality pipelines evaluating LLM
+behavior, and design implications for the future of workflow generation
+assistants to mitigate the risk of over-reliance are drawn..
+
+
+DesignerlyLoop
+Conference acronym ’XX, June 03–05, 2018, Woodstock, NY
+[115] Jiaje Zhang and Donald A. Norman. 1994. Representations in distributed
+cognitive tasks. Cognitive Science 18, 1 (1994), 87–122. doi:10.1016/0364-
+0213(94)90021-3
+[116] Rui Zhang, Ziyao Zhang, Fengliang Zhu, Jiajie Zhou, and Anyi Rao. 2024.
+Mindalogue: LLM-powered nonlinear interaction for effective learning
+and task exploration. https://arxiv.org/abs/2410.10570 arXiv: 2410.10570
+[cs.HC].
+[117] Jiayi Zhou, Renzhong Li, Junxiu Tang, Tan Tang, Haotian Li, Weiwei Cui,
+and Yingcai Wu. 2024. Understanding Nonlinear Collaboration between
+Human and AI Agents: A Co-design Framework for Creative Design. In
+Proceedings of the CHI Conference on Human Factors in Computing Systems.
+ACM, Honolulu HI USA, 1–16. doi:10.1145/3613904.3642812 TLDR: A
+subconscious change in people’s attitudes towards AI agents is noticed,
+shifting from perceiving them as mere executors to regarding them as
+opinionated colleagues, which effectively fostered the exploration and
+reflection processes of individual designers..
+A
+Prompt
+A.1
+Prompt following Design Stages
+A.2
+Prompt in Design Reasoning Canvas (B)
+(Main-canvas)
+The Basic Role and Capabilities prompt is:
+You
+are
+a
+top-tier
+AI
+design
+assistant,
+serving
+artists and designers who develop and iterate on
+products or artworks in node-based design tools. The
+current design context is: {bg}, and the design goal
+is: {dg}. Please base your subsequent thinking on
+this design knowledge and background. You possess
+strong logical reasoning, critical thinking, and rich
+artistic creativity, and can help them improve and
+perfect their design workflow using a node-based
+approach.
+The Tool Workflow prompt is:
+You have a deep understanding of your work within a
+node-based design tool that has a two-layer canvas.
+Your actions must strictly match the current canvas
+and the corresponding API call stage.
+1. Main-Canvas Workflow: Based on the design context
+and design goal, used for building a macro design
+process and detailed design content points within
+each process.
+* Design Pipeline Generation: Your starting point is
+on the left panel of the main canvas. You will use
+the generate_pipeline API call to generate a macro,
+high-level design pipeline.
+* Design Pipeline Node Content Filling: Your task
+is to elaborate specifically on the content to be
+explored in each step, rather than broad concepts
+and discussions.
+* Standalone AI Node brainstorm: Users can also create
+standalone AI nodes on the main canvas and connect
+them to any existing nodes. When the brainstorm API
+is called, you need to fully understand the context
+of the preceding nodes and act as a dynamic creative
+partner.
+Current
+Task
+Instruction
+Canvas
+Location:
+"Main-Canvas"
+(Macro-level
+workflow)
+Current
+Role: "Project Architect" Core Task: "Your task is
+to build a high-level design process, ensuring the
+logic is clear and the steps are complete. Think
+systematically and structurally."
+A.3
+Prompt in LLM Reasoning Chain Viewer
+(C) (Sub-canvas)
+The Basic Role and Capabilities prompt is:
+
+
+Conference acronym ’XX, June 03–05, 2018, Woodstock, NY
+Anqi Wang et al.
+- You are a top-tier AI design assistant for artists
+and designers using node-based tools. Your goal is to
+**turn vague exploration goals into clear, actionable
+strategies and plans**.
+- Current design context: {bg}, design goal: {dg}.
+Base all reasoning on this.
+- You have strong logical, critical, and creative
+skills.
+Familiar
+with
+concepts
+such
+as
+‘HMW‘,
+‘SCAMPER‘, ‘MVP‘, ‘Co-design‘, etc.
+**Tool Workflow:** - Node-based design tool with
+two-layer canvas: 1. **Main Canvas**: Overall design
+mapping. 2. **Sub-Canvas**: In-depth exploration of
+a specific node.
+-
+**Thinking
+Chain
+Generation**:
+In
+sub-canvas,
+construct a 3-4 step logical roadmap from the user’s
+exploration
+goal.
+Last
+step
+must
+be
+a
+concrete
+solution.
+-
+**Thinking
+Chain
+Step
+Execution**:
+Focus
+on
+a
+specific step, generate detailed, structured, and
+actionable content (How). Adapt output to step type
+(analysis, divergence, convergence).
+-
+**Iterative
+Content
+Optimization**:
+After
+user
+edits,
+analyze
+style
+and
+reasoning
+to
+produce
+higher-quality iterative content.
+**Current Task Instruction:** - Canvas: Sub-Canvas
+(In-depth exploration) - Role: Design Strategy &
+Execution
+Consultant
+-
+Mission:
+**Transform
+core
+problems into concrete, implementable solutions.**
+Produce practical plans, design drafts, or ideas.
+Turn "ideas" into "actions."
+A.3.1
+Generative Four Reasoning Methods from Single Node
+in Thinking Chain. The Classify rationale prompt is:
+Core Task: Map user instructions to one of the six
+stages of the Double Diamond design model. Focus
+on
+understanding
+**design
+intent**
+and
+expected
+deliverables.
+1. **Discover Divergent** - Goal: Diverge, collect
+raw information widely. - Deliverables: Competitor
+analysis, user interviews, market data, literature
+reviews.
+2. **Discover Convergent** - Goal: Converge, organize
+data to find patterns and insights. - Deliverables:
+User personas, journey maps, pain point lists.
+3. **Define** - Goal: Translate insights into core
+problems and design principles. - Deliverables: "How
+Might
+We"
+questions,
+problem
+statements,
+design
+principles.
+4. **Develop Divergent** - Goal: Brainstorm broadly,
+explore novel ideas. - Deliverables: Idea sketches,
+storyboards, concept cards.
+5. **Develop Convergent** - Goal: Filter and combine
+ideas
+into
+feasible
+prototypes.
+-
+Deliverables:
+Low-fidelity
+prototypes,
+feature
+lists,
+system
+diagrams.
+6.
+**Deliver**
+-
+Goal:
+Finalize
+and
+communicate
+solution value. - Deliverables: Service blueprints,
+high-fidelity mockups, pitch decks.
+The Definition of Reasoning Modes prompt is:
+1. Inductive Reasoning
+**Core
+Definition**:
+From
+multiple
+specific,
+independent observed cases, identify, extract, and
+summarize
+common
+patterns,
+rules,
+or
+principles.
+This is an aggregation process from "specific to
+general."
+**Applicable Scenarios/Keywords**:
+- **Pattern Recognition**: When the task involves
+analyzing, classifying, finding trends, and looking
+for
+commonalities,
+the
+focus
+is
+on
+identifying
+"what" is happening repeatedly from raw data.
+- **Principle Formulation**: When the task involves
+summarizing,
+extracting
+insights,
+defining
+user
+personas,
+and
+researching
+competitors,
+the
+focus
+is on elevating the identified patterns to guiding
+principles of "what this means."
+**Design Examples**:
+<Example 1>
+<Example 2>
+<Example 3>
+2. Deductive Reasoning
+**Core
+Definition**:
+Apply
+one
+or
+more
+known,
+general
+principles,
+theories,
+or
+standards
+to
+a
+specific situation to deduce concrete conclusions,
+guiding plans, or conduct evaluations. This is an
+application process from "general to specific."
+**Applicable Scenarios/Keywords**:
+-
+**Standard-based
+Validation**:
+When
+the
+task
+involves reviewing, testing, evaluating, validating,
+and following standards, the focus is on making
+judgments using clear, quantifiable standards.
+-
+**Theory-based
+Application**:
+When
+the
+task
+involves
+applying
+theories,
+feasibility
+analysis,
+usability walkthroughs, and plan design, the focus
+is on using abstract theories or models as a guide
+for creation.
+**Design Examples**:
+<Example 1>
+<Example 2>
+<Example 3>
+
+
+DesignerlyLoop
+Conference acronym ’XX, June 03–05, 2018, Woodstock, NY
+3. Abductive Reasoning
+**Core Definition**: Facing a problem to be solved,
+a goal to be achieved, or a phenomenon that has
+occurred,
+propose
+the
+most
+likely
+explanation,
+hypothesis,
+or
+solution.
+This
+is
+an
+exploratory
+process of "seeking the best explanation/solution."
+**Applicable Scenarios/Keywords**:
+- **Diagnostic**: When the task involves diagnosing
+problems,
+analyzing
+causes,
+explaining
+phenomena,
+and finding root causes. (For example: Why is the
+conversion rate low?)
+- **Creative**: When the task involves conceiving,
+planning,
+designing,
+seeking
+inspiration,
+brainstorming,
+and
+exploring
+possibilities.
+(For
+example: How to design the positioning for a new
+product?)
+**Design Examples**:
+<Example 1>
+<Example 2>
+<Example 3>
+4. Analogical Reasoning
+**Core
+Definition**:
+Identify
+structural
+similarities
+between
+two
+things
+in
+different
+fields, and migrate knowledge, models, or solutions
+from a familiar field to a new field to inspire
+innovation.
+This
+is
+a
+"cross-domain
+borrowing"
+process.
+**Applicable Scenarios/Keywords**:
+- **Inspirational Analogy**: When the task involves
+seeking inspiration, cross-domain referencing, and
+divergent thinking, the focus is on borrowing broad
+concepts or experiences to break fixed thinking.
+-
+**Model
+Transfer**:
+When
+the
+task
+involves
+borrowing processes, simplifying complex concepts,
+and finding concrete solutions, the focus is on
+systematically
+transplanting
+a
+mature,
+specific
+structure or mechanism from one field.
+**Design Examples**:
+<Example 1>
+<Example 2>
+<Example 3>
+A.3.2
+Generate Rationale Prompt following Six Design Stages.
+The Generate rationale prompt is:
+**Task:**
+Generate
+approximately
+140
+words
+of
+detailed content **only for the current execution
+step** in the thinking chain.
+1. Current Design Stage - Stage Name: {rationale_type}
+- Core Goal: {rationale_type_description}
+All output must serve the core goal of this stage.
+2. Role and Context - Main-canvas Goal: {design_goal}
+- Design Context: {bg} - Parent Node: {parent_title}
+— {parent_content} - Subcanvas Goal (reference only):
+’{goal}’ - Completed Preceding Steps: {context_str}
+- Current Execution Step: ’{current_node_content}’
+3.
+Golden
+Example
+Follow
+the
+format,
+depth,
+and
+professional standards of this successful example:
+{few_shot_example}
+4. Execution Instructions 1. Align with Stage Goal:
+Reflect the core goal (analysis, divergence, etc.).
+2. Mimic the Example: JSON structure, Markdown, and
+professional style must match the golden example. 3.
+Logical Coherence: Base content on preceding steps;
+do not address subsequent steps.
+Output Format (JSON)
+{
+"title": "High-level summary",
+"rationale1": "Around 30 words",
+"rationale2": "Around 30 words",
+"rationale3": "Around 30 words",
+"rationale4": "Around 30 words"
+}
+B
+User Study
+B.1
+Demographic Information of
+Participants
+Table 1 shows 20 participating designers harboring diverse
+design and LLM experiences.
+B.2
+Open-up Design Tasks
+(1) How can design improve people’s experience of waiting
+in public spaces?
+(2) How can a solution be designed to help people adapt
+their daily habits and reduce carbon emissions in the
+face of climate change?
+(3) How can digital technology and interaction design sup-
+port chronically ill people to build better communica-
+tion and emotional support with their caregivers?
+(4) How can gamification experiences enhance children’s
+interest and desire to explore scientific knowledge?
+(5) How can you design a tool for SMEs to help them
+quickly build brand recognition on a limited budget?
+(6) How can you make remote collaborative teams more
+productive and feel a sense of belonging in a virtual
+space through design?
+These 6 propositions cover different domains such as public
+space experience, environmental sustainability, health care,
+educational games, branding, remote collaboration, etc., and
+
+
+Conference acronym ’XX, June 03–05, 2018, Woodstock, NY
+Anqi Wang et al.
+Table 1: Summary of democratized information of participants in the user study.
+NO.
+Gender
+Age
+Profession
+Design Exp
+LLM Exp
+Frequency of LLM Use
+Used Node-based Design Tool
+P1
+Male
+28
+Product, architecture designer
+>8 years
+2
+1-2 times per week
+✓
+P2
+Male
+25
+Service designer
+>8 years
+4
+3-5 times per week
+✓
+P3
+Female
+28
+Speculative designer
+>8 years
+5
+3-5 times per week
+✓
+P4
+Female
+26
+Industrial, interaction designer
+>8 years
+4
+Daily
+✓
+P5
+Male
+27
+Architecture designer
+>8 years
+1
+Monthly
+✓
+P6
+Male
+26
+Product, visual communication designer
+>8 years
+2
+Biweekly
+✓
+P7
+Female
+26
+Product, visual communication designer
+>8 years
+5
+Daily
+✓
+P8
+Female
+28
+Interaction designer
+<2 year
+3
+Daily
+✓
+P9
+Female
+28
+Cinema, architecture designer
+5-8 year
+4
+3-5 times per week
+✓
+P10
+Female
+23
+Architecture designer
+5-8 year
+3
+3-5 times per week
+P11
+Male
+23
+Architecture designer
+5-8 year
+3
+Daily
+✓
+P12
+Female
+22
+Digital media, interaction designer
+5-8 year
+4
+3-5 times per week
+✓
+P13
+Female
+24
+Interaction designer
+2-5 year
+4
+Daily
+✓
+P14
+Female
+22
+Digital media, interaction designer
+5-8 year
+4
+3-5 times per week
+✓
+P15
+Female
+27
+Visual communication designer
+5-8 year
+2
+1-2 times per week
+P16
+Female
+23
+Industrial designer
+5-8 year
+4
+3-5 times per week
+✓
+P17
+Male
+22
+Architecture designer
+2-5 year
+3
+3-5 times per week
+P18
+Female
+31
+Service designer
+>8 years
+4
+Daily
+✓
+P19
+Male
+19
+Interaction, product designer
+2-5 year
+4
+Daily
+✓
+P20
+Female
+24
+Interaction, product designer
+5-8 year
+5
+Daily
+✓
+Note: LLM experience were categorized into five levels, from low to high: Level 1 - Little experience; Level 2 - Some experience; Level 3 - Moderate experience; Level 4 - Substantial experience; Level 5 - Professional.
+at the same time are all open enough to be addressed by ap-
+proaches from different design domains (product, service, in-
+teraction, visual, spatial, etc.).
+B.3
+Evaluation of Overall Human-AI
+Interaction Experience
+Table 2 shows the ten scored items for the five factors.
+Table 2: 10 Questions for Overall Human-AI Interaction
+Experience Questionnaire
+Factor
+Content
+Controllable
+1. I can control AI to generate responses in
+line with my expectations.
+2. I know how to modify my operations to
+correct AI’s responses.
+Transparent
+1. I can recognize AI’s systematic thinking
+and reasoning processes.
+2. I can understand the logic behind AI’s re-
+sponses.
+Cognitive Load
+1. As the design process progresses, I feel
+overwhelmed by excessive information, mak-
+ing it difficult to organize and manage.
+2. As the design process progresses, I find it
+challenging to recall or locate specific histor-
+ical information.
+Collaboration
+1. I engage in comprehensive collaboration
+with AI.
+2. I maintain deep interaction with AI.
+Trust
+1. I consider AI to be a reliable design expert.
+2. I trust AI’s responses and will use them in
+real design scenarios.
+B.4
+Designers’ confidence and reliance
+A seven-point questionnaire questions were added for collab-
+orative experience, referring to prior study [16]:
+(1) In the design process, I rely on AI.
+(2) In the design process, I am confident in my results.
+B.5
+Design Quality Metric Rationale
+To provide a comprehensive and robust evaluation of design
+quality, we employed a composite metric that combines the
+Novelty (𝑁) and Usefulness (𝑈) of a design solution [43, 78].
+The final design quality score is the sum of these two metrics.
+This appendix details the components of our expert-rating
+metric, with a focus on the methodology for calculating Use-
+fulness (𝑈) from a set of sub-indicators.
+B.5.1
+Calculation of Usefulness (𝑈). The Usefulness metric
+(𝑈) is designed to capture the practical impact and value of a
+design solution. It is a product of three key factors: the Level
+of Importance (𝐿), the Rate of Popularity of Usage (𝑅), and the
+Frequency of Usage (𝐹). The formula for calculating 𝑈is:
+𝑈= 𝐿× 𝑅× 𝐹
+Each variable is defined and measured as follows:
+Level of Importance (𝐿): This metric is based on Maslow’s
+hierarchy of needs and assesses how fundamental the
+human need addressed by the design is. Experts rate
+this on a 5-point scale, where higher scores indicate a
+more fundamental need being fulfilled.
+Rate of Popularity of Usage (𝑅): This factor measures
+the design’s reach and influence within its target user
+
+
+DesignerlyLoop
+Conference acronym ’XX, June 03–05, 2018, Woodstock, NY
+base. It is not a simple percentage but a holistic assess-
+ment of its acceptance and widespread adoption. For
+example, for product designs, it reflects market pene-
+tration; for public spaces, it reflects community engage-
+ment; and for visual brands, it reflects brand recognition.
+The score is provided on a scale of 0 to 1, precise to one
+decimal place.
+Frequency of Usage (𝐹): This factor evaluates the sus-
+tained value and engagement a design provides to its
+users. It assesses whether the interaction is one-off or
+continuous. For product designs, it relates to user re-
+tention; for public spaces, it measures repeat visits and
+dwell time; and for visual brands, it relates to repeated
+exposure and long-term memory. The score is provided
+on a scale of 0 to 1, precise to one decimal place.
+B.5.2
+Final Design Quality Score. To ensure the Usefulness
+metric (𝑈) has equal weight to the Novelty metric (𝑁) in the
+final score, the calculated𝑈value is converted to a 1-to-7 scale.
+The final Design Quality score is then the sum of the converted
+Usefulness score and the Novelty score.
+Before calculating the final score, we performed Kendall’s
+W consistency test on the scores for both 𝑁and 𝑈to ensure
+high inter-rater reliability among the expert raters.
+
+
+Conference acronym ’XX, June 03–05, 2018, Woodstock, NY
+Anqi Wang et al.
+C
+Findings
+C.1
+Comparison Tables
+Table 3: Comparison of overall AI interaction experience between DesignerlyLoop and the baseline.
+Metric
+DesignerlyLoop
+Baseline
+Statistical Test
+Mean
+SD
+Mean
+SD
+t or V
+p
+Controllable
+16.2
+2.88
+13.5
+3.12
+𝑡= 3.65
+.002**
+Collaboration
+16.4
+2.56
+13.8
+4.06
+𝑡= 2.80
+.012*
+Transparent
+16.3
+2.47
+13.8
+3.89
+𝑉= 135
+.006**
+Cognitive Load
+9.40
+5.11
+11.8
+4.82
+𝑡= −1.76
+.094
+Trust
+15.9
+2.02
+12.6
+3.03
+𝑉= 136
+<.001***
+Note: *** 𝑝< 0.001, ** 𝑝< 0.01, * 𝑝< 0.05
+Table 4: Comparison of Creativity Support Index (CSI) ratings between DesignerlyLoop and the baseline.
+Metric
+DesignerlyLoop
+Baseline
+Statistical Test
+Mean
+SD
+Mean
+SD
+t or V
+p
+Collaboration
+16.1
+2.07
+13.0
+3.46
+𝑡= 3.78
+0.001**
+Enjoyment
+16.4
+2.63
+12.7
+4.54
+𝑉= 164
+<.001***
+Exploration
+17.4
+2.11
+14.0
+3.69
+𝑡= 4.25
+<.001***
+Expressiveness
+16.2
+2.32
+13.5
+3.24
+𝑡= 4.70
+<.001***
+Immersion
+12.9
+4.48
+11.0
+4.58
+𝑡= 2.65
+.016*
+Worth Effort
+16.2
+1.96
+14.4
+3.33
+𝑉= 116
+.067
+Total
+95.2
+12.4
+78.7
+17.9
+𝑡= 4.54
+<.001***
+Note: *** 𝑝< 0.001, ** 𝑝< 0.01, * 𝑝< 0.05
+Table 5: Comparison of self-reported design outcomes between DesignerlyLoop and the baseline system.
+Metric
+DesignerlyLoop
+Baseline
+Statistical Test
+Mean
+SD
+Mean
+SD
+t or V
+p
+𝑁(Novelty)
+5.20
+1.54
+4.25
+1.59
+𝑡= 3.866
+.001**
+𝑈(Usefulness)
+2.79
+1.66
+1.96
+1.29
+𝑡= 4.171
+< .001***
+Rate of Popularity
+6.6
+1.96
+5.95
+1.54
+𝑉= 71
+.074
+Frequency of Usage
+6.95
+2.06
+6.40
+2.30
+𝑡= 1.868
+.077
+Importance
+3.95
+0.89
+3.50
+1.92
+𝑉= 28
+.018 *
+Quality
+3.99
+1.41
+3.11
+1.32
+𝑡= 5.286
+< .001***
+Note: *** 𝑝< 0.001, ** 𝑝< 0.01, * 𝑝< 0.05
+C.2
+Correlation Tables
+Received 20 February 2007; revised 12 March 2009; accepted 5 June 2009
+
+
+DesignerlyLoop
+Conference acronym ’XX, June 03–05, 2018, Woodstock, NY
+Table 6: Comparison of self-assessment and expert ratings of design quality for DesignerlyLoop and the baseline
+systems.
+Self-Assessment
+Expert Rating
+DesignerlyLoop
+Baseline
+DesignerlyLoop
+Baseline
+𝑀𝑒𝑎𝑛
+5.20
+4.25
+5.10
+4.79
+𝑁(Novelty)
+𝑆𝐷
+1.54
+1.59
+1.18
+1.35
+𝑝
+𝑝= .001**
+𝑝= .058
+𝑀𝑒𝑎𝑛
+2.79
+1.96
+3.03
+2.62
+𝑈(Usefulness)
+𝑆𝐷
+1.66
+1.29
+1.61
+1.56
+𝑝
+𝑝< .001***
+𝑝= .004**
+𝑀𝑒𝑎𝑛
+3.99
+3.11
+4.05
+3.78
+Quality
+𝑆𝐷
+1.41
+1.32
+1.17
+1.40
+𝑝
+𝑝< .001***
+𝑝= .006**
+Note: *** 𝑝< 0.001, ** 𝑝< 0.01, * 𝑝< 0.05
+Table 7: Correlation analysis of overall AI interaction experience.
+Baseline
+DesignerlyLoop
+Metric
+𝑁
+𝑈
+Quality
+𝑁
+𝑈
+Quality
+Controllable
+𝜌= 0.375*
+𝜌= 0.341*
+𝑟= 0.412**
+𝜌= 0.113
+𝜌= 0.36*
+𝑟= 0.279.
+Transparent
+𝜌= 0.003
+𝜌= 0.223
+𝑟= 0.134
+𝜌= −0.218
+𝜌= 0.208
+𝑟= 0.039
+Cognitive Load
+𝜌= −0.217
+𝜌= −0.127
+𝜌= −0.175
+𝜌= −0.002
+𝜌= −0.298.
+𝜌= −0.111
+Collaboration
+𝜌= 0.322*
+𝜌= 0.435**
+𝜌= 0.395*
+𝜌= 0.255
+𝜌= 0.387*
+𝜌= 0.352*
+Trust
+𝜌= 0.425**
+𝜌= 0.48**
+𝜌= 0.49**
+𝜌= 0.36*
+𝜌= 0.398*
+𝜌= 0.468**
+Table 8: Correlation analysis of self-confidence (Agency 1) and reliance on AI (Agency 2).
+Baseline
+DesignerlyLoop
+Metric
+𝑁
+𝑈
+Quality
+𝑁
+𝑈
+Quality
+Agency1
+𝜌= −0.041
+𝜌= 0.188
+𝜌= 0.079
+𝜌= −0.116
+𝜌= 0.223
+𝜌= 0.085
+Agency2
+𝜌= 0.372∗
+𝜌= 0.408∗∗
+𝜌= 0.441∗∗
+𝜌= 0.231
+𝜌= 0.43∗∗
+𝜌= 0.406∗∗
+Table 9: Correlation analysis of self-assessment scores for design outcomes between DesignerlyLoop and the baseline
+using CSI.
+Baseline (Task A)
+DesignerlyLoop (Task B)
+Metric
+𝑁
+𝑈
+Quality
+𝑁
+𝑈
+Quality
+Collaboration
+𝑟= 0.228
+𝑟= 0.681***
+𝑟= 0.469*
+𝜌= −0.074
+𝜌= 0.274
+𝜌= 0.143
+Enjoyment
+𝑟= 0.603**
+𝑟= 0.829***
+𝑟= 0.766***
+𝜌= 0.479*
+𝑟= 0.705***
+𝑟= 0.685***
+Exploration
+𝑟= 0.717***
+𝑟= 0.620**
+𝑟= 0.733***
+𝜌= 0.314
+𝜌= 0.285
+𝜌= 0.325
+Expressiveness
+𝜌= 0.740***
+𝜌= 0.681***
+𝜌= 0.773***
+𝜌= 0.342
+𝑟= 0.517*
+𝑟= 0.500*
+Immersion
+𝑟= 0.239
+𝑟= 0.355
+𝑟= 0.317
+𝜌= 0.114
+𝜌= 0.336
+𝜌= 0.286
+WorthEffort
+𝜌= 0.549*
+𝜌= 0.723***
+𝜌= 0.672**
+𝜌= 0.197
+𝑟= 0.210
+𝑟= 0.296

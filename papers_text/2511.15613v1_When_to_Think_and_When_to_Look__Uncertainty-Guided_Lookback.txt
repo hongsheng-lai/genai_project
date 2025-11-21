@@ -1,0 +1,1458 @@
+When to Think and When to Look: Uncertainty-Guided Lookback
+Jing Bi1
+Filippos Bellos2
+Junjia Guo3
+Yayuan Li2
+Chao Huang1
+Yunlong (Yolo) Tang1
+Luchuan Song1
+Susan Liang1
+Zhongfei (Mark) Zhang3
+Jason J. Corso2
+Chenliang Xu1
+1University of Rochester
+2University of Michigan
+3Binghamton University
+{jing.bi, yunlong.tang, chenliang.xu}@rochester.edu, {fbellos, yayuanli, jjcorso}@umich.edu
+{jguo22, zzhang}@binghamton.edu, {chuang65, sliang22, lsong11}@cs.rochester.edu
+Abstract
+Test-time “thinking” (i.e., generating explicit intermediate
+reasoning chains) is known to boost performance in large
+language models and has recently shown strong gains for
+large vision–language models (LVLMs). However, despite
+these promising results, there is still no systematic analy-
+sis of how thinking actually affects visual reasoning. We
+provide the first such analysis with a large-scale, controlled
+comparison of thinking for LVLMs, evaluating 10 variants
+from the InternVL3.5 and Qwen3-VL families on MMMU-
+val under generous token budgets and multi-pass decod-
+ing. We show that more thinking is not always better: long
+chains often yield long-wrong trajectories that ignore the
+image and underperform the same models run in standard
+instruct mode. A deeper analysis reveals that certain short
+“lookback” phrases, which explicitly refer back to the im-
+age, are strongly enriched in successful trajectories and
+correlate with better visual grounding. Building on this in-
+sight, we propose uncertainty-guided lookback, a training-
+free decoding strategy that combines an uncertainty signal
+with adaptive lookback prompts and breadth search. Our
+method improves overall MMMU performance, delivers the
+largest gains in categories where standard thinking is weak,
+and outperforms several strong decoding baselines, setting
+a new state of the art under fixed model families and to-
+ken budgets. We further show that this decoding strategy
+generalizes, yielding consistent improvements on five addi-
+tional benchmarks, including two broad multimodal suites
+and math-focused visual reasoning datasets.
+1. Introduction
+Large vision language models (LVLMs) are rapidly be-
+coming general-purpose visual assistants, expected to read
+charts, solve exam-style questions, and reason about dia-
+grams at a level approaching human experts. At the same
+time, evaluation suites such as LMMs-Eval [53] highlight
+Figure 1. Pass@k accuracy on MMMUval for 10 LVLM vari-
+ants from the InternVL3.5 and Qwen3-VL families. Increasing
+the number of samples k (breadth) yields steep early gains for all
+models, especially smaller ones, while enabling the built-in think-
+ing mode consistently shifts curves upward but with diminishing
+returns beyond Pass@8. This illustrates that additional sampling
+can often substitute for deeper test-time thinking and that the ben-
+efits of thinking depend strongly on model capacity.
+that, despite impressive headline results, current LVLMs re-
+main brittle across domains and task formats, motivating
+more principled ways of allocating test-time compute.
+On the language side, Thinking—test-time chain-of-
+thought decoding, self-consistency, and reflection-style
+prompting—has emerged as a key ingredient for complex
+reasoning [14, 37, 50], delivering strong gains on text-only
+benchmarks. However, extending these techniques to mul-
+timodal settings is more delicate.
+Recent studies show that LVLMs inherit the failure
+modes of language models while adding new cross-modal
+issues, such as over-reliance on text priors and visual
+hallucination [45, 57] with only a few families (e.g.,
+Qwen2.5-VL and InternVL3) exhibit noticeably stronger
+visual grounding as capacity grows [55]. To better couple
+reasoning with perception, work on visual CoT has begun
+1
+arXiv:2511.15613v1  [cs.CV]  19 Nov 2025
+
+
+to explicitly incorporate visual intermediates. Methods such
+as VCoT [30], Visual Sketchpad [17], and MathCanvas [33]
+endow models with drawing or diagram-editing capabilities
+that act as scratchpads for geometry and spatial reasoning,
+thus typically relying on extra supervision or tooling.
+Meanwhile, LVLM families such as Qwen-VL and its
+successors [3, 4, 40] and InternVL3/3.5 [43, 59] expose ex-
+plicit “thinking” modes. These models pair high-capacity
+language backbones with competitive visual front-ends and
+report state-of-the-art results on MMMUand related bench-
+marks. However, this trend raises three intertwined ques-
+tions that are still poorly understood:
+When does test-time thinking help visual reasoning?
+Thinking is widely assumed to be beneficial, but we lack
+systematic study between instruct and thinking modes
+across model sizes, sampling budgets, and task categories.
+How should we trade off breadth vs. depth of thinking?
+We do not yet know how to best allocate test-time compute
+between sampling more reasoning paths (breadth) and using
+stronger reasoning modes (depth) in perception tasks.
+Can we control thinking for better perception tasks?
+Text-only
+CoT
+work
+on
+early
+exit
+and
+confidence
+(DEER [47], DeepConf [16], REFRAIN [34]) shows that
+blindly elongating chains can be wasteful or harmful, moti-
+vating LVLM decoding that reacts to visual grounding and
+uncertainty rather than token counts alone.
+This paper addresses these questions through a system-
+atic study of visual thinking in the latest InternVL3.5 [43]
+and Qwen3-VL [4] models. We focus on these two families
+because Qwen3 LLMs consistently outperform LLaMA-
+based counterparts, and both Qwen3-VL and InternVL3.5
+are open-source state-of-the-art LVLMs with a large mar-
+gin over other models; prior work [45, 57] also indicates
+that only these families exhibit strong visual reasoning.
+Through controlled experiments and fine-grained analy-
+sis, we show that test-time thinking has a highly structured,
+non-uniform impact: its benefits depend strongly on model
+capacity, sampling budget, and task category. In particu-
+lar, we find clear regimes where thinking helps and oth-
+ers where concise instruct decoding is preferable. Build-
+ing on these observations, we propose uncertainty-guided
+lookback, a training-free decoding strategy. Instead of al-
+ways “thinking more,” we monitor when the model’s ongo-
+ing chain is likely drifting and selectively trigger short, visu-
+ally anchoring lookback prompts that refocus the reasoning
+on the image. This mechanism, optionally combined with a
+lightweight parallel exploration of more visually grounded
+continuations, turns our analysis of long-wrong vs. quiet-
+wrong behavior into a practical recipe for routing delibera-
+tion to the instances where visual thinking actually improve.
+Overall, this work makes the following contributions:
+A systematic analysis of visual thinking in LVLMs. We
+provide a large-scale study of thinking vs. instruct compar-
+isons for latest models, disentangling breadth vs. depth of
+thinking and characterizing their effects across model sizes,
+categories, and difficulty levels.
+A capacity-regularized token economy for visual rea-
+soning. We show how language capacity and task diffi-
+culty jointly shape the cost and utility of thinking, expos-
+ing compute-equivalence trade-offs and highlighting when
+long-wrong” versus quiet-wrong” failures dominate.
+Uncertainty-guided lookback for adaptive visual CoT.
+We introduce a training-free, model-agnostic decoding
+strategy.
+Across MMMUval and five additional bench-
+marks, this method consistently improves accuracy over
+standard thinking while keeping or lowering the fraction
+of thinking tokens, with especially large gains in categories
+where naive thinking previously underperformed.
+2. Related Work
+2.1. Reasoning in LLMs
+CoT prompting often boosts success on complex tasks, yet
+recent work details important limitations: benchmarking
+across modalities shows that reflection and test-time scaling
+help but can also cause overthinking on perception-heavy
+problems [5, 20]; generated rationales need not be faithful
+to internal computation [11]; CoT can obscure hallucination
+cues [12]; and gains may evaporate under distribution shifts
+[56]. These emerging limitations motivate our investigation
+into how thinking influence visual reasoning performance.
+2.2. Visual Reasoning
+Visual reasoning benchmarks increasingly minimize lan-
+guage priors to isolate perception–reasoning interplay.
+VERIFY emphasizes explanation fidelity and reports per-
+sistent gaps on abstract visual reasoning [6, 35].
+Sur-
+veys and position papers underscore why reasoning (not
+just recognition) is central in multimodal settings and out-
+line evaluation pitfalls [8, 9].
+Concurrently, reasoning-
+centric LVLMs show rapid progress: LLaVA-CoT intro-
+duces staged, autonomous visual CoT and improves across
+reasoning-heavy suites [46]; Mulberry equips MLLMs with
+o1-like step-by-step reasoning and reflection via a collec-
+tive MCTS procedure [49]; InternVL 3.5 reports strong rea-
+soning results across MMMU/MathVista with cascade RL
+[19, 41]; and Qwen3-VL releases Instruct/Thinking variants
+with broad coverage and improved visual reasoning [29].
+We investigate these families to quantify where components
+changes translate into visual reasoning gains.
+2.3. LVLM Analysis
+Complementary work analyzes how LVLMs perceive and
+ground visual content: [7] reveal visual-token–specialized
+attention heads whose concentration correlates with visual
+understanding; [22] show that a small subset of “localiza-
+2
+
+
+Model
+Variants †
+LLM backbone
+Vision encoder
+Connector
+Image tokens
+InternVL3 5-4B
+instruct, COT
+Qwen3 4B
+InternViT-300M (ViT/14)
+MLP projector
+⌈H×W/282⌉DHR TILING
+InternVL3 5-8B
+instruct, COT
+Qwen3 8B
+InternViT-300M (ViT/14)
+MLP projector
+⌈H×W/282⌉DHR TILING
+Qwen3-VL-4B
+instruct, thinking
+Qwen3 4B
+Qwen3VLVision (ViT/16)
+DeepStack
+⌈H×W/322⌉2×2 MERGE
+Qwen3-VL-8B
+instruct, thinking
+Qwen3 8B
+Qwen3VLVision (ViT/16)
+DeepStack
+⌈H×W/322⌉2×2 MERGE
+Qwen3-VL-32B
+instruct, thinking
+Qwen3 32B
+Qwen3VLVision (ViT/16)
+DeepStack
+⌈H×W/322⌉2×2 MERGE
+Table 1. Model comparison. Image tokens: Qwen3-VL uses an effective stride of 32 (ViT/16 with 2×2 token merging), yielding
+⌈(H×W)/322⌉tokens for an image (e.g., 1024×1024 →1024 tokens). InternVL3.5 uses ViT/14 features with 4× pixel unshuffle and
+DHR (Dynamic High-Resolution) tiling: the image is split into 448×448 tiles; each tile contributes ≈256 tokens after compression, and
+an optional global thumbnail adds +256. For a 1024×1024 image, ⌈1024/448⌉= 3 per side ⇒3×3 = 9 tiles, so 9×256 = 2304
+tokens (optionally +256). DeepStack (Qwen3-VL) denotes a multi-level ViT feature stacking/fusion module with 2×2 token merging
+that reduces the visual token grid by 4× before the LLM. Variants: instruct vs. COT/thinking. Here, COT means the model is prompted
+to reason and may or may not emit a thinking trace. In Qwen3-VL, thinking mode injects a <think> token in the prompt, so a thinking
+trace is consistently generated. In total, we compare 8 distinct model checkpoints with 10 variants in total.
+tion heads” suffices for competitive training-free ground-
+ing; and [18, 36] revisit multimodal positional encodings,
+distilling design rules that improve grounding and video un-
+derstanding. Object-level hallucination is traced to specific
+architectural and optimization factors with targeted miti-
+gations [21]; an inference-time head-suppression strategy
+links hallucination to low image-attending heads and re-
+duces errors with minimal latency [31]; and VLM-LENS
+provides a toolkit for probing intermediate layers and stan-
+dardizing interpretability analyses for open-source VLMs
+[32], informing our diagnostics separating perception from
+reasoning.
+3. Analysis
+In this section, we first describe our experimental setup, in-
+cluding the datasets, models, decoding strategies, and token
+budgets. We then present our empirical findings on the ef-
+fects of Thinking and its impact on visual reasoning.
+Dataset and Models. We adopt MMMUval as our analysis
+benchmark because of its diversity and its widespread use in
+the LVLM literature; its 30 categories provide a rich oppor-
+tunity to investigate generalization, robustness, and model
+strengths and failure modes [51]. We focus on two lead-
+ing open-source VLM families and their variants, rank top-
+performing open-source systems on the MMMUval leader-
+board [1]. As shown in Table 1, both are built upon Qwen3
+LLM backbones, allowing controlled comparisons across
+three key dimensions: (i) vision encoder architectures (In-
+ternViT vs. Qwen3VLVision), (ii) connector architectures
+(MLP vs. DeepStack), and (iii) reasoning modes.
+This
+alignment makes the families well-suited for representa-
+tive and systematic within-family comparison [1, 2, 42, 51],
+and, to the best of our knowledge, there are currently no
+publicly available visual CoT controllers tailored to their
+“thinking” modes, making decoding-time control a practi-
+cal way to improve performance without modifying model.
+Multiple-pass decoding. We adopt a multi-sample eval-
+uation setting with 10 sampled reasoning paths per item.
+This follows evidence that sampling diverse answers and
+Evaluator
+Year
+Passes
+Instruct
+Reasoning
+LMMs-Eval [52]
+2024
+1
+128
+128
+EvalScope [15, 27]
+2024
+1
+512
+512
+VLMEvalKit [13]
+2024
+1
+512
+512
+NeMo [28]
+2025
+1
+2,048
+2,048
+VHELM [23]
+2024
+1
+4,096
+4,096
+Vals.ai [38]
+2025
+1
+8,192
+16,384
+CombiGraph-Vis [26]
+2025
+8
+–
+–
+MIRA [58]
+2025
+8
+8,192
+16,384
+Ours
+2025
+10
+16,384
+32,768
+Table 2. Maximum output tokens for MMMUval across widely
+used toolkits and recent CoT-style benchmarks, and the number
+of sampling passes used per question. We intentionally set a sub-
+stantially larger budget and more passes to reduce truncation and
+enable longer reasoning chains.
+marginalizing across them improves multi-step reason-
+ing [44] and aligns with recent work on visual reasoning and
+CoT prompting [26, 58]. While prior work [26, 58] typi-
+cally uses 8 passes, we use 10 for consistency across models
+and a stronger assessment of answer stability. Temperature
+and topp follow standard MMMUval leaderboard, varying
+only random seeds [27, 52], whereas common evaluation
+toolkits default to single-sample decoding [13, 27, 52]. Fur-
+ther sampling details are provided in the appendix.
+Token budgets.
+Compared to commonly used evalua-
+tors, we employ substantially larger output-token budgets.
+Specifically, we allocate 16,384 tokens for Instruct and
+32,768 for Reasoning, reducing truncation and enabling
+fully articulated solution chains when beneficial [27, 52].
+This design helps ensure that performance differences are
+not confounded by output-length constraints (Table 2).
+3.1. Will Thinking Help?
+We examine two thinking paradigms for improving rea-
+soning: thinking in breadth (sampling more candidates,
+i.e., pass@k) and depth (explicit reasoning). The pass@k
+curves (Fig. 1) characterize how performance scales with
+additional samples, while the mean pass accuracy boxplots
+(Fig. 3) summarize the overall accuracy and variability of
+each model family and its thinking-enabled variant.
+3
+
+
+Figure 2. Category-level performance heatmaps showing z-scored accuracy across disciplines for all models and their thinking variants.
+Left: mean accuracy z-scores; right: Pass@10 z-scores under extensive sampling. Warmer colors indicate categories where a model
+performs above the global average, while cooler colors highlight relative weaknesses.
+Figure 3.
+Mean Pass@k accuracy on MMMUval for each vi-
+sion–language model and its corresponding “Thinking” vari-
+ant. Boxplots summarize variation across evaluation runs, where
+higher medians and tighter interquartile ranges indicate stronger
+and more stable performance, highlighting systematic differences
+between standard and Thinking modes.
+Thinking in Breadth.
+Increasing k monotonically im-
+proves accuracy for every model: the pass@k curves in
+Fig. 1 steadily rise, indicating that a substantial portion of
+errors can be corrected with just a few extra attempts. The
+gains are steep from k = 2 to k = 6 and then clearly ta-
+per off for k ≥8, revealing diminishing returns from pure
+sampling-based search. Smaller models benefit dispropor-
+tionately from larger k: their single-sample accuracy lags
+behind, but additional samples give them more chances to
+land on a successful reasoning trajectory. With sufficient
+sampling, weaker models partially close the gap to much
+larger ones without explicit reasoning.
+For example, at
+high k the InternVL3-4B curve moves noticeably closer to
+Figure 4. An example where the 32B thinking model fails on all 10
+passes, while the instruct model answers correctly using 1 token.
+Qwen3-VL-32B (instruct), even though a performance mar-
+gin remains. In some regimes (k ≥6), a smaller thinking-
+enabled model can overtake a larger instruct-only model,
+showing that increasing k can substitute for raw parameter
+count when latency and cost budgets allow.
+Thinking in Depth.
+Across all model sizes and values of
+k, the thinking variants consistently outperform their in-
+struct counterparts in both Fig. 1 and Fig. 3. The relative
+gains are most pronounced for smaller models and gradu-
+ally narrow as capacity increases. Thinking improves the
+quality of each sampling rather than removing the need for
+multiple samples: for a fixed target accuracy, thinking vari-
+ants typically achieve it at a lower k than their non-thinking
+baselines. The standard-deviation bands in Fig. 1 and the
+spread of the boxplots in Fig. 3 are generally smaller for
+thinking variants, suggesting more stable reasoning traces
+and fewer catastrophic failures across random seeds and
+prompts.
+Thinking allows smaller models to challenge,
+and in some cases surpass substantially larger instruct-only
+models. For instance, Qwen3-VL-4B-thinkink can match
+or exceed InternVL3.5-8B-instruct under comparable sam-
+pling budgets. At the 8B scale, the two families largely
+converge once thinking is enabled: with sufficient capac-
+ity and visual modeling, additional parameter scaling yields
+only modest further gains, especially at higher k.
+Yes, thinking helps. Reasoning raises baseline accuracy
+and reduces variance, while sampling efficiently recov-
+ers near-miss solutions.
+Effective multimodal reasoning
+benefits from both: higher-quality single-sample chains of
+thought and enough samples to explore alternatives. Never-
+theless, there remain cases where even combining breadth
+and depth fails to resolve the problem as shown in Fig. 4.
+We show additional examples are provided in the appendix
+3.2. Does Thinking Lead in All Categories?
+Figure 2 reports per–category Z-scores for two complemen-
+tary views: Depth (left), the mean accuracy over 10 in-
+dependent passes (single-sample reliability), and Breadth
+4
+
+
+Figure 5. Token footprint of instruct vs. thinking across difficulty and scale. Boxplots show the distribution of total generated to-
+kens per question, split by correctness (correct vs. wrong), model family (InternVL3.5 vs. Qwen3-VL), size (4B/8B/32B), and difficulty
+(Easy/Medium/Hard). The top panel reports Instruct models, while the bottom reports Thinking variants. Thinking consistently inflates
+token usage relative to instruct—especially on medium and hard questions and on failures—illustrating the compute overhead of deliberate
+reasoning. At larger scales (e.g., 32B), correct thinking traces tend to be shorter than for smaller models at the same difficulty, suggesting
+more efficient reasoning with increased capacity.
+(right), the aggregated accuracy under sampling (pass@10),
+i.e., the probability that at least one of k samples is cor-
+rect. Within each category, scores are standardized across
+all model variants (warmer = better relative to peers), and
+both panels share the same color scale.
+Reasoning-centric domains favor depth for small/mid
+models.
+In numerically intensive categories such as
+Physics, Math, Engineering, Chemistry, Biology, Clini-
+cal/Diagnostics, and computation-heavy Finance, Thinking
+substantially warms the InternVL3.5-4B column in Depth
+relative to its Instruct baseline, and often also improves
+Qwen3-VL at 8B and 32B. This mirrors the global trend
+from Fig. 3/1: explicit reasoning makes each pass more re-
+liable, so fewer samples are needed to reach a given ac-
+curacy.
+The effect is uneven across capacities and fam-
+ilies, for instance, InternVL3.5-8B-Thinking regresses on
+some STEM/business rows, suggesting that depth helps
+most when capacity can support coherent chains.
+Recognition centric categories often prefer concise Instruct.
+In Literature, History, Art/Art Theory, Music, and several
+social-science categories (Sociology, Public Health, Psy-
+chology), the Depth heatmap does not show a systematic
+warm shift for Thinking, and in Breadth the Instruct vari-
+ants at 8B and 32B are frequently as warm as, or warmer
+than, their Thinking counterparts. Here the task leans more
+on recognition and retrieval from priors than on multi-step
+deduction; longer chains mainly introduce noise, which ex-
+tra sampling does not convert into more correct alternatives.
+3.3. How Does Thinking Perform?
+Across all difficulties (Easy/Medium/Hard), the top row
+of Fig. 5 shows that total tokens are governed far more
+by language capacity than by the vision stack or family
+differences.
+Within each difficulty group, moving from
+4B→8B→32B systematically shortens responses and tight-
+ens the boxplots for both families, under both Instruct and
+Thinking. We include key observations below and defer fur-
+ther discussion to the appendix.
+Capacity-driven concision is family-invariant.
+De-
+spite architectural differences in the visual front-end (In-
+ternViT/14 with tiling vs. Qwen3-VL’s ViT/16 tokeniza-
+tion), the token distributions for the two families are
+remarkably similar when matched by scale.
+For each
+Easy/Medium/Hard column, the 32B variants sit lowest and
+most concentrated, 8B is in the middle, and 4B is highest
+with the heaviest tails, in both panels. The “token econ-
+omy” is therefore largely a function of language-side capa-
+bility rather than encoder or connector design.
+Deliberation cost is highest where it helps least. Com-
+paring the Instruct and Thinking panels, enabling reasoning
+roughly doubles the median token count on Easy questions
+at 4B and 8B, yet these are precisely the regimes where
+Fig. 1 shows only modest accuracy gains. On Hard ques-
+tions, the multiplier is still present but less wasteful: longer
+chains are more likely to correspond to useful steps, espe-
+cially for the smaller models. Overall, the overhead factor
+of Thinking is largest for easy problems and small variants.
+Equivalence across difficulty, capacity, and mode. The
+figure implicitly traces budget frontiers: for a fixed mode,
+moving one step up in capacity (4B→8B or 8B→32B) often
+reduces the median token count by a similar amount to mov-
+ing one step down in difficulty (Hard→Medium→Easy),
+and switching from Thinking to Instruct can yield a com-
+parable saving. In practice, this enables budget-aware rout-
+ing: a Hard query on a small model with Thinking can have
+a similar token footprint to a Medium query on a mid-sized
+model or an Easy query on a large model under Instruct,
+allowing systems to trade off capacity, difficulty.
+5
+
+
+Figure 6. Token-level ∆PPL dynamics over the course of thinking for 4B, 8B, and 32B models. Top: traces normalized to a common
+0–100% step position. Bottom: unnormalized step index. Blue and magenta curves correspond to the R−N contrast for correct and wrong
+answers, respectively, while orange and red show N−∅. The y-axis shows the change in per-token perplexity (∆PPL): negative values (e.g.,
+−10) mean the visual condition makes the next token much easier to predict, effectively narrowing down the model’s plausible choices,
+whereas positive values (e.g., +10) mean it makes the token harder to predict, broadening or diffusing the set of plausible continuations.
+4. Improvement
+In Sec.3, we show that more thinking is not always bet-
+ter: across model size, wrong answers often use as many
+or more tokens than correct ones, with small models in par-
+ticular producing long, low-utility chains (“long-wrong”)
+on easy and medium items. These observations motivate
+adaptive control over when and how to think, conditioned
+on both uncertainty and grounding. Moreover, Sec.3 ex-
+poses systematic failures on certain MMMUval categories,
+such as Sociology, where the model drifts into ungrounded
+textual speculation instead of using the image. Building on
+these diagnostics, we propose a training-free decoding strat-
+egy based on a token-level probe that (i) detects when the
+chain of thought enters a visually uncertain regime, (ii) trig-
+gers visual lookbacks online during streaming generation.
+4.1. Token-Level Visual Sensitivity Probe
+Following the step-decomposition protocol of [34], we run
+each model in thinking mode and decompose its decoded
+trace into word-level steps. Let the input question be x, the
+image be I, and the thinking trace consist of tokens
+y1:S = (y1, y2, . . . , yS).
+For each step s ∈{1, . . . , S} we evaluate the model under
+three visual contexts: Real image c = R: the original im-
+age I; Noise image c = N: a visually mismatched image
+of the same resolution, e.g., Gaussian noise that carries no
+semantic information about x (we deliberately use synthetic
+noise rather than a real but unrelated image: a mismatched
+real image still carries rich semantic content, and LVLMs
+may attempt to align their reasoning with whatever objects
+or text it contains, confounding the probe’s interpretation of
+‘no useful visual evidence’. Noise, by contrast, provides a
+structurally valid but semantically empty control); No im-
+age c = ∅: no visual tokens are provided.
+Because the decoder is autoregressive, we can compute
+per-step perplexity under each context to see how the im-
+age’s presence and content affect token prediction:
+PPLc(s) = exp (−log pθ(ys | x, Ic, y<s)) ,
+(1)
+where c ∈{R, N, ∅}. We then form two difference scores:
+∆content(s) = PPLR(s) −PPLN(s),
+(2)
+∆presence(s) = PPLN(s) −PPL∅(s).
+(3)
+Intuitively, ∆content(s) measures how much the correct im-
+age content helps at step s. In contrast, ∆presence(s) isolates
+the effect of merely having any image present: a large mag-
+nitude means that presence of visual tokens helps.
+We use the two contrast axes jointly but for different
+purposes.
+∆presence(s) acts as a probe for visually un-
+certain steps: positions with large |∆presence(s)| but small
+|∆content(s)| behave like generic “there is an image here” re-
+actions—highly sensitive to visual tokens but not to specific
+content. By aggregating such steps across traces, we mine
+local n-grams whose usage consistently coincides with this
+regime and augment them with reflection-style uncertainty
+markers (e.g., “hmm”, “wait”) from prior work [16, 34],
+yielding a compact lexical pause-phrase vocabulary that can
+be matched online without recomputing perplexities.
+In contrast,
+∆content(s) highlights strongly image-
+dependent reasoning: as Fig. 6 shows, the content contrast
+is more negative for correctly answered examples than for
+wrong ones across most of the trajectory and model sizes,
+indicating that successful solutions maintain sustained vi-
+sual grounding rather than relying on a single early glance.
+In the unnormalized plots, this appears as frequent sharp
+6
+
+
+Figure 7. Examples of mined “lookback” sentences with strong
+dependence on the image. Each panel shows a problem image
+from a different domain with a reflection sentence that explicitly
+directs the model to re-examine task-relevant visual details.
+dips in the correct (R −N) curves but fewer, shallower
+dips for wrong traces, indicating that successful solutions
+are marked by repeated, localized lookbacks to image con-
+tent throughout the chain of thought. We leverage this cue to
+mine lookback phrases: multi-token templates that consis-
+tently co-occur with highly negative ∆content(s) in correctly
+solved examples. These phrases, shown in Fig. 7, explicitly
+prompt the model to re-examine task-relevant visual details.
+We mine uncertainty phrases on the same validation set used
+for the visual probe (which serves as ‘pseudo ground truth’),
+filtering high-scoring tokens and searching them across 10
+sampled passes, where we find an 89% alignment between
+mined phrases and high-uncertainty positions; we further
+observe similar patterns across the five additional datasets
+we evaluate, suggesting these phrases capture intrinsic LLM
+behavior rather than dataset artifacts, with full details pro-
+vided in the appendix.
+4.2. Lookback-When-Uncertain Decoding
+At test time, we implement lookback-when-uncertain as a
+lightweight controller over standard autoregressive decod-
+ing. Let P denote the pause-phrase vocabulary (mined from
+steps with large |∆presence(s)| and small |∆content(s)|, plus
+uncertainty markers from [16, 34]), and let L denote the
+set of lookback templates (extracted from steps with highly
+negative ∆content(s) in correct traces). During streaming,
+the controller operates as: At step t + 1 we sample yt+1 ∼
+pθ(· | x, I, y≤t) and set
+y′
+1:t+1 =
+(
+y1:t∥yt+1∥ℓ,
+if ¬ans(t), ¬trig(t),
+suffixL(y1:t+1)∈P,
+y1:t∥yt+1,
+otherwise,
+where ∥denotes concatenation, ℓ∈L is a lookback phrase
+(e.g., “Looking back at the image, ...”), suffixL returns the
+length-L suffix of the trace, trig(t) indicates a lookback was
+triggered in the last L thinking tokens, and ans(t) that the
+model has entered the final-answer segment.
+Intuitively, whenever the recent context contains a pause
+phrase from P and the model is still in the thinking phase,
+we immediately append a lookback template from L, forc-
+ing an explicit re-consultation of the image before reasoning
+proceeds. To prevent degeneration, we allow at most one
+lookback trigger within any window of L thinking tokens
+and disable further triggers once the final-answer phase
+starts. All heavy computation (estimating ∆presence(s) and
+∆content(s) and mining P, L) is done offline.
+At infer-
+ence time, the controller reduces to efficient n-gram match-
+ing over streamed tokens plus occasional insertion of short
+lookback prompts, making it compatible with token-by-
+token streaming and avoiding any perplexity estimation.
+4.3. Parallel Lookback Sampling
+The same probe can also help choose which visual reason-
+ing branch to follow. When a lookback is triggered at step
+s, we sample M short continuations of horizon H after in-
+jecting ϕ: y(m)
+s:s+H,
+m = 1, . . . , M. For each branch we
+compute an aggregate visual helpfulness score
+V(m) = −1
+H
+s+H−1
+X
+t=s
+∆(m)
+content(t),
+(4)
+so that larger V(m) corresponds to trajectories where the
+real image consistently reduces the loss compared to noise.
+We then select the branch with maximal V(m) and continue
+decoding from its state. Because lookback events are rare
+and localized, this parallel lookback sampling adds only
+a small overhead to the total token budget, yet substan-
+tially increases the chance that at least one branch is tightly
+grounded in the image.
+This gives a compute-efficient
+mechanism: smaller models gain robustness by exploring
+multiple grounded branches, while larger models use look-
+back more sparingly, primarily to correct the hardest cases.
+Due to page limits, we report in the appendix additional ex-
+periments using an online perplexity-based controller, and
+we find that its effect is very similar to our phrase-based
+triggers, indicating that lightweight lexical cues are suffi-
+cient and the practical gap between the probe and the de-
+ployed controller is minor.
+We provide a more detailed
+compute and latency characterization in the appendix, in-
+cluding wall-clock and throughput comparisons under dif-
+ferent configurations, showing that our method improves
+the accuracy–compute trade-off with modest overhead.
+4.4. Baselines
+We compare against three recent training-free adaptive rea-
+soning methods, all developed for text-only CoT and thus
+complementary to our vision-language setting. DEER (Dy-
+namic Early Exit in Reasoning) [48] proposes a confidence-
+based early-exit rule over reasoning tokens.
+DeepConf
+(Deep Think with Confidence) [16] uses token-level con-
+fidence to prune and vote over multiple CoT traces.
+REFRAIN [34] introduces a discriminator-based early-
+stopping policy with instance-wise threshold adaptation.
+Together, these baselines represent the current state of
+training-free adaptive CoT decoding on the language side,
+and we use them here as strong text-only control baselines
+to test whether generic early-exit signals transfer to LVLMs.
+7
+
+
+Size
+Method
+overall
+Finance
+Sociology
+Physics
+DLM
+EP
+Design
+Pass@1
+%Tokens
+Pass@1
+%Tokens
+Pass@1
+%Tokens
+Pass@1
+%Tokens
+Pass@1
+%Tokens
+Pass@1
+%Tokens
+Pass@1
+%Tokens
+4B
+Original
+67.0
+100.0
+65.3
+100.0
+60.7
+100.0
+65.7
+100.0
+52.0
+100.0
+63.0
+100.0
+59.3
+100.0
+DEER
+53.3
+40.0
+53.3
+36.7
+46.7
+40.0
+56.7
+36.7
+43.3
+40.0
+50.0
+36.7
+50.0
+40.0
+Deepconf
+63.3
+76.7
+66.7
+76.7
+56.7
+76.7
+66.7
+76.7
+50.0
+73.3
+66.7
+76.7
+60.0
+76.7
+REFRAIN
+63.3
+73.3
+63.3
+63.3
+60.0
+76.7
+66.7
+80.0
+53.3
+76.7
+66.7
+76.7
+63.3
+63.3
+Ours (lookback)
+69.7(+2.7)
+57.2(-42.8)
+68.5(+3.2)
+59.4(-40.6)
+62.6(+1.9)
+56.3(-43.7)
+67.2(+1.5)
+59.1(-40.9)
+57.0(+5.0)
+57.8(-42.2)
+67.5(+4.5)
+56.9(-43.1)
+61.6(+2.3)
+59.3(-40.7)
+Ours (+sampling)
+73.0(+6.0)
+59.5(-40.5)
+71.8(+6.5)
+55.0(-45.0)
+64.3(+3.6)
+58.3(-41.7)
+71.0(+5.3)
+53.0(-47.0)
+58.3(+6.3)
+58.3(-41.7)
+72.3(+9.3)
+55.0(-45.0)
+62.0(+2.7)
+55.2(-44.8)
+8B
+Original
+70.3
+100.0
+69.0
+100.0
+63.3
+100.0
+71.7
+100.0
+59.7
+100.0
+67.3
+100.0
+59.0
+100.0
+DEER
+60.0
+40.0
+56.7
+40.0
+53.3
+43.3
+60.0
+40.0
+50.0
+43.3
+60.0
+40.0
+50.0
+40.0
+Deepconf
+66.7
+80.0
+66.7
+76.7
+63.3
+80.0
+66.7
+80.0
+56.7
+80.0
+70.0
+80.0
+56.7
+80.0
+REFRAIN
+70.0
+83.3
+66.7
+83.3
+60.0
+83.3
+70.0
+83.3
+60.0
+83.3
+66.7
+83.3
+56.7
+83.3
+Ours (lookback)
+73.0(+2.7)
+62.1(-37.9)
+76.7(+7.7)
+60.2(-39.8)
+65.3(+2.0)
+65.0(-35.0)
+76.7(+5.0)
+60.9(-39.1)
+64.3(+4.6)
+62.3(-37.7)
+75.1(+7.8)
+61.2(-38.8)
+63.7(+4.7)
+64.0(-36.0)
+Ours (+sampling)
+74.2(+3.9)
+63.0(-37.0)
+74.1(+5.1)
+58.0(-42.0)
+68.8(+5.5)
+63.5(-36.5)
+74.1(+2.4)
+59.0(-41.0)
+64.9(+5.2)
+67.3(-32.7)
+75.8(+8.5)
+63.3(-36.7)
+61.0(+2.0)
+64.8(-35.2)
+32B
+Original
+75.3
+100.0
+67.0
+100.0
+68.3
+100.0
+70.3
+100.0
+65.7
+100.0
+71.0
+100.0
+77.7
+100.0
+DEER
+66.7
+43.3
+56.7
+40.0
+60.0
+43.3
+60.0
+40.0
+56.7
+43.3
+60.0
+40.0
+66.7
+40.0
+Deepconf
+73.3
+80.0
+66.7
+80.0
+66.7
+80.0
+70.0
+80.0
+66.7
+80.0
+70.0
+80.0
+76.7
+80.0
+REFRAIN
+73.3
+80.0
+66.7
+80.0
+66.7
+83.3
+70.0
+83.3
+66.7
+80.0
+70.0
+83.3
+76.7
+83.3
+Ours (lookback)
+81.7(+6.4)
+66.2(-33.8)
+72.5(+5.5)
+61.4(-38.6)
+70.6(+2.3)
+62.1(-37.9)
+72.5(+2.2)
+64.0(-36.0)
+71.1(+5.4)
+65.2(-34.8)
+73.3(+2.3)
+65.8(-34.2)
+80.1(+2.4)
+61.3(-38.7)
+Ours (+sampling)
+79.2(+3.9)
+70.3(-29.7)
+73.1(+6.1)
+65.3(-34.7)
+71.3(+3.0)
+63.0(-37.0)
+76.5(+6.2)
+61.0(-39.0)
+72.0(+6.3)
+66.3(-33.7)
+77.3(+6.3)
+63.5(-36.5)
+84.2(+6.5)
+61.5(-38.5)
+Table 3. MMMUval performance (Pass@1, token usage percentage) on overall and selected categories for our methods on Qwen3-VL
+models. Deltas are differences w.r.t. the corresponding Original. DLM = Diagnostics and Laboratory Medicine, EP = Energy and Power.
+Size Model
+MMBench
+MMStar
+MathVista
+MathVision
+MathVerse
+4B
+Original
+86.7
+73.2
+79.5
+60.0
+75.2
+Ours (lookback)
+89.5(+2.8)
+75.0(+1.8)
+84.3(+4.8)
+64.2(+4.2)
+77.2(+2.0)
+Ours (+sampling)
+88.2(+1.5)
+75.7(+2.5)
+85.0(+5.5)
+65.5(+5.5)
+78.7(+3.5)
+8B
+Original
+87.5
+75.3
+77.2
+62.7
+77.7
+Ours (lookback)
+88.7(+1.2)
+78.5(+3.2)
+79.4(+2.2)
+67.9(+5.2)
+78.9(+1.2)
+Ours (+sampling)
+89.8(+2.3)
+79.6(+4.3)
+79.7(+2.5)
+68.3(+5.6)
+79.9(+2.2)
+32B
+Original
+90.8
+79.4
+83.8
+70.2
+82.6
+Ours (lookback)
+93.6(+2.8)
+81.2(+1.8)
+85.6(+1.8)
+72.0(+1.8)
+84.4(+1.8)
+Ours (+sampling)
+93.9(+3.1)
+82.5(+3.1)
+85.9(+2.1)
+73.3(+3.1)
+84.7(+2.1)
+Table 4. Accuracy (%) on selected benchmarks for Qwen3-VL
+Thinking models across different sizes, comparing the Original
+4.5. Results
+To assess generality, we evaluate on MMMUval and five
+established vision–language benchmarks. MMBench [24]
+and MMStar [10] probe broad multimodal capabili-
+ties, while MathVista [25], MathVision [39], and Math-
+Verse [54] focus on visual mathematical reasoning. De-
+tailed MMMUval results are reported in Tab. 3, and cross-
+benchmark results in Tab. 4. On MMMUval , our method
+consistently improves both accuracy and efficiency over
+the original Qwen3-VL Thinking models across all sizes
+(Tab. 3).
+For example, on the 4B model our lookback
+variant raises Pass@1 from 59.3% to 61.6% while using
+only about 57% of the original tokens, and the sampling
+variant pushes Pass@1 to around 62.0% with a similar or
+slightly larger reduction in token usage. At 8B and 32B,
+we observe comparable overall gains (roughly +2–+3 ab-
+solute points) while cutting token usage by about one third.
+These improvements are particularly pronounced in special-
+ist domains such as Diagnostics and Laboratory Medicine
+or Energy and Power, where Pass@1 can improve by up
+to +5–+6.5 points with 35–40% fewer tokens. Taken to-
+gether, these results indicate that our method shifts the
+Pareto frontier on MMMUval : for a fixed token budget we
+achieve higher accuracy, and for a fixed accuracy target we
+require substantially fewer tokens.
+The cross-benchmark results in Tab. 4 show that these
+gains generalize beyond MMMUval . Across MMBench
+and MMStar, both variants consistently outperform the
+original models at all scales, typically improving accuracy
+by a few absolute points even when baselines are already
+strong.
+On the math-focused benchmarks—MathVista-
+mini, MathVision-full, and MathVerse-mini—the benefits
+are larger: at 4B and 8B we obtain gains of roughly +4–+6
+points on MathVista and MathVision and +2–+3.5 on
+MathVerse, with smaller but still positive gains at 32B. This
+pattern suggests that our approach particularly strengthens
+multi-step visual mathematical reasoning while also yield-
+ing robust improvements on multimodal understanding.
+Comparing the two variants, the lookback strategy
+already offers a favorable accuracy–efficiency trade-off
+and is attractive when deterministic behavior is pre-
+ferred. The additional sampling step further boosts perfor-
+mance, especially on math-heavy benchmarks and difficult
+MMMUval categories, at a modest extra token cost relative
+to lookback alone. Overall, our approach provides a simple,
+plug-and-play enhancement to Qwen3-VL Thinking mod-
+els that scales well with model size: it consistently yields
+higher accuracy—often by several absolute points—while
+reducing token usage by roughly 35–45%. The appendix
+includes additional qualitative examples illustrating when
+lookback helps (e.g., correcting missed visual details) and
+when it can occasionally hurt.
+5. Conclusion
+We find that more “vanilla thinking” is not always better for
+LVLMs: long chains help only in certain settings and often
+produce overlong, weakly grounded reasoning on easy or
+recognition-heavy tasks. To fix this, we propose a training-
+free, uncertainty-guided lookback that injects short, image-
+focused prompts only when chains drift, using extra com-
+pute only where visual reasoning helps. Across diverse vi-
+sual benchmarks, this adaptive decoding improves accuracy
+over strong baselines while often using fewer tokens.
+8
+
+
+References
+[1] Mmmu (val) leaderboard snapshot.
+https://mmmu-
+benchmark.github.io/, 2025. Lists Qwen3-VL 32B
+“Thinking” at the top among open-source models at the time
+of access. 3
+[2] Qwen3-vl:
+Model and documentation.
+https : / /
+github.com/QwenLM/Qwen3-VL, 2025. 3
+[3] Jiwei Bai et al. Qwen-vl: A versatile vision-language model
+for understanding, localization, text reading, and beyond.
+arXiv preprint arXiv:2308.12966, 2023. 2
+[4] Shen Bai et al. Qwen2.5-vl technical report. arXiv preprint
+arXiv:2502.13923, 2025. 2
+[5] Jing Bi, Jiebo Luo, and Chenliang Xu. Procedure planning
+in instructional videos via contextual modeling and model-
+based policy learning. In Proceedings of the IEEE/CVF In-
+ternational Conference on Computer Vision (ICCV), pages
+15611–15620, 2021. 2
+[6] Jing Bi, Junjia Guo, Yunlong Tang, Jingyuan Li, Xinjie Liu,
+and Chenliang Xu. Verify: A benchmark of visual expla-
+nation and reasoning for investigating multimodal reasoning
+fidelity. arXiv preprint arXiv:2503.11557, 2025. 2
+[7] Jing Bi, Junjia Guo, Yunlong Tang, Lianggong Bruce Wen,
+Zhang Liu, Bingjie Wang, and Chenliang Xu. Unveiling vi-
+sual perception in language models: An attention head anal-
+ysis approach. In Proceedings of the IEEE/CVF Conference
+on Computer Vision and Pattern Recognition (CVPR), pages
+4135–4144, 2025. Open Access. 2
+[8] Jing Bi, Susan Liang, Xiaofei Zhou, Pinxin Liu, Junjia Guo,
+Yunlong Tang, Luchuan Song, Chao Huang, Guangyu Sun,
+Jinxi He, Jiarui Wu, Shu Yang, Daoan Zhang, Chen Chen,
+Lianggong Bruce Wen, Zhang Liu, Jiebo Luo, and Chen-
+liang Xu. Why reasoning matters? a survey of advancements
+in multimodal reasoning. arXiv preprint arXiv:2504.03151,
+2025. 2
+[9] Jing Bi, Guangyu Sun, Ali Vosoughi, Chen Chen, and Chen-
+liang Xu. Diagnosing visual reasoning: Challenges, insights,
+and a path forward. arXiv preprint arXiv:2510.20696, 2025.
+2
+[10] Lin Chen, Ruili Zhang, Yuxin Zhou, et al.
+Are we on
+the right way for evaluating large vision-language mod-
+els? arXiv preprint arXiv:2403.20330, 2024. NeurIPS 2024
+(Datasets and Benchmarks Track). 8
+[11] Yanda Chen, Yongqiang Wang, Xiang Zhou, Yanzheng
+Cai, Tong Yu, Sen Li, and Xiaowei Huang.
+Reasoning
+models don’t always say what they think.
+arXiv preprint
+arXiv:2505.05410, 2025. 2
+[12] Jiahao Cheng, Tiancheng Su, Jia Yuan, Guoxiu He, Jiawei
+Liu, Xinqi Tao, Jingwen Xie, and Huaxia Li.
+Chain-of-
+thought prompting obscures hallucination cues in large lan-
+guage models: An empirical evaluation.
+arXiv preprint
+arXiv:2506.17088, 2025. 2
+[13] Haodong Duan, Xinyu Fang, Junming Yang, Xiangyu Zhao,
+Yuxuan Qiao, Mo Li, Amit Agarwal, Zhe Chen, Lin Chen,
+Yuan Liu, Yubo Ma, Hailong Sun, Yifan Zhang, Shiyin Lu,
+Tack Hwa Wong, Weiyun Wang, Peiheng Zhou, Xiaozhe Li,
+Chaoyou Fu, Junbo Cui, Jixuan Chen, Enxin Song, Song
+Mao, Shengyuan Ding, Tianhao Liang, Zicheng Zhang, Xi-
+aoyi Dong, Yuhang Zang, Pan Zhang, Jiaqi Wang, Dahua
+Lin, and Kai Chen.
+Vlmevalkit: An open-source toolkit
+for evaluating large multi-modality models. arXiv preprint
+arXiv:2407.11691, 2024. 3
+[14] Scott Emmons et al. When chain of thought is necessary,
+language models struggle to evade monitors. arXiv preprint
+arXiv:2507.05246, 2025. 1
+[15] EvalScope Team. Evalscope documentation — cli param-
+eters.
+https://evalscope.readthedocs.io/,
+2025. Default max new tokens=512. 3
+[16] Yichao Fu, Xuewei Wang, Yuandong Tian, and Jiawei
+Zhao.
+Deep think with confidencebib.
+arXiv preprint
+arXiv:2508.15260, 2025. 2, 6, 7
+[17] Yushi Hu et al. Visual sketchpad: Sketching as a visual chain
+of thought for multimodal language models. arXiv preprint
+arXiv:2406.09403, 2024. 2
+[18] Jie Huang, Xuejing Liu, Sibo Song, Ruibing Hou, Hong
+Chang, Junyang Lin, and Shuai Bai.
+Revisiting multi-
+modal positional encoding in vision–language models. arXiv
+preprint arXiv:2510.23095, 2025. 3
+[19] InternVL Team. Internvl3.5: Advancing open-source mul-
+timodal models in versatility, reasoning, and efficiency.
+https://internvl.github.io/blog/2025-08-
+26-InternVL-3.5/, 2025. Release announcement. 2
+[20] Dongzhi Jiang, Renrui Zhang, Ziyu Guo, Yanwei Li, Yu Qi,
+Xinyan Chen, Liuhui Wang, Jianhan Jin, Claire Guo, Shen
+Yan, Bo Zhang, Chaoyou Fu, Peng Gao, and Hongsheng
+Li. Mme-cot: Benchmarking chain-of-thought in large mul-
+timodal models for reasoning quality, robustness, and effi-
+ciency. arXiv preprint arXiv:2502.09621, 2025. 2
+[21] Lingjing Jing et al.
+A comprehensive analysis for visual
+object hallucination in large vision-language models. arXiv
+preprint arXiv:2505.01958, 2025. 3
+[22] Seil Kang, Jinyeong Kim, Junhyeok Kim, and Seong Jae
+Hwang.
+Your large vision-language model only needs a
+few attention heads for visual grounding. In Proceedings of
+the IEEE/CVF Conference on Computer Vision and Pattern
+Recognition (CVPR), pages 9339–9348, 2025. 2
+[23] Percy Liang, Rishi Bommasani, Tony Lee, Dimitris Tsipras,
+Dilara Soylu, Michihiro Yasunaga, Yian Zhang, Deepak
+Narayanan, Yuhuai Wu, Ananya Kumar, Benjamin Newman,
+Binhang Yuan, Bobby Yan, Ce Zhang, Christian Alexan-
+der Cosgrove, Christopher D Manning, Christopher Re, Di-
+ana Acosta-Navas, Drew Arad Hudson, Eric Zelikman, Esin
+Durmus, Faisal Ladhak, Frieda Rong, Hongyu Ren, Huaxiu
+Yao, Jue WANG, Keshav Santhanam, Laurel Orr, Lucia
+Zheng, Mert Yuksekgonul, Mirac Suzgun, Nathan Kim, Neel
+Guha, Niladri S. Chatterji, Omar Khattab, Peter Henderson,
+Qian Huang, Ryan Andrew Chi, Sang Michael Xie, Shibani
+Santurkar, Surya Ganguli, Tatsunori Hashimoto, Thomas
+Icard, Tianyi Zhang, Vishrav Chaudhary, William Wang,
+Xuechen Li, Yifan Mai, Yuhui Zhang, and Yuta Koreeda.
+Holistic evaluation of language models. Transactions on Ma-
+chine Learning Research, 2023. Featured Certification, Ex-
+pert Certification. 3
+[24] Yuxin Liu, Haodong Duan, Zhenfei Wang, et al. MMBench:
+9
+
+
+Is your multi-modal model an all-around player?
+arXiv
+preprint arXiv:2307.06281, 2023. 8
+[25] Pan Lu, Mohit Bansal, et al. MathVista: Evaluating math-
+ematical reasoning of foundation models in visual contexts.
+arXiv preprint arXiv:2310.02255, 2023. ICLR 2024. 8
+[26] Hamed Mahdavi, Pouria Mahdavinia, Alireza Farhadi, Pegah
+Mohammadipour, Samira Malek, Pedram Mohammadipour,
+Majid Daliri, Alireza Hashemi, Amir Khasahmadi, and Vas-
+ant G. Honavar.
+Combigraph-vis: A curated multimodal
+olympiad benchmark for discrete mathematical reasoning.
+arXiv preprint arXiv:2510.27094, 2025. 3
+[27] ModelScope Community.
+Evalscope: A streamlined and
+customizable framework for model evaluation. https://
+github.com/modelscope/evalscope, 2025. Doc-
+umentation: https://evalscope.readthedocs.
+io/. 3
+[28] NVIDIA. Nemo evaluator sdk — code generation containers
+(default parameters).
+https://docs.nvidia.com/
+nemo / evaluator / latest / libraries / nemo -
+evaluator / containers / code - generation .
+html, 2025. Lists default max new tokens=2048. 3
+[29] Qwen Team.
+Qwen3-vl.
+https://github.com/
+QwenLM/Qwen3-VL, 2025. Release notes and model cards
+(Oct 4/15/21, 2025). 2
+[30] Daniel Rose et al.
+Visual chain of thought:
+Bridging
+logical gaps with multimodal infillings.
+arXiv preprint
+arXiv:2305.02317, 2023. 2
+[31] Sreetama Sarkar, Yue Che, Alex Gavin, Peter A. Beerel,
+and Souvik Kundu.
+Mitigating hallucinations in vision-
+language models through image-guided head suppression.
+arXiv preprint arXiv:2505.16411, 2025. 3
+[32] Hossam Sheta, Omkar Sardesai, Josep Crego, Xiang Ren,
+Eunsol Choi, David Alvarez-Melis, Alexandra DeLucia,
+Yang Zhang, and Ebrahim Bagheri.
+Interpreting vision-
+language models with vlm-lens. In Proceedings of the 2025
+Conference on Empirical Methods in Natural Language Pro-
+cessing: System Demonstrations, 2025. 3
+[33] Weikang Shi et al.
+Mathcanvas: Intrinsic visual chain-
+of-thought for multimodal mathematical reasoning.
+arXiv
+preprint arXiv:2510.14958, 2025. 2
+[34] Renliang Sun, Wei Cheng, Dawei Li, Haifeng Chen,
+and Wei Wang.
+Stop when enough:
+Adaptive early-
+stopping for chain-of-thought reasoning.
+arXiv preprint
+arXiv:2510.10103, 2025. 2, 6, 7
+[35] Yunlong Tang, Jing Bi, Chao Huang, Susan Liang, Daiki
+Shimada, Hang Hua, Yunzhong Xiao, Yizhi Song, Pinxin
+Liu, Mingqian Feng, Junjia Guo, Zhuo Liu, Luchuan Song,
+Ali Vosoughi, Jinxi He, Liu He, Zeliang Zhang, Jiebo
+Luo, and Chenliang Xu. Caption anything in video: Fine-
+grained object-centric captioning via spatiotemporal multi-
+modal prompting, 2025. 2
+[36] Yolo Yunlong Tang, Jing Bi, Pinxin Liu, Zhenyu Pan,
+Zhangyun Tan, Qianxiang Shen, Jiani Liu, Hang Hua, Jun-
+jia Guo, Yunzhong Xiao, Chao Huang, Zhiyuan Wang, Su-
+san Liang, Xinyi Liu, Yizhi Song, Junhua Huang, Jia-Xing
+Zhong, Bozheng Li, Daiqing Qi, Ziyun Zeng, Ali Vosoughi,
+Luchuan Song, Zeliang Zhang, Daiki Shimada, Han Liu,
+Jiebo Luo, and Chenliang Xu. Video-lmm post-training: A
+deep dive into video reasoning with large multimodal mod-
+els, 2025. 3
+[37] Sree Harsha Tanneru et al.
+On the hardness of faithful
+chain-of-thought reasoning in large language models. arXiv
+preprint arXiv:2406.10625, 2024. 1
+[38] Vals.ai. Mmmu benchmark (evaluation settings and runs).
+https://www.vals.ai/benchmarks/mmmu, 2025.
+Accessed: 2025-11-11. 3
+[39] Kai Wang, Ruili Zhang, et al. Measuring multimodal math-
+ematical reasoning with the MATH-Vision dataset.
+arXiv
+preprint arXiv:2402.14804, 2024. NeurIPS 2024. 8
+[40] Peng Wang et al.
+Qwen2-vl: Enhancing vision-language
+model’s capabilities with naive dynamic resolution. arXiv
+preprint arXiv:2409.12191, 2024. 2
+[41] Weiyun Wang, Zhangwei Gao, Lixin Gu, Hengjun Pu, Long
+Cui, Xingguang Wei, Zhaoyang Liu, Linglin Jing, Sheng-
+long Ye, Jie Shao, Zhaokai Wang, Zhe Chen, Hongjie Zhang,
+Ganlin Yang, Haomin Wang, Qi Wei, Jinhui Yin, Wenhao Li,
+Erfei Cui, Guanzhou Chen, Zichen Ding, Changyao Tian,
+Zhenyu Wu, Jingjing Xie, Zehao Li, Bowen Yang, Yuchen
+Duan, Xuehui Wang, Songze Li, Xiangyu Zhao, Haodong
+Duan, Nianchen Deng, Bin Fu, Yinan He, Yi Wang, Conghui
+He, Botian Shi, Junjun He, Yingtong Xiong, Han Lv, Lijun
+Wu, Wenqi Shao, Kaipeng Zhang, Huipeng Deng, Biqing
+Qi, Jiaye Ge, Qipeng Guo, Wenwei Zhang, Wanli Ouyang,
+Limin Wang, Min Dou, Xizhou Zhu, Tong Lu, Dahua Lin,
+Jifeng Dai, Bowen Zhou, Weijie Su, Kai Chen, Yu Qiao,
+Wenhai Wang, and Gen Luo. Internvl3.5: Advancing open-
+source multimodal models in versatility, reasoning, and effi-
+ciency. arXiv preprint arXiv:2508.18265, 2025. 2
+[42] Weiyun Wang, Zhangwei Gao, Lixin Gu, Hengjun Pu, Long
+Cui, Xingguang Wei, Zhaoyang Liu, Linglin Jing, Sheng-
+long Ye, Jie Shao, et al. Internvl3.5: Advancing open-source
+multimodal models in versatility, reasoning, and efficiency.
+arXiv preprint arXiv:2508.18265, 2025. 3
+[43] Wei Wang et al. Internvl 3.5: Advancing open-source mul-
+timodal models with versatile capabilities.
+arXiv preprint
+arXiv:2508.18265, 2025. 2
+[44] Xuezhi Wang, Jason Wei, Dale Schuurmans, Quoc Le, Ed
+Chi, Sharan Narang, Aakanksha Chowdhery, and Denny
+Zhou. Self-consistency improves chain of thought reason-
+ing in language models. arXiv preprint arXiv:2203.11171,
+2022. 3
+[45] Qiong Wu et al. Grounded chain-of-thought for multimodal
+large language models.
+arXiv preprint arXiv:2503.12799,
+2025. 1, 2
+[46] Guowei Xu, Peng Jin, Hao Li, Yibing Song, Lichao Sun, and
+Li Yuan. Llava-cot: Let vision language models reason step-
+by-step. arXiv preprint arXiv:2411.10440, 2024. 2
+[47] Tianyang Xu et al. Dynamic early exit in reasoning models.
+arXiv preprint arXiv:2504.15895, 2025. 2
+[48] Chenxu Yang, Qingyi Si, Yongjie Duan, Zheliang Zhu,
+Chenyu Zhu, Zheng Lin, Li Cao, and Weiping Wang.
+Dynamic early exit in reasoning models.
+arXiv preprint
+arXiv:2504.15895, 2025. 7
+[49] Huanjin Yao, Jiaxing Huang, Wenhao Wu, Jingyi Zhang,
+Yibo Wang, Shunyu Liu, Yingjie Wang, Yuxin Song,
+10
+
+
+Haocheng Feng, Li Shen, and Dacheng Tao.
+Mulberry:
+Empowering mllm with o1-like reasoning and reflection
+via collective monte carlo tree search.
+arXiv preprint
+arXiv:2412.18319, 2024. 2
+[50] Enoch Yeo et al. Demystifying long chain-of-thought rea-
+soning in llms. arXiv preprint arXiv:2502.03373, 2025. 1
+[51] Xiang Yue, Yuansheng Ni, Kai Zhang, Tianyu Zheng, Ruoqi
+Liu, Ge Zhang, Samuel Stevens, Dongfu Jiang, Weiming
+Ren, Yuxuan Sun, et al. Mmmu: A massive multi-discipline
+multimodal understanding and reasoning benchmark for ex-
+pert agi. In Proceedings of the IEEE/CVF Conference on
+Computer Vision and Pattern Recognition (CVPR), 2024. 3
+[52] Kaichen
+Zhang,
+Bo
+Li,
+Peiyuan
+Zhang,
+Fanyi
+Pu,
+Joshua Adrian Cahyono, Kairui Hu, Shuai Liu, Yuanhan
+Zhang, Jingkang Yang, Chunyuan Li, and Ziwei Liu. Lmms-
+eval: Reality check on the evaluation of large multimodal
+models. arXiv preprint arXiv:2407.12772, 2024. 3
+[53] Kaichen Zhang et al.
+Lmms-eval: Reality check on the
+evaluation of large multimodal models.
+arXiv preprint
+arXiv:2407.12772, 2024. 1
+[54] Ruili Zhang, Kai Wang, et al.
+MathVerse:
+Does your
+multi-modal LLM truly see the diagrams?
+arXiv preprint
+arXiv:2403.14624, 2024. ECCV 2024. 8
+[55] Yuanhan Zhang et al. Evaluating and steering modality pref-
+erences in multimodal large language model. arXiv preprint
+arXiv:2505.20977, 2025. 1
+[56] Chengshuai Zhao, Zhen Tan, Pingchuan Ma, Dawei Li, Bo-
+han Jiang, Yancheng Wang, Yingzhen Yang, and Huan Liu.
+Is chain-of-thought reasoning of llms a mirage? a data dis-
+tribution lens. arXiv preprint arXiv:2508.01191, 2025. 2
+[57] Haojie Zheng et al.
+Thinking before looking: Improving
+multimodal llm reasoning via mitigating visual hallucina-
+tion. arXiv preprint arXiv:2411.12591, 2024. 1, 2
+[58] Y. Zhou et al.
+Mira: A benchmark for visual chain-of-
+thought. arXiv preprint arXiv:2511.02779, 2025. 3
+[59] Jiaqi Zhu et al. Internvl3: Exploring advanced training and
+test-time scaling for multimodal foundation models. arXiv
+preprint arXiv:2504.10479, 2025. 2
+11

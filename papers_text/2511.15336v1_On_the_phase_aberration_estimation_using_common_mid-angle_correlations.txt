@@ -1,0 +1,1251 @@
+1
+On the phase aberration estimation using
+common mid-angle correlations
+Naiara Korta Martiartu and Michael Jaeger
+Abstract— Phase aberrations, despite degrading ultrasound images, also encode valuable information about the
+spatial distribution of the speed of sound in tissue. In pulse-echo ultrasound, we can quantify them by exploiting
+speckle correlations. Among existing strategies, correlations between steered acquisitions that share a common
+mid-angle have proven particularly effective for inferring the speed of sound. Their phases can be linearly related
+to the phase aberrations undergone by both the incident and reflected wavefronts. This relationship has so far
+been demonstrated only through geometric arguments based on point reflectors. Here, we develop a rigorous
+theoretical formalism that extends this relationship to the speckle regime, completing the previously established
+linear model and clarifying its underlying assumptions. More importantly, we build on this formalism to analyze
+correlation-phase fluctuations arising from aberration-induced speckle decorrelation. The analysis reveals that
+phase variance is governed by the relative loss of coherence, which increases approximately linearly with the
+square of the correlation phases. Local correlation-phase estimates therefore become increasingly uncertain as
+their magnitude grows. Experimental measurements in a uniform tissue-mimicking phantom show excellent
+agreement with the predicted variance. Beyond providing a theoretical basis for advancing speed-of-sound
+imaging, this formalism establishes the accuracy limit of common-mid-angle correlation phases, offering a
+benchmark for evaluating more advanced aberration-estimation techniques.
+Index Terms— ultrasound, speed of sound, phase aberration, common-mid-angle correlations, speckle, variance
+I. INTRODUCTION
+I
+N pulse-echo ultrasound, we use a transducer array to
+isonify the tissue with a set of incident pressure waves.
+Variations in the acoustic impedance scatter the waves back,
+which are subsequently recorded by the same array. The
+measured pressure fields are then synthetically focused at each
+tissue position in both emission and reception to reconstruct
+a map of tissue reflectivity. This focusing operation forms
+the basis of conventional ultrasound imaging. It is typically
+implemented using delay-and-sum (DAS) beamforming, which
+assumes a uniform speed of sound to calculate the travel times
+of the incident and reflected waves. Tissues, however, often
+contain large-scale speed-of-sound heterogeneities that distort
+the ultrasound wavefronts, leading to discrepancies between
+the estimated and actual travel times. These phase errors,
+or phase aberrations, can severely degrade the resolution
+of ultrasound images and ultimately hinder their diagnostic
+interpretation [1].
+Explicit estimation of phase aberrations provides a direct
+means of correcting their detrimental effects on ultrasound
+images. Once estimated, the phase errors can be subtracted
+from the initially assumed travel times to restore focus.
+Traditional techniques rely on the assumption that speed-of-
+sound inhomogeneities can be modeled as a thin phase screen
+This research was supported by the Swiss National Science Founda-
+tion under the Ambizione grant PZ00P2 223375 to N.K.M. (Correspond-
+ing author: Naiara Korta Martiartu.)
+Naiara Korta Martiartu is with the Signal Processing Laboratory
+(LTS5), ´Ecole Polytechnique F´ed´erale de Lausanne (EPFL), CH-1015
+Lausanne, Switzerland.
+Michael Jaeger is with the Institute of Applied Physics, University of
+Bern, CH-3012 Bern, Switzerland.
+located at the transducer face. The relative phase errors across
+the aperture, i.e., the phase screen, can then be estimated
+from the cross-correlation of signals received at neighboring
+elements [2], [3]. This estimation is accurate in the presence of
+a bright, isolated point-like target (guide star); however, such
+targets are rare in biological tissue, where diffuse scatterers
+dominate. In this case, the accuracy depends on the degree
+of correlation between speckle signals [4], [5], and itera-
+tive focusing approaches are required to progressively reduce
+decorrelation and refine phase-aberration estimation [2], [6].
+Nevertheless, the near-field phase-screen model assumes that
+aberrations are spatially invariant over the entire medium
+(isoplanatism), meaning that a single phase-error profile, or
+phase-aberration law, can be applied to the beamformer to
+compensate for their effects. While this simplification may
+be reasonable for localized aberrators such as a superficial
+adipose layer, speed-of-sound inhomogeneities generally occur
+throughout the tissue, causing aberrations that remain invari-
+ant only within small regions (isoplanatic patch). Therefore,
+aberrations should ideally be estimated and corrected locally.
+The common approach to local phase-aberration estimation
+is to exploit the correlations between signals acquired from
+different emissions, receptions, or both [7]–[11]. The locally
+adaptive phase aberration correction (LAPAC) method [8],
+for example, extracts phase-aberration laws by analyzing
+correlations among time-delayed waveforms recorded from
+single-element emissions. Although such emissions benefit
+from spatial reciprocity, allowing the same correction to be
+applied on both transmit and receive, they inherently suffer
+from a low signal-to-noise ratio and are thus rarely used in
+practice. Ultrasound matrix imaging, which decouples transmit
+arXiv:2511.15336v1  [physics.med-ph]  19 Nov 2025
+
+
+2
+and receive focal spots during beamforming, offers a more
+general framework for quantifying aberrations under arbitrary
+acquisition schemes [9], [12]. With simple matrix operations,
+the transmit (or receive) focal spots can be projected, for
+example, into the far-field to synthesize plane-wave emissions,
+while maintaining the receive (or transmit) side focused. This
+enables correlations between different emissions (or recep-
+tions) to be analyzed directly on the focused basis, which is
+more practical than operating on the raw waveforms. Because
+aberrations also affect the focused side, the estimated aber-
+ration laws inevitably mix contributions from both incident
+and reflected waves. To address this, an iterative procedure
+is employed, alternating estimation and correction between
+transmit and receive, to progressively improve the focusing
+quality and refine the aberration laws [10], [13]. Nevertheless,
+the interpretation of the final estimates is challenging, as the
+iterative correction cannot address axial aberrations [14]. This
+limitation arises from the fundamental inability of correlations
+to constrain absolute phase aberrations. Knowledge of tissue
+speed of sound appears essential to fully correct their effects
+on ultrasound images [7], [14].
+In the context of speed-of-sound imaging, alternative ap-
+proaches have been proposed to jointly estimate phase aber-
+rations in both transmit and receive [15], [16], recognizing
+the fact that their individual contributions are difficult to
+disentangle. In particular, computed ultrasound tomography in
+echo-mode (CUTE) estimates phase aberrations by exploiting
+correlations between steered acquisitions that share a com-
+mon mid-angle [15], [17], [18]. Using entirely geometrical
+arguments based on point-like reflectors, Staehli et al. [15]
+demonstrated that the phases of these correlations are linearly
+related to the phase errors accumulated along both transmit
+and receive paths during beamforming. Nevertheless, a more
+rigorous theoretical formalism is still lacking to understand the
+assumptions underlying this relationship and to characterize
+the stochastic nature of correlation phases in speckle. Estab-
+lishing such a formalism is the primary goal of this paper.
+We organize the paper into two main parts. The first part
+(Section II) derives a closed-form expression for the expec-
+tation of common-mid-angle correlations in the presence of
+diffuse scatterers, with particular emphasis on the correlation
+phases. This expression is compared with the correlation-
+phase model used in CUTE, and its underlying assumptions
+and limitations are discussed. The second part (Section III)
+presents a theoretical analysis of speckle-induced fluctuations
+in correlation-phase measurements, showing that the variance
+of the correlation phases depends not only on the number
+of resolution cells but also on the magnitude of the phases
+themselves. This dependence arises from coherence loss due
+to aberrations, and the contribution of clutter is also briefly
+discussed. The theoretical variance is finally validated experi-
+mentally in Section IV using a homogeneous tissue-mimicking
+phantom. Concluding remarks and the significance of this
+work are presented in Section V.
+II. THEORY OF COMMON MID-ANGLE CORRELATIONS
+Common-mid-angle correlations are typically measured us-
+ing steered beams. These are synthesized in post-processing
+by focusing in transmit and receive over a small angular
+aperture [15]. The limited aperture yields relatively broad
+beams whose wavefronts can be treated as locally planar.
+In this section, we therefore consider plane waves in both
+emission and reception for analytical tractability.
+A. Images with Transmit-Receive Plane Waves
+We consider an experiment in which a plane wave is
+emitted into the tissue along the propagation direction
+ˆkin = (sin φin, cos φin), and the response is measured along
+the direction ˆkout = (sin φout, cos φout) by applying similar
+time delays as in emission [19]. We assume that the emitted
+waveform is a Gaussian-modulated sinusoidal pulse,
+pe(t) = A (t) eiωct = e−t2/2σ2eiωct,
+(1)
+where ωc is the angular center frequency, and the temporal
+width σ of the Gaussian envelope A controls the bandwidth.
+Let χ(x) denote the scattering function of the tissue in the
+domain Ω⊂R2. In the single-scattering regime, the image re-
+constructed through time-delay compensation of the measured
+response can be expressed as
+I(r) =
+Z
+Ω
+χ(x)A (t0(r) −t(x)) eiωc(t0(r)−t(x))dx.
+(2)
+Here, t is the total travel time of the recorded waves, whereas
+t0 is computed by assuming a uniform speed of sound c0:
+t0(r) = 1
+c0
+
+ˆkin + ˆkout
+
+·r = 2
+c0
+cos
+φin −φout
+2
+
+ˆkm·r, (3)
+with
+ˆkm =
+
+sin
+φin + φout
+2
+
+, cos
+φin + φout
+2
+
+.
+(4)
+We define the mid-angle φm = (φin + φout)/2 and the angle
+difference φd = (φin −φout)/2, for convenience.
+Equation (3) shows that, for this type of measurement,
+the isochrones are straight lines perpendicular to the di-
+rection defined by the mid-angle between the transmit and
+receive steering angles. Therefore, we define a new coordinate
+system aligned with the mid-angle direction ˆkm in which
+r = rmˆkm + rpˆkp and x = xmˆkm + xpˆkp ∈Ω= Ωm × Ωd.
+The vector ˆkp refers to the direction perpendicular to ˆkm. In
+this coordinate system, the image I(r) reduces to
+I(rm) =
+Z
+Ωm
+˜χ(xm)A (τ(rm, xm)) eiωc(τ(rm,xm))dxm,
+(5)
+with
+τ(rm, xm) = t0(rm) −t(xm)
+(6)
+and
+t0(rm) = 2
+c0
+cos φdrm.
+(7)
+The scattering function ˜χ(xm) represents the integral of χ(x)
+along the direction ˆkp, i.e., the average tissue reflectivity in
+this direction. Equations (5)–(7) show that the point-spread
+function (PSF) A(r, x), and therefore the image I(r), varies
+only along the mid-angle direction (Fig. 1). Thus, the images
+obtained with transmit-receive plane waves sharing a common
+
+
+3
+0
+60
+(dB)
+1 cm
+1 cm
+Fig. 1.
+Example of reflectivity images reconstructed from single
+transmit-receive plane-wave measurements. A coherently compounded
+image is shown at the top for reference. Data were acquired in a uniform
+tissue-mimicking phantom (see Sec. IV). Each row corresponds to a
+pair of transmit and receive propagation directions (solid arrows) that
+share a common mid-angle (dashed lines). The images are spatially
+invariant along the direction perpendicular to ˆkm; therefore, when ˆkm is
+unchanged, the images remain well correlated.
+mid-angle φm encode similar spatial frequencies of χ(x) and
+are strongly correlated. An explicit expression for these corre-
+lations is derived in the next subsection, where the subscript
+m is omitted to simplify notation.
+B. Correlation of Images with Common Mid-Angle
+We consider two recordings corresponding to the angle
+combinations (ˆk1
+in, ˆk1
+out) and (ˆk2
+in, ˆk2
+out), with identical mid-
+angles ˆk1
+m = ˆk2
+m. Let I1 and I2 denote their respective images
+obtained as in (2). Our goal is to estimate the expected value
+of the correlations between I1 and I2, in the vicinity of each
+image location ξ. This can be expressed as
+⟨C(ξ)⟩= 1
+L
+Z ξ+ L
+2
+ξ−L
+2
+⟨I1(r)I∗
+2(r)⟩dr,
+(8)
+with L the size of the correlation kernel [15]. In a first
+approximation, we model the tissue as a random distribu-
+tion of unresolved scatterers, leading to the speckle pattern
+commonly observed in ultrasound images. Tissue scatter-
+ers are therefore assumed to be spatially uncorrelated, i.e.,
+⟨˜χ(x1)˜χ(x2)⟩= ˜Xδ(x1 −x2), with δ the Dirac distribution
+and ˜X = ⟨|˜χ|2⟩[4]. Under this assumption and using the
+expression in (5), the ensemble-averaged term in (8) becomes
+⟨I1I∗
+2⟩= ˜X
+Z
+Ω
+B (r, x) eiωc(τ1(r,x)−τ2(r,x))dx,
+(9)
+with
+B (r, x) = A (τ1(r, x)) A (τ2(r, x)) .
+(10)
+Since the PSFs Ai := A (τi(r, x)) are Gaussian functions,
+the function B is also a Gaussian, and we can leverage the
+symmetry around its mean to solve the integral in (9). The
+mean µB and standard deviation σB of B can be analytically
+computed from the means µAi and standard deviations σAi of
+Ai. To derive their expression, we write the tissue location
+x as a deviation from the image location: x = r + δx. This
+allows us to approximate the true travel times as
+t(x) ≈t(r) + t(δx) ≈t(r) + t0(δx),
+(11)
+where we assume that, for small δx, the difference between
+the true and assumed travel times is negligible. We will discuss
+the implications of this approximation later in this section.
+By inserting (11) into (7), the travel time differences τi
+between positions x and r can be written in terms of the
+differences ∆ti(r) = t0,i(r) −ti(r) at the image location r:
+τi(r, x) ≈∆ti(r) −2
+c0
+cos φd,iδx.
+(12)
+∆ti(r) corresponds to what is commonly referred to as time-
+delay errors or phase aberrations. In contrast, τi describes how
+the phase of the reconstructed echo varies spatially. At the
+center of the reconstructed echo, where t0(r) = t(x), this
+phase is zero. However, aberrations shift this center point
+away from the true echo position by an amount equal to the
+mean µAi (Fig. 2(a)). From the definition of Ai in (1) and (5),
+together with the approximation in (12), we obtain
+µAi = c0
+2
+∆ti(r)
+cos φd,i
+,
+σAi =
+c0σ
+2 cos φd,i
+.
+(13)
+As we observe from these expressions, different acquisitions
+exhibit different displacements of the reconstructed echoes
+(Fig. 2(b)), depending on the accumulated aberrations along
+the transmit and receive propagation paths and their angle
+difference φd. This difference in displacement is the reason
+why relative phase aberrations can be quantified from corre-
+lations. The reconstructed echoes are not merely shifted, but
+their width, defined by the standard deviation σA, also varies
+with the angle difference, independently of the aberrations
+(Fig. 2(c)). Therefore, common mid-angle acquisitions do not
+strictly probe identical spatial frequencies of tissue reflectiv-
+ity, leading to slight decorrelation that increases with larger
+differences between the two φd,i. This effect will be analyzed
+in more detail in Sec. III.
+Using (13), we can compute the mean and standard devia-
+tion of B analytically (see Appendix I):
+µB = c0
+2
+∆t1(r) cos φd,1 + ∆t2(r) cos φd,2
+cos2 φd,1 + cos2 φd,2
+,
+(14)
+σ2
+B = c2
+0
+4
+σ2
+cos2 φd,1 + cos2 φd,2
+.
+(15)
+To leverage the symmetry of B for solving the integral in (9),
+we define a new coordinate u = x −r −µB centered around
+the mean of B and replace (12) and (14) in (9) to obtain
+⟨I1I∗
+2⟩≈˜Xeiϕ(r)
+Z
+B(u)e−2
+c0 iωc(cos φd,1−cos φd,2)udu, (16)
+
+
+4
+(a)
+(b)
+1
+2
+(c)
+Fig. 2.
+Schematic of phase-aberration estimation using common mid-angle correlations. (a) A discrepancy between the true travel times t and
+assumed times t0 displaces the location of reconstructed echoes r from their true positions x along the mid-angle direction ˆkm. The shift δx
+depends on the travel-time error ∆t (phase aberrations) and the angle difference φd between the transmit and receive directions. (b) Different
+acquisitions with the same mid-angle yield different echo displacements. (c) The correlation phase ϕ(r) corresponds to the phase difference of the
+reconstructed echoes, evaluated at the peak location of their PSF product.
+The phase ϕ(r) corresponds to the phase difference between
+reconstructed echoes at position µB (Fig. 2(c)):
+ϕ(r) = αωc
+ ∆t1(r)
+cos φd,1
+−∆t2(r)
+cos φd,2
+
+,
+(17)
+with
+α = cos2 φd,1 cos φd,2 + cos φd,1 cos2 φd,2
+cos2 φd,1 + cos2 φd,2
+.
+(18)
+When the image location r is far from the probe relative to σB,
+the integration limits in (16) can be approximated as [−∞, ∞].
+In fact, near the probe, plane waves are not well defined,
+and these regions should be excluded from the correlations.
+Appendix II shows that the integral in (16), denoted a(r)
+in (49), is real-valued and therefore does not contribute to
+the phase of ⟨I1I∗
+2⟩. For small correlation kernels, this phase
+can be considered constant (isoplanatism) to finally obtain
+⟨C(ξ)⟩≈a(ξ) ˜Xeiϕ(ξ).
+(19)
+Thus, the argument of the correlation provides direct access to
+the relative, local phase aberrations between the two images:
+arg⟨C(ξ)⟩≈αωc
+ ∆t1(ξ)
+cos φd,1
+−∆t2(ξ)
+cos φd,2
+
+.
+(20)
+This phase is measured at the peak location of the product be-
+tween the PSFs Ai, which can be viewed as a normal probabil-
+ity distribution governing the phase measurement (Fig. 2(c)).
+The term in parentheses arises from the relative shift of the
+reconstructed echo positions, whereas the factor α accounts for
+the stretching or shrinking of the spatial frequencies with the
+change of the transmit and receive angles (k = 2ωc cos φd/c0).
+C. New Insights
+Using geometrical arguments, Staehli et al. [15] found a
+similar relationship between correlation phases and aberra-
+tions. Our result (20), however, contains an angle-dependent
+factor α that was omitted in [15], although the authors noted
+that the spatial frequencies vary with φd. While α ≈1 is
+reasonable for small angles, larger values of φd lead to in-
+creasing phase-modeling errors (Fig. 3). In particular, α could
+0
+5
+10
+15
+20
+25
+ϕd,1 (degree)
+0.92
+0.94
+0.96
+0.98
+1.00
+α
+Fig. 3.
+Values of the constant α defined in (18) for φd,1 ∈[1◦, 25◦]
+and φd,1 −φd,2 = 2◦, which are the angles used in [15].
+play a significant role in the adaptation of CUTE to emerging
+multi-aperture systems with larger angular coverage [20].
+Correlation phases are linked not to the aberrations at the
+true scatterer location x, but rather to those at the image
+location r. This distinction is important for two reasons. First,
+the estimated local phase aberrations are inherently assigned
+to the erroneous echo positions, as previously noted by other
+authors [21]. Second, the model (20) relies on the approxima-
+tion (11), which assumes small deviations δx between x and
+r, such that t(δx) ≈t0(δx). This approximation introduces a
+mismatch between the true and predicted deviations, related
+by δx ∝(c0/ctrue)δxtrue. For strong aberrations, typically
+occurring at greater depths, the model (20) no longer describes
+the measured phases accurately. This effect, not previously ad-
+dressed, is illustrated in Fig. 4, which compares measured and
+modeled correlation phases for analytically computed data in
+a homogeneous medium. For c0 < ctrue, reconstructed echoes
+are systematically shallower than their true positions, and this
+deviation is underestimated by the approximation in (11). As
+a result, modeled phases (orange dashed line) are smaller
+than the measured ones (black solid line) or, equivalently,
+
+
+5
+Fig. 4.
+Measured correlation phases (black solid) versus the analytical
+predictions from (20), shown with (orange dashed) and without (gray
+dotted) the angle-dependent factor α. The true medium has a uniform
+speed of sound ctrue = 1525 m/s. The assumed speed of sound is
+c0 = 1400 m/s (top) and c0 = 1650 m/s (bottom), corresponding
+to the same absolute mismatch relative to ctrue. These values span
+the typical range of speed of sound encountered in tissue. Measured
+phases are computed using φm = 0, φd,1 = 25◦, and φd,2 = 23◦,
+a center frequency of 5 MHz with a fractional bandwidth of 50 %, and
+a correlation kernel size L = 2 mm. These parameters were chosen
+based on previous work in CUTE [15]. Correlations are averaged over
+50 realizations of diffuse scatterers.
+shifted to deeper regions showing a reduced gradient versus
+depth. In contrast, for c0 > ctrue, the misplacement of echoes
+is overestimated, yielding systematically larger absolute phase
+values at each location. Interestingly, Fig. 4 also shows that
+neglecting the angle-dependent factor α (gray dotted lines)
+makes phase modeling errors asymmetric with respect to c0.
+The approximation in (11) is essential to linearize the
+relationship between the correlation phases ϕ and the phase
+aberrations ∆t. In addition, CUTE employs further lineariza-
+tions by (i) treating ∆t as the phase aberration at the true
+echo position and (ii) assuming straight-ray propagation to re-
+late ∆t to the tissue speed-of-sound distribution [15], thereby
+neglecting refraction and finite-frequency effects [22]. Even
+without the latter approximation, echo mislocalization alone
+introduces nonlinearities in the relationship between ϕ and
+the speed of sound. Future speed-of-sound imaging algorithms
+based on common-mid-angle correlations should therefore use
+iterative strategies to progressively correct aberrations and
+reduce phase-modeling errors.
+D. Comment on Ensemble Averaging
+Equation (20) models the phase of the ensemble-averaged
+correlations. In practice, however, we use single realizations
+to reduce acquisition time and minimize motion artifacts. This
+can be justified if (i) tissue is spatially ergodic, namely
+lim
+L→∞
+1
+L
+Z
+˜χ(r + δx1)˜χ(r + δx2)dr = ⟨˜χ(x1)˜χ(x2)⟩, (21)
+with xi = r + δxi [23], and (ii) aberrations are constant
+over the correlation kernel L (isoplanatism). Under these
+conditions, the correlation integral in (8) replaces the ensemble
+averaging. Nevertheless, an inherent trade-off exists: a large L
+improves convergence to the expected value in (20) but may
+violate the assumption of isoplanatism, which generally holds
+only for small L. This trade-off constrains the choice of L and
+increases the uncertainty of phase estimates. The following
+section provides a detailed analysis of these uncertainties.
+III. FLUCTUATIONS OF COMMON-MID-ANGLE
+CORRELATION PHASES
+Even in the absence of external noise and modeling er-
+rors, correlation-phase measurements fluctuate around their
+expected value (20) due to the intrinsic randomness of speckle.
+In this section, we quantify and discuss the fundamental
+accuracy limit imposed by speckle by deriving a closed-form
+expression for the correlation-phase variance.
+A. Analytical Derivation of Correlation-Phase Variance
+With a slight abuse of notation, let ϕ denote the argument
+of the correlation C measured from a single realization, i.e.,
+ϕ(ξ) = arg (C(ξ)) = arctan
+Im(C(ξ))
+Re(C(ξ))
+
+.
+(22)
+We use ⟨ϕ⟩to denote the phase of ensemble-averaged correla-
+tions ⟨C⟩studied in the previous section. In order to quantify
+the fluctuations of ϕ due to speckle, we compute its variance
+σ2
+ϕ by propagating the uncertainties of the real and imaginary
+parts of C:
+σ2
+ϕ =
+1
+|⟨C⟩|2
+
+⟨Im(C)2⟩cos2⟨ϕ⟩+ ⟨Re(C)2⟩sin2⟨ϕ⟩
+−⟨Re(C) Im(C)⟩sin (2⟨ϕ⟩)] .
+(23)
+Since the three terms in σ2
+ϕ require similar calculations, we de-
+rive ⟨Im(C)2⟩here and provide only the results for ⟨Re(C)2⟩
+and ⟨Re(C) Im(C)⟩. These involve fourth-order correlations
+of the scattering function ˜χ, which is modeled as a zero-mean
+real Gaussian random field [23], [24]:
+⟨˜χ(x1)˜χ(x2)˜χ(x3)˜χ(x4)⟩= ˜X2[δ(x1 −x2)δ(x3 −x4)
++ δ(x1 −x3)δ(x2 −x4) + δ(x1 −x4)δ(x2 −x3)].
+(24)
+As a result, ⟨Im(C)2⟩is composed of three terms:
+⟨Im(C)2⟩= 1
+L2
+ZZ
+drdr′ ⟨Im(Ir
+1Ir∗
+2 ) Im(Ir′
+1 Ir′∗
+2
+)⟩
+|
+{z
+}
+Prr′
+1
++Prr′
+2
++Prr′
+3
+,
+(25)
+where we use the superscripts r or r′ to indicate the depen-
+dency on the image location, for brevity. Using the expression
+
+
+6
+for the image I(r) in (5), the first term Prr′
+1
+is given by
+Prr′
+1
+= ˜X2
+Z
+dx1Ar
+1(x1)Ar
+2(x1) sin[ωc(τ r
+1 (x1) −τ r
+2 (x1))]
+×
+Z
+dx2Ar′
+1 (x2)Ar′
+2 (x2) sin[ωc(τ r′
+1 (x2) −τ r′
+2 (x2))].
+(26)
+Each integral is equal to the imaginary part of (9). Thus, we
+can use the expression of the ensemble-averaged correlation
+found in (19) to obtain:
+1
+L2
+ZZ
+drdr′Prr′
+1
+= |⟨C⟩|2 sin2⟨ϕ(ξ)⟩.
+(27)
+The variance contribution of this term is determined by the
+magnitude of the correlation ⟨C⟩. For the derivations below, it
+is useful to recall its exact expression, derived in Appendix II:
+|⟨C⟩|2 = a(ξ)2 ˜X2 ≈2πσ2
+BB2
+0(ξ) ˜X2,
+(28)
+with B0(ξ) defined in (50). The last step assumes small
+angular differences between correlated images, as is common
+practice to avoid phase wrapping when |ϕ| ≥π.
+In contrast to the first term, the variance contributions
+of Prr′
+2
+and Prr′
+3
+arise from the interference between re-
+constructed echoes at different locations. This interference
+depends on the relative travel-time differences τi between the
+locations r and r′. It is therefore convenient to write τ r′
+i
+in
+terms of τ r
+i as
+τ r′
+i
+= τ r
+i + 2
+c0
+cos φd,i(r′ −r),
+(29)
+where we again apply the approximation in (11).
+The terms Prr′
+2
+and Prr′
+3
+also involve products of PSFs of
+the form Ar
+i Ar′
+j . Using (29), the definition of τ r
+i in (12), and
+Appendix I, this product reduces to the Gaussian function
+Ar
+i Ar′
+j = exp
+
+−((r′ −r) −(µAi −µAj))2
+8¯σ2
+A
+
+× exp
+
+−(δx −µT )2
+2σ2
+B
+
+,
+(30)
+with mean
+µT = µB + (r′ −r)σ2
+Ai
+4¯σ2
+A
+(31)
+and effective average width ¯σA :=
+q
+σ2
+Ai + σ2
+Aj/2. The means
+µAi, µB and the standard deviations σAi, σB are previously
+defined in (13)–(15).
+We focus now on the derivation of the second term, i.e.,
+Prr′
+2
+= ˜X2
+ZZ
+dx1dx2Ar
+1(x1)Ar′
+1 (x1)Ar
+2(x2)Ar′
+2 (x2)
+× sin[ωc(τ r
+1 (x1) −τ r
+2 (x2))] sin[ωc(τ r′
+1 (x1) −τ r′
+2 (x2))].
+(32)
+Although the two integration variables x1 and x2 appear
+mixed within the sine functions, they can be separated using
+trigonometric identities. In addition, we express τ r′
+i
+via (29)
+and perform the variable changes ui = xi−r−µT to transform
+the sine product into
+1
+2
+
+cos
+2ωc
+c0
+(cos φd,1 −cos φd,2)(r′ −r)
+
+−cos
+4ωc
+c0
+cos φd,1u1
+
+cos
+4ωc
+c0
+cos φd,2u2
+
+−sin
+4ωc
+c0
+cos φd,1u1
+
+sin
+4ωc
+c0
+cos φd,2u2
+
+.
+(33)
+The first term is approximately 1 when φ1 and φ2 are very
+close, as assumed here. Unlike the other terms, which oscillate
+rapidly with the integration variable ui, this first term is
+constant in ui; thus, it dominates the integral in (32). With
+this approximation, substituting the PSF product (30) into (32)
+yields
+Prr′
+2
+≈
+˜X2
+2 πσA1σA2 exp
+
+−(r′ −r)2
+4σ2
+B
+
+.
+(34)
+Provided that the size of the correlation kernel L is signifi-
+cantly larger than σB (e.g., L ≈32σB in the example used in
+Fig. 4), we finally obtain
+1
+L2
+ZZ
+drdr′Prr′
+2
+≈|⟨C⟩|2
+LB2
+0(ξ)
+√π¯σA,
+(35)
+where we used (28) to write the solution in terms of |⟨C⟩|2.
+The exact same steps and arguments can be used to derive
+Prr′
+3
+and finally obtain
+⟨Im(C)2⟩
+|⟨C⟩|2
+≈sin2⟨ϕ⟩+ √π ¯σA
+L
+ B−2
+0
+−cos (2⟨ϕ⟩)
+
+.
+(36)
+Note that all the quantities are evaluated at the measurement
+location ξ, which was omitted to simplify the notation.
+In the same manner, we find the closed forms of ⟨Re(C)2⟩
+and ⟨Re(C) Im(C)⟩:
+⟨Re(C)2⟩
+|⟨C⟩|2
+≈cos2⟨ϕ⟩+ √π ¯σA
+L
+ B−2
+0
++ cos (2⟨ϕ⟩)
+
+(37)
+and
+⟨Re(C) Im(C)⟩
+|⟨C⟩|2
+≈sin (2⟨ϕ⟩)
+1
+2 + 1
+L
+√π¯σA
+
+.
+(38)
+Finally, substituting (36), (37), and (38) into (23) yields the
+explicit expression for the variance of correlation phases:
+σ2
+ϕ(ξ) ≈√π ¯σA
+L
+
+B−2
+0 (ξ) −1
+
+.
+(39)
+B. Physical Interpretation of the Variance
+Several conclusions can be drawn from the expression of σ2
+ϕ
+in (39). First, the variance of correlation-phase measurements
+scales as 1/N, where N = L/¯σA is the number of resolution
+cells within the correlation kernel. This is consistent with
+Sec. II-D: if tissue is spatially ergodic, each resolution cell acts
+as an independent realization of disorder, so the correlation
+integral approximates the ensemble average. As N increases,
+correlation phases more closely match their expected value.
+
+
+7
+(a)
+(b)
+Fig. 5.
+Influence of phase aberrations on the variance of correlation
+phases. (a) Schematic illustrating the coherence measure B0 and its
+decay when common mid-angle correlation phases ϕ (or, equivalently,
+phase aberrations) increase in magnitude. (b) Observed (gray) and
+predicted (orange) uncertainty of correlation phases for the medium
+and acquisition parameters used in Fig. 4. A lower assumed speed
+of sound (c0
+= 1475 m/s) was used in this case to avoid phase
+wrapping. The black line is the mean phase over 50 realizations of
+the diffuse scatterers, whereas gray lines show the measured phases
+for each realization. Orange dashed lines indicate the 95% confidence
+interval predicted from (39). As the aberrations increase with depth, the
+correlation-phase variance increases accordingly.
+For a fixed L, the number of resolution cells increases when
+¯σA decreases. This is the average width of the PSF along the
+mid-angle direction ˆkm:
+¯σA = c0σ
+4
+s
+1
+cos2 φd,1
++
+1
+cos2 φd,2
+.
+(40)
+The PSF becomes narrower when the emitted signals have a
+larger bandwidth (∝1/σ) and data is acquired with a smaller
+angle difference φd,i. As a result of the latter, phase estimates
+are noisier for larger φd,i values, an effect that can be observed
+in [25] (e.g., see their Fig. 2).
+While the dependence on N is largely intuitive and has
+been discussed previously [12], [15], our result in (39) reveals
+that aberrations directly affect the correlation-phase variance.
+Aberrations appear through the term B2
+0, which measures
+the intensity at the location where correlation phases are
+extracted (Fig. 5(a)). Essentially, B2
+0 quantifies the degree of
+coherence between the reconstructed images, and the phase
+variance scales with the relative loss of coherence, expressed
+as B−2
+0
+−1 = (1 −B2
+0)/B2
+0. As shown in Appendix II,
+B2
+0 decreases with |ϕ|; thus, the phase variance grows with
+the magnitude of the phases themselves. The stronger the
+aberrations, the larger the shift between reconstructed echoes
+and the lower the peak intensity B2
+0 (Fig. 5(a)), ultimately
+leading to a larger uncertainty in phase estimation (Fig. 5(b)).
+If the magnitude of unwrapped phases is small relative to σωc
+(i.e., the inverse of the fractional bandwidth), the variance
+becomes linearly related to ⟨ϕ⟩2:
+σ2
+ϕ(ξ) ≈
+√π
+Nω2cσ2β+ ⟨ϕ(ξ)⟩2,
+(41)
+with β+ defined in (51), Appendix II. This result implies that,
+in the absence of aberrations (i.e., ⟨ϕ⟩= 0), uncertainties
+in common-mid-angle correlation phases become negligible.
+This is consistent with the same effect observed in the phase
+shifts between two arbitrary speckle signals [26]. Note that
+the correlation-phase variance is a local quantity; it becomes
+negligible whenever the local correlation phase is zero.
+Strikingly, (41) shows that phase uncertainty increases with
+the fractional bandwidth. This may appear counterintuitive, as
+a larger bandwidth narrows the PSFs and increases the number
+of resolution cells within the correlation kernel, as discussed
+above. However, for a fixed ϕ, a broader bandwidth also
+reduces the overlap between the two PSFs, thereby decreasing
+B2
+0. In other words, aberrations cause coherence to decay
+more rapidly with increasing bandwidth. The effect of both
+bandwidth and kernel size on σ2
+ϕ is shown in Fig. 6. Note
+that, although reducing the bandwidth as much as possible
+may seem attractive for minimizing σ2
+ϕ, the model in (39) is no
+longer valid when the correlation kernel becomes comparable
+to the PSFs (see the assumption in (35)).
+C. Comment on the Influence of Clutter
+Equation (39) describes the aberration-induced phase vari-
+ance and defines the achievable phase accuracy of common-
+mid-angle correlations in the absence of noise. We have shown
+that this variance is proportional to the loss of coherence
+caused by phase aberrations, although the same reasoning
+extends to any other factor that degrades coherence, including
+clutter arising from thermal and electronic noise, multiple
+scattering, or reverberations. A detailed analysis of clutter-
+induced variance is beyond the scope of this work; nev-
+ertheless, two remarks can be made regarding its expected
+behavior. First, clutter is often largely uncorrelated across
+different transmit and receive plane waves. As discussed at the
+beginning of Sec II, in practice, slight transmit and receive
+focusing is typically applied through coherent compounding
+before computing correlations [15]. This focusing reduces
+clutter and thus its contribution to the phase variance. Second,
+part of the clutter is expected to be spatially uncorrelated,
+so its variance contribution scales inversely with the number
+of resolution cells N. As a result, increasing the bandwidth
+may decrease the total variance, potentially outweighing the
+increase predicted by (41). The following section experimen-
+tally validates the predicted variance and further illustrates the
+joint effect of aberrations and clutter.
+IV. EXPERIMENTAL VALIDATION
+In this section, we aim to evaluate how well the model
+in (39) explains the fluctuations observed in experimental
+
+
+8
+(a)
+(b)
+(c)
+(d)
+Fig. 6.
+Influence of the correlation-kernel size L and fractional bandwidth (FBW) on the variance of correlation phases ϕ. Data and reconstruction
+parameters from 5(b) are used as reference. (a)-(b) Correlation phases are computed with a kernel size of L = 1 mm and L = 3 mm, respectively.
+(c)-(d) Data is simulated with a fractional bandwidth of 100 % and 25 %, respectively. In each panel, the black line represents the mean phase over
+50 realizations, gray lines show phase estimates for each realization, and orange lines indicate the 95% confidence interval predicted from (39).
+correlation-phase measurements and whether the predicted
+dependence of the variance on the correlation phase, kernel
+size, and bandwidth is observed experimentally.
+The analysis is performed using the same dataset previously
+employed for calibration in [27]. Data were acquired in a
+custom-made, tissue-mimicking CIRS phantom (Computer-
+ized Imaging Reference Systems, Inc. Norfolk, VA, USA)
+with uniform scattering properties and constant speed of sound
+of 1518 m/s (Fig. 7(b)). The experimental setup consisted
+of a SuperSonic® MACH® 30 ultrasound system (Hologic®
+- Supersonic Imagine®, Aix-en-Provence, France) equipped
+with an L18-5 linear probe containing 256 elements with a
+pitch of 0.2 mm. Steered plane-wave emissions were used
+at angles ranging from -27.5◦to 27.5◦, with an angular
+step of 0.5◦, and the center frequency was 6.5 MHz with
+50% fractional bandwidth. This dataset contains 20 repeated
+measurements at different locations of the phantom to mimic
+different realizations of disorder.
+For our analysis, we reconstruct transmit-receive plane-wave
+images according to (2)–(4) using the same set of angles
+as in transmission. As discussed in Sec. III-C, we apply
+coherent compounding to reduce clutter before computing
+correlations. Following previous works in CUTE [15], we
+define compounding angles ranging from −25◦to 25◦in steps
+of 2◦and synthetically focus in emission and reception using
+a Gaussian weighting function with a standard deviation of
+3◦/
+√
+2. Due to the lateral resolution achieved through com-
+pounding, we restrict our analysis to the mid-lateral position.
+Finally, correlations are computed using (8) at the mid-angle
+φm = 0 to illustrate how the correlation phases evolve with
+depth, as aberrations increase.
+As shown in Fig. 7(a), the theoretical predictions based
+on the mean phase values closely match the experimentally
+measured phase variance. This result confirms that phase
+estimation becomes more uncertain when aberrations increase
+in magnitude, a key finding of this work. Deviations from the
+theoretical model mainly occur when the correlation phases
+are relatively small, approximately within the first centimeter
+of depth. Here, the measured σϕ is about 150% higher than
+the theoretical prediction, whereas at larger depths the relative
+difference drops below 1%. The loss of coherence between
+correlated images at shallow depths is primarily caused by
+clutter, which dominates the total phase variance.
+Because both aberration- and clutter-induced variances scale
+inversely with the number of resolution cells, the relative
+difference between measured and predicted σϕ remains un-
+changed when the kernel size is reduced by half (Fig. 7(c)).
+However, the variance reduction for a narrower bandwidth
+observed in Fig. 6 is less evident in Fig. 7(d). Compared to the
+full-bandwidth case, σϕ appears to decrease slightly, e.g., by
+about 20% at depths of 3-4 cm, but it becomes nearly three
+times larger at shallow regions (Fig. 7(e)). This clearly re-
+flects the two competing mechanisms discussed earlier. While
+narrowing the bandwidth reduces aberration-induced variance,
+it also decreases the number of resolution cells, making the
+influence of clutter on phase estimates more pronounced.
+These experimental results confirm that the theoretical
+model developed here provides a lower bound on the
+
+
+9
+1 cm
+(a)
+(c)
+(d)
+(e)
+(b)
+Fig. 7. Experimentally measured (black dashed lines) and theoretically predicted (orange dashed lines) variance of common-mid-angle correlation
+phases ϕ. The medium, shown in (b), is a tissue-mimicking phantom with uniform scattering properties and a speed of sound of 1518 m/s. The
+assumed speed of sound for reconstruction is 1400 m/s. (a) Observed fluctuations of correlation phases with depth for 20 realizations of disorder
+(gray lines); the mean phase is shown as a black solid line. Correlations are computed using φm = 0, φd,1 = 9◦, φd,2 = 7◦, a kernel size
+L = 2 mm, and the full fractional bandwidth (FWB) of the dataset (50%). (c), (d) Same as in (a), but with half the kernel size and half the FBW,
+respectively. (e) Zoomed views of (a) and (d) at the locations marked by dashed boxes in (d). Compared with simulations, smaller φd values are
+used here to ensure illumination at larger depths while avoiding edge waves.
+correlation-phase variance and therefore tells us how accu-
+rately correlation phases can, in principle, be estimated. The
+model could be used to construct a data-covariance operator
+for speed-of-sound inversion that weights phase measurements
+according to their reliability in order to improve robustness.
+V. CONCLUSION
+We have developed a theoretical formalism to relate
+common-mid-angle speckle correlations to the phase aber-
+rations arising from speed-of-sound inhomogeneities. This
+formalism (i) completes and clarifies previously established
+models describing a linear relationship between correlation
+phases and the mismatches between the assumed and true
+travel times and (ii) enables the prediction of correlation-
+phase fluctuations resulting from aberration-induced speckle
+decorrelation.
+For image pairs obtained with transmit–receive angles shar-
+ing a common mid-angle, phase aberrations manifest as dis-
+placements of reconstructed echoes along the same direction.
+The relative shift in echoes between the two images is what
+determines the correlation values at each location. We have
+shown that the phase of the correlations scales linearly with
+the relative echo shift, whereas the correlation magnitude,
+which reflects the coherence between the two images, decays
+exponentially with the square of correlation phases. A second-
+order statistical analysis revealed that this loss of coherence
+with increasing phase magnitude reduces the reliability of
+correlation-phase estimates, a phenomenon we have experi-
+mentally verified in a uniform tissue-mimicking phantom.
+Common mid-angle correlations were originally introduced
+to quantify the speed-of-sound distribution using CUTE. The
+formalism developed here therefore naturally provides both
+physical insight and a theoretical basis for advancing speed-of-
+sound imaging. More broadly, it establishes a benchmark for
+comparing the fundamental accuracy limits of more advanced
+aberration-estimation techniques, including those based on
+time-reversal analysis [9], [11] and the Radon transform [28].
+APPENDIX I
+PRODUCT OF TWO GAUSSIAN FUNCTIONS
+We define the product between two Gaussian functions as
+B(x, y) = A1(x)A2(x −y)
+with
+Ai(x) = e−(x−µi)2/2σ2
+i .
+It can be shown that B is also a Gaussian function:
+B(x, y) = B0(y)e−(x−µB)2/2σ2
+B,
+(42)
+where its mean and standard deviation are
+µB = µ1σ2
+2 + (µ2 + y)σ2
+1
+σ2
+1 + σ2
+2
+;
+σ2
+B =
+σ2
+1σ2
+2
+σ2
+1 + σ2
+2
+(43)
+and its amplitude is
+B0(y) = e−(y−(µ1−µ2))2/2(σ2
+1+σ2
+2).
+(44)
+
+
+10
+APPENDIX II
+SOLUTION OF THE INTEGRAL IN (16)
+In (16), we have an integral of the form
+Z ∞
+−∞
+B(u)eibudu,
+(45)
+where b is a constant value, and B is the Gaussian function
+B(u) = B0e−u2/2σ2
+B.
+(46)
+Since the integrand can be written as
+B0e−b2σ2
+B/2e−(u−ibσ2
+B)2/2σ2
+B,
+(47)
+the solution of (45) is
+Z ∞
+−∞
+B(u)eibudu =
+√
+2πσBB0e−b2σ2
+B/2,
+(48)
+which is real-valued. Specifically, the solution of the integral
+in (16) is
+a(r) =
+√
+2πσBB0(r)e−ω2σ2β−/2,
+(49)
+with σB given by (15),
+B0(r) = exp
+ −ϕ(r)2
+2ω2σ2β+
+
+,
+(50)
+and
+β± = (cos φd,1 ± cos φd,2)2
+cos φ2
+d,1 + cos φ2
+d,2
+.
+(51)
+The term ϕ(r) is the correlation phase defined in (17).
+REFERENCES
+[1] M. E. Anderson, M. S. McKeag, and G. E. Trahey, “The impact of
+sound speed errors on medical ultrasound imaging,” The Journal of the
+Acoustical Society of America, vol. 107, no. 6, pp. 3540–3548, 06 2000.
+[2] S. Flax and M. O’Donnell, “Phase-aberration correction using signals
+from point reflectors and diffuse scatterers: basic principles,” IEEE
+Transactions on Ultrasonics, Ferroelectrics, and Frequency Control,
+vol. 35, no. 6, pp. 758–767, 11 1988.
+[3] M. O’Donnell and S. Flax, “Phase-aberration correction using signals
+from point reflectors and diffuse scatterers: measurements,” IEEE Trans-
+actions on Ultrasonics, Ferroelectrics, and Frequency Control, vol. 35,
+no. 6, pp. 768–774, 11 1988.
+[4] R. Mallart and M. Fink, “The van Cittert–Zernike theorem in pulse
+echo measurements,” The Journal of the Acoustical Society of America,
+vol. 90, no. 5, pp. 2718–2727, 1991.
+[5] W. F. Walker and G. E. Trahey, “Speckle coherence and implications
+for adaptive imaging,” The Journal of the Acoustical Society of America,
+vol. 101, no. 4, pp. 1847–1858, 04 1997.
+[6] G. Montaldo, M. Tanter, and M. Fink, “Time reversal of speckle noise,”
+Phys. Rev. Lett., vol. 106, p. 054301, Feb 2011.
+[7] M. Jaeger, E. Robinson, H. G. Akarc¸ay, and M. Frenz, “Full correction
+for spatially distributed speed-of-sound in echo ultrasound based on
+measuring aberration delays via transmit beam steering,” Physics in
+Medicine & Biology, vol. 60, no. 11, p. 4497, 2015.
+[8] G. Chau, M. Jakovljevic, R. Lavarello, and J. Dahl, “A locally adaptive
+phase aberration correction (LAPAC) method for synthetic aperture
+sequences,” Ultrasonic Imaging, vol. 41, no. 1, pp. 3–16, 01 2019.
+[9] W. Lambert, L. A. Cobus, T. Frappart, M. Fink, and A. Aubry, “Dis-
+tortion matrix approach for ultrasound imaging of random scattering
+media,” Proceedings of the National Academy of Sciences, vol. 117,
+no. 26, pp. 14 645–14 656, 2020.
+[10] W. Lambert, L. A. Cobus, J. Robin, M. Fink, and A. Aubry, “Ultrasound
+matrix imaging—part II: The distortion matrix for aberration correction
+over multiple isoplanatic patches,” IEEE Transactions on Medical Imag-
+ing, vol. 41, no. 12, pp. 3921–3938, 2022.
+[11] H. Bendjador, T. Deffieux, and M. Tanter, “The SVD beamformer:
+Physical principles and application to ultrafast adaptive ultrasound,”
+IEEE Transactions on Medical Imaging, vol. 39, no. 10, pp. 3100–3112,
+2020.
+[12] W. Lambert, L. A. Cobus, M. Couade, M. Fink, and A. Aubry, “Re-
+flection matrix approach for quantitative imaging of scattering media,”
+Physical Review X, vol. 10, no. 2, p. 021048, 2020.
+[13] F. Bureau, J. Robin, A. Le Ber, W. Lambert, M. Fink, and A. Aubry,
+“Three-dimensional ultrasound matrix imaging,” Nature Communica-
+tions, vol. 14, no. 1, p. 6793, 2023.
+[14] F. Bureau, E. Giraudat, A. L. Ber, W. Lambert, L. Carmier, A. Guibal,
+M. Fink, and A. Aubry, “Reflection matrix imaging for wave velocity
+tomography,” 2024.
+[15] P. St¨ahli, M. Kuriakose, M. Frenz, and M. Jaeger, “Improved forward
+model for quantitative pulse-echo speed-of-sound imaging,” Ultrasonics,
+p. 106168, 2020.
+[16] W. Simson, L. Zhuang, B. N. Frey, S. J. Sanabria, J. J. Dahl, and
+D. Hyun, “Ultrasound autofocusing: Common midpoint phase error
+optimization via differentiable beamforming,” IEEE Transactions on
+Medical Imaging, pp. 1–1, 2025.
+[17] M. Jaeger, P. St¨ahli, N. Korta Martiartu, P. Salemi Yolgunlu, T. Frappart,
+C. Fraschini, and M. Frenz, “Pulse-echo speed-of-sound imaging using
+convex probes,” Physics in Medicine & Biology, vol. 67, no. 21, p.
+215016, 2022.
+[18] P. St¨ahli, C. Becchetti, N. Korta Martiartu, A. Berzigotti, M. Frenz,
+and M. Jaeger, “First-in-human diagnostic study of hepatic steatosis
+with computed ultrasound tomography in echo mode,” Communications
+Medicine, vol. 3, no. 1, p. 176, Dec. 2023.
+[19] B. H´eriard-Dubreuil, A. Besson, F. Wintzenrieth, C. Cohen-Bacrie, and
+J.-P. Thiran, “Refraction-based speed of sound estimation in layered
+media: An angular approach,” IEEE Transactions on Ultrasonics, Fer-
+roelectrics, and Frequency Control, vol. 70, no. 6, pp. 486–497, 2023.
+[20] V. H. J. van Hal, “Multi-aperture ultrasound imaging and elastography of
+abdominal aortic aneurysms: from bench to bedside,” Ph.D. dissertation,
+Eindhoven University of Technology, Eindhoven, The Netherlands, Apr.
+2025.
+[21] R. Ali, T. M. Mitcham, M. Singh, M. M. Doyley, R. R. Bouchard,
+J. J. Dahl, and N. Duric, “Sound speed estimation for distributed
+aberration correction in laterally varying media,” IEEE Transactions on
+Computational Imaging, vol. 9, pp. 367–382, 2023.
+[22] N. Korta Martiartu, C. Boehm, and A. Fichtner, “3-D Wave-Equation-
+Based Finite-Frequency Tomography for Ultrasound Computed Tomog-
+raphy,” IEEE Transactions on Ultrasonics, Ferroelectrics, and Frequency
+Control, vol. 67, no. 7, pp. 1332–1343, 2020.
+[23] M. F. Insana, R. F. Wagner, D. G. Brown, and T. J. Hall, “Describing
+small-scale structure in random media using pulse-echo ultrasound,” The
+Journal of the Acoustical Society of America, vol. 87, no. 1, pp. 179–
+192, 1990.
+[24] R. Wagner, M. Insana, and S. Smith, “Fundamental correlation lengths
+of coherent speckle in medical ultrasonic images,” IEEE Transactions
+on Ultrasonics, Ferroelectrics, and Frequency Control, vol. 35, no. 1,
+pp. 34–44, 1988.
+[25] P. Salemi Yolgunlu, N. Korta Martiartu, U. R. Gerber, M. Frenz, and
+M. Jaeger, “Excluding echo shift noise in real-time pulse-echo speed-
+of-sound imaging,” Sensors, vol. 23, no. 12, 2023.
+[26] J. W. Goodman, Speckle Phenomena in Optics: Theory and Applications.
+Roberts and Company Publishers, 2007.
+[27] N. Korta Martiartu, P. Salemi Yolgunlu, M. Frenz, and M. Jaeger,
+“Pulse-echo ultrasound attenuation tomography,” Physics in Medicine
+& Biology, vol. 69, no. 11, p. 115016, 2024.
+[28] S. Beuret, B. H´eriard-Dubreuil, N. Korta Martiartu, M. Jaeger, and J.-P.
+Thiran, “Windowed radon transform for robust speed-of-sound imaging
+with pulse-echo ultrasound,” IEEE Transactions on Medical Imaging,
+vol. 43, no. 4, pp. 1579–1593, 2024.

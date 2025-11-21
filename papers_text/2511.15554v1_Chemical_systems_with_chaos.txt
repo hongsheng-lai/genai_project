@@ -1,0 +1,2089 @@
+Chemical systems with chaos
+Tomislav Plesa 1
+Abstract: Three-dimensional polynomial dynamical systems (DSs) can display chaos with various
+properties already in the quadratic case with only one or two quadratic monomials. In particular,
+one-wing chaos is reported in quadratic DSs with only one quadratic monomial, while two-wing and
+hidden chaos in quadratic DSs with only two quadratic monomials. However, none of the reported
+DSs can be realized with chemical reactions. To bridge this gap, in this paper, we investigate chaos
+in chemical dynamical systems (CDSs) - a subset of polynomial DSs that can model the dynamics
+of mass-action chemical reaction networks.
+To this end, we develop a fundamental theory for
+mapping polynomial DSs into CDSs of the same dimension and with a reduced number of non-
+linear terms. Applying this theory, we show that, under suitable robustness assumptions, quadratic
+CDSs, and cubic CDSs with only one cubic, can display a rich set of chaotic solutions already in
+three dimensions. Furthermore, we construct some relatively simple three-dimensional examples,
+including a quadratic CDS with one-wing chaos and three quadratics, a cubic CDS with two-wing
+chaos and one cubic, and a quadratic CDS with hidden chaos and five quadratics.
+1
+Introduction
+Systems of N first-order autonomous ordinary-differential equations with polynomials of at most
+degree n on the right-hand sides, called N-dimensional n-degree polynomial dynamical systems
+(DSs), can display a rich set of solutions whose complexity increases with N and n. In particular,
+by the Poincar´e-Bendixson theorem [1, 2], when N ≤2, every bounded solution of this class of
+DSs in the long run converges to an equilibrium (time-independent solution), a solution connecting
+equilibria, or a cycle (time-periodic solution). On the other hand, if N ≥3 and n ≥2, then the
+dynamics can become vastly more complicated: polynomial DSs can then display solutions that are
+bounded and unstable, and that do not converge to equilibria, solutions connecting equilibria or
+cycles [1, 2]. Under further suitable properties, a set containing such solutions is called a chaotic set;
+if, furthermore, this set attracts all nearby solutions, then it is called a chaotic attractor [1, 2, 3].
+Containing unstable solutions, nearby solutions in a chaotic set may diverge from each other fast;
+consequently, an infeasible precision in the initial conditions may be needed to accurately compute
+the solutions beyond some time, inspiring the name chaos.
+A number of polynomial DSs with N = 3 and n = 2 are reported that, despite structural
+simplicity, display chaos with various properties [4]. Examples include three-dimensional quadratic
+DSs with only 1 quadratic monomial, such as the R¨ossler system [5] and Sprott systems F–S [6],
+and with only 2 quadratic monomials, such as the Lorenz system [7] and Sprott systems A–E [6].
+Topologically, all of these systems have chaotic attractors with one wing, except the Lorenz and
+Sprott systems B–C which have chaotic attractors with two wings. The two-quadratic-terms DSs
+can also have a chaotic attractor coexisting with a unique and stable equilibrium [8]; such attractors
+are said to be hidden, as they cannot be detected from the initial conditions close to the equilibrium.
+With some exceptions, such as the Lorenz system, chaos is numerically demonstrated, but not
+proved to exist, in these examples. In particular, proving existence of chaos is in general difficult;
+for example, it took more than three decades to prove chaoticity of the Lorenz system [9].
+1Department of Applied Mathematics and Theoretical Physics, University of Cambridge, Centre for Mathematical
+Sciences, Wilberforce Road, Cambridge, CB3 0WA, UK; e-mail: tp525@cam.ac.uk
+1
+arXiv:2511.15554v1  [math.DS]  19 Nov 2025
+
+
+In this paper, we focus on a special subset of polynomial DSs that can model the time-evolution
+of the (non-negative) concentrations of chemical species, reacting under mass-action kinetics, called
+chemical dynamical systems (CDSs) [10]; in addition to chemistry, CDSs are also used to model
+a range of biological phenomena [11, 12].
+For example, dx/dt = (1 −x) is a one-dimensional
+linear CDS which models the time-evolution of the concentration x = x(t) of chemical species X
+reacting according to the production reaction ∅→X and the degradation reaction X →∅, where
+∅denotes some species not explicitly modelled. In contrast, polynomial DS dx/dt = −1 is not
+chemical, because the monomial −1 drives x(t) to negative values, which are chemically infeasible.
+CDSs with chaos in the positive orthant are reported in the literature. However, compared to
+the general polynomial DSs, the reported chaotic CDSs are structurally more complicated - they
+have a higher dimension N, higher polynomial degree n, or a larger number of non-linear terms.
+In particular, chaos is proven to exist in a class of quadratic CDSs that are five-dimensional [13],
+and in another class of quadratic CDSs with sufficiently high dimension [14], in three-dimensional
+quartic CDSs [15] and, as proven more recently, in three-dimensional cubic CDSs with exactly 2
+cubics [10][Theorem 5.2]. Simpler systems are reported with more numerically-established chaos. In
+particular, the minimal Willamowski–R¨ossler system [16, 17] is a three-dimensional quadratic CDS
+with exactly 6 quadratic monomials, put forward as having one-wing chaos; a computer-assisted
+proof of some chaotic properties is presented in [18]. Another three-dimensional quadratic CDS
+with exactly 6 quadratics is constructed in [10][Theorem E.1]; its chaoticity is guaranteed assuming
+that Sprott system P [6][Table 1], from which it is derived, has suitably robust chaos. To the best
+of the author’s knowledge, no three-dimensional quadratic CDS with (one-wing) chaos and 5 or less
+quadratics, or cubic CDS with two-wing chaos and less than 2 cubics, are reported at the time of
+writing this paper. Furthermore, no three-dimensional quadratic or cubic CDSs with hidden chaos
+and a unique and stable equilibrium are reported; see also [19].
+(a) One-wing chaos (39)
+(b) Two-wing chaos (45)
+(c) Hidden chaos (51)
+Figure 1: Three-dimensional CDSs with chaos. Panels (a)–(c) display solutions of the quadratic
+CDS (39) with exactly 3 quadratic monomials, cubic CDS (45) with exactly 1 cubic monomial,
+and the quadratic CDS (51) with exactly 5 quadratic monomials, respectively. The parameters and
+initial conditions are chosen as in Figures 3–5, respectively.
+In this paper, we bridge this gap by developing and applying some fundamental theory about
+mapping non-chemical into chemical DSs. In particular, the so-called quasi-chemical maps (QCMs)
+are introduced in [10], that can map polynomial DSs into CDSs purely by smoothly perturbing
+its right-hand side and translating the dependent variables, thereby preserving both the dimension
+and robust structures. In this paper, we construct some novel QCMs that are refined to introduce
+a lower number of non-linear terms, thus being suitable for designing structurally simpler CDSs.
+We then apply this theory to prove some results about the capacity of CDSs to have chaos. In
+2
+
+
+particular, we prove that every quadratic DS with only 1 quadratic monomial, and with suitably
+robust chaos, can be mapped to a quadratic CDS of the same dimension and with chaos preserved.
+Similarly, we show that every quadratic DS with only 2 quadratic monomials can be mapped
+to a cubic CDS with only 1 cubic monomial, and that such CDSs can display chaos in three
+dimensions. Furthermore, we construct some three-dimensional examples which appear to be the
+simplest reported so far when it comes to the number of the highest-degree monomials: a quadratic
+CDS with a one-wing chaotic attractor and exactly 3 quadratics, a cubic CDS with a two-wings
+chaotic attractor and exactly 1 cubic, and a quadratic CDS with a hidden chaotic attractor, and
+unique and stable equilibrium, with exactly 5 quadratics; see Figure 1.
+The paper is organized as follows. In Section 2, we present some background theory; further
+details are presented in Appendices A and B. In Section 3, we present some theory about mapping
+DSs into structurally relatively simple CDSs using QCMs. This theory is then applied to study
+chaos in CDSs in Section 4. Finally, we provide a summary and discussion in Section 5.
+2
+Background
+In this section, we present some notation and background theory.
+Notation. The spaces of real, non-negative and positive real numbers are denoted by R, R≥
+and R>, respectively. Absolute value of x ∈R is denoted by |x|. Euclidean column vectors are
+denoted by x = (x1, x2, . . . , xN)⊤∈RN, where ·⊤is the transpose operator. The Euclidean norm of
+x ∈RN is given by ∥x∥= (x2
+1 + x2
+2 + . . .+x2
+N)1/2 and, abusing the notation slightly, we also denote
+by ∥· ∥the induced matrix norm. Operator nabla is given by ∇= (∂/∂x1, ∂/∂x2, . . . , ∂/∂xN).
+2.1
+Dynamical systems
+Consider a system of autonomous ordinary-differential equations
+dx
+dt = f(x; n),
+(1)
+where t ∈R is time, x = (x1, x2, . . . , xN)⊤∈RN and f(x; n) = (f1(x; n), f2(x; n), . . . , fN(x; n))⊤∈
+RN is a vector field with fi(·; n) : RN →R a polynomial of degree at most n for all i = 1, 2, . . . , N.
+We say that (1) is an N-dimensional n-degree polynomial dynamical system (DS). For simplicity,
+we assume that all the variables are dimensionless; furthermore, we assume that every equation
+in (1) is written so that all of its monomials are distinct.
+Key to this paper is a special subset of polynomial DSs.
+Definition 2.1. (Chemical dynamical system) Assume that m(x) is a monomial in fi(x) such
+that m(x) ≥0 when xi = 0 and xj ≥0 for all j ̸= i.
+Then m(x) is said to be a chemical
+monomial. If fi(x) contains only chemical monomials, then fi(x) is chemical; we then also say
+that the ith equation from (1) is chemical. If every equation of (1) is chemical, then (1) is said to
+be an N-dimensional n-degree (mass-action) chemical dynamical system (CDS).
+If fi(x) is chemical, then fi(x) ≥0 when xi = 0 and xj ≥0 for all j ̸= i; consequently, the
+CDS solution x(t; x0) ∈RN
+≥is non-negative for all t ≥0, provided that is it non-negative initially,
+x(0; x0) = x0 ∈RN
+≥. Furthermore, variables x1, x2, . . . , xN from CDSs can be interpreted as (non-
+negative) concentrations of chemical species, which react according to a set of reactions jointly
+called a chemical reaction network (CRN) [11, 12]; see Appendix A for more details.
+To characterize structural complexity of CDSs and CRNs, we introduce the following definition.
+3
+
+
+Definition 2.2. (Structural complexity) If f(x; n) contains exactly Mi monomials of degree i,
+then DS (1) is said to be an n-degree (M0 +M1 +. . .+Mn, M2, M3, . . . , Mn) DS. If a CRN induced
+by an n-degree CDS contains exactly Ri reactions of degree i, then it is said to be an n-degree
+(R0 + R1 + . . . + Rn, R2, R3, . . . , Rn) CRN.
+Remark. CDSs induce CRNs with Ri ≤Mi; see Appendix A and the examples below.
+Transformation of variables. It is of great interest to analyze how CDSs behave under vari-
+ous transformations of their variables. For example, CDSs are not invariant under general affine
+transformations [10]. In particular, translating the dependent variables via x →(x −T), defined
+as introducing the new variables ¯x = (x + T) in (1), in general transforms chemical DSs into non-
+chemical ones, see also Section 3. Let us now consider two special affine maps: rescaling xi →sixi,
+defined as introducing a new variable ¯xi = xi/si in (1), and permutation xi →xj, defined via new
+variables ¯xi = xj and ¯xj = xi. It follows directly from Definition 2.1 that CDSs are invariant under
+every rescaling with positive factors, and under every permutation, which we now formalize.
+Lemma 2.1. (Positive scaling and permutation) Assume that DS (1) is chemical (respectively,
+non-chemical). Then, under every rescaling xi →sixi with si > 0, and under every permutation
+xi →xj, DS (1) remains chemical (respectively, non-chemical).
+In what follows, when convenient, we permute and rescale the variables with suitable positive
+factors, which does not change the chemical nature of DSs by Lemma 2.1. Furthermore, in N = 3
+dimensions, we let x = x1, y = x2 and z = x3.
+Example 2.1. Consider the three-dimensional quadratic DS
+dx
+dt = 1
+5 −57
+10x + xy,
+dy
+dt = −x −z,
+dz
+dt = y + 1
+5z,
+(2)
+obtained via permutation x →z and then y →z in R¨ossler system [5]. By Definition 2.2, since
+M0 = 1, M1 = 5 and M2 = 1, (2) is a (7, 1) DS. Function (−x −z) contains two non-chemical
+monomials; hence, by Definition 2.1, (2) is not a CDS, and there is no associated CRN.
+Example 2.2. Consider the three-dimensional quadratic (9, 6) DS
+dx
+dt = 30x −1
+2x2 −xy −xz,
+dy
+dt = 33
+2 y −1
+2y2 −xy,
+dz
+dt = −10z + xz,
+(3)
+obtained from the minimal Willamowski–R¨ossler system [16, 17] via permutation y →z. Since
+each of its equations is chemical, (3) is a CDS. Denoting by X, Y, Z the chemical species with
+concentrations x, y, z, an associated CRN reads
+X
+30
+−→2X,
+2X
+1/2
+−−→X,
+X + Y
+1−→Y,
+X + Z
+1−→Z,
+Y
+33/2
+−−−→2Y,
+2Y
+1/2
+−−→Y,
+X + Y
+1−→X,
+Z
+10
+−→∅,
+X + Z
+1−→X + 2Z,
+(4)
+4
+
+
+where ∅denotes some species not explicitly modelled. By Definition 2.2, since R0 = 0, R1 = 3
+and R2 = 6, (4) is a (9, 6) CRN. This network is called the canonical CRN of (3); there also exist
+other, non-canonical, CRNs. In particular, since the terms xy in the first and second equations
+of (3) are multiplied, up to sign, by the same coefficient, the two canonical reactions X + Y
+1−→Y
+and X + Y
+1−→X can be fused into a single reaction X + Y
+1−→∅. Similarly, X + Z
+1−→Z and
+X + Z
+1−→X + 2Z can be fused into X + Z
+1−→2Z. Using these two fused reactions, one obtains a
+non-canonical (7, 4) CRN
+X
+30
+−→2X,
+2X
+1/2
+−−→X,
+X + Y
+1−→∅,
+X + Z
+1−→2Z,
+Y
+33/2
+−−−→2Y,
+2Y
+1/2
+−−→Y,
+Z
+10
+−→∅.
+(5)
+See Appendix A for more details on how to construct CRNs for any given CDS.
+2.2
+Chaos
+Let us now discuss what is meant by chaos, starting with the following definition.
+Definition 2.3. (Invariant set) Consider a set V ⊂RN in the state-space RN of DS (1). Assume
+that the following statement holds: if x(0; x0) = x0 ∈V, then the solution x(t; x0) ∈V for all t ∈R.
+Then, V is said to be an invariant set of DS (1). Furthermore, if there exists M > 0 such that
+supt∈R∥x(t; x0)∥≤M for every x0 ∈V, then the invariant set V is said to be bounded.
+Broadly speaking, a bounded invariant set V for DS (1) is chaotic if it has the following two
+properties [1]: (P1) trajectories in V are “sensitive to initial conditions”, and (P2) V is “irreducible”;
+V is said to be a chaotic attractor if additionally (P3) there exists a neighborhood U ⊃V such
+that if x(0; x0) = x0 ∈U then x(t; x0) approaches V as t →∞. Properties (P1) and (P2) can be
+defined in a number of non-equivalent ways [3]. For example, (P1) can be defined via existence of
+a positive Lyapunov characteristic exponent (LCE) [20, 21], which implies that nearby trajectories
+in V separate exponentially fast; see Appendix B for more details. Property (P2) can be defined
+via existence of a trajectory dense in V. Note that some definitions of chaos impose additional
+properties, such as existence of periodic trajectories that are dense in V, while other definitions
+relax certain properties, such as not requiring that set V is bounded [3].
+Definitions of chaos implicitly or explicitly exclude equilibria, trajectories connecting equilibria
+and (quasi-)periodic trajectories from being considered chaotic sets.
+Since these are the only
+candidates for chaos in linear DSs of any finite dimension, and in two-dimensional DSs of any
+degree by the Poincar´e-Bendixson theorem [1], it follows that (1) can display chaos only if dimension
+N ≥3 and degree n ≥2. In this context, a number of three-dimensional quadratic DSs with only
+one quadratic term have been presented as “minimal” chaotic systems, such as the (7, 1) R¨ossler
+system (2) and fourteen (6, 1) Sprott systems F–S [6][Table 1].
+Robustness. In this paper, we allow any definition of chaos as a bounded invariant set with
+some properties P; the only restriction that we impose is that this set, and its properties, are
+suitably robust. To formulate this, let us consider a perturbation of DS (1), given by
+dx
+dt = f(x; n) + p(x).
+(6)
+Definition 2.4. (Robustness) Let V ⊂RN be a bounded invariant set with properties P for
+DS (1).
+Assume that there exists a compact set U ⊃V such that for every sufficiently small
+5
+
+
+ε > 0 and every continuously differentiable function p(x) with maxx∈U(∥p(x)∥+ ∥∇p(x)∥) < ε the
+perturbed DS (6) has a bounded invariant set V′ ⊂U with the same properties P. Then, invariant
+set V of (1) and its properties P are said to be robust.
+3
+Theory: Quasi-chemical maps
+Assume we are given a non-chemical DS (1) with a desired robust invariant set in RN (see Defi-
+nition 2.4), and we wish to construct a CDS (see Definition 2.1) of the same dimension and with
+such an invariant set in RN
+>. To position this set into the positive orthant, one can appropriately
+translate the dependent variables in (1). However, translations (and, more broadly, affine transfor-
+mations) alone do not in general ensure that the resulting DS is chemical [10] - another non-linear
+map must in general be applied that also preserves robust structures. A candidate map involves
+perturbing DS (1) before suitable translations are applied.
+Definition 3.1. (Quasi-chemical map) Assume that for polynomial functions f1(x), f2(x), . . . ,
+fN(x) there exist polynomials p1(x; µ), p2(x; µ), . . . , pN(x; µ), with coefficients smooth in parame-
+ters µ ∈Rp
+>, and a vector T(µ) ∈RN
+>, satisfying the following properties for every i = 1, 2, . . . , N.
+(i) (Small perturbations) For every compact set U ⊂RN, and for every sufficiently small ∥µ∥,
+maxx∈U|pi(x; µ)| is arbitrarily small.
+(ii) (Large translations) For every sufficiently small ∥µ∥, ∥T(µ)∥is arbitrarily large.
+(iii) (Chemicality) For every sufficiently small ∥µ∥, the perturbed function fi(x) + pi(x; µ) be-
+comes chemical under the translation x →(x −T(µ)).
+Then, the map from DS (1) to the CDS d¯x/dt = f(¯x −T(µ)) + p(¯x −T(µ); µ) is for every
+sufficiently small ∥µ∥called a quasi-chemical map (QCM) induced by the perturbations p1(x; µ),
+p2(x; µ), . . . , pN(x; µ), and the translation vector T(µ).
+Remark.
+Consisting only of (i) arbitrarily small smooth perturbations, and (ii) translations,
+QCMs preserve robust structures. Furthermore, since translations can be arbitrarily large, every
+bounded set U ⊂RN of DS (1) can be mapped into RN
+> via QCMs.
+This family of non-linear maps is introduced in [10], where it is shown that a particular QCM
+universally maps polynomial DSs into CDSs. In other words, while it is in general not possible
+to map a given polynomial DS to a CDS via only translations, it is always possible to do so for a
+nearby perturbed polynomial DS; we now present this result rigorously.
+Theorem 3.1. (Universal QCM) Every N-dimensional n-degree DS (1), with exactly Mn mono-
+mials of degree n, can be mapped via a QCM to an N-dimensional (n+1)-degree CDS, with exactly
+Mn+1 = Mn monomials of degree (n + 1).
+Proof. This result is given as [10][Theorem 4.2]; for reader’s convenience, we reproduce the proof.
+In particular, perturbing (1) via
+dxi
+dt = fi(x) + µ
+ai
+xifi(x),
+i = 1, 2, . . . , N,
+(7)
+for every a = (a1, a2, . . . , aN)⊤∈RN
+> and every µ > 0 sufficiently small, and then translating via
+¯x = x + a/µ, one obtains the N-dimensional (n + 1)-degree CDS
+d¯xi
+dt = µ
+ai
+¯xifi
+
+¯x −a
+µ
+
+,
+i = 1, 2, . . . , N,
+(8)
+6
+
+
+with Mn monomials of degree (n + 1). By Definition 3.1, for every a ∈RN
+> there exists µ0 > 0
+such that for every µ ∈(0, µ0) the map from DS (1) to the CDS (8) is a QCM induced by the
+perturbations pi(x; µ) = µxifi(x)/ai, i = 1, 2, . . . , N, and the translation vector T(µ) = a/µ.
+Splitting. To systematically construct QCMs, let us split the ith equation from (1) as follows:
+dxi
+dt = fi(x) =
+M
+X
+j=1
+fi,j(x),
+(9)
+where fi,j(x) are arbitrary polynomials. Assume that one constructs a perturbation and translation
+satisfying Definition 3.1(i)–(iii) for each of the functions fi,j(x) separately. If all of the translation
+vectors are identical, then, by simply adding all of the perturbations to the full equation (9), one
+obtains a chemical equation under the common translation. We now formalize this basic result.
+Lemma 3.1. (Splitting lemma) Assume that, for every j = 1, 2, . . . , M, the function fi,j(x) +
+pi,j(x; µ) becomes chemical under the translation x →(x −T(µ)) for every sufficiently small
+∥µ∥. Let fi(x) be the function defined in (9), and pi(x; µ) = PM
+j=1 pi,j(x; µ). Then, the function
+fi(x) + pi(x; µ) also becomes chemical under x →(x −T(µ)) for every sufficiently small ∥µ∥.
+Proof. Applying the translation ¯x = x + T(µ) on fi(x) + pi(x; µ), one obtains
+fi (¯x −T(µ)) + pi (¯x −T(µ); µ) =
+M
+X
+j=1
+[fi,j (¯x −T(µ)) + pi,j (¯x −T(µ); µ)] .
+(10)
+By assumption, each of the summands is chemical for every sufficiently small ∥µ∥. Being a sum of
+chemical functions, the left-hand side in (10) is then also chemical by Definition 2.1.
+The QCM from Theorem 3.1 adds perturbations of identical form, with a single perturbation
+parameter, to every equation, and is applicable to every polynomial DS; however, this universality
+comes at a cost: a larger number of non-linear monomials can be introduced.
+In this section,
+we construct QCMs tailored to introduce a lower number of quadratic and cubic monomials; to
+achieve this, perturbations of different form in general, with multiple perturbation parameters, are
+added to different equations. In particular, in Section 3.1, we first construct some QCMs refined
+to introduce a lower number of quadratics when applied on linear DSs. Then, in Section 3.2, we
+present some QCMs that introduce a lower number of cubics when applied on quadratic DSs. To
+reduce the number of both quadratics and cubics, these two classes of QCMs can be combined via
+suitable splittings as per Lemma 3.1.
+3.1
+Linear DSs
+Consider DS (1) with n = 1, which can be written as
+dxi
+dt = fi(x; 1) = αi,0 +
+N
+X
+j=1
+αi,jxj,
+i = 1, 2, . . . , N.
+(11)
+Let us consider a special case, when the ith equation takes the form
+dxi
+dt = li(x) = αi,0 + αi,ixi +
+X
+j∈Ii
+αi,jxj,
+(12)
+where the set Ii contains only indices j ̸= i such that αi,j > 0.
+7
+
+
+Lemma 3.2. (Chemicality for (12)) For every ε > 0 and a ∈RN
+> there exists µ0 > 0 such that
+for every µ ∈(0, µ0) the perturbed equation
+dxi
+dt = αi,0 + αi,ixi +
+X
+j∈Ii
+αi,jxj + εx2
+i ,
+(13)
+becomes chemical under the translation x →(x −a/µ).
+Proof. Translating via ¯x = x + a/µ in (13), one obtains the equation
+d¯xi
+dt =
+
+εa2
+i
+µ2 −1
+µ
+
+αi,iai +
+X
+j∈Ii
+αi,jaj
+
++ αi,0
+
++
+
+αi,i −2εai
+µ
+
+¯xi +
+X
+j∈Ii
+αi,j ¯xj + ε¯x2
+i ,
+(14)
+which is chemical for every sufficiently small µ > 0 by Definition 2.1.
+By Theorem 3.1, DS (11) is mapped via the universal QCM to a quadratic CDS with exactly
+M1 quadratics. Using a suitable splitting as per Lemma 3.1, we now construct a QCM that can
+lead to a lower number of quadratics. To this end, let M−
+1,i be the total number of terms αi,jxj
+with j ̸= i and αi,j < 0 in the ith equation of (11); we then let M−
+1 = PN
+i=1 M−
+1,i.
+Theorem 3.2. Every N-dimensional linear DS (11), with exactly M−
+1 non-chemical first-degree
+monomials, can be mapped via a QCM to an N-dimensional quadratic CDS with M2 ≤(M−
+1 + N)
+quadratic monomials.
+Proof. Let us split DS (11) as follows:
+dxi
+dt = fi(x; 1) = li(x) + ri(x),
+i = 1, 2, . . . , N,
+(15)
+with li(x) as in (12), with set Ii containing all the indices j ̸= i from (11) such that αi,j > 0, and
+the remainder ri(x) = fi(x; 1)−li(x). Then, for every sufficiently small ε > 0 and for every a ∈RN
+>
+there exists µ0 > 0 such that for every µ ∈(0, µ0) the perturbed equations
+dxi
+dt = li(x) + ri(x) + εx2
+i + µ
+ai
+xiri(x),
+i = 1, 2, . . . , N,
+(16)
+become chemical under the translation x →(x−a/µ) by Lemma 3.2, Theorem 3.1 and Lemma 3.1.
+By Definition 3.1, the perturbations pi(x; ε, µ) = εx2
+i + µxiri(x)/ai, i = 1, 2, . . . , N, and the trans-
+lation vector a/µ, then induce a QCM for DS (11).
+Every equation from (16) has (M−
+1,i + 1)
+quadratics; hence, the corresponding CDS has M2 = PN
+i=1(M−
+1,i + 1) = (M−
+1 + N) quadratics.
+The perturbation from Lemma 3.2 is quadratic. We now show that, if αi,i ≤0 in (12), then a
+linear perturbation is sufficient.
+Lemma 3.3. (Chemicality for (12) with αi,i ≤0) Assume that αi,i ≤0 in (12). Assume also
+that parameters a ∈RN
+> are chosen to satisfy
+(−αi,i + Ai,iε)ai >
+X
+j∈Ii
+αi,jaj,
+(17)
+8
+
+
+for every sufficiently small ε > 0, where Ai,i = 0 if αi,i < 0 and Ai,i = 1 if αi,i = 0. Then, for every
+sufficiently small ε > 0 there exists µ0 > 0 such that for every µ ∈(0, µ0) the perturbed equation
+dxi
+dt = αi,0 + αi,ixi +
+X
+j∈Ii
+αi,jxj −Ai,iεxi,
+(18)
+becomes chemical under the translation x →(x −a/µ).
+Proof. Translating via ¯x = x + a/µ in (18), one obtains the equation
+d¯xi
+dt =
+
+−1
+µ
+
+(αi,i −Ai,iε)ai +
+X
+j∈Ii
+αi,jaj
+
++ αi,0
+
++ (αi,i −Ai,iε)¯xi +
+X
+j∈Ii
+αi,j ¯xj,
+(19)
+which, using (17), is chemical for every sufficiently small µ > 0 by Definition 2.1.
+Remark. Lemma 3.3 implies that, if the ith equation from (11) has αi,i ≤0, then, under the
+constraint (17), one can take pi(x; ε, µ) = −Ai,iεxi + µxiri(x)/ai in Theorem 3.2 to obtain a new
+QCM achieving a CDS with M2 = (M−
+1 + N −1) quadratics. In the extreme case when this can
+be done for every equation of (11), one obtains a CDS with only M2 = M−
+1 quadratics.
+We close this section by constructing a QCM for a three-dimensional example; for notational
+simplicity, we let x = x1, y = x2, z = x3, and a = a1, b = a2 and c = a3.
+Example 3.1. Consider the linear DS
+dx
+dt = f1(x) = 1
+5 −57
+10x,
+dy
+dt = f2(x, z) = x + z,
+dz
+dt = f3(y, z) = −y + z
+5,
+(20)
+with M1 = 5 and M −
+1 = 1. Under the universal QCM from Theorem 3.1, (20) maps to
+d¯x
+dt = µ
+a ¯x
+57
+10
+a
+µ + 1
+5
+
+−57
+10 ¯x
+
+,
+d¯y
+dt = µ
+b ¯y
+
+−(a + c)
+µ
++ ¯x + ¯z
+
+,
+d¯z
+dt = µ
+c ¯z
+ 1
+µ
+
+b −c
+5
+
+−¯y + ¯z
+5
+
+,
+(21)
+which, by Definition 2.2, is a quadratic (8, 5) CDS, i.e. it has M2 = 5 quadratics.
+Let us now apply the results from this section to construct a CDS with only M2 = 2 quadratics.
+To this end, let us split (20) as follows: f1(x) = l1(x) = 1/5 −57x/10, f2(x, z) = l2(x, z) = x + z
+and f3(y, z) = r3(y, z) = −y + z/5. Perturbing l1(x) and l2(x, z) according to Lemma 3.3, and
+r3(y, z) according to Theorem 3.1, one obtains
+dx
+dt = 1
+5 −57
+10x,
+dy
+dt = x + z −εy,
+dz
+dt = −y + z
+5 + µ
+c z
+h
+−y + z
+5
+i
+.
+(22)
+9
+
+
+Under the translation (¯x, ¯y, ¯z) = (x, y, z) + (a, b, c)/µ, the perturbed DS (22) becomes
+d¯x
+dt =
+57
+10
+a
+µ + 1
+5
+
+−57
+10 ¯x,
+d¯y
+dt = 1
+µ (εb −a −c) + ¯x −ε¯y + ¯z,
+d¯z
+dt = µ
+c ¯z
+ 1
+µ
+
+b −c
+5
+
+−¯y + ¯z
+5
+
+,
+(23)
+which is a quadratic (9, 2) CDS provided that, for every sufficiently small ε > 0, we choose any
+a, b, c > 0 such that b ≥(a + c)/ε.
+Let us note that one can also use the splitting f3(y, z) =
+l3(z) + r3(y), and perturb l3(z) = z/5 as per Lemma 3.2, and r3(y) = −y via Theorem 3.1; this
+leads to the same quadratics in this particular example, because the third equation from (20) contains
+no positive terms other than z/5.
+3.2
+Quadratic DSs
+Consider DS (1) with n = 2, which can be written as
+dxi
+dt = fi(x; 2) = αi,0 +
+N
+X
+j=1
+αi,jxj +
+X
+j=1
+βi,jx2
+j +
+N
+X
+j=1,
+j̸=i
+γi,jxixj +
+X
+(k,l)∈π(Si),
+k̸=l
+δi,k,lxkxl,
+i = 1, 2, . . . , N,
+(24)
+where π(Si) denotes all the combinations of pairs from the set Si = {1, 2, . . . , i −1, i + 1, . . . , N}.
+In what follows, we assume that (1) with n = 2 has at least one non-zero quadratic term. Let us
+consider a special case, when the ith equation takes the form
+dxi
+dt = qi(x) = βi,ix2
+i +
+X
+j∈Ji
+βi,jx2
+j +
+X
+j∈Ji
+γi,jxixj +
+X
+(k,l)∈π(Ji),
+k̸=l
+δi,k,lxkxl,
+(25)
+where βi,i ≥0, the set Ji contains only indices j, k, l ̸= i such that βi,j, δi,k,l ≥0 and γi,j ≤0, and
+π(Ji) denotes all the combinations of pairs from Ji.
+Lemma 3.4. (Chemicality for (25)) Assume that parameters a ∈RN
+> can be chosen to satisfy
+βi,iai ≥
+X
+j∈Ji
+(−γi,j)aj,
+(−γi,j)ai ≥2βi,jaj +
+X
+l∈Ji,l̸=j
+δi,j,lal
+for all j ∈Ji.
+(26)
+Then, there exists µ0 > 0 such that for every µ ∈(0, µ0) equation (25) becomes chemical under the
+translation x →(x −a/µ).
+Proof. Translating via ¯x = x + a/µ in (25), one obtains equation
+d¯xi
+dt = 1
+µ2
+
+
+X
+j∈Ji
+βi,ja2
+j +
+X
+(k,l)∈π(Ji),
+k̸=l
+δi,k,lakal + ai
+
+βi,iai +
+X
+j∈Ji
+γi,jaj
+
+
+
+−1
+µ
+
+2βi,iai +
+X
+j∈Ji
+γi,jaj
+
+¯xi
+−1
+µ
+X
+j∈Ji
+
+2βi,jaj + γi,jai +
+X
+l∈Ji,l̸=j
+δi,j,lal
+
+¯xj + qi(¯x),
+(27)
+10
+
+
+which, using (26), is chemical for every sufficiently small µ > 0 by Definition 2.1.
+Remark. If the coefficients βi,i, βi,j, δi,j,k > 0 and γi,j < 0, then, for every choice of aj > 0 with
+j ̸= i, conditions (26) are satisfied by taking any ai > 0 sufficiently large. Therefore, conditions (26)
+can also be satisfied if one or more of these coefficients are zero, provided that (25) is then perturbed
+by (some of) the underlying missing quadratics, which we exploit in Theorem 3.3 below.
+Remark. Conditions (26) are sufficient for chemicality. More generally, one can replace the first
+inequality, which is linear, with the quadratic inequality obtained by demanding that the zero-
+degree monomial in (27) is non-negative.
+Remark. In this section, we focus on reducing the number of cubics. More broadly, to simultane-
+ously decrease the number of linear and quadratic terms as well, one can redefine qi(x) by including
+in it constant or suitable linear monomials. Conditions (26), possibly with strict inequalities, then
+remain sufficient for chemicality. See Section 4.2 for some examples.
+DS (24) can be mapped under the universal QCM from Theorem 3.1 to a cubic CDS with M2
+cubics; the same is also true for every DS obtained from (24) via permutations or reflections of the
+dependent variables. We now construct a QCM based on Lemma 3.4 that is more efficient.
+Lemma 3.5. Every N-dimensional quadratic DS can be mapped via permutations and reflections to
+DS (24) whose first equation contains monomial m(x) ∈{|β1,1|x2
+1, −|γ1,2|x1x2, |β1,2|x2
+2, |δ1,2,3|x2x3}.
+Proof. Every N-dimensional quadratic DS can be mapped via a suitable permutation of the de-
+pendent variables to DS (24) with monomial m(x) ∈{β1,1x2
+1, −γ1,2x1x2, β1,2x2
+2, δ1,2,3x2x3} in the
+first equation.
+If β1,1, β1,2, γ1,2, δ1,2,3 > 0, then the lemma follows.
+Otherwise, proceed as fol-
+lows: if m(x) ∈{−|β1,1|x2
+1, −|β1,2|x2
+2}, then apply the reflection x1 →−x1 to obtain a DS with
+m(x) ∈{|β1,1|x2
+1, |β1,2|x2
+2}. Similarly, if m(x) = |γ1,2|x1x2 (respectively, m(x) = −|δ1,2,3|x2x3),
+then apply x2 →−x2 (respectively, x2 →−x2 or x3 →−x3) to obtain m(x) = −|γ1,2|x1x2
+(respectively, m(x) = |δ1,2,3|x2x3).
+Theorem 3.3. Every N-dimensional quadratic DS (24), with exactly M2 quadratic monomials,
+can be mapped via permutations, reflections and a QCM to an N-dimensional cubic CDS with
+M3 ≤(M2 −1) cubic monomials.
+Proof. By Lemma 3.5, up to permutations and reflections, we assume without a loss of gener-
+ality that DS (24) has one of the four quadratic monomials m(x) in the first equation. Defining
+remainders r1(x) = f1(x; 2)−m(x), and ri(x) = fi(x; 2), i = 2, 3, . . . , N, let us split (24) as follows:
+dx1
+dt = m(x) + r1(x),
+dxi
+dt = ri(x),
+i = 2, 3, . . . , N.
+(28)
+Consider the perturbed equations
+dx1
+dt = m(x) + r1(x) + p(x; ε) + µ
+a1
+x1r1(x),
+dxi
+dt = ri(x) + µ
+ai
+xiri(x),
+i = 2, 3, . . . , N,
+(29)
+where
+(i) if m(x) = |β1,1|x2
+1, then p(x; ε) ≡0,
+11
+
+
+(ii) if m(x) = −|γ1,2|x1x2, then p(x; ε) = εx2
+1 and we choose a1 ≥|γ1,2|a2/ε,
+(iii) if m(x) = |β1,2|x2
+2, then p(x; ε) = ε(x2
+1 −x1x2) and we choose a1 ≥2|β1,2|a2/ε,
+(iv) if m(x) = |δ1,2,3|x2x3, then p(x; ε) = ε(x2
+1−x1x2−x1x3) and we choose a1 ≥max{|δ1,2,3|a2/ε,
+|δ1,2,3|a3/ε}.
+In each of these four cases, the function q1(x) = m(x)+p(x; ε) is of the form given in (25), and the
+conditions (26) hold for every sufficiently small ε > 0. Therefore, for every sufficiently small ε > 0
+and the stated choice of a ∈RN
+> there exists µ0 > 0 such that for every µ ∈(0, µ0) the perturbed
+equations (29) become chemical under the translation x →x −a/µ by Lemma 3.4, Theorem 3.1
+and Lemma 3.1. By Definition 3.1, the perturbations p1(x; ε, µ) = p(x; ε)+µx1r1(x)/a1, pi(x; µ) =
+µxiri(x)/ai, i = 2, 3, . . . , N, and the translation vector a/µ, then induce a QCM for DS (24).
+This QCM maps one of the M2 quadratic monomials into quadratics, and not a cubic; hence, the
+resulting CDS has exactly M3 = (M2 −1) cubics.
+Remark. Depending on the precise structure of (24), further reduction of cubic terms may be
+possible via a more refined QCM: by including into q1(x) more quadratic terms from r1(x), and by
+applying such splittings to the other equations as well. See Section 4.2 for an example.
+Example 3.2. Consider R¨ossler system (2). Under the universal QCM from Theorem 3.1, (2)
+maps to a cubic CDS. Let us now apply the results from this section to construct a QCM that
+maps R¨ossler system into a quadratic CDS. To this end, as per Lemma 3.5, we apply the reflection
+y →−y, thus obtaining
+dx
+dt = f1(x, y) = 1
+5 −57
+10x −xy,
+dy
+dt = f2(x, z) = x + z,
+dz
+dt = f3(y, z) = −y + z
+5.
+(30)
+Let us split this DS as follows: f1(x, y) = m(x, y)+l1(x) with m(x, y) = −xy, f2(x, z) = l2(z)+r2(x)
+with l2(z) = z, and f3(y, z) = r3(y, z). Perturbing then m(x, y) according to Theorem 3.3(ii), l1(x)
+and l2(z) according to Lemma 3.3, and r2(x) and r3(y, z) via Theorem 3.1, one obtains
+dx
+dt = 1
+5 −57
+10x −xy + εx2,
+dy
+dt = x + z −εy + µ
+b xy,
+dz
+dt = −y + z
+5 + µ
+c z
+
+−y + z
+5
+
+.
+(31)
+Under the translation (¯x, ¯y, ¯z) = (x, y, z) + (a, b, c)/µ, the perturbed DS (31) becomes
+d¯x
+dt =
+ a
+µ2 (εa −b) + 57a
+10µ + 1
+5
+
++
+ 1
+µ(b −2εa) −57
+10
+
+¯x + a
+µ ¯y + ε¯x2 −¯x¯y,
+d¯y
+dt = 1
+µ (εb −c) −
+a
+b + ε
+
+¯y + ¯z + µ
+b ¯x¯y,
+d¯z
+dt =
+b
+c −1
+5
+
+¯z + µ
+5c ¯z2 −µ
+c ¯y¯z.
+(32)
+For every ε > 0, choosing any a, b, c > 0 such that a ≥b/ε and b ≥c/ε, it follows that, for every
+sufficiently small µ > 0, (32) is a quadratic (12, 5) CDS.
+12
+
+
+4
+Applications to chaos
+In this section, we apply the theory developed in Section 3 to quadratic DSs with up to two quadratic
+monomials to study the capacity of chemical and biological systems for chaos.
+In particular,
+prioritizing reduction in the number of the highest-degree monomials and reactions, we construct
+three relatively simple CDSs displaying chaotic attractors with various properties.
+4.1
+Chaotic DSs with one quadratic monomial
+By Theorem 3.3, every quadratic DS, with only one quadratic term, can be mapped to a quadratic
+CDS; in the context of chaos, we then have the following result.
+Theorem 4.1. Assume that N-dimensional quadratic DS, with only one quadratic monomial, has
+a robust bounded invariant set in RN with robust properties P that are invariant under permuta-
+tions, reflections and translations of the dependent variables. Then, there exists an N-dimensional
+quadratic CDS with a bounded invariant set in RN
+> with properties P.
+Proof. By Theorem 3.3, every N-dimensional quadratic DS, with only one quadratic monomial,
+can be mapped to an N-dimensional quadratic CDS via permutations, reflections and a QCM, the
+latter of which consists purely of smooth perturbations of the vector field and translations of the
+dependent variables by Definition 3.1. By Definition 2.4, robust invariant sets and robust properties
+are preserved under such perturbations, implying the statement of the theorem.
+Theorem 4.1 implies that, assuming robust chaos, the R¨ossler system (2), and the Sprott systems
+F–S [6][Table 1], can all be mapped to quadratic CDSs with chaos.
+Theorem 4.2. (Chemical R¨ossler system) Consider three-dimensional quadratic (11, 5) CDS
+dx
+dt = α1 −α2x + α3y + α4x2 −α5xy,
+dy
+dt = −α6y + α7z + α5xy,
+dz
+dt = α7z + α8z2 −α9yz.
+(33)
+with a (9, 4) CRN
+∅α1
+−→X,
+X
+α2
+−→∅,
+Y
+α3
+−→X + Y,
+2X
+α4
+−→3X,
+X + Y
+α5
+−→2Y,
+Y
+α6
+−→∅,
+Z
+α7
+−→Y + 2Z,
+2Z
+α8
+−→3Z,
+Y + Z
+α9
+−→Y,
+(34)
+and parameters
+α1 = 57
+10ε + εµ
+5 , α2 = 1
+εµ + 57
+10, α3 = 1
+ε, α4 = 1
+µ, α5 = 1,
+α6 = 1
+ε + ε, α7 = 1
+ε −1
+5, α8 = µ
+5ε −µ
+25, α9 = µ.
+(35)
+Assume that DS (2) has a robust chaotic attractor in R3. Then, CDS (33) has a chaotic attractor
+in R3
+> for every sufficiently small ε > 0 and µ > 0.
+13
+
+
+(a) Original DS (30)
+(d) Perturbed DS (31)
+(g) CDS (37)
+-10
+-5
+0
+5
+-10
+-5
+0
+5
+-10
+-5
+0
+5
+-10
+-5
+0
+5
+9.999
+10
+104
+0.09
+0.095
+0.1
+0.105
+(b)
+(e)
+(h)
+0
+50
+100
+-10
+-5
+0
+5
+10
+0
+50
+100
+-10
+-5
+0
+5
+10
+0
+50
+100
+0.9999
+0.99995
+1
+1.00005
+1.0001
+105
+(c)
+(f)
+(i)
+0
+10
+20
+30
+40
+50
+-1.5
+-1
+-0.5
+0
+0.5
+0
+10
+20
+30
+40
+50
+-1.5
+-1
+-0.5
+0
+0.5
+0
+10
+20
+30
+40
+50
+-10
+-5
+0
+0
+10
+20
+30
+40
+50
+-1.5
+-1
+-0.5
+0
+0.5
+0
+10
+20
+30
+40
+50
+-1.5
+-1
+-0.5
+0
+0.5
+0
+10
+20
+30
+40
+50
+-10
+-5
+0
+0
+10
+20
+30
+40
+50
+0
+5
+10
+0
+10
+20
+30
+40
+50
+-6
+-4
+-2
+0
+0
+10
+20
+30
+40
+50
+-15
+-10
+-5
+0
+5
+Figure 2: Quadratic (11, 5) chemical R¨ossler system. Panels (a) and (b) display respectively the
+(y, z)- and (t, y)-space for the reflected R¨ossler system (30) with initial condition (x0, y0, z0) =
+(5, −5, 5); panel (c) shows time-evolution of the three LCEs for this solution, along with the values
+at t = 106 as dashed black lines. Analogous plots are shown in panels (d)–(f) for the perturbed
+R¨ossler system (31), and in (g)–(i) for its translated and rescaled version (33) with the translated
+and rescaled initial condition x0 = εµ(5 + (ε2µ)−1), y0 = −5 + (εµ)−1, z0 = 5ε(5 −ε)−1(5 + µ−1).
+The parameters are fixed to (a, b, c) = (ε−2, ε−1, 1) and (ε, µ) = (10−3, 10−2).
+14
+
+
+Proof. By assumption, (2) has a robust chaotic attractor; therefore, by Definition 2.4, there exists
+ε0 > 0 such that for every ε ∈(0, ε0), and for every a, b, c > 0, there exists µ0 > 0 such that for
+every µ ∈(0, µ0) the perturbed system (31) also has a robust chaotic attractor. Being a translation
+of (31), DS (32) also has a robust chaotic attractor, which is in R3
+> for every sufficiently small µ.
+Choosing any a, b, c > 0 such that a ≥b/ε and b ≥c/ε ensures that (32) is chemical. To reduce
+the number of the induced chemical reactions, let us choose b = c/ε and e.g. a = c/ε2 and c = 1,
+under which choice the CDS becomes
+d¯x
+dt =
+
+57
+10ε2µ + 1
+5
+
+−
+ 1
+εµ + 57
+10
+
+¯x +
+1
+ε2µ ¯y + ε¯x2 −¯x¯y,
+d¯y
+dt = −
+1
+ε + ε
+
+¯y + ¯z + εµ¯x¯y,
+d¯z
+dt =
+1
+ε −1
+5
+
+¯z + µ
+5 ¯z2 −µ¯y¯z.
+(36)
+To further reduce the number of reactions, let us rescale via ¯x →¯x/(εµ) and ¯z →(1/ε −1/5)¯z,
+which ensures that the terms ¯x¯y in the first and second equations, and the terms z in the second and
+third equations, are multiplied, up to sign, by the same coefficients, thus allowing for fusion of the
+underlying reactions (see Appendix A). Removing the bars, (36) then becomes the CDS (33).
+Example 4.1. Under the parameter choice ε = 10−3 and µ = 10−2, CDS (33) becomes
+dx
+dt = 5700.000002 −100005.7x + 1000y + 100x2 −xy,
+dy
+dt = −1000.001y + 999.8z + xy,
+dz
+dt = 999.8z + 1.9996z2 −0.01yz.
+(37)
+In Figure 2(a), we display the numerically observed chaotic attractor of the (reflected) R¨ossler
+system (30) in the (y, z)-space, while in Figure 2(b) the corresponding trajectory in the (t, y)-space.
+Furthermore, in Figure 2(c), we show the three finite-time LCEs over the time-interval t ∈[0, 50],
+along with the values at t = 106 shown as the dashed lines. The positive LCE is consistent with
+chaos; see Appendix B for more details about LCEs, including a numerical method used in this
+paper to approximate them. Analogous plots are shown in Figure 2(d)–(f) for the perturbed R¨ossler
+system (31) with b = ε−1 and c = 1; parameters ε = 10−3 and µ = 10−2 are chosen so that there is a
+good match with the original attractor. In particular, note that the LCEs of (31) are relatively close
+to of those of (30), numerically indicating robustness of the underlying chaotic attractor. Finally, in
+Figure 2(g)–(i), we show analogous plots for the perturbed, translated and rescaled CDS (33), which
+is under the chosen parameter values equivalent to (37). Note that, since infinite-time LCEs are
+invariant under affine transformations, systems (31) and (33) have identical LCEs in the long-run.
+4.1.1
+One-wing chaos
+The (11, 5) chemical R¨ossler system (33) with (9, 4) CRN (34) has one fewer quadratic than the
+(9, 6) Willamowski–R¨ossler system (3) with (7, 4) CRN (5); however, they contain the same number
+of quadratic reactions. Let us now construct an even simpler CDS with one-wing chaos. To this
+15
+
+
+end, consider the quadratic DS
+dx
+dt = −y + x2,
+dy
+dt = 27
+10x + z,
+dz
+dt = x + y,
+(38)
+obtained via permutation x →y in Sprott system P [6][Table 1].
+We display the numerically
+observed chaotic attractor of (38) in Figure 3(a)–(b), and the LCEs in Figure 3(c).
+(a) DS (38)
+(b)
+(c)
+-1
+-0.5
+0
+0.5
+-0.5
+0
+0.5
+1
+1.5
+0
+50
+100
+150
+200
+-1
+-0.5
+0
+0.5
+(d) CDS (39)
+(e)
+(f)
+9.85
+9.9
+9.95
+10-3
+3.803702
+3.803704
+3.803706
+3.803708
+3.80371
+105
+0
+50
+100
+150
+200
+9.85
+9.9
+9.95
+10-3
+0
+50
+100
+-1
+0
+1
+2
+Figure 3: Quadratic (10, 3) CDS with one-wing chaos. Panels (a)–(b) display respectively the (x, y)-
+and (t, x)-space for DS (38) with initial condition (x0, y0, z0) = (0.5, 0, 0); the two equilibria are
+shown as black dots in (a). Panel (c) shows the three finite-time LCEs, along with the values at
+t = 106 shown as the dashed lines. Panels (d)–(e) show analogous plots for CDS (39) with (ε, µ) =
+(10−2, 10−2) and the translated and rescaled initial condition x0 = |ε−2+2.7ε−1−2µ−1|−1(0.5+µ−1),
+y0 = (10/27)((ε2µ)−1 + 2.7(εµ)−1), z0 = (εµ)−1. Panel (f) shows the LCEs for the perturbed
+DS (42) with a = 1 and c = ε−1, which are in the long-run identical to the long-time LCEs of (39).
+Theorem 4.3. (One-wing chaos) Consider three-dimensional quadratic (10, 3) CDS
+dx
+dt = α1 + α2x + α3x2 −α4xy,
+dy
+dt = |α2|x −α5y + α6z,
+dz
+dt = |α2|x −α7z + α8yz,
+(39)
+16
+
+
+with (8, 3) CRN
+∅α1
+−→X,
+X
+|α2|
+−−→X + sign(α2)X + Y + Z,
+2X
+α3
+−→3X,
+X + Y
+α4
+−→Y,
+Y
+α5
+−→∅,
+Z
+α6
+−→Y + Z,
+Z
+α7
+−→∅,
+Y + Z
+α8
+−→Y + 2Z,
+(40)
+and parameters
+α1 =
+1
+µ2|α2|, α2 = 1
+ε2 + 27
+10ε −2
+µ, α3 = |α2|, α4 = 27
+10µ,
+α5 = ε, α6 = 10
+27, α7 = 1
+ε + 27
+10 + ε, α8 = 27
+10εµ.
+(41)
+Assume that DS (38) has a robust one-wing chaotic attractor in R3. Then, CDS (39) has a one-wing
+chaotic attractor in R3
+> for every sufficiently small ε > 0 and µ > 0.
+Proof. Let us split DS (38) as follows: f1(x, y) = −y + x2 = m(x) + r1(y) with m(x) = x2,
+f2(x, z) = 27x/10 + z = l2(x, z) and f3(x, y) = x + y = l3(x) + r3(y) with l3(x) = x. Perturbing
+then m(x, y) according to Theorem 3.3(i), l2(x, z) and l3(x) according to Lemma 3.3, and r1(y)
+and r3(y) via Theorem 3.1, one obtains
+dx
+dt = −y + x2 −µ
+axy,
+dy
+dt = 27
+10x + z −εy,
+dz
+dt = x + y −εz + µ
+c yz.
+(42)
+Under the translation (¯x, ¯y, ¯z) = (x, y, z) + (a, b, c)/µ, one then obtains
+d¯x
+dt = a2
+µ2 +
+
+−2a
+µ + b
+a
+
+¯x + ¯x2 −µ
+a ¯x¯y,
+d¯y
+dt = 1
+µ
+
+−27
+10a −c + εb
+
++ 27
+10 ¯x −ε¯y + ¯z,
+d¯z
+dt = 1
+µ(−a + εc) + ¯x −
+b
+c + ε
+
+¯z + µ
+c ¯y¯z.
+(43)
+Sufficient to make this system chemical is by choosing b = a/ε2 + 27a/(10ε), c = a/ε and e.g.
+a = 1. Then, by rescaling ¯x →| 1
+ε2 + 27
+10ε −2
+µ|¯x and ¯y →27¯y/10, the monomials ¯x are multiplied,
+up to sign, by the same coefficients, thus allowing for fusion of the underlying three reactions (see
+Appendix A). Removing the bars, DS (43) then becomes the CDS (39), and the theorem then
+follows from the assumption that the chaotic attractor of (38) and its one-wingedness are robust,
+and from the fact that one-wingedness is invariant under affine transformations.
+Example 4.2. Let us choose ε = µ = 10−2 in (41). The numerically observed one-wing chaotic
+attractor of CDS (39) is then shown in the (x, y)-space in Figure 3(d), while in Figure 3(e) in
+the (t, x)-space. The associated LCEs are shown in Figure 3(f), and are relatively close to those
+of (38). See also Figure 1(a) for the one-wing chaotic attractor in the (x, y, z)-space.
+17
+
+
+4.2
+Chaotic DSs with two quadratic monomials
+For quadratic DSs with only two quadratic terms, Theorem 3.3 implies the following result.
+Theorem 4.4. Assume that N-dimensional quadratic DS, with only two quadratic monomials, has
+a robust bounded invariant set in RN with robust properties P that are invariant under permutations,
+reflections and translations of the dependent variables. Then, there exists an N-dimensional cubic
+CDS, with at most one cubic monomial, with a bounded invariant set in RN
+> with properties P.
+Proof. The statement of the theorem follows by analogous arguments as for Theorem 4.1.
+Using the Lorenz system [7], one can then deduce the following result, which can be seen as an
+improvement of [10][Theorem 5.2].
+Corollary 4.1. There exists a three-dimensional cubic CDS, with only one cubic monomial, that
+has a chaotic attractor in R3
+>.
+Proof. The corollary follows from Theorem 4.4 and the fact that the three-dimensional quadratic
+(7, 2) Lorenz system has a robust chaotic attractor [9].
+4.2.1
+Two-wing chaos
+The three-dimensional quadratic (7, 2) Lorenz and the (5, 2) Sprott systems B–C [6][Table 1] display
+two-wing chaotic attractors, and can by Theorem 3.3 all be mapped to three-dimensional cubic
+CDSs with only one cubic. In what follows, we perform this construction on the Sprott system C;
+in particular, consider the DS
+dx
+dt = −1 + y2,
+dy
+dt = −xz,
+dz
+dt = y −z,
+(44)
+obtained via permutation y →z, then x →y and then reflection x →−x in the Sprott system C.
+See Figure 4(a)–(c) for the underlying chaotic attractor and the LCEs.
+Theorem 4.5. (Two-wing chaos) Consider three-dimensional cubic (11, 5, 1) CDS
+dx
+dt = α1 −α2x + α3x2 + α4y2 −α5xy,
+dy
+dt = −α6y + α5xy + α7yz −α8xyz,
+dz
+dt = α6y −α9z,
+(45)
+with (9, 4, 1) CRN
+∅α1
+−→X,
+X
+α2
+−→∅,
+2X
+α3
+−→3X,
+2Y
+α4
+−→X + 2Y,
+X + Y
+α5
+−→2Y,
+Y
+α6
+−→Z,
+Y + Z
+α7
+−→2Y + Z,
+X + Y + Z α8
+−→X + Z,
+Z α9
+−→∅,
+(46)
+18
+
+
+(a) DS (44)
+(b)
+(c)
+-2
+0
+2
+4
+-2
+-1
+0
+1
+2
+3
+0
+50
+100
+150
+200
+-2
+0
+2
+0
+50
+100
+-1
+0
+1
+(d) CDS (45)
+(e)
+(f)
+1.99995
+2
+2.00005
+105
+0.098
+0.1
+0.102
+0
+50
+100
+150
+200
+0.098
+0.1
+0.102
+0
+50
+100
+-1
+0
+1
+Figure 4: Cubic (11, 5, 1) CDS with two-wing chaos. Panels (a)–(b) display respectively the (x, y)-
+and (t, y)-space for DS (44) with initial condition (x0, y0, z0) = (0, 0, −1); the two equilibria are
+shown as black dots in panel (a). Panel (c) shows the three finite-time LCEs, along with the values
+at t = 106 shown as the dashed lines. Panels (d)–(e) show analogous plots for CDS (45) with
+(ε, µ) = (10−3, 10−2) and the translated and rescaled initial condition x0 = 2(εµ)−1, y0 = εµ−1,
+z0 = 2µ−1(−1 + µ−1). Panel (f) shows the LCEs for the perturbed DS (48) with b = 1, which are
+in the long-run identical to the long-time LCEs of (45).
+and parameters
+α1 =
+4
+εµ2 −1
+µ2 −1, α2 = 4
+µ −ε
+µ, α3 = ε, α4 = 1
+ε2 ,
+α5 = 1, α6 = 2
+εµ, α7 = µ
+ε , α8 = µ2
+2 , α9 = 1.
+(47)
+Assume that DS (44) has a robust two-wing chaotic attractor in R3. Then, CDS (45) has a two-wing
+chaotic attractor in R3
+> for every sufficiently small ε > 0 and µ > 0.
+Proof. Let us split DS (44) as follows: f1(y) = −1 + y2 = q1(y), f2(x, z) = −xz = r2(x, z) and
+f3(y, z) = y −z = l3(y, z). Perturbing then q1(y) according to Theorem 3.3(iii), l3(y, z) according
+to Lemma 3.3, and r2(x, z) via Theorem 3.1, one obtains
+dx
+dt = −1 + y2 + ε(x2 −xy),
+dy
+dt = −xz −µ
+b xyz,
+dz
+dt = y −z.
+(48)
+19
+
+
+Under the translation (¯x, ¯y, ¯z) = (x, y, z) + (a, b, c)/µ, one then obtains
+d¯x
+dt =
+ 1
+µ2
+ b2 + εa2 −εab
+
+−1
+
++ ε
+µ(b −2a)¯x + 1
+µ (−2b + εa) ¯y + ε¯x2 + ¯y2 −ε¯x¯y,
+d¯y
+dt = −1
+µ
+ac
+b ¯y + c
+b ¯x¯y + a
+b ¯y¯z −µ
+b ¯x¯y¯z,
+d¯z
+dt = 1
+µ(c −b) + ¯y −¯z.
+(49)
+To make this system chemical, it is sufficient to choose a = 2b/ε, c = b and e.g. b = 1. By then
+rescaling via ¯y →¯y/ε and ¯z →µ¯z/2, the monomials ¯x¯y, as well as ¯y, are multiplied, up to sign,
+by the same coefficients, thus allowing for fusion of the underlying reactions (see Appendix A).
+Removing the bars, DS (49) then becomes the CDS (45), and the theorem then follows from the
+assumption that the chaotic attractor of (44) and its two-wingedness are robust, and the fact that
+two-wingedness is invariant under affine transformations.
+Example 4.3. Let us choose ε = 10−3 and µ = 10−2 in (47). The numerically observed two-wing
+chaotic attractor of CDS (45) is then shown in the (x, y)-space in Figure 4(d); the (t, y)-space is
+shown in Figure 4(e). The corresponding LCEs are displayed in Figure 4(f), and are relatively close
+to those of DS (44). See also Figure 1(b) for the two-wing chaotic attractor in the (x, y, z)-space.
+4.2.2
+Hidden chaos
+The chaotic attractors considered in the previous sections can be detected via equilibria: by choosing
+an initial condition sufficiently close to some unstable equilibrium, the corresponding trajectory
+converges to the chaotic attractor in the long-run. In this section, we consider chaotic attractors
+that are hidden from equilibria [4].
+Definition 4.1. (Hidden chaos) Consider DS (1) with a chaotic attractor V. Assume that the
+following statement is false: for some equilibrium x∗of (1) and for every ε > 0 there exists an
+initial condition x0 with ∥x0 −x∗∥< ε such that the solution x(t; x0) of (1) converges to V as
+t →∞. Then, V is said to be a hidden chaotic attractor of (1).
+It follows from Definition 4.1 that sufficient for a chaotic attractor to be hidden is that the
+corresponding DS has no equilibria, or only stable equilibria. In this context, 23 three-dimensional
+quadratic DSs with chaos and a unique and stable equilibrium have been reported in [8]; these DSs
+contain 7 or 8 monomials in total, of which 2 or 3 are quadratic. Let us consider the quadratic DS
+dx
+dt = 57
+100 −31
+10z −1
+5xy −3
+10xz,
+dy
+dt = −y −z,
+dz
+dt = x,
+(50)
+obtained via permutation x →z and reflection y →−y in SE17 from [8][Table 1]. The hidden
+chaotic attractor, and the unique and stable equilibrium, are displayed in the (x, y)-space in Fig-
+ure 5(a); the trajectory in the (t, x)-space is shown in Figure 5(b), with the LCEs in Figure 5(c).
+Theorem 3.3 guarantees that (50) can be mapped to a one-cubic-term CDS, but not necessarily
+to a quadratic CDS. Furthermore, (smooth) perturbations of the vector field in general introduce
+20
+
+
+(a) DS (50)
+(b)
+(c)
+0
+20
+40
+0
+5
+10
+15
+0
+50
+100
+-5
+0
+5
+10
+15
+20
+0
+50
+100
+-1.5
+-1
+-0.5
+0
+0.5
+1
+1.5
+(d) CDS (51)
+(e)
+(f)
+3.22580349
+3.2258035
+109
+2
+2.00005
+2.0001
+2.00015
+105
+0
+50
+100
+2
+2.00005
+2.0001
+2.00015
+105
+0
+50
+100
+-1.5
+-1
+-0.5
+0
+0.5
+1
+1.5
+Figure 5: Quadratic (11, 5) CDS with hidden chaos. Panels (a)–(b) respectively display the (x, y)-
+and (t, y)-space for DS (50), with initial condition (x0, y0, z0) = (−5, 0, 7.5); the stable equilibrium
+is shown as a black dot in (a). Panel (c) shows the three finite-time LCEs, along with the values at
+t = 106 shown as the dashed lines. Panels (d)–(e) show analogous plots for CDS (51) with (ε, µ) =
+(10−5, 10−5) and the translated and rescaled initial condition x0 = (3.1 + 0.285µ)−1(−5 + (εµ)−1),
+y0 = 2µ−1, z0 = 0.6µ−1(3.1 + 0.285µ)−1(7.5 + 2µ−1). Panel (f) shows the LCEs for the perturbed
+DS (54) with b = c = 2, which are in the long-run identical to the long-time LCEs of (51).
+additional equilibria, i.e. having a unique equilibrium is not a robust property of DSs; consequently,
+CDSs obtained from (50) via QCMs in general have multiple equilibria. We now design a QCM
+that overcomes these issues: both the degree and equilibrium uniqueness of (50) are preserved.
+Theorem 4.6. (Hidden chaos) Consider three-dimensional quadratic (11, 5) CDS
+dx
+dt = α1 −α2x + α3y + α4z + α5x2 −α6xy −α7xz,
+dy
+dt = α1 −α8yz,
+dz
+dt = −α9z + α7xz,
+(51)
+with (9, 4) CRN
+∅α1
+−→X + Y,
+X
+α2
+−→∅,
+Y
+α3
+−→Y + X,
+Z
+α4
+−→Z + X,
+2X
+α5
+−→3X,
+X + Y
+α6
+−→Y,
+X + Z
+α7
+−→2Z,
+Y + Z
+α8
+−→Z,
+Z
+α9
+−→∅,
+(52)
+and parameters
+α1 = 2
+µ, α2 = 1
+µ, α3 =
+40
+620εµ + 57εµ2 , α4 = 3 −31εµ
+6ε
+, α5 = ε(620 + 57µ)
+200
+,
+α6 = 1
+5, α7 = µ(620 + 57µ)
+400
+, α8 = µ2(620 + 57µ)
+240
+, α9 = 1
+2ε.
+(53)
+21
+
+
+Assume that DS (50) has a robust chaotic attractor in R3. Then, CDS (51) has a unique and stable
+equilibrium, and a hidden chaotic attractor, in R3
+> for every sufficiently small ε > 0 and µ > 0.
+Proof. Let us split DS (50) as follows: f1(x, y, z) = 57/100 −31z/10 −xy/5 −3xz/10 = q1(x, y, z),
+f2(y, z) = −y −z = l2(y) + r2(z) with l2(y) = −y, and f3(x) = x = r3(x). Perturbing then
+q1(x, y, z) with εx2, to satisfy the conditions (26) from Lemma 3.4, l2(y) according to Lemma 3.3,
+and r2(z) and r3(x) via Theorem 3.1, one obtains
+dx
+dt = 57
+100 −31
+10z −1
+5xy −3
+10xz + εx2,
+dy
+dt = −y −z −µ
+b yz,
+dz
+dt = x + µ
+c xz.
+(54)
+One equilibrium of DS (54) is given by
+(x∗, y∗, z∗) =
+ 
+0,
+−57
+310 + 57
+b µ, 57
+310
+!
+,
+(55)
+which, for every sufficiently small ε > 0 and µ > 0, being a perturbation of the hyperbolic and
+stable equilibrium of (50), is itself hyperbolic and stable. Every other equilibrium (x∗, y∗, z∗) of (54)
+satisfies 0 = (c/b−1)y∗+c/µ; to this end, we choose c = b, which ensures that the equilibrium (55)
+is unique. Translating then via (¯x, ¯y, ¯z) = (x, y, z) + (a, b, b)/µ, one obtains
+d¯x
+dt =
+ a
+µ2
+
+εa −b
+2
+
++ 31b
+10µ + 57
+100
+
++
+1
+10µ (5b −20εa) ¯x + a
+5µ ¯y +
+
+−31
+10 + 3a
+10µ
+
+¯z
++ ε¯x2 −1
+5 ¯x¯y −3
+10 ¯x¯z,
+d¯y
+dt = b
+µ −µ
+b ¯y¯z,
+d¯z
+dt = −a
+b z + µ
+b ¯x¯z.
+(56)
+Sufficient to make this system chemical is with b = 2εa; we then e.g. fix a = 1/ε to make b = O(1).
+Then, rescaling via ¯x →(31/10 + 57µ/200)¯x and ¯z →(5/3)µ(31/10 + 57µ/200)¯z, the monomials
+¯x¯z, as well as 1, are multiplied, up to sign, by the same coefficients, thus allowing for fusion of the
+underlying reactions (see Appendix A). Removing the bars, DS (56) then becomes the CDS (51),
+and the theorem then follows from the assumption that the chaotic attractor of (50) is robust.
+Example 4.4. Let us choose ε = µ = 10−5 in (53), under which the unique equilibrium of (51)
+is stable. The numerically observed hidden chaotic attractor, together with the equilibrium, are
+shown in the (x, y)-space in Figure 5(d); the corresponding (t, y)-space is shown in Figure 5(e).
+The associated LCEs are displayed in Figure 5(f), and are close to those of the DS (50). See also
+Figure 1(c) for the hidden chaotic attractor and the equilibrium in the (x, y, z)-space.
+5
+Discussion
+In this paper, we have developed some fundamental theory about mapping polynomial dynamical
+systems (DSs) into dynamically similar chemical dynamical systems (CDSs) of the same dimension
+22
+
+
+and with a reduced number of non-linear terms. We have then applied this theory to investigate the
+capacity of chemical and biological systems to display chaotic behaviors with various properties.
+In particular, in Section 3, we have developed some theory about the so-called quasi-chemical
+maps (QCMs). These maps, put forward in [10], can transform polynomial DSs into CDSs purely
+via smooth perturbations of the vector field and translations of the dependent variables, thereby
+preserving both the dimension and robust structures. In Section 3.1, we have constructed some
+QCMs that can map linear DSs into quadratic CDSs with a lower number of quadratics. Using
+one such map, we have proved in Theorem 3.2 that every N-dimensional linear DS, with M−
+1
+non-chemical linear monomials, can be mapped to an N-dimensional quadratic CDS with at most
+(M−
+1 +N) quadratics. Similarly, in Section 3.2, we have constructed QCMs that can map quadratic
+DSs into cubic CDSs with a lower number of cubics. One such map has been used to prove in
+Theorem 3.3 that every quadratic DS, with M2 quadratic monomials, can be mapped to a cubic
+CDS with at most (M2 −1) cubics. To reduce the number of both quadratics and cubics, these
+different QCMs can be combined into a single composite one by suitably splitting DSs, as outlined
+in Lemma 3.1. This approach has then been used in Section 4 to investigate chaos in CDSs.
+In particular, in Section 4.1, we have constructively proved in Theorem 4.1 that every quadratic
+DS, with only one quadratic monomial and robust chaos, can be mapped to a quadratic CDS of the
+same dimension and with the robust chaos preserved. A number of such DSs have been put forward,
+such as the R¨ossler [5] and Sprott systems F–S [6]. Assuming existence of robust chaos in these
+DSs, Theorem 4.1 then shows that three-dimensional quadratic CDSs can display a range of chaotic
+behaviors. As a concrete example, we have constructed in Theorem 4.2 the chemical R¨ossler system
+- a quadratic (11, 5) CDS, with 11 monomials of which exactly 5 are quadratic, with (9, 4) chemical
+reaction network (CRN), with 9 reactions of which exactly 4 are quadratic, displaying the R¨ossler
+attractor. This CDS is simpler, when it comes to the number of quadratics, than the minimal (9, 6)
+Willamowski–R¨ossler system [16, 17] with (7, 4) CRN. We have then constructed in Theorem 4.3 a
+quadratic (10, 3) CDS with (8, 3) CRN and a chaotic attractor with one wing, shown in Figure 1(a).
+To the best of the author’s knowledge, this is currently the three-dimensional quadratic CDS with
+observed chaos that has the lowest number of quadratic monomials and reactions.
+In Section 4.2, we have constructively proved in Theorem 4.4 that every quadratic DS, with only
+two quadratic monomials and robust chaos, can be mapped to a cubic CDS, with at most one cubic
+monomial, of the same dimension and with the robust chaos preserved. A number of such DSs have
+been reported, such as the Lorenz [7] and Sprott systems A–E [6][Table 1], and many others [8, 4].
+Existence of a robust chaotic attractor is proved for the Lorenz system [9]; hence, one obtains
+Corollary 4.1, guaranteeing existence of a three-dimensional cubic CDS with only one cubic and a
+chaotic attractor. More broadly, assuming the other DSs also have robust chaos, Theorem 4.4 shows
+that three-dimensional cubic CDSs can realize a rich set of chaotic behaviors already with only one
+cubic monomial. To showcase this, we have constructed a cubic (11, 5, 1) CDS with (9, 4, 1) CRN
+in Theorem 4.5 that displays a chaotic attractor with two wings; see Figure 1(b). Furthermore,
+in Theorem 4.6, we have presented a quadratic (11, 5) CDS with (9, 4) CRN displaying a hidden
+chaotic attractor, and a stable and unique equilibrium, displayed in Figure 1(c). To the best of
+the author’s knowledge, these two CDSs have the lowest number of highest-degree monomials and
+reactions reported to this day in the context of the two-wing and hidden chaos; in fact, (51) appears
+to be the first three-dimensional CDS with hidden chaos and unique equilibrium reported.
+We close this paper with three sets of open questions about three-dimensional CDSs with
+chaos.
+Firstly, is there a quadratic CDS with a (one-wing) chaotic attractor and less than 3
+quadratic monomials, or less than 3 quadratic reactions? Is there a quadratic CDS with a two-
+wing chaotic attractor? Is there a CDS with a chaotic attractor and stable and unique equilibrium
+23
+
+
+with less than 5 quadratic monomials, or less than 4 quadratic reactions?
+Is there a cubic or
+quadratic CDS with a chaotic attractor and no equilibria? What is the lowest number of linear
+monomials in all such CDSs? Secondly, the QCMs, used to systematically construct the CDSs
+in this paper, rely on the perturbation parameters ε, µ > 0, which have to take sufficiently small
+values in order for the target chaotic set to persist under the perturbations. The “less robust”
+a chaotic set, the smaller one requires the parameter values. Consequences of these small values
+are that the polynomial coefficients in the constructed CDSs, as well as the regions in the state-
+space where the chaotic sets are positioned, can span many orders of magnitude, see e.g. (37)
+and Figure 1. Can one systematically construct CDSs of similar complexity as in this paper, but
+without such scale separations? Finally, chaotic attractors in the DSs considered in this paper in
+general have a bounded region of attraction, beyond which the solutions may grow unboundedly,
+and the constructed CDSs can inherit such behaviors. Can one systematically construct globally
+bounded chaotic CDSs, without significantly increasing their structural complexity?
+A
+Appendix: Chemical reaction networks
+Every CDS induces a canonical set of chemical reactions [11]. In what follows, given any x ∈R,
+we define the sign function as sign(x) = −1 if x < 0, sign(x) = 0 if x = 0, and sign(x) = 1 if x > 0.
+Definition A.1. (Chemical reaction network) Assume that (1) is a CDS. Let m(x) = αxν1
+1 xν2
+2 . . . xνN
+N
+be a monomial from fi(x), where α ∈R and ν1, ν2, . . . , νN are non-negative integers. Then, the
+monomial m(x) = sign(α)|α|xν1
+1 xν2
+2 . . . xνN
+N
+induces the canonical chemical reaction
+N
+X
+k=1
+νkXk
+|α|
+−→(νi + sign(α)) Xi +
+N
+X
+k=1,k̸=i
+νkXk,
+(57)
+where Xi denotes the chemical species whose concentration is xi. The set of all such chemical
+reactions, induced by all the monomials in the vector field f(x), is called the canonical chemical
+reaction network ( CRN) induced by (1).
+Remark. Terms of the form 0Xi are denoted by ∅, and interpreted as some neglected species.
+For any given CDS, the induced canonical CRN from Definition A.1 is unique. However, a given
+CDS can also induce other, non-canonical, CRNs.
+Definition A.2. (Fused reaction) Consider M canonical reactions with identical left-hand sides:
+N
+X
+k=1
+νkXk
+|αj|
+−−→
+ νkj + sign(αj)
+
+Xkj +
+N
+X
+k=1,k̸=kj
+νkXk,
+j = 1, 2, . . . , M.
+Assume that these reactions also have identical coefficients above the reaction arrows, |α1| = |α2| =
+. . . = |αM| = |α|. Then, the corresponding fused reaction is given by
+N
+X
+k=1
+νkXk
+|α|
+−→(νk1 + sign(α1)) Xk1 + . . . + (νkM + sign(αM)) XkM +
+N
+X
+k=1,
+k̸=k1,k2,...,kM
+νkXk.
+Any network obtained by fusing reactions in the canonical CRN is called a non-canonical CRN.
+Remark. Fusion is possible when a monomial appears in multiple equations of (1) and is multiplied,
+up to sign, by identical coefficients.
+Definition A.3. (Degree of reaction) Every chemical reaction PN
+k=1 νkXk
+α−→PN
+k=1 ν′
+kXk is
+said to be of degree PN
+k=1 νk.
+24
+
+
+B
+Appendix: Lyapunov characteristic exponents
+Let x(t; x0) ∈RN be the solution of (1) with initial value x(0; x0) = x0. Then, the linearization
+of (1) around x(t; x0) is the N-dimensional linear non-autonomous DS
+dw
+dt = ∇f(x(t; x0))w,
+w(0) = w0,
+(58)
+where ∇f(x) ∈RN×N is the Jacobian of f(x). To measure the rate of change of w = w(t; x(t; x0), w0)
+in comparison with the exponential function exp(t), we define the following quantity [20, 21].
+Definition B.1. (Lyapunov characteristic exponent) The finite-time Lyapunov characteristic
+exponent ( LCE) of solution x(t; x0) of (1) with respect to the perturbation w0 ̸= 0 is the scalar
+λ(·; x0, w0) : R →R given by
+λ(t; x0, w0) ≡1
+t ln ∥w(t; x(t; x0), w0)∥,
+(59)
+where w = w(t; x(t; x0), w0) is the solution of (58). Assuming existence, the corresponding infinite-
+time LCE is given by λ∞(x0, w0) ≡limt→∞λ(t; x0, w0).
+If the solution x(t; x0) is bounded for all t ∈R, then it has at most N distinct infinite-time
+LCEs, all of which are finite [21]; furthermore, if limt→∞x(t; x0) is not an equilibrium, then one
+of the LCEs is zero [22].
+In addition, infinite-time LCEs are invariant under affine change of
+coordinates [21]. Furthermore, under suitable conditions [21, 23], trajectories in chaotic attractors
+have a negative, zero and a positive infinite-time LCE, and the sum of the LCEs is negative.
+Computation of LCEs. Let matrix X(t; x0) ∈RN×N contain as its ith column solution
+w(t; x(t; x0), ei) ∈RN of (58) with initial condition w0 = ei, the ith standard basis vector in RN;
+then X(t; x0) is called the matriciant (fundamental matrix) of (58) [21]. Having linearly indepen-
+dent columns, it admits the QR-factorization X(t) = Q(t)R(t), with Q(t) ∈RN×N orthogonal and
+R(t) ∈RN×N upper-triangular with non-negative diagonal elements Ri,i(t) ≥0. Under suitable
+regularity conditions, the N infinite-time LCEs are given by λ∞,i = limt→∞(1/t) ln Ri,i(t) [21, 23],
+and can therefore be approximated with λi(t) = (1/t) ln Ri,i(t) with t sufficiently large.
+However, the elements of X(t; x0) can change exponentially fast with time, and can therefore
+take values smaller (underflow) or larger (overflow) in magnitude than representable on a computer
+for the desired values of t. To this end, let us use the matriciant identity
+X(mτ; x0) = X(τ; x((m −1)τ))X(τ; x((m −2)τ)) . . . X(τ; x(τ))X(τ; x0),
+(60)
+for every integer m > 0 and time-step τ > 0. To address the numerical issues, one can choose τ > 0
+sufficiently small, solve (1) and (58) to determine each of the factors on the right-hand side of (60),
+and then compute the QR-factorization (m −1) times iteratively as follows: X(τ; x0) = Q1R1,
+X(τ; x(τ))Q1 = Q2R2, . . ., X(τ; x((m −1)τ))Qm−1 = QmRm, leading to
+X(mτ; x0) = QmRmRm−1 . . . R2R1.
+(61)
+Using this composite QR-factorization, the N infinite-time LCEs can be approximated with
+λi(t) = 1
+t ln
+
+
+m
+Y
+j=1
+Rj
+i,i
+
+= 1
+t
+m
+X
+j=1
+ln Rj
+i,i,
+i = 1, 2, . . . , N,
+(62)
+with sufficiently large t = mτ and sufficiently small τ > 0. In this paper, we use this discrete QR
+algorithm to compute the LCEs; see e.g. [23, 24] for more details.
+25
+
+
+References
+[1] Wiggins, S. Introduction to Applied Nonlinear Dynamical Systems and Chaos. New York:
+Springer-Verlag, 1990.
+[2] Strogatz, S. H. Nonlinear Dynamics and Chaos: With Applications to Physics, Biology, Chem-
+istry, and Engineering. 2nd ed., CRC Press, 2015.
+[3] Brown, R., Chua, L.O., 1996. Clarifying chaos: Examples and counterexamples. International
+Journal of Bifurcation and Chaos 6: 219–249.
+[4] Wang, X., Kuznetsov, N.V., Chen, G. Chaotic Systems with Multistability and Hidden Attrac-
+tors. Springer, 2021.
+[5] R¨ossler, O. E., 1976. An equation for continuous chaos. Physics Letters A, 57 (5): 397–398.
+[6] Sprott, J. C., 1994. Some simple chaotic flows. Phys. Rev. E, 50, R647(R).
+[7] Lorenz, E. N., 1963. Deterministic nonperiodic flow. Journal of Atmospheric Sciences, 20(2):
+130–141.
+[8] Molaie, M., Jafari, S., Sprott, J. C., Golpayegani, M. R. H., 2013. Simple chaotic flows with
+one stable equilibrium. International Journal of Bifurcation and Chaos, 23(11).
+[9] Tucker, W., 1999. The Lorenz attractor exists. Comptes Rendus de l’Acad´emie des Sciences-
+Series I-Mathematics, 328(12): 1197–1202.
+[10] Plesa, T., 2025. Mapping dynamical systems into chemical reactions. Nonlinear Dynamics 113:
+31149–31173.
+[11] ´Erdi, P., T´oth, J. Mathematical models of chemical reactions. Theory and applications of
+deterministic and stochastic Models. Manchester University Press, Princeton University Press,
+1989.
+[12] Feinberg, M. Lectures on chemical reaction networks. Delivered at the Mathematics Research
+Center, University of Wisconsin, 1979.
+[13] Smale, S., 1976. On the differential equations of species in competition. J. Math. Biol. 3: 5–7.
+[14] Kozlov, V., Vakulenko, S., 2013. On chaos in Lotka–Volterra systems: an analytical approach.
+Nonlinearity 26(8), 2299.
+[15] Susits, M., T´oth, J., 2024. Rigorously proven chaos in chemical kinetics. Chaos 34, 103130.
+[16] Willamowski, K. D., R¨ossler O. E., 1980. Irregular oscillations in a realistic abstract quadratic
+mass action system. Z Naturforsch, 35a: 317–318.
+[17] Bodale, I., Oancea, V. A., 2015. Chaos control for Willamowski-R¨ossler model of chemical
+reactions. Chaos, Solitons and Fractals, 78: 1–9.
+[18] Huang, Y., Yang, X. S., 2005. Chaoticity of some chemical attractors: a computer assisted
+proof. Journal of Mathematical Chemistry, 38: 107–117.
+26
+
+
+[19] M´endez-Gonz´alez, J. M., Quezada-T´ellez, L. A., Fern´andez-Anaya, G., Femat, R., 2018. A
+chemical representation of a chaotic system with a unique stable equilibrium point. IFACPa-
+persOnLine, 51(13): 103–108.
+[20] Lyapunov, A. Probl´em G´eneral de la Stabilit´e du Mouvement. Ann. Math. Stud., 17, Princeton
+University Press, Princeton, NJ, 1949.
+[21] Adrianova, L. Ya. Introduction to Linear Systems of Differential Equations. Translations of
+Mathematical Monographs Vol. 146, AMS, Providence, RI, 1995.
+[22] Haken, H., 1983. At least one Lyapunov exponent vanishes if the trajectory of an attractor
+does not contain a fixed point. Phys. Lett. A 94: 71–72.
+[23] Dieci, L., Russell, R. D., Van Vleck, E. S., 1997. On the Computation of Lyapunov Exponents
+for Continuous Dynamical Systems. SIAM Journal on Numerical Analysis 34, no. 1: 402–23.
+[24] McDonald, E. J., Higham, D. J., 2001. Error analysis of QR algorithms for computing Lya-
+punov exponents. ETNA, Electronic Transactions on Numerical Analysis, 12: 234–251.
+27

@@ -1,0 +1,1704 @@
+SkyEgg: Joint Implementation Selection and Scheduling for
+Hardware Synthesis using E-graphs
+Youwei Xiao
+Peking University
+China
+Yuyang Zou
+Peking University
+China
+Yun Liang
+Peking University
+China
+Abstract
+Hardware synthesis from high-level descriptions remains funda-
+mentally limited by the sequential optimization of interdependent
+design decisions. Current methodologies, including state-of-the-art
+high-level synthesis (HLS) tools, artificially separate implemen-
+tation selection from scheduling, leading to suboptimal designs
+that cannot fully exploit modern FPGA heterogeneous architec-
+tures. Implementation selection is typically performed by ad-hoc
+pattern matching on operations, a process that does not consider
+the impact on scheduling. Subsequently, scheduling algorithms op-
+erate on fixed selection solutions with inaccurate delay estimates,
+which misses critical optimization opportunities from appropriately
+configured FPGA blocks like DSP slices.
+We present SkyEgg, a novel hardware synthesis framework that
+jointly optimizes implementation selection and scheduling using
+the e-graph data structure. Our key insight is that both algebraic
+transformations and hardware implementation choices can be uni-
+formly represented as rewrite rules within an e-graph, modeling the
+complete design space of implementation candidates to be selected
+and scheduled together. First, SkyEgg constructs an e-graph from
+the input program. It then applies both algebraic and implementa-
+tion rewrites through equality saturation. Finally, it formulates the
+joint optimization as a mixed-integer linear programming (MILP)
+problem on the saturated e-graph. We provide both exact MILP
+solving and an efficient ASAP heuristic for scalable synthesis. Our
+evaluation on benchmarks from diverse applications targeting Xil-
+inx Kintex UltraScale+ FPGAs demonstrates that SkyEgg achieves
+an average speedup of 3.01× over Vitis HLS, with improvements
+up to 5.22× for complex expressions.
+1
+Introduction
+Hardware synthesis has emerged as a critical technology for bridg-
+ing the gap between high-level software descriptions and efficient
+hardware implementations. As computing demands grow increas-
+ingly diverse and performance requirements become more strin-
+gent, the ability to automatically translate software algorithms,
+either in general programming languages [5, 18, 28, 46] like C/C++
+or domain-specific languages (DSLs) [16, 29, 36], into optimized
+hardware accelerators has become essential for domains ranging
+from machine learning [20] to signal processing [4].
+The fundamental challenge in hardware synthesis lies in resolv-
+ing the semantic differences between software and hardware repre-
+sentations. Software descriptions are inherently untimed and ab-
+stract—operations are specified without explicit timing constraints
+and executed as processor instructions. In contrast, hardware im-
+plementations require precise timing and concrete resource map-
+ping—every operation must be scheduled to specific clock cycles
+and bound to physical hardware modules. This semantic gap ne-
+cessitates sophisticated compilation techniques that can efficiently
+navigate the complex trade-offs between performance, resource
+utilization, and design constraints.
+Current hardware synthesis methodologies, including high-level
+synthesis (HLS) tools [5, 46] and accelerator design language com-
+pilers [29, 36], address this challenge through sequential optimiza-
+tion phases. Typically, these tools first select a target hardware
+implementation for software operations in an ad-hoc manner to
+obtain their scheduling properties. We refer to this process as im-
+plementation selection, which is crucial, especially for heteroge-
+neous FPGAs that have different hardware blocks like LUTs and
+DSP slices [2] as implementation candidates with diverse timing
+properties. Subsequently, they perform scheduling to determine
+the temporal execution timing of the operations. After schedul-
+ing, real hardware modules are allocated with implementations
+mapped on them, producing the synthesized hardware. While this
+sequential approach simplifies the synthesis process, it suffers from
+fundamental limitations leading to non-optimal designs.
+The core problem stems from the artificial separation of interde-
+pendent optimization decisions. Scheduling algorithms must make
+timing decisions based on implementations’ detailed properties,
+while traditional approaches’ inaccurate models lead to conserva-
+tive schedules that underutilize available hardware performance.
+Conversely, implementation selection must select appropriate im-
+plementations and configure them properly to schedule the optimal
+design. The selection design space is huge, including packing a
+group of operations into highly-optimized intellectual property (IP)
+blocks like floating-point units or dedicated hardware blocks like
+DSP slices [2], and configuring their pipeline depth or modes. Ex-
+isting tools [5, 8, 18, 46] make heuristic, ad-hoc selection decisions
+before scheduling, irreversibly causing sub-optimal schedules with
+significantly worse performance.
+Recent advances in compiler optimization have demonstrated
+the power of e-graphs [34, 48] for exploring large design spaces effi-
+ciently [7]. E-graphs provide a compact representation of equivalent
+program expressions, referred to as terms, and enable systematic
+exploration of optimization opportunities through rewrite rules.
+This approach has proven successful in making selection decisions
+for software compiler optimization [38], hardware logic synthe-
+sis [9, 10, 14], and FPGA technology mapping [26, 40, 41]. However,
+prior work has not explored the potential of e-graphs by combining
+the implementation selection and scheduling for addressing the
+fundamental software-hardware semantic gap.
+In this paper, we propose SkyEgg, a novel hardware synthesis
+framework that performs joint implementation selection and sched-
+uling using e-graphs. Our key insight is that both operation rewrites
+and hardware implementation choices can be uniformly represented
+as rewrite rules in an e-graph, which models the complete operation
+1
+arXiv:2511.15323v1  [cs.PL]  19 Nov 2025
+
+
+Conference’17, July 2017, Washington, DC, USA
+Youwei Xiao, Yuyang Zou, and Yun Liang
+selection design space through equality saturation. We formulate
+the joint selection and scheduling problem as a mixed-integer linear
+programming (MILP) problem over the saturated e-graph structure,
+and propose a heuristic scheduler for scalable solving. Specifically,
+we use egglog [48]’s Python binding [39] to create an e-graph from
+the software program in MLIR [32]. We introduce implementation
+e-nodes in the e-graph to represent the candidate implementations
+for the terms in the same e-classes. SkyEgg models each implemen-
+tation candidate on the target FPGA device as an implementation
+rewrite rule that matches the implementation’s software function-
+ality. We propose a profile-based timing model to calculate the
+scheduling properties of implementations with the configurations
+enumerated. After running equality saturation, the e-graph rep-
+resents the implementation selection design space, and SkyEgg’s
+joint problem formulation includes constraints for both the legal
+selection and the legal scheduling, globally optimizing the objective.
+For practicality, SkyEgg reduces the constraints involved for the
+exact MILP solving, and proposes an ASAP (As-Soon-As-Possible)
+scheduler for much faster and scalable problem solving.
+Our approach makes the following contributions:
+• Joint synthesis paradigm: We introduce the first hardware
+synthesis approach that jointly optimizes implementation se-
+lection and scheduling using e-graphs, thereby overcoming the
+suboptimality inherent in sequential heuristics. We implement
+an open-source1 prototype framework, SkyEgg.
+• Design space definition on e-graph: We define operation im-
+plementation candidates with modeled scheduling properties as
+rewrite rules, enabling compact representation and expansion of
+hardware synthesis design space.
+• Problem formulation and solving: We formulate the joint
+selection and scheduling problem as a mixed-integer linear pro-
+gramming problem over the e-graph structure, and propose an
+as-soon-as-possible heuristic for scalable solving.
+Evaluation. We evaluate SkyEgg across diverse benchmarks
+against Xilinx’s state-of-the-art commercial toolchain. The results
+show that SkyEgg achieves an average speedup of 3.10× (and up
+to 5.22×). This performance gain comes with competitive resource
+usage compared to the baseline: for the MILP and ASAP schedulers,
+flip-flop (FF) usage was 0.87× and 0.95×, respectively, while look-up
+table (LUT) usage was 1.51× and 1.28×, respectively. All SkyEgg
+designs meet timing constraints while Vitis HLS fails 48% of cases at
+high frequency. Our ASAP-based heuristic solver scales to programs
+with over 600 operations in less than one second, while achieving
+nearly identical performance.
+2
+Background and Motivation
+We first present the background on hardware synthesis and e-graph
+data structure and then discuss the motivation of our work through
+an example on the Xilinx platform.
+2.1
+Synthesis for Heterogeneous FPGAs
+Modern FPGAs, most of which are heterogeneous, are equipped
+with specialized hard blocks for more efficient operation imple-
+mentations. Leading vendors such as Xilinx [2], Altera [27], and
+1http://link-omitted-for-blind-review
+Lattice [31] all provide dedicated DSP blocks, designed to accelerate
+arithmetic-intensive operations. Among them, Xilinx’s DSP48E2
+integrates a pre-adder, a multiplier, and either a four-input or a two-
+input ALU. These three units are internally connected in sequence
+and can be combined to implement hundreds of arithmetic expres-
+sions. Within this slice, up to four configurable pipeline registers
+can be enabled or bypassed, dividing the pre-adder, multiplier, and
+ALU into separate pipeline stages. It allows designers to configure
+staging according to the operations to be implemented for opti-
+mal timing and performance. Enabling all registers can raise the
+maximum operating frequency to 600MHz compared to 304 MHz
+when bypassing all registers [3]. Besides DSP units, LUTs remain
+a common alternative: they are far more flexible but inevitably
+introduce larger routing delay in deep logic. Therefore, they are
+typically used for low-bitwidth operations. Both DSPs and LUTs
+can serve as valid implementation candidates, each exhibiting dis-
+tinct characteristics. In general, each operation or a combination
+of operations admits multiple possible implementations with con-
+figuration options, thereby calling for careful selection to achieve
+efficient designs.
+The hardware synthesis flow for traditional FPGA architecture
+comprises phases like scheduling and binding. Scheduling deter-
+mines the operations’ execution timing, and binding assigns each
+operation to a specific hardware resource, with resource sharing
+considered. For heterogeneous FPGAs, implementation selection
+becomes a primary concern in the hardware synthesis flow. Vitis
+HLS [5] utilizes a sequential flow that first selects the implementa-
+tion for operations through matching partial computation patterns
+supported by DSPs or IP blocks, then schedules the operations with
+the fixed selection solution and the scheduling properties.
+2.2
+E-graph and egglog
+An e-graph [34] is a data structure that compactly represents sets of
+equivalent terms (or expressions) as equivalence classes. Figure 1b
+shows an example of an e-graph. Each equivalence class, called
+an e-class, contains a group of e-nodes, each of which represents
+a function symbol (also referred to as constructor) applied to ar-
+gument e-classes. E-graphs enable efficient exploration of large
+design spaces by applying rewrite rules through a process called
+equality saturation, which systematically discovers all equivalent
+expressions reachable from an initial program. egglog [48] extends
+traditional e-graphs with a logic programming interface, enabling
+more expressive rewrite rules and constraint-based reasoning. This
+work utilizes egglog’s Python binding [39] to encode both algebraic
+patterns and hardware implementations as rewrite rules, represent-
+ing the complete design space of implementation selection in the
+e-graph to formulate a joint optimization problem on it.
+2.3
+Motivation
+The fundamental limitation of sequential hardware synthesis is that
+it oversimplifies the interaction between implementation selection
+and scheduling phases. Neither phase has complete information
+about the other’s decisions, leading to suboptimal performance.
+Both commercial tools [5] and open-source frameworks [18, 28, 46]
+2
+
+
+SkyEgg : Joint Implementation Selection and Scheduling for Hardware Synthesis using E-graphs
+Conference’17, July 2017, Washington, DC, USA
+int add_neg_mul(short a,short b,short c) {
+return -(a+b)*c;
+}
+(a) C code
+b
+a
++
+-
+c
+×
+equality
+saturation
+Rewrite
+-x×y ⇝ -(x×y)
+b
+a
++
+-
+c
+×
+×
+-
+(b) E-graph
++/–
+×
++
+–
+a
+b
+LUT-
+DSP48E2
+LUT+
+c
+ans
+skip
+Cycle
+1
+2
+3
+(c) Vitis HLS (3 cycles)
++/–
+×
++
+–
+DSP48E2
+c
+ans
+neg
+Cycle
+1
+2
+a
+b
+(d) Manual/SkyEgg (2 cycles)
+Figure 1: Motivating example: A simple neg-add-mul kernel synthesized with different approaches. (a) Original C code. (b)
+E-graph example. (c) Vitis HLS produces a conservative 3-cycle solution with sub-optimal selection. (d) Manual configuration
+achieves 2 cycles by mapping all operations to a single DSP48E2 slice, SkyEgg can discover this solution automatically.
+suffer from this limitation. Prior works [11, 12, 15, 22–25, 33, 37, 42–
+45, 47, 49] explored the interaction between HLS and physical de-
+sign, such as delay prediction and HLS-layout co-optimization, but
+do not consider the implementation selection problem. Therefore,
+the limitation remains unaddressed.
+The limitation becomes evident when we examine how cur-
+rent tools handle even simple computations. Consider the repre-
+sentative example shown in Figure 1: a add-neg-mul kernel that
+computes -(a+b)*c in bitwidths of 16. Although this expression
+appears straightforward, it reveals critical deficiencies in how ex-
+isting synthesis methodologies balance implementation selection
+and scheduling decisions. We synthesize this kernel using Vitis
+HLS 2024.1, targeting the xcku3p FPGA with a target frequency
+of 450MHz. The results reveal a striking performance gap that
+illustrates the core problem with sequential optimization.
+Sequential synthesis dilemma example. Vitis HLS produces a
+conservative 3-cycle solution (Figure 1c) that exhibits both poor per-
+formance and questionable resource allocation. The tool maps add
+and neg operations to fabric resources while utilizing a DSP48E2
+slice only for the mul operation, although all these operations can be
+done by properly utilizing one DSP48E2 slice. The implementation
+selector misses the optimal mapping solution for the scheduling,
+and the scheduler makes timing decisions based on the sub-optimal
+selection, wasting one clock cycle and two fabric resources.
+Manual optimization. A manual optimization, which requires
+substantial effort and detailed hardware knowledge about DSP48E2
+capabilities, demonstrates the unexploited potential. Rewriting the
+expression as -((a+b)*c) makes it possible to map all three opera-
+tions onto a single DSP48E2 slice. This approach exploits the fast
+pre-adder, fusing the addition and multiplication into a single cycle
+and enabling the entire computation to complete in just two pipeline
+stages (Figure 1d). This handcrafted solution not only satisfies all
+timing requirements but also delivers 33% better performance than
+the default synthesis result. This manual optimization succeeds
+because it considers implementation and scheduling choices jointly.
+The DSP48E2 slice can efficiently implement the entire computa-
+tion within its pipelined structure, eliminating the need for fabric
+resources and their associated routing delays. However, achieving
+this result requires over ten rounds of tuning, synthesis, and report
+analysis, as well as detailed knowledge of the DSP48E2, and its
+timing—information that sequential synthesis tools cannot effec-
+tively exploit due to thee phase-separated design.
+The performance gap between automated and manual synthesis
+reveals two interconnected problems in sequential optimization.
+First, the implementation selector cannot explore the full design
+space with equivalent rewrites considered. The original expres-
+sion -(a+b)*c cannot be pattern-matched to DSP48E2 capabilities.
+However, after the manual algebraic rewriting, -((a+b)*c) can be
+mapped to one DSP48E2 implementation. However, even given the
+rewritten expression, Vitis HLS’s ad-hoc pattern matching mecha-
+nism cannot identify the optimal implementation, since it does not
+support the full computation pattern space of DSP48E2. An explo-
+ration of DSP48E2 configurations with the multiplier and either the
+four-input ALU or the pre-adder reveals the limitations of the tool.
+Among 128 possible cases, we generate equivalent C++ code for
+Vitis HLS synthesis. Of these, 31 cannot be mapped to a single DSP
+unit, thus limiting the full exploitation of DSP resources. Second,
+the scheduler operates with a bad selection solution, making con-
+servative decisions based on pessimistic delay estimates. For the
+example above, Vitis HLS’s scheduler assumes that the add and neg
+operations will execute on fabric with high routing delays, allocat-
+ing separate cycles for what could be a single-cycle operation when
+properly mapped to a pipelined DSP48E2 slice. The conservative
+scheduling solution cannot be mutated by the subsequent synthesis
+process, causing irreversible performance degradation.
+Joint synthesis. SkyEgg eliminates these limitations by treating
+implementation selection and scheduling as a unified optimization
+problem. Our approach encodes both algebraic rewrites and hard-
+ware implementations as rewrite rules within an e-graph frame-
+work, enabling systematic exploration of the complete design space.
+The key insight is that e-graphs naturally capture the interdepen-
+dence between implementation and timing choices. By representing
+DSP48E2 slices as implementation libraries and encoding their tim-
+ing characteristics alongside computational capabilities, SkyEgg’s
+equality saturation process discovers that the entire expression in
+Figure 1a can be mapped to a single resource. The joint optimization
+formulation then automatically selects this implementation and
+schedules it to achieve the optimal 2-cycle solution. This motivat-
+ing example demonstrates the potential of joint optimization. By
+unifying implementation and scheduling decisions within a single
+3
+
+
+Conference’17, July 2017, Washington, DC, USA
+Youwei Xiao, Yuyang Zou, and Yun Liang
+Original MLIR
+Program
+Initial E-graph 
+Library
+Saturated E-graph
+Equality Saturation
+construct
+Implementation 
+rules 
+Timing Modeling
+§4
+Solvers §6
+Verilog
+Joint MILP Formulation §5
+Figure 2: The overview of SkyEgg.
+optimization phase, SkyEgg navigates design spaces that remain in-
+accessible to sequential approaches, consistently discovering better
+solutions that traditional methodologies cannot reach.
+3
+Overview
+Figure 2 presents the overview of SkyEgg. SkyEgg takes an input
+MLIR program that includes the operations to be synthesized and
+creates the corresponding initial e-graph, G𝑖𝑛𝑖𝑡. Then, SkyEgg gen-
+erates the implementation rewrite rules R𝑖𝑚𝑝𝑙from the target FPGA
+platform library. Every rewrite from R𝑖𝑚𝑝𝑙bridges the software
+operations and hardware implementations, with the specialized
+hardware blocks (e.g., DSPs)’s computation functionality repre-
+sented by the matcher pattern and their implementation properties
+modeled and included by the applier pattern. The equality satura-
+tion process expands the full implementation selection design space,
+represented as an e-graph G𝑠𝑎𝑡𝑢𝑟𝑎𝑡𝑒, by applying both general al-
+gebraic rewrites and implementation rewrite rules (R𝑖𝑚𝑝𝑙). SkyEgg
+then formulates the joint selection and scheduling phase on the
+saturated e-graph as a mixed-integer linear programming (MILP)
+problem, considering the implementation’s timing properties. The
+MILP problem is solved by either an exact solver or an ASAP (As-
+Soon-As-Possible) scheduler. The implementation selection and
+schedule solution are used to generate the hardware description in
+SystemVerilog for FPGA deployment.
+4
+E-graph Representation and Modeling
+To construct the complete design space for operation implementa-
+tion selection, we first build an e-graph from the input expressions
+as MLIR programs. The construction process is straightforward:
+each value in the static single assignment (SSA) form of the MLIR
+inputs is represented by an e-node in the e-graph, with the name of
+the MLIR operation defining the value as the e-node’s constructor.
+The e-node’s arguments are the e-classes containing the e-nodes of
+the operand values. For example, the input MLIR program repre-
+senting the computation -(a+b)*c constructs the e-graphinit in
+Figure 3. The e-graph currently does not provide implementation
+information for the contained operations, and SkyEgg will apply
+implementation rules to saturate the e-graph to provide implemen-
+tation candidates for each operation or a group of operations.
+4.1
+Equality Saturation with Implementation
+To represent the design space of possible operation implementation
+selection solutions, we need to represent the possible implementa-
+tion candidates in the e-graph data structure. We define a specific
+class of e-nodes to represent implementation candidates, called
+implementation e-nodes: identifier(Vec(arg1, arg2, ...)).
+The identifier is a unique name to represent an implementation,
+such as DSP (short for DSP48E2) or LUT, and the Vec constructor
+takes a list of arguments as the inputs of the implementation.
+Implementation Rules. With the implementation e-nodes, we
+still need to insert them in the appropriate e-classes to denote that
+the implementation can equivalently produce the value of the e-
+class. To do so, we define implementation rules to pattern match
+each implementation’s functionality in the e-graphinit and insert
+the implementation e-nodes to the matched positions. Specifically,
+we define each implementation rule to include three parts:
+(1) Matcher: an algebraic pattern that matches one or a group of
+operations. It represents the software functionality of the im-
+plementation, describing what computation it can perform.
+(2) Applier: an implementation e-node pattern with the variables
+from the matcher as the input arguments.
+(3) Condition: a set of constraints on the implementation arguments.
+It generally contains data type or bitwidth requirements.
+For example, Figure 3 shows four implementation rules that are
+provided by the target implementation library. Each rule is de-
+scribed in the form: matcher ⇝applier, with conditions omitted
+for brevity. The first two rules match patterns that are supported
+by a DSP implementation, both of which require integer data type
+and strict bitwidth constraints due to the DSP48E2 unit’s physical
+design: input A ≤30 bits, D ≤27 bits, and B ≤18 bits. The last two
+rules match basic operations supported by LUTs.
+In addition to implementation rules from the target implementa-
+tion library, SkyEgg also considers algebraic rewrite rules, such as
+−𝑎× 𝑏⇝−(𝑎× 𝑏) in Figure 3, to consider the equivalence of dif-
+ferent algebraic patterns for more comprehensive implementation
+matching. With the combination of two types of rules, SkyEgg per-
+forms equality saturation to expand the e-graph to the e-graphsaturate
+in Figure 3. In the saturated e-graph, the algebraic rule rewrites the
+original expression -(a+b)*c to -((a+b)*c), which is represented
+by the negation (-) e-node in the root e-class on the lower left. The
+e-graphsaturate optionally presents the inserted implementation
+e-nodes, including two LUT e-nodes (for a+b and -(a+b)) and two
+DSP e-nodes that correspond to Figure 1c and Figure 1d, respec-
+tively. Legal implementation selection solutions are terms with
+only implementation e-nodes in the saturated e-graph, suggest-
+ing that the e-graphsaturate is a representation of the expanded
+implementation selection design space.
+Implementation Configuration. As introduced in Section 2.1,
+implementation candidates, such as DSP48E2, not only provide
+multiple computation functionalities that have been modeled by
+matchers in implementation rules, but also can be configured to have
+different scheduling properties. We classify hardware implementa-
+tions into three categories based on how they can be configured:
+(1) Basic logics: LUT-based implementations of basic logics de-
+scribed using Verilog operators without configuration variants.
+4
+
+
+SkyEgg : Joint Implementation Selection and Scheduling for Hardware Synthesis using E-graphs
+Conference’17, July 2017, Washington, DC, USA
+equality saturation
+Operations (.mlir)
+-(a+b)×c
+Library
+e-graphinit
+Algebraic rules
+-x×y⇝-(x×y)
+e-graphsaturate
++/–
+×
++
+–
+DSP48E2
+LUT+
+P
+b
+a
++
+-
+c
+×
+b
+a
++
+LUT
+--
+LUT
+c
+×
+-
+×
+DSP
+Implementation rules
+-((A+D)×B)⇝DSP(Vec(A,D,B))
+A×B⇝DSP(Vec(A,B))  
+A+B⇝LUT(Vec(A,B))  
+-A⇝LUT(Vec(A))
+(a) E-graph with implementation
+(b) Combinational LUT implementation
+(c) Sequential DSP implementation
+Vec
+Vec
+Vec
+DSP
+Vec
+A
+B
+Figure 3: Example of e-graph construction and equality saturation with implementation modeled.
+(2) Hardware primitives: Implementations where each pipeline reg-
+ister can be independently enabled or bypassed, offering fine-
+grained control over internal pipelining (e.g., DSP48E2 slices).
+(3) Parameterized IP cores: Implementations with configurable over-
+all latency, where internal pipeline stages are automatically
+adjusted (e.g., floating-point IP cores). Similarly, their resource
+usage can also be selected from given presets.
+For each operation implementation provided by the target li-
+brary, SkyEgg enumerates all possible configurations according to
+the classification above, and generates the corresponding imple-
+mentation rules with the configuration parameters encoded in the
+identifier. Since each implementation-configuration pair cor-
+responds to a fixed hardware circuit structure, it can be directly
+translated to the corresponding hardware instantiation during code
+generation. In the following, every implementation represents a
+configured implementation with the specific scheduling properties.
+4.2
+Timing Properties of Implementations
+To model implementations’ scheduling properties, we adopt a tim-
+ing model illustrated in Figure 3b and c. Each implementation is
+modeled with 𝑁input ports and one output port, containing combi-
+national logic, wiring, and optionally pipeline registers. The timing
+behavior of implementation 𝐼is characterized by four key attributes:
+latency (𝐿), incoming delay (𝑡incoming), outgoing delay (𝑡outgoing), and
+cycle delay (𝑡cycle). For sequential operations with 𝐿> 0 (Figure 3c),
+we organize pipeline registers into tiers labeled from 1 to 𝐿. Stage
+𝑠represents the logic between tier 𝑠−1 and tier 𝑠registers (with
+stage 0 being the input logic). The timing attributes are defined as:
+𝑡incoming,𝑝= 𝑡logic,0,p + 𝑡su
+(1a)
+𝑡incoming = max
+𝑝
+𝑡incoming,𝑝
+(1b)
+𝑡outgoing = 𝑡clk→Q + 𝑡logic,𝐿
+(1c)
+𝑡cycle,𝑠= 𝑡clk→Q + 𝑡logic,s + 𝑡su
+(1d)
+𝑡cycle = max
+𝑠
+𝑡cycle,𝑠
+(1e)
+where 𝑡logic,s,p denotes the combinational delay through stage 𝑠
+starting from port 𝑝, with 𝑝omitted when 𝑠> 0. 𝑡su and 𝑡clk→Q
+are registers’ setup and clock-to-Q delays respectively. Specifically,
+𝑡incoming,p measures the critical path from input port 𝑝through stage
+0 logic to satisfy the setup requirement of tier 1 registers. 𝑡outgoing
+captures the delay from the tier 𝐿register’s clock edge through
+the final stage logic to the output. 𝑡cycle,𝑠represents the register-to-
+register logic path within stage 𝑠, and 𝑡cycle constrains the minimum
+clock period across all stages. For combinational operations (latency
+= 0, Figure 3b), the model simplifies to 𝑡incoming,𝑝= 𝑡logic,0,𝑝, captur-
+ing the port-specific combinational path from input 𝑝to the output,
+unifying combinational and sequential timing models. We also set
+𝑡outgoing = 0 and 𝑡cycle = 0 as no registers exist.
+Profile-based Timing Data Acquisition. As vendor timing
+data for FPGA primitives is proprietary, we systematically profile
+them using Vivado’s synthesis tools to obtain their timing char-
+acteristics. For each implementation and configuration pair, we
+instantiate the target implementation, apply timing constraints,
+run synthesis with optimization, and extract our timing model
+parameters from the synthesis reports. This profiling generates a
+timing property database for all supported implementations. The
+post-synthesis timing provides a good approximation under the
+wire load model, sufficient to guide scheduling decisions during
+optimization.
+Timing Analysis. With the timing properties modeled above,
+we can perform timing analysis on the e-graph to determine crit-
+ical paths between implementations. Note that implementations
+are already assigned valid configurations. We use superscript to
+distinguish between implementations in the following definition.
+Definition 4.1 (Edge Delay). An edge 𝑒: ⟨𝑖, 𝑗, 𝑝⟩indicates the con-
+nection of 𝐼𝑖’s output with 𝐼𝑗’s input port 𝑝. The edge delay of 𝑒
+can be calculated as:
+𝑡edge(𝑒) = 𝑡𝐼𝑖
+outgoing + 𝑡net + 𝑡
+𝐼𝑗
+incoming,𝑝
+(2)
+where 𝑡net represents the wiring delay.
+Definition 4.2 (Path Delay). A combinational path 𝜋= (𝑒1,𝑒2, . . . ,𝑒𝑘)
+is a sequence of edges where the target of each 𝑒𝑖, the implemen-
+tation 𝐼𝑖, is also the source of 𝑒𝑖+1 for 1 ≤𝑖< 𝑘. All intermediate
+5
+
+
+Conference’17, July 2017, Washington, DC, USA
+Youwei Xiao, Yuyang Zou, and Yun Liang
+×
++
+–
+DSP48E2
+LUT-
++/–
+×
++
+–
+DSP48E2
+14
+A
+C
+B
+...
+D
+...
+Figure 4: Example of timing analysis across connected e-nodes with different implementations and configurations.
+implementations should be combinational. The path delay of 𝜋is:
+𝑡path(𝜋) =
+(
+𝑡𝐼1
+incoming,𝑝+ Í
+𝑒∈𝜋𝑡edge(𝑒)
+if 𝐿(𝐼1) = 0
+Í
+𝑒∈𝜋𝑡edge(𝑒)
+if 𝐿(𝐼1) > 0
+(3)
+Note that when the first implementation is combinational, the in-
+coming delay 𝑡𝐼1
+incoming,𝑝should also be accounted for in the calcula-
+tion process, where 𝑝is the selected input port of 𝐼1.
+Definition 4.3 (Chain Delay). The chain delay from implementa-
+tion 𝐼𝑖to implementation 𝐼𝑗, denoted as𝑡chain(𝐼𝑖, 𝐼𝑗), is the maximum
+path delay among all valid timing paths:
+𝑡chain(𝐼𝑖, 𝐼𝑗) =
+max
+𝜋∈Π(𝐼𝑖,𝐼𝑗) 𝑡path(𝜋)
+(4)
+where Π(𝐼𝑖, 𝐼𝑗) is the set of all combinational paths from 𝐼𝑖to 𝐼𝑗.
+In the example of Figure 4, we consider the chain from 𝐼𝐴to 𝐼𝐶,
+which passes through 𝐼𝐵. The chain delay from 𝐼𝐴to 𝐼𝐶is
+𝑡chain(𝐼𝐴, 𝐼𝐶) = 𝑡𝐴
+incoming + 𝑡net + 𝑡𝐵
+incoming + 𝑡net + 𝑡𝐶
+incoming
+(5)
+Note that each implementation’s 𝑡outgoing are all zero as they are all
+combinational.
+If this chain’s delay exceeds timing constraints, a pipeline reg-
+ister must be inserted to break the combinational chain. Suppose
+we insert a pipeline register after the LUT-based negation imple-
+mentation (B). This splits the original path into two stages. The
+register insertion replaces the original direct routing from B to C
+with: routing delay from B to the register, register’s setup time,
+register’s clock-to-Q delay, and routing delay from register back to
+C. Since the original 𝑡net between B and C is removed, the net effect
+is adding one extra 𝑡net, plus 𝑡su and 𝑡clk→Q. The data path timing
+for the split paths becomes:
+𝑡1 = 𝑡𝐴
+incoming + 𝑡net + 𝑡𝐵
+incoming + 𝑡net + 𝑡su
+(6a)
+𝑡2 = 𝑡clk→Q + 𝑡net + 𝑡𝐶
+incoming
+(6b)
+By inserting this register, we trade one additional cycle of latency
+for meeting timing requirements, but also introduce additional data
+path delays for both the upstream and downstream portions of the
+pipeline, which requires careful handling. This timing model forms
+the basis for our scheduling formulation in the next section, where
+we systematically determine register insertion to achieve optimal
+operation chaining and pipelining.
+5
+Problem Formulation
+In this section, we formulate the joint selection and scheduling
+problem. The solution to the problem assigns each software oper-
+ation to a selected implementation, allowing one implementation
+Table 1: Notations for problem formulation
+Symbol
+Description
+{𝐼𝑖}𝑁
+𝑖=0
+set of implementation e-nodes in e-graphsaturate
+{𝑐𝑙𝑠𝑗}𝑀
+𝑗=0
+set of e-classes in e-graphsaturate
+𝑐𝑙𝑠𝑟𝑜𝑜𝑡
+root e-class in e-graphsaturate
+𝐼𝑘∈𝑐𝑙𝑠𝑗
+e-class 𝑐𝑙𝑠𝑗contains the e-node 𝐼𝑘
+𝑐ℎ𝑖𝑙𝑑𝐼𝑖
+set of child e-classes of the e-node 𝐼𝑖
+𝑓𝑐𝑙𝑠𝑗
+finish time of the e-class 𝑐𝑙𝑠𝑗
+𝑏𝑐𝑙𝑠𝑗
+whether the e-class 𝑐𝑙𝑠𝑗is selected
+𝑠𝐼𝑖/ 𝑓𝐼𝑖
+start/finish time of the e-node 𝐼𝑖
+𝑏𝐼𝑖
+whether the e-node 𝐼𝑖is selected
+to finish multiple operations according to its functionality, and
+determines the execution clock cycles for each selected implemen-
+tation. In addition to the notations used in SkyEgg’s timing model
+(Section 4.2), we define more notations used in the formulation,
+as shown in Table 1. It’s worth noting that only implementation
+e-nodes are considered in the formulation, while other software op-
+eration e-nodes are not included. In addition to general notations for
+the classic e-graph-based optimization problem, extraction [17, 35],
+which is the process of selecting e-nodes to compose the solution
+term with the minimized cost, we define more scheduling-related
+notations, including the start or finish time of the e-classes and e-
+nodes, for jointly optimizing both the implementation selection and
+scheduling simultaneously to produce the global optimal solution.
+6
+
+
+SkyEgg : Joint Implementation Selection and Scheduling for Hardware Synthesis using E-graphs
+Conference’17, July 2017, Washington, DC, USA
+With the notations, we formulate an MILP problem as follows:
+minimize𝑓𝑐𝑙𝑠𝑗,𝑏𝑐𝑙𝑠𝑗,𝑠𝐼𝑖,𝑓𝐼𝑖,𝑏𝐼𝑖𝑓𝑐𝑙𝑠𝑟𝑜𝑜𝑡+ 𝛼
+𝑁
+∑︁
+𝑖
+𝑏𝐼𝑖
+(7a)
+s.t.
+𝑏𝑐𝑙𝑠𝑟𝑜𝑜𝑡= 1
+(7b)
+∀𝑗,𝑏𝑐𝑙𝑠𝑗≤
+∑︁
+𝐼𝑖∈𝑐𝑙𝑠𝑗
+𝑏𝐼𝑖
+(7c)
+∀𝑖, ∀𝑐𝑙𝑠𝑗∈𝑐ℎ𝑖𝑙𝑑𝐼𝑖,𝑏𝐼𝑖≤𝑏𝑐𝑙𝑠𝑗
+(7d)
+∀𝑖, ∀𝑐𝑙𝑠𝑗∈𝑐ℎ𝑖𝑙𝑑𝐼𝑖,𝑠𝐼𝑖≥𝑓𝑐𝑙𝑠𝑗
+(7e)
+∀𝑖, 𝑓𝐼𝑖= 𝑠𝐼𝑖+ 𝐿𝐼𝑖
+(7f)
+∀𝑗, ∀𝐼𝑖∈𝑐𝑙𝑠𝑗, 𝑓𝑐𝑙𝑠𝑗≥𝑓𝐼𝑖−𝑀(1 −𝑏𝐼𝑖)
+(7g)
+∀𝜋∈Π(𝐼𝑖, 𝐼𝑗),𝑠𝐼𝑗≥𝑓𝐼𝑖+ cuts(𝑡path(𝜋)) −𝑀
+∑︁
+𝐼∈𝜋
+(1 −𝑏𝐼)
+(7h)
+∀𝐼𝑖,𝑏𝐼𝑖∈{0, 1}
+(7i)
+∀𝑐𝑙𝑠𝑗,𝑏𝑐𝑙𝑠𝑗∈{0, 1}
+(7j)
+In the formulation, the objective function is to minimize the total
+latency of the program, represented as the finish time of the root
+e-class, 𝑓𝑐𝑙𝑠𝑟𝑜𝑜𝑡. We use a penalty term with a small coefficient 𝛼
+to reduce the number of selected implementations for achieving
+the best possible latency. The formulation includes two classes of
+constraints, as described below.
+Completeness Constraints: ensure the correctness of imple-
+mentation selection to provide the same functionality as the original
+program. Equation 7b ensures the root e-class is selected. Equa-
+tion 7c ensures that when an e-class is selected, at least one of its
+contained implementation e-nodes is selected, representing that the
+e-class’s value is properly computed by the selected implementa-
+tion. Equation 7d ensures that when an implementation e-node is
+selected, its children e-classes are also selected, representing that
+the argument values of the implementation are provided.
+Scheduling Constraints: require legal scheduling of the se-
+lected implementations. Equation 7e defines the dependency con-
+straint of scheduling, ensuring the children e-classes generate the
+argument values before the implementation e-node starts. Equa-
+tion 7f defines the latency constraint to ensure the finish time and
+start time satisfy the latency property of the implementation. Equa-
+tion 7g defines the selection constraint, which is special for the
+scheduling on an e-graph. Specifically, we use the Big M [1] method
+to add a conditional constraint: the finish time of an e-class must
+not be earlier than the finish time of an included implementation
+e-node, if the e-node is selected. Chaining constraints are also nec-
+essary to ensure the operating frequency of the synthesized design
+meets the target. If all implementation e-nodes on the path 𝜋from
+𝐼𝑖to 𝐼𝑗are selected, as required by the Big M term, cuts(𝑡𝑝𝑎𝑡ℎ(𝜋))
+registers should be inserted to cut the combinational path if the
+path delay exceeds the clock period 𝑇clk. According to the timing
+model exemplified by Figure 4, we have the following constraint
+for timing closure:
+𝑡path(𝜋) + 𝑞(𝑡su + 𝑡clk→Q + 𝑡net) ≤(𝑞+ 1)𝑇clk
+(8)
+The constraint states that if we need 𝑞registers to cut the combi-
+national path, and the path delay plus the total extra wiring delay,
+register setup, and clock-to-Q delays should be less than the to-
+tal delay of 𝑞+ 1 split clock cycles. According to Equation 8, we
+calculate the minimum number of registers needed to cut the path:
+cuts(𝑡path(𝜋)) =
+
+𝑡path(𝜋) −𝑇clk
+(𝑇clk −(𝑡su + 𝑡clk→Q + 𝑡net))
+
+(9)
+6
+Efficient Solving
+Although solving the MILP formulation in Equation 7 through an
+exact solver can produce the optimal implementation selection and
+scheduling solution with minimized latency and implementation
+usage, it is computationally expensive. In this section, we introduce
+two solving methods: calling an exact MILP solver with reduced
+chaining constraints and introducing a heuristic ASAP scheduler.
+Top-k Chaining Constraints. In the MILP formulation, the
+chaining constraints (Equation 7h) contribute the most to the com-
+plexity of the problem, since there exist many paths between every
+pair of implementation e-nodes in the saturated e-graph. In tra-
+ditional scheduling approaches, such as the SDC scheduling [13],
+the common strategy is to only consider the longest timing path
+between every pair of implementation e-nodes, which is defined as
+the chain delay in Definition 4.3. However, this pruning approach
+can cause clock period violations in SkyEgg’s joint optimization
+problem. This is because the implementation e-nodes on the chain
+may not be selected. Consequently, the actual longest timing path
+between a pair of e-nodes, which could be shorter than the chain
+delay, is not considered. As a result, the synthesized design may
+not be feasible due to over-chaining. Instead of modeling all paths
+as constraints or only considering the chain delay, we model the
+top-k paths (Definition 6.1) between every pair of implementation e-
+nodes. We set the default value of 𝑘to 3, which generates solutions
+meeting the clock period target for all experiments.
+Definition 6.1 (Top-k Path Delays). The top-𝑘path delays from
+implementation 𝐼𝑖to implementation 𝐼𝑗, denoted as Ttop-k(𝐼𝑖, 𝐼𝑗), is
+the set of the 𝑘longest path delays from 𝐼𝑖to 𝐼𝑗:
+Ttop-k(𝐼𝑖, 𝐼𝑗) = top-k
+
+𝑡path(𝜋) : 𝜋∈Π(𝐼𝑖, 𝐼𝑗)
+	
+(10)
+Heuristic ASAP Scheduler. Even after reducing the chaining
+constraints, solving the MILP problem with an exact solver remains
+NP-hard. This approach is not scalable given the potential size of
+the saturated e-graph. Therefore, we introduce a heuristic ASAP
+scheduler to solve the problem efficiently. Figure 5 presents the
+algorithm. It iterates over the e-classes in topological order and
+selects the implementation with the earliest finish time for each
+e-class. For every implementation e-node, it considers both depen-
+dency constraints and chaining constraints from top-k path delays
+ending at the e-node to determine the start time. The scheduler is
+efficient with linear time complexity on the e-graph scale. However,
+it is heuristic rather than optimal: selecting the implementation
+with the earliest finish time for each e-class does not guarantee the
+global optimal solution. The reason is that the selected implemen-
+tation might imply serious chaining constraints for the subsequent
+e-classes as the source of long timing paths, which is not considered
+by the scheduler. Even so, the scheduler produces almost optimal
+solutions for most cases with much faster solving time compared
+7
+
+
+Conference’17, July 2017, Washington, DC, USA
+Youwei Xiao, Yuyang Zou, and Yun Liang
+1
+def asap_scheduler(
+2
+G𝑠𝑎𝑡𝑢𝑟𝑎𝑡𝑒, # saturated e-graph
+3
+):
+4
+# Iterate over e-classes in topological order
+5
+for 𝑐𝑙𝑠𝑗in G𝑠𝑎𝑡𝑢𝑟𝑎𝑡𝑒.eclasses.topo_order():
+6
+# Determine the earliest start time for each e-node
+7
+for 𝐼𝑖∈𝑐𝑙𝑠𝑗:
+8
+𝑠𝐼𝑖= max([𝑓𝑐𝑙𝑠, for 𝑐𝑙𝑠∈𝑐ℎ𝑖𝑙𝑑𝐼𝑖])
+9
+# Consider the top-k path delays ending at 𝐼𝑖
+10
+for 𝜋in Ttop-k(𝐼𝑖):
+11
+if all([𝑏𝐼′ for 𝐼′ in 𝜋.enodes]):
+12
+𝑠𝐼𝑖= max(𝑠𝐼𝑖, 𝑓𝜋.src + cuts(𝑡path(𝜋)))
+13
+𝑓𝐼𝑖= 𝑠𝐼𝑖+ 𝐿𝐼𝑖
+14
+# Select the earliest-finish implementation
+15
+𝐼= arg min𝐼𝑖∈𝑐𝑙𝑠𝑗𝑓𝐼𝑖
+16
+𝑏𝐼, 𝑓𝑐𝑙𝑠𝑗= 1, 𝑓𝐼
+17
+return 𝑏𝐼𝑖, 𝑠𝐼𝑖
+Figure 5: The ASAP scheduler.
+to the exact solver, as will be shown in Section 7, demonstrating it
+as a good trade-off.
+7
+Evaluation
+We conduct comprehensive evaluations on diverse benchmarks to
+compare SkyEgg against the commercial state-of-the-art toolchain,
+demonstrating its effectiveness and scalability.
+7.1
+Methodology
+We first lower the input programs into MLIR through HECTOR [46]
+and extract basic blocks, treating each block as a self-contained
+unit of computation. For each block, we translate it into a C++
+kernel and synthesize it with Vitis HLS as a baseline. In parallel,
+we apply SkyEgg to jointly perform implementation and schedul-
+ing on these kernels, producing optimized hardware descriptions
+in Verilog, which are then synthesized with Xilinx Vivado 2024.1
+targeting the same FPGA device. To ensure a fair comparison with
+SkyEgg’s pipelined designs, we enforce function-level pipelining
+in Vitis HLS using the #pragma HLS PIPELINE directive. Latency
+is collected from the scheduling reports of SkyEgg and Vitis HLS,
+while additional metrics, including timing slack and resource uti-
+lization, are obtained from the corresponding synthesis reports of
+Vivado and Vitis HLS. SkyEgg uses OR-Tools [21] to solve the MILP
+problem. We log the SkyEgg’s runtime and set a timeout of 3,600
+seconds (1 hour) for the solving process. The overall design latency
+is computed as the sum of the latencies of all basic blocks.
+We compare SkyEgg against the commercial toolchain Vitis HLS
+2024.1. All experiments target the xcku3p FPGA with speed grade "-
+1". For performance comparison, we use the speedup metric defined
+as
+Speedup = LatencyVitis + 1
+LatencySkyEgg + 1
+(11)
+where LatencyVitis denotes the latency reported by Vitis HLS, and
+LatencySkyEgg denotes the latency of our approach. The offset of +1
+is introduced to handle cases where latency may be zero. A higher
+value indicates greater latency reduction compared to Vitis HLS.
+In addition to performance, we also compare the timing closure
+and resource usage of the synthesized designs, comprehensively
+evaluating the effectiveness of the joint synthesis paradigm.
+Benchmarks. We evaluate our approach on benchmarks from
+four application domains: mathematics, neural networks, scien-
+tific computing, and signal processing. Mathematical benchmarks
+from liquid-dsp [19] include five numerical computation kernels:
+bairstow, invgauss, landen, lngamma, and randf_pdf, evaluated
+in float32. Neural network benchmarks from ggml [20] comprise
+activation functions including GeLU, GeGLU, SiLU, SwiGLU, and
+Softmax, as well as normalization layers including layernorm and
+rmsnorm, representing critical AI inference operators also evalu-
+ated in float32. For scientific computing, we select linear algebra
+kernels from PolyBench [30] using integer data type: durbin, jacobi-
+1d, and jacobi-2d. Since loop unrolling is commonly used to evaluate
+hardware parallelism in linear algebra kernels, we additionally test
+16× unrolled versions of bicg, gemm, and gemver. Signal process-
+ing benchmarks from Vitis Library [6] include linear interpolation,
+WebP encoding kernels, and rotary embedding, implemented in
+integer. To evaluate scalability, we generate synthetic benchmarks
+containing 100 to 600 arithmetic operations and test them with
+both float32 and integer data types.
+Implementation Library. Our evaluation employs implementa-
+tion libraries covering both integer and floating-point operations.
+Integer arithmetic implementations include: LUT-based operations
+specified through RTL with the (*use_dsp=no*) synthesis direc-
+tive to prevent DSP inference, DSP48E2 slices instantiated as Xilinx
+primitives, and Xilinx divider IP cores. Floating-point operations
+utilize Xilinx floating-point IP cores supporting various mathemat-
+ical functions with configurable pipeline stages.
+7.2
+Effectiveness of Joint Synthesis
+Figure 6 presents the performance comparison between SkyEgg
+and Vitis HLS on the benchmarks. We evaluate two schedulers in
+SkyEgg: ILP and ASAP, as introduced in Section 6, and calculate
+their speedup compared to Vitis HLS according to Equation 11.
+Across all benchmarks under three different frequency targets,
+SkyEgg’s joint optimization approach consistently outperforms
+traditional sequential optimization strategies, achieving an average
+speedup of 3.10× over Vitis HLS. Notably, the ASAP scheduling
+variant demonstrates high efficiency while producing results com-
+parable to exact MILP solving across most benchmarks, achieving
+the average speedup of 3.08× compared to MILP’s 3.12×.
+Performance on Floating-Point Benchmarks. For floating-
+point workloads, SkyEgg achieves speedups ranging from 2.78× to
+5.22×, with an average of 3.64×. At 400MHz, the speedup is gener-
+ally lower because this target frequency approaches the maximum
+operating frequency of the DSP48E2 units. This proximity limits the
+potential for optimization through aggressive operation chaining.
+At this frequency, the speedup primarily stems from SkyEgg’s bet-
+ter implementation selection. For example, in the rmsnorm bench-
+mark targeting 400MHz, Vitis HLS defaults to a 28-cycle square
+root implementation for float32, which our profiling shows can
+achieve 979MHz—2.4× higher than required. To exploit this large
+timing margin, we examine our profiled timing data and observe
+that lower pipeline depth does not always lead to lower achievable
+8
+
+
+SkyEgg : Joint Implementation Selection and Scheduling for Hardware Synthesis using E-graphs
+Conference’17, July 2017, Washington, DC, USA
+Table 2: Benchmarks in SkyEgg evaluation
+Domain
+Category
+Data Type
+Source
+Benchmarks
+# of Math Ops
+Included Math Ops
+Math
+Mathematical
+float32
+[19]
+bairstow, invgauss, landenf, lngammaf,
+randf_pdf
+51,9,7,20,10
++, −, ×, /, Exp, Log,
+Sqrt
+Neural
+Networks
+Activation
+float32
+[20]
+GeLU, GeGLU, SiLU, SwiGLU, Softmax
+13,14,4,5,5
++, −, ×, /, Exp, Cmp
+Normalization
+float32
+[20]
+layernorm, rmsnorm
+12,7
++, −, ×, /, Sqrt
+Scientific
+Computing
+Linear Algebra
+integer
+[30]
+durbin, jacobi-1d, jacobi-2d
+12,6,10,10,11
++, −, ×, /
+Linear Algebra
+(unrolled by 16×)
+integer
+[30]
+bicg, gemm, gemver
+63,49,177
++,−,×
+Signal
+Processing
+Transformation &
+Encoding
+integer
+[6]
+linear_interpolation, webp_enc, rope
+33,44,33
++,
+−,
+×,
+/,
+Shift,
+Bitwise
+-
+Synthetic
+both
+-
+90 random generated kernels with vari-
+ous sizes and types
+100∼600
++, −, ×, /, Exp, Sqrt,
+Log, 1/x, Bitwise
+bairstow
+invgauss
+landenf
+lngammaf
+randnf pdf
+gelu
+geglu
+silu
+swiglu
+softmax
+layernorm
+rmsnorm
+0
+1
+2
+3
+4
+5
+Speedup: SkyEgg over Vitis HLS
+Float Benchmarks
+Frequency: Solver
+100MHz: ASAP
+100MHz: MILP
+200MHz: ASAP
+200MHz: MILP
+400MHz: ASAP
+400MHz: MILP
+durbin
+jacobi-1d
+jacobi-2d
+bicg
+gemm
+gemver
+linear interpolation
+webp enc
+rope
+0
+1
+2
+3
+4
+5
+Speedup: SkyEgg over Vitis HLS
+Integer Benchmarks
+Frequency: Solver
+100MHz: ASAP
+100MHz: MILP
+200MHz: ASAP
+200MHz: MILP
+400MHz: ASAP
+400MHz: MILP
+Figure 6: Speedup of SkyEgg over Vitis HLS.
+frequency. While the 28-cycle implementation achieves 979MHz
+and the 25-cycle variant achieves 629MHz (a 55.6% reduction), all
+implementations from 14 to 25 cycles achieve the same 629MHz
+maximum frequency. Similarly, implementations from 10 to 13 cy-
+cles all achieve 431MHz. This reveals multiple frequency plateaus
+where latency can be reduced without sacrificing timing, making
+proper latency selection crucial. Leveraging this insight, SkyEgg
+aggressively selects the minimum-latency variant (10 cycles) that
+still meets the 400MHz requirement, reducing the overall design
+latency from 73 cycles to 25 cycles.
+Moreover, we find that more DSP usage does not always improve
+performance in floating-point IP. When implementing exponen-
+tial functions in the randnf_pdf benchmark at 400MHz, Vitis HLS
+selects a "Full DSP Usage" configuration, achieving 699MHz at 30-
+cycle latency. However, "Medium Usage" reaches the same frequency
+with only 20 cycles—demonstrating that aggressive resource usage
+can be overly conservative without timing benefits. Building on
+this observation, SkyEgg further selects an 8-cycle "Medium Us-
+age" implementation achieving 450MHz, still meeting the 400MHz
+target. Based on selections like this, we further reduce the overall
+design latency from 154 cycles to 52 cycles. Traditional HLS tools,
+such as Vitis HLS, with their rude models, cannot handle these
+configuration decisions correctly. In contrast, SkyEgg leverages its
+profiled timing properties to select the optimal heterogeneous im-
+plementation, achieving the target frequency and latency-efficient
+designs.
+Performance on Integer Benchmarks. For integer workloads,
+SkyEgg achieves an average speedup of 2.38× (up to 4.33×). We
+observe that lower frequencies yield higher speedups. At 100MHz,
+most cases reach peak performance because SkyEgg aggressively
+chains operations within single cycles, exploiting the available tim-
+ing slack. In contrast, Vitis HLS conservatively assigns each DSP
+operation to separate cycles regardless of frequency targets. As
+frequency increases to 400MHz, the available implementation con-
+figurations become more constrained, narrowing the performance
+gap between approaches. For the benchmarks unrolled by 16×, the
+extracted basic blocks contain only simple arithmetic operations
+9
+
+
+Conference’17, July 2017, Washington, DC, USA
+Youwei Xiao, Yuyang Zou, and Yun Liang
+Table 3: Resource utilization and timing closure compari-
+son. Columns FF and LUT show the resource usage ratio of
+SkyEgg relative to Vitis HLS. I and A denote MILP and ASAP,
+respectively. V denotes Vitis HLS. T denotes timing met.
+Benchmark
+FFM
+FFA
+LUTM
+LUTA
+TM
+TA
+TV
+bairstow
+0.79
+0.90
+0.88
+0.91
+✓
+✓
+✓
+invgauss
+0.67
+0.92
+1.52
+1.57
+✓
+✓
+✗
+landenf
+1.46
+1.52
+2.29
+2.30
+✓
+✓
+✗
+lngammaf
+0.85
+0.93
+1.44
+1.45
+✓
+✓
+✗
+randnf_pdf
+0.97
+1.11
+1.89
+1.80
+✓
+✓
+✗
+gelu
+0.84
+0.87
+1.07
+1.04
+✓
+✓
+✗
+geglu
+0.85
+0.85
+1.03
+1.03
+✓
+✓
+✗
+silu
+1.21
+1.21
+1.33
+1.33
+✓
+✓
+✗
+swiglu
+1.00
+1.00
+1.25
+1.25
+✓
+✓
+✗
+softmax
+1.16
+1.16
+0.81
+0.81
+✓
+✓
+✓
+layernorm
+1.14
+1.35
+2.05
+2.11
+✓
+✓
+✗
+rmsnorm
+2.06
+2.06
+5.11
+5.11
+✓
+✓
+✗
+durbin
+0.80
+0.81
+0.83
+0.85
+✓
+✓
+✓
+jacobi-1d
+0.85
+0.85
+0.83
+0.83
+✓
+✓
+✓
+jacobi-2d
+0.86
+0.86
+0.82
+0.82
+✓
+✓
+✓
+bicg
+0.30
+0.31
+0.85
+0.79
+✓
+✓
+✓
+gemm
+0.34
+0.84
+0.00
+0.00
+✓
+✓
+✓
+gemver
+0.51
+0.76
+4.26
+0.64
+✓
+✓
+✓
+linear_int.
+0.66
+0.68
+0.79
+0.79
+✓
+✓
+✓
+webp_enc
+0.26
+0.21
+1.82
+0.67
+✓
+✓
+✓
+rope
+0.72
+0.72
+0.81
+0.78
+✓
+✓
+✓
+Mean
+0.87
+0.95
+1.51
+1.28
+1.00
+1.00
+0.52
+func.func @rope(...) -> (...)
+attributes {latency = 33 : i32} {
+%13 = "skyegg.DSP48"(%9, %8, %7)
+{func = "(A*B)+C", timing = "t5_t6",
+start = 0 : i32}
+: (i16, i16, i16) -> i16
+%35 = "skyegg.IntDiv"(%34, %0)
+{timing = "lat12", start = 19 : i32}
+: (i16, i16) -> i16
+%36 = "skyegg.DSP48"(%32, %11,
+%28, %35)
+{func = "C-(B*(A+D))",
+timing = "t5_t6",
+start = 31 : i32}
+: (i16, i16, i16, i16) -> i16
+// Other implementations omitted
+}
+(a) Subexpression of RoPE kernel
+module rope(input clk, input rst,
+input i1, ...);
+// ...
+DSP48E2 #(.AREG(0), .BREG(0),
+.MREG(1), .PREG(1), ...)
+U13 (.CLK(clk), .A(net9),
+.B(net8), .C(net7), ...);
+// ...
+Div_IP_16_lat12 U35 (
+.aclk(clk), .dividend(net34),
+.divisor(net0), ...);
+// ...
+DSP48E2 #(.AREG(0), .BREG(0),
+.MREG(1), .PREG(1), ...)
+U36 (.CLK(clk), .A(net32),
+.B(net11), .C(net28),
+.D(net35), ...);
+// Wires, regs, and other
+// modules are omitted
+endmodule
+(b) Generated RTL design
+Figure 7: Production for the RoPE kernel. (a) Scheduled MLIR
+with implementation selection and timing annotations. (b)
+Generated RTL showing primitive instances.
+with low logic depth. In these cases, Vitis HLS also selects com-
+binational implementations, which SkyEgg also does, resulting in
+speedups of 1.0×. Specifically, the primary optimization opportunity
+lies in the reduction tree for summing partial results after unrolling.
+Despite this limited optimization scope, SkyEgg consistently out-
+performs Vitis HLS for the 400MHz frequency target. Moreover, the
+MILP scheduler achieves a higher speedup than ASAP for gemver
+at a 100MHz frequency target, demonstrating MILP’s capability to
+achieve optimal performance.
+We use the rope benchmark as an example to illustrate the solu-
+tion produced by SkyEgg. A representative subexpression from this
+200
+400
+# of Arith Op
+10
+1
+100
+101
+102
+103
+Runtime (sec)
+MILP
+ASAP
+(a) Integer results
+200
+400
+# of Arith Op
+10
+1
+100
+101
+102
+103
+Runtime (sec)
+MILP
+ASAP
+(b) Float results
+Figure 8: Scheduler runtime on synthesized cases.
+kernel is shown in Figure 7a. In the synthesized design, SkyEgg suc-
+cessfully identifies the operation pattern A-(B+C)*D, which maps
+directly into a single DSP48E2 slice. Other configurations for pattern
+A+B and (A+B)*C are also utilized throughout the design. Through
+timing-aware implementation selection, the overall design is esti-
+mated to achieve 112MHz by our timing model, while minimizing
+latency. These optimized implementations are then converted to
+Verilog, whose segment is presented at Figure 7b, for Vivado syn-
+thesis and evaluation.
+Resource and Timing Comparison. Table 3 lists the resource
+utilization and timing closure results. The resource usage values
+shown are averaged across all three frequency targets (100MHz,
+200MHz, 400MHz) relative to Vitis HLS. For flip-flop (FF) utilization,
+SkyEgg achieves 0.87× for MILP and 0.95× for ASAP relative to Vitis
+HLS. LUT usage is moderately higher at 1.51× for MILP and 1.28×
+for ASAP, which reflects the trade-off between latency optimization
+and logic complexity. This modest increase in LUT usage is justified
+by the significant latency improvements achieved.
+For timing closure, Table 3 also indicates whether each approach
+meets timing constraints across all three frequency targets. Both
+MILP and ASAP schedulers successfully achieve timing closure for
+all benchmarks at all frequencies. In contrast, Vitis HLS fails timing
+closure for 48% of the designs, primarily at 400MHz for complex
+floating-point operations. While these timing violations can be
+addressed by reducing the frequency target, this approach is unac-
+ceptable for designs with strict frequency requirements. SkyEgg’s
+ability to consistently meet timing constraints across all frequencies
+while achieving low latency demonstrates the effectiveness of joint
+optimization in producing robust, performant designs.
+7.3
+Scalability Analysis
+Figure 8 shows the runtime comparison between MILP and ASAP
+schedulers on synthetic benchmarks containing 100 to 600 arith-
+metic operations, evaluated with both integer and floating-point
+data types. We generate 45 cases for each data type class. For integer
+workloads, ASAP consistently completes scheduling in under 3 sec-
+onds regardless of problem size, demonstrating excellent scalability.
+In contrast, the MILP solver reaches the 1-hour timeout limit when
+the operation count exceeds 400, limiting its applicability to larger
+designs. In total, MILP causes a timeout for 4 of 45 integer cases.
+For floating-point operations, the scalability issue becomes more
+severe. ASAP can still produce solutions in less than a second across
+10
+
+
+SkyEgg : Joint Implementation Selection and Scheduling for Hardware Synthesis using E-graphs
+Conference’17, July 2017, Washington, DC, USA
+designs, while MILP times out starting from just 150 operations,
+which can actually be reached in complex floating-point workloads.
+In total, MILP causes a timeout for 37 of 45 floating-point cases.
+This dramatic difference stems from the expanded design space
+created by rich configuration choices available for each floating-
+point operator, which increases the complexity of the problem.
+As for the achieved performance, we observe that ASAP only
+achieves a slightly worse design latency than MILP for one in-
+teger case among 41 cases that both MILP and ASAP can solve.
+These results demonstrate that while MILP provides optimal solu-
+tions for smaller kernels, ASAP offers a scalable alternative that
+achieves near-optimal results with orders of magnitude faster run-
+time, demonstrating ASAP as a good choice for large tasks.
+8
+Conclusion
+In this work, we propose SkyEgg, a hardware synthesis framework
+that can jointly optimize implementation selection and scheduling.
+Based on e-graph, SkyEgg uniformly considers algebraic property,
+implementation candidates, and timing properties during sched-
+uling. SkyEgg proposes an MILP formulation of the problem and
+also introduces an ASAP-based heuristic solver with better scala-
+bility. Evaluation demonstrates an average speedup of 3.01× over
+the commercial Vitis HLS toolchain, demonstrating the potential
+of the joint synthesis paradigm.
+References
+[1] 2025.
+Big M method.
+https://en.wikipedia.org/w/index.php?title=Big_M_
+method&oldid=1301327127 Page Version ID: 1301327127.
+[2] AMD Inc. 2021. UltraScale Architecture DSP Slice User Guide. (2021).
+[3] AMD Inc. 2025. Kintex UltraScale+ FPGAs Data Sheet: DC and AC Switching
+Characteristics (DS922). https://docs.amd.com/r/en-US/ds922-kintex-ultrascale-
+plus
+[4] AMD Inc. 2025. Vitis DSP Library. https://docs.amd.com/r/en-US/Vitis_Libraries/
+dsp/index.html
+[5] AMD Inc. 2025. Vitis High-Level Synthesis User Guide (UG1399). https://docs.
+amd.com/r/en-US/ug1399-vitis-hls
+[6] AMD Inc. 2025. Xilinx/Vitis_Libraries: Vitis Libraries. https://github.com/Xilinx/
+Vitis_Libraries
+[7] Yaohui Cai, Kaixin Yang, Chenhui Deng, Cunxi Yu, and Zhiru Zhang. 2025.
+SmoothE: Differentiable E-Graph Extraction. In Proceedings of the 30th ACM
+International Conference on Architectural Support for Programming Languages and
+Operating Systems, Volume 1 (ASPLOS ’25). Association for Computing Machinery,
+New York, NY, USA, 1020–1034. doi:10.1145/3669940.3707262
+[8] Andrew Canis, Jongsok Choi, Mark Aldham, Victor Zhang, Ahmed Kammoona,
+Tomasz Czajkowski, Stephen D. Brown, and Jason H. Anderson. 2013. LegUp:
+An open-source high-level synthesis tool for FPGA-based processor/accelerator
+systems. ACM Transactions on Embedded Computing Systems 13, 2 (Sept. 2013),
+1–27. doi:10.1145/2514740
+[9] Chen Chen, Guangyu Hu, Cunxi Yu, Yuzhe Ma, and Hongce Zhang. 2025.
+E-morphic: Scalable Equality Saturation for Structural Exploration in Logic
+Synthesis. In 2025 62nd ACM/IEEE Design Automation Conference (DAC). 1–7.
+doi:10.1109/DAC63849.2025.11133110
+[10] Chen Chen, Guangyu Hu, Dongsheng Zuo, Cunxi Yu, Yuzhe Ma, and Hongce
+Zhang. 2024. E-Syn: E-Graph Rewriting with Technology-Aware Cost Functions
+for Logic Synthesis. In Proceedings of the 61st ACM/IEEE Design Automation
+Conference. ACM, San Francisco CA USA, 1–6. doi:10.1145/3649329.3656246
+[11] Jason Cong. 2024. Scheduling and Physical Design. In Proceedings of the 2024
+International Symposium on Physical Design. ACM, Taipei Taiwan, 219–225. doi:10.
+1145/3626184.3635290
+[12] J. Cong, Yiping Fan, Guoling Han, Xun Yang, and Zhiru Zhang. 2004. Architecture
+and synthesis for on-chip multicycle communication. IEEE Transactions on
+Computer-Aided Design of Integrated Circuits and Systems 23, 4 (April 2004),
+550–564. doi:10.1109/TCAD.2004.825872
+[13] Jason Cong and Zhiru Zhang. 2006. An efficient and versatile scheduling al-
+gorithm based on SDC formulation. In Proceedings of the 43rd annual Design
+Automation Conference (DAC ’06). Association for Computing Machinery, New
+York, NY, USA, 433–438. doi:10.1145/1146909.1147025
+[14] Samuel Coward, George A. Constantinides, and Theo Drane. 2022.
+Auto-
+matic Datapath Optimization using E-Graphs. doi:10.48550/arXiv.2204.11478
+arXiv:2204.11478 [cs].
+[15] Daehong Kim, Jinyong Jung, Sunghyun Lee, Jinhwan Jeon, and Kiyoung Choi.
+2001. Behavior-to-placed RTL synthesis with performance-driven placement.
+In IEEE/ACM International Conference on Computer Aided Design. ICCAD 2001.
+IEEE/ACM Digest of Technical Papers (Cat. No.01CH37281). IEEE, San Jose, CA,
+USA, 320–325. doi:10.1109/ICCAD.2001.968640
+[16] David Durst, Matthew Feldman, Dillon Huff, David Akeley, Ross Daly,
+Gilbert Louis Bernstein, Marco Patrignani, Kayvon Fatahalian, and Pat Han-
+rahan. 2020. Type-directed scheduling of streaming accelerators. In Proceedings
+of the 41st ACM SIGPLAN Conference on Programming Language Design and Im-
+plementation (PLDI 2020). Association for Computing Machinery, New York, NY,
+USA, 408–422. doi:10.1145/3385412.3385983
+[17] EGRAPHS Community. 2025. egraphs-good/extraction-gym.
+https://github.
+com/egraphs-good/extraction-gym original-date: 2023-06-27T20:23:44Z.
+[18] Fabrizio Ferrandi, Vito Giovanni Castellana, Serena Curzel, Pietro Fezzardi,
+Michele Fiorito, Marco Lattuada, Marco Minutoli, Christian Pilato, and Antonino
+Tumeo. 2021. Invited: Bambu: an Open-Source Research Framework for the
+High-Level Synthesis of Complex Applications. In 2021 58th ACM/IEEE Design
+Automation Conference (DAC). 1327–1330. doi:10.1109/DAC18074.2021.9586110
+ISSN: 0738-100X.
+[19] Gaeddert, Joseph D. and others. 2025. Liquid-DSP. https://github.com/jgaeddert/
+liquid-dsp
+[20] Georgi Gerganov. 2025. ggml: Tensor library for machine learning.
+https:
+//github.com/ggml-org/ggml
+[21] Google Inc. 2025. OR-Tools. https://developers.google.com/optimization
+[22] Licheng Guo, Yuze Chi, Jason Lau, Linghao Song, Xingyu Tian, Moazin Khatti,
+Weikang Qiao, Jie Wang, Ecenur Ustun, Zhenman Fang, Zhiru Zhang, and Jason
+Cong. 2023. TAPA: A Scalable Task-parallel Dataflow Programming Framework
+for Modern FPGAs with Co-optimization of HLS and Physical Design. ACM
+Transactions on Reconfigurable Technology and Systems 16, 4 (Dec. 2023), 1–31.
+doi:10.1145/3609335
+[23] Licheng Guo, Yuze Chi, Jie Wang, Jason Lau, Weikang Qiao, Ecenur Ustun,
+Zhiru Zhang, and Jason Cong. 2021. AutoBridge: Coupling Coarse-Grained
+Floorplanning and Pipelining for High-Frequency HLS Design on Multi-Die
+FPGAs. In The 2021 ACM/SIGDA International Symposium on Field-Programmable
+Gate Arrays. ACM, Virtual Event USA, 81–92. doi:10.1145/3431920.3439289
+[24] Licheng Guo, Jason Lau, Yuze Chi, Jie Wang, Cody Hao Yu, Zhe Chen, Zhiru
+Zhang, and Jason Cong. 2020. Analysis and Optimization of the Implicit Broad-
+casts in FPGA HLS to Improve Maximum Frequency. In 2020 57th ACM/IEEE
+Design Automation Conference (DAC). 1–6. doi:10.1109/DAC18072.2020.9218718
+ISSN: 0738-100X.
+[25] Licheng Guo, Pongstorn Maidee, Yun Zhou, Chris Lavin, Jie Wang, Yuze Chi,
+Weikang Qiao, Alireza Kaviani, Zhiru Zhang, and Jason Cong. 2022. RapidStream:
+Parallel Physical Implementation of FPGA HLS Designs. In Proceedings of the
+2022 ACM/SIGDA International Symposium on Field-Programmable Gate Arrays.
+ACM, Virtual Event USA, 1–12. doi:10.1145/3490422.3502361
+[26] Matthew Hofmann, Berk Gokmen, and Zhiru Zhang. 2025. EqMap: FPGA LUT
+Remapping using E-Graphs. In Proceedings of the 44th IEEE/ACM International
+Conference on Computer-Aided Design.
+[27] Intel. 2025.
+Intel® Quartus® Prime Standard Edition User Guide: Design
+Optimization-FPGA DSP Blocks. https://www.intel.com/content/www/us/en/
+docs/programmable/683230/18-1/fpga-dsp-blocks.html
+[28] Lana Josipović, Radhika Ghosal, and Paolo Ienne. 2018. Dynamically Scheduled
+High-level Synthesis. In Proceedings of the 2018 ACM/SIGDA International Sym-
+posium on Field-Programmable Gate Arrays. ACM, Monterey CALIFORNIA USA,
+127–136. doi:10.1145/3174243.3174264
+[29] Caleb Kim, Pai Li, Anshuman Mohan, Andrew Butt, Adrian Sampson, and Rachit
+Nigam. 2024. Unifying Static and Dynamic Intermediate Languages for Accelera-
+tor Generators. Proceedings of the ACM on Programming Languages 8, OOPSLA2
+(Oct. 2024), 2242–2267. doi:10.1145/3689790
+[30] L.-N. Pouchet and T. Yuki. 2016. PolyBench/C 4.2.
+https://sourceforge.net/
+projects/polybench/
+[31] LATTICE. 2025. iCE40 Technology Library.
+[32] Chris Lattner, Mehdi Amini, Uday Bondhugula, Albert Cohen, Andy Davis,
+Jacques Pienaar, River Riddle, Tatiana Shpeisman, Nicolas Vasilache, and Olek-
+sandr Zinenko. 2020. MLIR: A Compiler Infrastructure for the End of Moore’s
+Law. doi:10.48550/arXiv.2002.11054 arXiv:2002.11054 [cs].
+[33] Jason Lau, Yuanlong Xiao, Yutong Xie, Yuze Chi, Linghao Song, Shaojie Xiang,
+Michael Lo, Zhiru Zhang, Jason Cong, and Licheng Guo. 2024. RapidStream IR:
+Infrastructure for FPGA High-Level Physical Synthesis. In Proceedings of the 43rd
+IEEE/ACM International Conference on Computer-Aided Design. ACM, Newark
+Liberty International Airport Marriott New York NY USA, 1–11. doi:10.1145/
+3676536.3676649
+[34] Max Willsey, Chandrakana Nandi, Yisu Remy Wang, Oliver Flatt, Zachary Tat-
+lock, and Pavel Panchekha. 2021. egg: Fast and extensible equality saturation.
+Proceedings of the ACM on Programming Languages 5, POPL (Jan. 2021), 1–29.
+11
+
+
+Conference’17, July 2017, Washington, DC, USA
+Youwei Xiao, Yuyang Zou, and Yun Liang
+doi:10.1145/3434304
+[35] Michael Benjamin Stepp. 2011. Equality Saturation: Engineering Challenges and
+Applications. https://goto.ucsd.edu/~mstepp/publications/thesis.pdf
+[36] Rachit Nigam, Samuel Thomas, Zhijing Li, and Adrian Sampson. 2021. A com-
+piler infrastructure for accelerator generators. In Proceedings of the 26th ACM
+International Conference on Architectural Support for Programming Languages and
+Operating Systems. Association for Computing Machinery, New York, NY, USA,
+804–817. https://doi.org/10.1145/3445814.3446712
+[37] Carmine Rizzi, Andrea Guerrieri, and Lana Josipović. 2023. An Iterative Method
+for Mapping-Aware Frequency Regulation in Dataflow Circuits. In 2023 60th
+ACM/IEEE Design Automation Conference (DAC). IEEE, San Francisco, CA, USA,
+1–6. doi:10.1109/DAC56929.2023.10247686
+[38] Brett Saiki, Jackson Brough, Jonas Regehr, Jesus Ponce, Varun Pradeep, Aditya
+Akhileshwaran, Zachary Tatlock, and Pavel Panchekha. 2025. Target-Aware
+Implementation of Real Expressions (ASPLOS ’25). Association for Computing
+Machinery, New York, NY, USA, 1069–1083. doi:10.1145/3669940.3707277
+[39] Saul Shanabrook. 2025. egglog Python documentation. https://egglog-python.
+readthedocs.io/latest/index.html
+[40] Gus Henry Smith, Colin Knizek, Daniel Petrisko, Zachary Tatlock, Jonathan
+Balkind, Gilbert Louis Bernstein, Haobin Ni, and Chandrakana Nandi. 2024.
+Scaling Program Synthesis Based Technology Mapping with Equality Saturation.
+doi:10.48550/arXiv.2411.11036 arXiv:2411.11036 [cs].
+[41] Gus Henry Smith, Benjamin Kushigian, Vishal Canumalla, Andrew Cheung,
+Steven Lyubomirsky, Sorawee Porncharoenwase, René Just, Gilbert Louis Bern-
+stein, and Zachary Tatlock. 2024. FPGA Technology Mapping Using Sketch-
+Guided Program Synthesis. In Proceedings of the 29th ACM International Confer-
+ence on Architectural Support for Programming Languages and Operating Systems,
+Volume 2 (ASPLOS ’24, Vol. 2). Association for Computing Machinery, New York,
+NY, USA, 416–432. doi:10.1145/3620665.3640387
+[42] A. Stammermann, D. Helms, M. Schulte, A. Schulz, and W. Nebel. 2003. Binding
+allocation and floorplanning in low power high-level synthesis. In ICCAD-2003.
+International Conference on Computer Aided Design. 544–550. doi:10.1109/ICCAD.
+2003.159736
+[43] Mingxing Tan, Steve Dai, Udit Gupta, and Zhiru Zhang. 2015.
+Mapping-
+Aware Constrained Scheduling for LUT-Based FPGAs. In Proceedings of the 2015
+ACM/SIGDA International Symposium on Field-Programmable Gate Arrays. ACM,
+Monterey California USA, 190–199. doi:10.1145/2684746.2689063
+[44] Hanyu Wang, Carmine Rizzi, and Lana Josipović. 2023. MapBuf: Simultaneous
+Technology Mapping and Buffer Insertion for HLS Performance Optimization. In
+2023 IEEE/ACM International Conference on Computer Aided Design (ICCAD). 1–9.
+doi:10.1109/ICCAD57390.2023.10323639 ISSN: 1558-2434.
+[45] Min Xu and Fadi J. Kurdahi. 1997. Layout-driven RTL binding techniques for high-
+level synthesis using accurate estimators. ACM Transactions on Design Automation
+of Electronic Systems 2, 4 (Oct. 1997), 312–343. doi:10.1145/268424.268425
+[46] Ruifan Xu, Youwei Xiao, Jin Luo, and Yun Liang. 2022. HECTOR: A Multi-
+Level Intermediate Representation for Hardware Synthesis Methodologies. In
+Proceedings of the 41st IEEE/ACM International Conference on Computer-Aided
+Design. ACM, San Diego California, 1–9. doi:10.1145/3508352.3549370
+[47] Hanchen Ye, David Z. Pan, Chris Leary, Deming Chen, and Xiaoqing Xu. 2024.
+Subgraph Extraction-Based Feedback-Guided Iterative Scheduling for HLS. In
+2024 Design, Automation & Test in Europe Conference & Exhibition (DATE). 1–6.
+doi:10.23919/DATE58400.2024.10546877 ISSN: 1558-1101.
+[48] Yihong Zhang, Yisu Remy Wang, Oliver Flatt, David Cao, Philip Zucker, Eli Rosen-
+thal, Zachary Tatlock, and Max Willsey. 2023. Better Together: Unifying Datalog
+and Equality Saturation. http://arxiv.org/abs/2304.04332 arXiv:2304.04332 [cs].
+[49] Hongbin Zheng, Swathi T. Gurumani, Kyle Rupnow, and Deming Chen. 2014.
+Fast and effective placement and routing directed high-level synthesis for FP-
+GAs. In Proceedings of the 2014 ACM/SIGDA international symposium on Field-
+programmable gate arrays. ACM, Monterey California USA, 1–10. doi:10.1145/
+2554688.2554775
+12

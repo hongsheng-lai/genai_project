@@ -1,0 +1,2801 @@
+Probing decoupled Throats of AdSD Black
+Holes in D = 6, 7
+Weichao Bua, Yang Lei a
+aInstitute for Advanced Study & School of Physical Science and Technology, Soochow Uni-
+versity, No.1 Shizi Street, Suzhou 215006, P.R. China
+E-mail: ring6030asdfghj@gmail.com, leiyang@suda.edu.cn
+Abstract:
+The Kerr/CFT correspondence establishes a relationship between
+extremal black holes in higher dimensions and a chiral conformal field theory (CFT) in
+their near-horizon limit. A generalization of this framework, known as the EVH/CFT
+correspondence, has been developed for four- and five-dimensional AdS black holes. It
+was further proposed in [1] that a generalized duality between (D −2) dimensional
+geometry and (D −3) dimensional field theory may emerge in AdSD=6,7 black holes
+under a suitably defined extremal vanishing horizon (EVH) limit. In this work, we
+demonstrate that the near-EVH geometries arising in these AdS6,7 black hole models
+are not of the standard lower dimensional AdS kinds of black holes to establish a
+lower dimensional version of AdS/CFT correspondence, but instead belong to the
+family of Einstein-Maxwell-Maxwell-dilaton (EMMD) gravity theories. This realization
+opens a pathway toward a microscopic counting of non-AdS black hole entropy via
+higher-dimensional AdS/CFT techniques.
+*The authors are ordered purely alphabetically and should all be viewed as the co-first authors.
+arXiv:2511.15426v1  [hep-th]  19 Nov 2025
+
+
+Contents
+1
+Introduction
+1
+2
+Review of AdS5
+4
+3
+AdS black holes in D = 6, 7
+8
+3.1
+AdS6 black hole
+9
+3.2
+AdS7 black hole
+15
+3.3
+Discussion
+24
+4
+Holography with S ∼T D−3
+25
+5
+Conclusion and future work
+28
+A Review of EMMD gravity
+30
+1
+Introduction
+So far, all gravitational-wave observations of black hole mergers have been consistent
+with the Kerr model of black holes [2]. Understanding the quantum effects associated
+with Kerr black holes is therefore crucial for uncovering potential signatures of quantum
+gravity.
+One of the major observational milestones to date is the confirmation of
+Hawking’s area theorem [3], which states that the total event-horizon area of black
+holes cannot decrease over time. In particular, recent observations verify that the final
+horizon area after a merger exceeds the sum of the areas of the two initial black holes
+[4].
+The problem of understanding the microscopic states of black holes is a cornerstone
+test for any candidate theory of quantum gravity. Two main approaches have been
+developed to study this problem in different frameworks.
+• The AdS3/CFT2 correspondence provides a particularly transparent setting, as
+the powerful Virasoro symmetry completely determines the microscopic states
+of black holes in the near-horizon region [5, 6]. This idea was later generalized
+– 1 –
+
+
+to higher-dimensional extremal black holes through the Kerr/CFT correspon-
+dence [7] (also generalized as the extremal black hole/CFT correspondence [8–
+10]). These theories assert that the generic AdS2 geometry emerging in the near-
+horizon limit of extremal black holes admits boundary conditions under which a
+Virasoro algebra governs the dynamics, without acknowledging the details of the
+higher dimensional black hole in the UV1.
+• Within the AdSd+1/CFTd (d = D −1 > 2) framework, the microscopic states
+of AdS black holes can be reproduced by counting gauge-invariant operators in
+the dual superconformal field theories. Remarkable progress has been achieved in
+understanding black holes in AdS4 [12–15], AdS5 [16–19], AdS6 [13, 20], and AdS7
+[18, 21–23]. See [24] for a recent review. Most of these studies focus on BPS black
+holes, for which the counting of gauge-invariant states in the dual weakly coupled
+field theory remains valid. An exception is the work [25], which investigates the
+field computation to understand the entropy of the near-BPS AdS5 black holes.
+The two approaches were investigated in a unified framework within the BPS black
+hole in the AdSD spacetimes. There are two possible perspetives being considered in
+the literature. One is to consider the gravitational Cardy limits [26] where the charges
+and angular momenta are rescaled to make the black hole ultra spinning. The geometry
+in these limits are generically AdS2 and AdS3, where Virasoro algebra can determine
+the dynamics in the near horizon limit. Another is building on earlier studies of the
+Extremal Vanishing Horizon (EVH) limit of black holes [27–31] and explore the AdS5
+black holes in the BPS-EVH limits [1]. In the EVH limit, the black hole area S0 ∼A
+is taken to zero while the central charge c diverges, such that the product cA remains
+fixed. Given the expansion of entropy S in terms of temperature T is
+S(T, Qi, Ja) = S0(Qi, Ja) + S1(Qi, Ja)T + S2(Qi, Ja)T 2 + · · · ,
+(1.1)
+the dynamics of the extremal black hole can be activated in this limit by taking S0 = 0,
+thereby circumventing the instability problem associated with AdS2 geometry [32],
+and the geometry is elevated to AdS3 if S1 ̸= 0. In the supersymmetric AdS5 black
+hole model [1], an extremal pinched BTZ black hole emerges in the near-EVH regime,
+consistent with S ∼T relations. Moreover, since the microscopic states of the AdS5
+black hole can be computed via the superconformal indices of N = 4 SYM, the authors
+of [1] demonstrated that a Cardy-like formula—used to count the degeneracy of an
+emergent CFT2 [33]—can be derived from the inverse Laplace transformation of the
+1There are also extensions of this idea to non-extremal black holes, where the Virasoro symmetry
+is realized as a geometric symmetry of the phase space of perturbations [11].
+– 2 –
+
+
+N = 4 superconformal indices. This work represents a significant step toward proving
+the Kerr/CFT correspondence from the perspective of AdS/CFT, at least in the BPS
+limit. However, neither of these works can be considered as completing the proof of
+Kerr/CFT from AdS/CFT, as the mechanism of the emergent Virasoro algebra is still
+unclear.
+An interesting generalization of EVH-BPS black holes proposed in [1] is the emer-
+gent EVH configurations in the IR limit of AdS6 [34] and AdS7 black holes [35, 36].
+These black holes can be appropriately embedded in the ten dimensional string theory
+and eleven dimensional M-theory [37, 38]. The extremal limit of higher dimensional
+AdS black holes require more charges and angular momenta to support [8, 39, 40]. This
+is due to the gravitational interactions of higher dimensions are stronger which requires
+more gauge forces or rotations to balance to get extremal black hole.
+On the other hand, with more charges and spatial dimensions are present, we might
+expect (1.1) can have higher orders of scalings S ∼T 2 or S ∼T 3 by fine tuning the
+charges and angular momenta i.e. make S0(Qi, Ja) = S1(Qi, Ja) = 0. However, we will
+clarify that near-EVH black holes in rotating AdS6 and AdS7 can be defined without
+being restricted to the near-BPS limit, as previously proposed in [1], and can instead
+be realized through general near-extremal limits.
+We carefully examine the scaling
+relations between entropy S and temperature T for these black holes. Our analysis
+shows that their near-horizon geometries, both in D = 6 and 7, can be universally
+described by solutions to the Einstein–Maxwell–Maxwell–Dilaton (EMMD) theory in
+lower dimensions (including Reissner-Nordstr¨om black hole at special points). These
+black holes emergent from EVH limits are no longer with AdS asymptotics. However,
+as the microscopic states of the supersymmetric AdS6,7 black holes can be reproduced
+from the dual SCFT, we should in principle to use the higher dimensional SCFT to
+understand the quantum states dual to these EMMD black holes.
+This can be an
+essential step to understand holographic duals to non-AdS black holes.
+The paper is organized as follows. In Section 2, we review the concept of near-
+EVH limits for Kerr–AdS5 black holes based on [1, 29]. In Sections 3.1 and 3.2, we
+investigate the near-EVH phases in AdS6 and AdS7 black holes, respectively, within
+this EMMD framework. Specifically, for AdS6, the near-EVH geometry corresponds
+to a four-dimensional EMMD black hole with S ∼T 2. In AdS7, we find both S ∼T
+and S ∼T 3 configurations, which are respectively realized as a BTZ black hole and a
+five-dimensional EMMD black hole. Finally, in Section 4, we discuss the holographic
+implications of these near-EVH limits, and conclude with discussions in Section 5.
+– 3 –
+
+
+2
+Review of AdS5
+Studies on the (near)-extremal vanishing horizon (EVH) limits of AdS5 black holes
+were initiated in [27, 31] for static R-charged black holes and further developed in [28].
+Subsequent investigations into the EVH limits of Kerr–RN–AdS5 black holes and their
+dual field theory interpretations began with [29], while an index-based interpretation
+of the emergent IR CFT2 and its entropy was later provided in [1]. Generic AdS5 black
+holes in U(1)3 gauged supergravity carry three charges and two angular momenta. The
+most general non-supersymmetric solution of this type was constructed in [41], building
+on earlier works [42–46]. However, the full generality of these solutions makes them
+rather complicated. For the purpose of capturing the essential physics of near-EVH
+limits and their holographic interpretation via superconformal indices [1], the simpler
+special solutions presented in [29, 44] suffice. We therefore restrict our analysis to these
+special cases.
+The black hole solution under consideration, studied in [1, 10], carries two equal
+charges and is described by the following five-dimensional metric:
+ds2
+5 = H−4
+3
+"
+−X
+ρ2(dt −a sin2 θdϕ
+Ξa
+−b cos2 θdψ
+Ξb
+)2 + C
+ρ2
+ab
+f3
+dt −b
+f2
+sin2 θdϕ
+Ξa
+−a
+f1
+cos2 θdψ
+Ξb
+2
++ Z sin2 θ
+ρ2
+ a
+f3
+dt −1
+f2
+dϕ
+Ξa
+2
++ W cos2 θ
+ρ2
+ b
+f3
+dt −1
+f1
+dψ
+Ξb
+2#
++ H
+2
+3
+ρ2
+X dr2 + ρ2
+∆θ
+dθ2
+
+,
+H = 1 + q
+ρ2,
+ρ2 = r2 + a2 cos2 θ + b2 sin2 θ,
+∆θ = 1 −a2 cos2 θ −b2 sin2 θ
+f1 = a2 + r2,
+f2 = b2 + r2,
+f3 = (a2 + r2)(b2 + r2) + qr2,
+X = (a2 + r2)(b2 + r2)
+r2
+−2m + (a2 + r2 + q)(b2 + r2 + q),
+C = f1f2(X + 2m −q2
+ρ2),
+Ξa = 1 −a2,
+Ξb = 1 −b2,
+Z = −b2C + f2f3
+r2
+
+f3 −r2(a2 −b2)(a2 + r2 + q) cos2 θ
+
+,
+W = −a2C + f1f3
+r2
+
+f3 + r2(a2 −b2)(b2 + r2 + q) sin2 θ
+
+.
+(2.1)
+– 4 –
+
+
+The corresponding thermodynamic quantities are given as follows:
+Ωa = a(r4
++ + r2
++b2 + r2
++q + b2 + r2
++)
+(r2
++ + a2)(r2
++ + b2) + qr2
++
+,
+Ωb = b(r4
++ + r2
++a2 + r2
++q + a2 + r2
++)
+(r2
++ + a2)(r2
++ + b2) + qr2
++
+,
+Φ1 = Φ2 =
+p
+q2 + 2mqr2
++
+(r2
++ + a2)(r2
++ + b2) + qr2
++
+,
+Φ3 =
+qab
+(r2
++ + a2)(r2
++ + b2) + qr2
++
+,
+Ja = πa(2m + qΞb)
+4GNΞbΞ2
+a
+,
+Jb = πb(2m + qΞa)
+4GNΞaΞ2
+b
+,
+(2.2)
+Q1 = Q2 = π
+p
+q2 + 2mq
+4GNΞaΞb
+,
+Q3 = −
+πabq
+4GNΞaΞb
+,
+S = π2[(r2
++ + a2)(r2
++ + b2) + qr2
++]
+2GNΞaΞbr+
+,
+T = 2r6
++ + r4
++(1 + a2 + b2 + 2q) −a2b2
+2πr+[(r2
++ + a2)(r2
++ + b2) + qr2
++] ,
+E =
+π
+8GNΞ2
+aΞ2
+b
+[2m(2Ξa + 2Ξb −ΞaΞb) + q(2Ξ2
+a + 2Ξ2
+b + 2ΞaΞb −Ξ2
+aΞb −Ξ2
+bΞa)]
+This solution is parametrized by four independent parameters (a, b, m, q) and we have
+set the cosmological constant g = 1. Here Newton constant G is related to the rank of
+SU(N) gauge group of N = 4 SYM by
+π
+2GN = N 2. These expressions fully characterize
+the thermodynamic state of the black hole. The solution and its thermodynamic data
+play a central role in the subsequent analysis of the near-EVH limit and the emergence
+of an effective two-dimensional conformal description.
+The EVH and near-EVH limits are defined as [29] 2
+EVH : a = r+ = 0 ;
+near-EVH : a = λϵ2,
+r = ϵx
+(2.3)
+where ϵ →0 is taken as also the near horizon limits. The EVH is treated as the ground
+state while the near-EVH limits can be treated as excitation states of the theory, as
+it has non-vanishing temperature of order ϵ. The corresponding geometries of (near)-
+EVH limits are respectively pinched AdS3 and BTZ black holes. The entropy of these
+BTZ black hole scales as S ∼N 2ϵ, which is finite as we keep N 2ϵ fixed as N →∞.
+For the classical description of gravity to be valid, N 2ϵ should be taken large.
+We are especially interested in the near-EVH limit combined with the BPS condi-
+tion, which includes both the supersymmetry
+E = Ja + Jb + Q1 + Q2 + Q3
+(2.4)
+The chemical potentials satisfying the supersymmetry condition are generically com-
+plex, and it is useful to define following chemical potentials:
+∆i = β(1 −Φi),
+ωI = β(1 −ΩI) ,
+i = 1, 2, 3;
+I = 1, 2
+(2.5)
+2The EVH limit is defined as b = r+ = 0 in [1] which is still valid in q = 0 limit. Due to the
+symmetry between a, b parameters, this will not change the essential physics.
+– 5 –
+
+
+and is subject to the linear constraint:
+∆1 + ∆2 + ∆3 −ωa −ωb = 2πi .
+(2.6)
+This makes the parameters (q, m) are generically complex unless the radius of horizon
+is determined by
+r2
+0 =
+ab
+1 + a + b .
+(2.7)
+This condition removes the closed timelike curves in the spacetime.
+The solutions
+satisfying both the supersymmetry condition (2.4) and the horizon size condition (2.7)
+have real values of charges and entropy, parametrized by the (q, m) parameters as
+q = (a + b)(1 + a)(1 + b)
+1 + a + b
+,
+m = (a + b)2(1 + a)(1 + b)(2 + a + b)
+2(1 + a + b)
+.
+(2.8)
+The combining the BPS conditions (2.4) and (2.7) and the EVH conditions (2.3), the
+entropy of the black hole is determined to be
+S =
+πb
+1 −b
+r
+bλ
+1 + bN 2ϵ,
+(2.9)
+The corresponding decoupling metric of AdS5 is of the following form
+ds2 =
+ h
+sin θ
+−4
+3 
+h2ds2
+3 + h2
+b2dθ2
+1 −b2 cos2 θ + 1 −b2 sin2 θ
+(1 −b)2
+cos2 θ
+sin2 θ d ˜ψ2
+
+h = sin θ +
+1
+b sin θ ,
+˜ψ = ψ −(1 −bt)
+(2.10)
+with ds2
+3 in the EVH limit is taken as the metric of AdS3
+ds2
+3 = −x2
+ℓ2
+3
+dτ 2 + ℓ2
+3
+x2dx2 + x2deχ2,
+ℓ3 =
+b
+1 + b,
+t = (1 + b)τ
+(2.11)
+while in the near-EVH case, the ds2
+3 is replace by the extremal BTZ geometry:
+ds2
+3 = −(x2 −x2
+0)2
+ℓ2
+3x2
+dτ 2 +
+ℓ2
+3x2dx2
+(x2 −x2
+0)2 + x2
+
+deχ −x2
+0
+ℓ2
+3x2dτ
+2
+,
+(2.12)
+This geometry is called pinched as the S1 direction ˜χ = ϵϕ has periodicity 2πϵ.
+We are now ready to explain the entropy (2.9) of the BPS-EVH black hole from
+the computations of the dual N = 4 SYM (2.12), following [1]. It has been shown in
+– 6 –
+
+
+various works [16–19, 47] that the entropy functional in the large N limit of N = 4
+SYM is
+S = ln Z + (Ja + Q3)ωa + (Jb + Q3)ωb + (Q1 −Q3)∆1 + (Q2 −Q3)∆2 + 2πiQ3
+ln Z = N 2
+2
+∆1∆2∆3
+ωaωb
+,
+∆1 + ∆2 + ∆3 −ω1 −ωb = 2πi
+(2.13)
+where the chemical potentials are taken complex to avoid cancellation between bosonic
+and fermionic degrees of freedom [48]. After performing saddle point approximation
+on the chemical potentials ∆i, ωa, ωb, the entropy functional (2.13) reproduces the BPS
+black hole entropy [46]
+S = 2π
+r
+Q1Q2 + Q1Q3 + Q2Q3 −N 2
+2 (Ja + Jb)
+(2.14)
+The entropy formula (2.14) is consistent with the one for two equal charge black hole
+(2.2) in the BPS limit. Therefore, the BPS-EVH limit of the entropy (2.9) should
+be also encoded in the superconformal indices of the N = 4 SYM, and the entropy
+functional (2.13).
+In fact, as shown in [1], the near-EVH limit splits the extremization of the entropy
+functional in the saddle-point approximation into two steps. In the large-N limit with
+the EVH condition N 2ϵ held fixed, the charges scale as Q3 ∼Ja ∼N 2ϵ2, while Q1,2 ∼
+Jb ∼N 2. Under this scaling, the saddle-point approximation of the functional in (2.13)
+is justified only for ∆1,2 and ωb, but not for ωa. Therefore, setting ∆1 = ∆2 = ∆in the
+solution (2.1) and performing the ωb and ϕ integrations first, we obtain
+eS =
+Z
+dωa exp
+"
+N 2 ˆ∆2
+2ωa
+ ˆ∆
+ˆωb
+−1
+!
++ 2πiQ3
+#
+eωa(Ja+Q3),
+(2.15)
+where ˆ∆and ˆωb denote the values of the chemical potentials satisfying the saddle-
+point equations. This expression (2.15) closely resembles the Cardy formula of a two-
+dimensional CFT. It may be viewed as a functional over the rescaled modulus ˜ωa = ϵωa.
+Since N 2ϵ is fixed and large, extremization over ˜ωa is valid and reproduces precisely
+the near-EVH entropy given in (2.9).
+This computation strongly supports the emergence of an effective two-dimensional
+conformal field theory in the near-horizon limit. The resulting EVH 2D CFT is closely
+related to the Kerr/CFT correspondence, though their central charges differ by a fac-
+tor of
+√
+2 — a discrepancy that may stem from differing choices of time coordinates
+between AdS5 and AdS3 [1]. This result should therefore be viewed as a key first step to-
+ward uncovering the microscopic mechanism underlying the Kerr/CFT correspondence
+within the framework of AdS/CFT.
+– 7 –
+
+
+However, this does not constitute sufficient evidence to claim that the EVH/CFT
+correspondence (as a more special version of Kerr/CFT correspondence) has been de-
+rived from AdS/CFT. First, although the central charge in the Cardy formula matches
+that of Kerr/CFT, its origin on the field theory side remains obscure. It is unclear how
+this central charge, which is geometrically defined by the AdS2 throat in the gravity
+picture, can be derived from the algebraic data of N = 4 SYM, such as the conformal
+dimensions of operators or the central charge of N = 4 SYM. Second, it is not under-
+stood how operators transforming under the 4D superconformal algebra PSU(2, 2|4)
+organize into representations of the Virasoro algebra3. This conceptual tension is re-
+flected in the mismatch between the local symmetries of AdS5 in the UV and AdS3 in
+the IR. Despite these aspects, we are not aware of whether the general SL(3, Z) families
+of AdS black hole corresponding to the root of unity configurations [49–58] can have
+such a near-EVH decoupling limit or not. These topics will not be discussed in this
+paper.
+3
+AdS black holes in D = 6, 7
+AdSD black holes in D = 6 and 7 dimensions exhibit considerably richer structure
+than their four- and five-dimensional counterparts. Of particular interest are those
+solutions that either possess known holographic duals or admit consistent embeddings
+into string theory. Notable examples include AdS6 black holes with two independent
+angular momenta and one R-charge [34], as well as AdS7 black holes carrying up to
+three angular momenta and two distinct R-charges [36].
+This classification closely
+mirrors the properties of superconformal field theories in d = 5 and 6 dimensions [59].
+Moreover, such black hole solutions are of intrinsic interest due to their realizations as
+specific brane configurations in string theory or M-theory [37, 38].
+The metric of AdSD is expressed in coordinates including time t, a radial coordinate
+r, along with [D−1
+2 ] azimuthal angles ϕi and [D−2
+2 ] latitude coordinates yα on the sphere.
+To be precise, we set D = 2n + 1 for odd dimensions and D = 2n for even dimensions.
+The coordinates yα are related to the direction cosines µi of the unit sphere S[D/2] via
+the Jacobi transformation:
+µ2
+i =
+Qn−1
+α=1(a2
+i −y2
+α)
+Qn
+k̸=i(a2
+i −a2
+k) ,
+i = 1, . . . ,
+D −1
+2
+
+,
+(3.1)
+3Evidence suggests that the emergence of the Virasoro algebra in the near-EVH limit is tied to
+the chiral algebra mechanism [1], since one of the constituents of the Virasoro generators Ja + Q3 is
+a Schur operator. However, the set of letters contributing to the entropy and transforming under the
+Virasoro algebra also includes non-Schur operators. Therefore, a generalization of the chiral algebra
+mechanism appears necessary to account for the Virasoro symmetry emerging in near-EVH limits.
+– 8 –
+
+
+which automatically satisfies the constraint P[D/2]
+i=1 µ2
+i = 1. Here, each ai parametrizes
+a rotation in the corresponding ϕi direction. The symbol Q′ indicates that the product
+omits any vanishing factor. In the case of even D, we set an = 0. This coordinate sys-
+tem, introduced in [40], provides a natural framework for generalizing Kerr–AdS black
+holes to include NUT charges. It also offers several structural advantages: for example,
+the metric on SD−2 becomes diagonal in these coordinates, and the coordinates yα and
+r appear in a highly symmetric manner throughout the metric.
+In this section, we will describe the corresponding near-(EVH) limits of the AdSD
+black holes with D = 6, 7. The analysis on the thermodynamics of these black holes
+indicate they have S ∼T D−3 scaling relations in the near BPS and near EVH limits
+[1]. These scaling relations between entropy and temperature was conjectured to hint
+a possible AdSD−2/CFTD−3 duality emergent in the IR. In this section, we will mainly
+make two clarifications in these models.
+• The near-BPS condition is not necessary to define the near EVH limits
+• The near-EVH geometry is not of the AdSD−2 black holes, but instead the black
+holes in EMMD theories in (D −2) dimensional manifold.
+3.1
+AdS6 black hole
+The AdS6 black hole is solution to the N = 4, SU(2) gauged supergravity theory
+in six dimensions, which include a graviton, a two-form potential, a scalar, a one-
+form potential and together with the gauge potential of SU(2) Yang-Mills theory. The
+bosonic part of Lagrangian is [34, 60]
+L6 = R ⋆1 −1
+2 ⋆dφ ∧dφ −
+1
+2X2
+
+⋆F(2) ∧F(2) + ⋆F I
+(2) ∧F I
+(2)
+
+−1
+2X4 ⋆F(3) ∧F(3) +
+
+9X2 + 12
+X2 −1
+X6
+
+⋆1
+(3.2)
+−A(2) ∧
+1
+2dA(1) ∧dA(1) + 1
+√
+2A(2) ∧dA(1) + 1
+3A(2) ∧A(2) + 1
+2F I
+(2) ∧F I
+(2)
+
+In order to describe the AdS6 black hole solutions of this theory conveniently, we make
+the following ansatz
+yα = (y, z),
+(a1, a2, a3) ≡(a, b, 0)
+(3.3)
+– 9 –
+
+
+The charged rotating AdS6 in the asymptotic static frame is 4 [10, 34]
+ds2 = H
+1
+2
+(r2 + y2)(r2 + z2)
+X
+dr2 + (r2 + y2)(y2 −z2)
+Y
+dy2
++ (r2 + z2)(z2 −y2)
+Z
+dz2 −
+X
+H2(r2 + y2)(r2 + z2)A2
++
+Y
+(r2 + y2)(y2 −z2)
+
+(1 + r2)(1 −z2)d˜t −(a2 + r2)(a2 −z2)d˜ϕ1
+−(b2 + r2)(b2 −z2)d˜ϕ2 −
+qrA
+H(r2 + y2)(r2 + z2)
+2
++
+Z
+(r2 + z2)(z2 −y2)
+
+(1 + r2)(1 −y2)d˜t −(a2 + r2)(a2 −y2)d˜ϕ1
+−(b2 + r2)(b2 −y2)d˜ϕ2 −
+qrA
+H(r2 + y2)(r2 + z2)
+2#
+(3.4)
+where the functions in the metric are explicitly
+X = (r2 + a2)(r2 + b2) + [r(r2 + a2) + q][r(r2 + b2) + q] −2mr
+Y = −(1 −y2)(a2 −y2)(b2 −y2),
+Z = −(1 −z2)(a2 −z2)(b2 −z2)
+H = 1 +
+qr
+(r2 + y2)(r2 + z2)
+A = (1 −y2)(1 −z2)d˜t −(a2 −y2)(a2 −z2)d˜ϕ1 −(b2 −y2)(b2 −z2)d˜ϕ2
+(3.5)
+Without loss of generality, we adopt the convention from [34] in which the coordinates
+y, z are restricted to the region
+−a ≤y ≤a ≤z ≤b .
+(3.6)
+The coordinates ˜ϕi and ˜t are related to the standard Boyer-Linquist coordinates, where
+the S1 directions ϕi have periodicity 2π, via
+˜t =
+t
+ΞaΞb
+,
+˜ϕ1 =
+ϕ1
+aΞa(a2 −b2),
+˜ϕ2 =
+ϕ2
+bΞb(b2 −a2)
+(3.7)
+This redefinition is introduced to simplify the notation, following [40]. The thermody-
+namic quantities can be directly computed from the metric (3.4), yielding the following
+4We take the static frame instead of other ψi coordinates as these are appropriate for computing
+the thermodynamic quantities. They are thus also suitable for taking the near-EVH limits later.
+– 10 –
+
+
+expressions [13, 34, 61, 62]
+E =
+2πm
+3GNΞaΞb
+ 1
+Ξa
++ 1
+Ξb
++ q
+2m
+
+1 + Ξb
+Ξa
++ Ξa
+Ξb
+
+,
+S = 2π2[(r2
++ + a2)(r2
++ + b2) + qr+]
+3GNΞaΞb
+Ja =
+2πma
+3GNΞ2
+aΞb
+
+1 + Ξbq
+2m
+
+,
+Jb =
+2πmb
+3GNΞaΞ2
+b
+
+1 + Ξaq
+2m
+
+,
+(3.8)
+T = 2r2
++(1 + r2
++)(2r2
++ + a2 + b2) −(1 −r2
++)(r2
++ + a2)(r2
++ + b2) + 4qr3
++ −q2
+4πr+[(r2
++ + a2)(r2
++ + b2) + qr+]
+Ωa = a[(r2
++ + 1)(r2
++ + b2) + qr+]
+(r2
++ + a2)(r2
++ + b2) + qr+
+,
+Ωb = b[(r2
++ + 1)(r2
++ + a2) + qr+]
+(r2
++ + a2)(r2
++ + b2) + qr+
+Φ =
+p
+q2 + 2mqr+
+(r2
++ + a2)(r2
++ + b2) + qr+
+Q = π
+p
+q2 + 2mq
+GNΞaΞb
+The Newton constant GN is related to the field theory constant by 27
+√
+2
+5π
+N
+5
+2
+√
+8−Nf = G−1
+N
+[20], where Nf is the number of flavor symmetry. These quantities satisfy the first law
+of black hole thermodynamics [34].
+We are particularly interested in the (near)-EVH limit, where the extremal black
+hole horizon scales as ϵ and N
+5
+2ϵ2 is held fixed to ensure the presence of non-trivial
+dynamics. In this framework, the exact EVH limit corresponds to the ground state of
+the near-EVH geometry, characterized by a vanishing horizon. Achieving such a config-
+uration requires careful tuning of parameters, especially since in spacetime dimensions
+D ≥6 , the existence of extremal AdS black holes generally demands additional charges
+and angular momenta to balance the gravitational potential.
+The EVH limits are generically defined as
+a ≡0,
+r = ϵx,
+r+ = ϵx+,
+˜t = ϵτ
+q = 0,
+(3.9)
+The blackening factor has a vanishing horizon by taking these parameters:
+X(r) = (r2 + b2)(r2 + 1)r2
+(3.10)
+indicating that the limit results in the ground state geometry. However, the function Y
+and coordinate y in the metric (3.4) vanish as the definition domain (3.6), while ˜ϕ1 is
+singular in the EVH limit (3.9). They thus need to be appropriately normalized. The
+solution adapted to both the definition domain (3.6) and the Jacobi transformation
+(3.1) in this EVH limit is:
+y = a cos θ1,
+z = b cos θ2,
+a ˜ϕ1 = −ϕ1
+b2 ,
+0 ≤θ1 ≤π,
+0 ≤θ2 ≤π
+2 .
+(3.11)
+– 11 –
+
+
+The geometry yields
+ds2 = −(1 + r2)(1 −b2 cos2 θ2)
+1 −b2
+d˜t2 +
+r2 + b2 cos2 θ2
+(r2 + 1)(r2 + b2)dr2 + r2 cos2 θ2(dθ2
+1 + sin2 θ1dϕ2
+1)
++r2 + b2
+1 −b2 sin2 θ2dϕ2
+2 + r2 + b2 cos2 θ2
+1 −b2 cos2 θ2
+dθ2
+2
+(3.12)
+A special limit is z →b where the geometry is manifestly decoupled as global AdS4
+spanned by (˜t, r, θ1, ϕ1) with S2 compact manifold spanned by (θ2, ϕ2).
+We are now in a position to explore the near-EVH limit. This limit is implemented
+via the following scalings
+a = λϵ2,
+q = bx+ϵ + q(3)ϵ3
+(3.13)
+together with the coordinate transformation (3.11) such that the range (3.6) is pre-
+served. The scaling between a and ϵ was enlightened as possible generalizations of
+the near-EVH limits in the AdS5 black hole counterparts [1]. q(3) has to be chosen to
+guarantee the existence of the extremal horizon, where the temperature vanishes. The
+temperature T does not vanish at the order ϵ for generic values of q(3), which results in
+S ∼T 2 scaling relations:
+S =
+2π2bx2
++
+3GN(1 −b)ϵ2
+T = −2bx+q(3) + (3 + 4b + 3b2)x4
++ −b2λ2
+4πb(1 + b)x3
++
+ϵ + O(ϵ3)
+(3.14)
+Therefore, the near-EVH scaling relations are possible even without the near-BPS con-
+dition proposed in [1]. In the near-EVH limit, our interesting dynamics is restricted
+to
+ϵ2
+G ∼N
+5
+2ϵ2
+fixed,
+ϵ →0
+(3.15)
+Despite that the S ∼T 2 scaling relations is not that special EVH limit, the particular
+scaling of a with ϵ was motivated by potential generalizations of near-EVH limits in the
+context of AdS5 black holes [1]. Meanwhile, the scaling of q with ϵ is chosen to ensure
+the persistence of an extremal horizon in the limit. Moreover, this ansatz naturally
+incorporates near-BPS EVH limits without further adjustment.
+The BPS limit of AdS6 black hole and the field theory interpretation was discussed
+in [13]. The supersymmetry condition yields
+E = Ja + Jb + Q
+(3.16)
+– 12 –
+
+
+Similar to AdS5 [1, 63], the q parameter satisfying the supersymmetry condition are
+generically complex unless the BPS values of horizon size r0 is taken :
+q = (a + b + ab)r+ + i(1 + a + b)
+ r2
++ −r2
+0
+
+,
+r2
+0 =
+ab
+1 + a + b
+(3.17)
+The chemical potentials defined at the BPS points are
+∆= lim
+r+→r0 β(1 −Φ),
+ωa = lim
+r+→r0 β(1 −Ωa),
+ωb = lim
+r+→r0 β(1 −Ωb)
+(3.18)
+which are generically complex and subject to the condition
+ωa + ωb −3∆= 2πi .
+(3.19)
+This condition will be crucial to reproduce the black hole entropy from the supercon-
+formal indices, as will be discussed in section 4. As the generalization of EVH-BPS
+limit of AdS5, the work [1] considered the combined near-BPS and near-EVH limits of
+AdS6 black hole, where the horizon size reduces to
+x+ =
+r
+bλ
+1 + b
+(3.20)
+Besides the entropy of the black hole in the BPS limit is
+S =
+2π2b2λ
+3GN(1 −b2)ϵ2
+(3.21)
+which is kept finite in the near-EVH limit. This is precisely a special case of near-
+extremal black hole (3.14).
+The near-EVH metric with extremality corresponding to the condition (3.13) is 5:
+d˜s2 = H
+1
+2
+
+cos2 θ2ϵ2x2
+dx2
+(x −x+)2 + ϵ2 cos2 θ2x2dθ2
+1 + ϵ2x2 cos2 θ2 sin2 θ1dϕ2
+1
+−(x −x+)2[b2 sin2 θ2dϕ2 −ϵb(1 −b2 cos2 θ2)dτ]2
+(xb cos θ2 + x+ sec θ2)2(1 −b2)2
++
+b2 cos2 θ2
+1 −b2 cos2 θ2
+dθ2
+2 + b2 sin2 θ2 cos2 θ2(1 −b2 cos2 θ2)(bx + x+)2
+(1 −b2)2(x+ + xb cos2 θ2)2
+dϕ2
+2
+
+H = 1 +
+x+
+xb cos2 θ2
+(3.22)
+5The temperature of extremal black hole must be zero. We need to choose q(3) in (3.13) appropri-
+ately to make T identically vanishing. Although any choices will not affect the leading order in the
+near-EVH limit of the AdS6 black holes.
+– 13 –
+
+
+The decoupled geometry behaves differently for different locations of θ2.
+We thus
+consider two limits respectively. In the θ2 →0 limit (3.12), the four dimensional black
+hole decoupled from the IR limit of AdS6 black hole is spanned by the coordinates
+(τ, x, w, ϕ1), whose metric takes the following ansatz
+d˜s2 = H
+1
+2
+
+ϵ2ds2
+4 +
+b2
+1 −b2dΩ2
+2
+
+,
+dΩ2
+2 = dθ2
+2 + sin2 θ2dϕ2
+2
+(3.23)
+The decoupled four dimensional black hole can be written as follows
+ds2
+4 = −(x −x+)2
+(x + x+
+b )2 dτ 2 +
+x2dx2
+(x −x+)2 + x2dθ2
+1 + x2 sin2 θ1dϕ2
+1
+(3.24)
+On the other hand, another limit of definition range of θ2 in (3.11) is θ2 →π
+2. The
+decoupled metric can be reorganized as
+d˜s2 = H
+1
+2 cos2 θ2
+
+ϵ2ds2
+4 + b2dθ2
+2 + b2 sin2 θ2
+2bx + x+ −bx+
+(1 −b)2(1 + b)x+
+dϕ2
+2
+
+ds2
+4 = −
+b2
+(1 −b2)2
+(x −x+)2
+x2
++
+dτ 2 +
+x2dx2
+(x −x+)2 + x2dθ2
+1 + x2 sin2 θ1dϕ2
+1
+(3.25)
+Although the S2 parts are not fully decoupled from radial coordinate, the dynamical
+part of the geometry of order ϵ2 is of the standard form of four dimensional Reissner-
+Nordstr¨om (RN) black hole. The decoupled metric at locations defined by other values
+of θ2 are still of the form (3.24).
+Typically, the metric (3.24) is conformal to the extremal EMMD black hole solu-
+tions [64, 65], which will also be reviewed in appendix A. For instance, the EMMD
+solution with N1 = N2 = 2 is:
+ds2
+EMMD = ˜r + q2
+˜r + q1
+
+−(˜r −µ)˜r
+(˜r + q2)2dt2 + (˜r + q1)2
+˜r(˜r −µ) d˜r2 + (˜r + q1)2(dθ2
+1 + sin2 θ1dϕ2
+1)
+
+(3.26)
+Without loss of generality, we assume q2 > q1. The metric inside the square bracket of
+(3.26) is precisely the decoupled near-EVH geometry (3.24) by identifying
+µ = 0,
+x+ = q1,
+x+
+b = q2 −q1,
+x = ˜r + q1 .
+(3.27)
+If BPS condition is imposed [1], the horizon size x+ and charge q are both fixed by the
+rotation parameters, which will correspond to special values of two U(1) charges in the
+EMMD theory.
+This near-EVH limit of black holes can be further generalized to the non-extremal
+models, whose decoupled geometry can be conformally related to the non-extremal
+EMMD black holes. The corresponding near-EVH limit (3.13) should be replaced by
+q = b√x+x−ϵ + q(3)ϵ3 ,
+(3.28)
+– 14 –
+
+
+which yields to the four dimensional decoupled black hole geometry
+ds2
+4 = −(x −x+)(x −x−)dτ 2
+(x +
+√x+x−
+b
+)2
++
+x2dx2
+(x −x+)(x −x−) + x2(dθ2
+1 + sin2 θ1dϕ2
+1)
+(3.29)
+This is conformal to the EMMD non-extremal black hole (3.26) by identifying
+q1 + µ = x+,
+x−= q1,
+√x+x−
+b
+= q2 −q1,
+x = ˜r + q1
+(3.30)
+We thus claim the four dimensional geometry decoupled from the near-EVH limit
+is the EMMD black hole (3.26) and (3.29). The conformal factor can be considered to
+be absorbed into the dilaton, related to the metric in different frames. Also we need to
+emphasize that the four dimensional decoupled geometry we found are asymptotically
+flat. This is different from the AdS3 geometry emergent from the near-EVH limit of
+AdS5 black holes [1, 27–29]. The term contributing to the non-vanishing cosmological
+constant might be present6, but they are suppressed by the near-EVH limit in the
+leading order.
+3.2
+AdS7 black hole
+The AdS7 black hole with two R-charges and three angular momenta will have more
+fruitful parameter space. Such solutions are consistently reduced from D = 11 super-
+gravity with S4 compact sphere [66–68]. The bosonic part of the Lagrangian of the
+D = 7 SO(5) supergravity theory reads
+L7 = R ⋆1 + 2
+
+8X1X2 + 4(X1 + X2)
+X2
+1X2
+2
+−
+1
+X4
+1X4
+2
+
+⋆1 −1
+2
+2
+X
+I=1
+dφI ∧⋆dφI
+(3.31)
+−1
+2
+2
+X
+I=1
+1
+X2
+I
+F I
+(2) ∧⋆F I
+(2) −1
+2X2
+1X2
+2F(4) ∧⋆F(4) + F(4) ∧A(3) + F 1
+(2) ∧F 2
+(2) + A(3)
+The most general AdS7 black hole of this kind was worked out analytically in [36],
+which includes all the known special solutions with one rotation turned off [69, 70],
+equal charge [35] or equal angular momenta [71, 72]. The most general solution to 7d
+gauged supergravity in the asymptotically static frame (t, r, y, z, ϕi) for i = 1, 2, 3 is
+6See [64] for EMMD solutions with cosmological constant
+– 15 –
+
+
+explicitly [36]
+ds2 = (H1H2)
+1
+5
+
+−(1 + r2)(1 −y2)(1 −z2)
+Ξ1Ξ2Ξ3
+dt2 + (r2 + y2)(r2 + z2)
+U
+dr2
++
+(r2 + y2)(y2 −z2)y2
+(1 −y2)(a2
+1 −y2)(a2
+2 −y2)(a2
+3 −y2)dy2
++
+(r2 + z2)(z2 −y2)z2
+(1 −z2)(a2
+1 −z2)(a2
+2 −z2)(a2
+3 −z2)dz2
++ (r2 + a2
+1)(a2
+1 −y2)(a2
+1 −z2)
+Ξ1(a2
+1 −a2
+2)(a2
+1 −a2
+3)
+dϕ2
+1 + (r2 + a2
+2)(a2
+2 −y2)(a2
+2 −z2)
+Ξ2(a2
+2 −a2
+1)(a2
+2 −a2
+3)
+dϕ2
+2
++(r2 + a2
+3)(a2
+3 −y2)(a2
+3 −z2)
+Ξ3(a2
+3 −a2
+1)(a2
+3 −a2
+2)
+dϕ2
+3 +
+1 −H−1
+1
+1 −(s2/s1)2K2
+1 +
+1 −H−1
+2
+1 −(s1/s2)2K2
+2
+
+(3.32)
+where for simplicity, we also take the cosmological constant g2 = 1. The factors in the
+metric are defined as (i, j, k = 1, 2, 3 are assumed to be different indices)
+sI = sinh δI,
+cI = cosh δI,
+Ξi = 1 −a2
+i ,
+I = 1, 2
+HI = 1 +
+2ms2
+I
+(r2 + y2)(r2 + z2)
+U(r) = (1 + r2) Q3
+i=1(r2 + a2
+i )
+r2
+−2m + m(s2
+1 + s2
+2)
+ 
+2r2 +
+3
+X
+i=1
+a2
+i
+!
++ 4m2s2
+1s2
+2
+r2
+−2m(s2
+1 + s2
+2)a1a2a3
+r2
++ 2m(c1 −c2)2
+r2
+(a1 + a2a3)(a2 + a1a3)(a3 + a1a2)
++ m(c1 −c2)2
+2
+h
+2
+3
+X
+i=1
+a2
+i + 8a1a2a3
++ (a1 + a2 + a3)(a2 + a3 −a1)(a1 + a3 −a2)(a1 + a3 −a2)
+i
+K1 = c1 + c2
+2s1
+A[y2, z2, 0] + c1 −c2
+2s1
+Y,
+K2 = c1 + c2
+2s2
+A[y2, z2, 0] −c1 −c2
+2s2
+Y
+A[y2, z2, 0] = (1 −y2)(1 −z2)
+Ξ1Ξ2Ξ3
+dt −
+3
+X
+i=1
+ai(a2
+i −y2)(a2
+i −z2)
+Ξi(a2
+i −a2
+j)(a2
+i −a2
+k)dϕi
+Y = (1 −y2)(1 −z2)[1 −(a2
+1 + a2
+2 + a2
+3) −2a1a2a3]
+Ξ1Ξ2Ξ3
+dt
++
+3
+X
+i=1
+ai(a2
+i −y2)(a2
+i −z2)[1 −(a2
+i −a2
+j −a2
+k) + 2ajak
+ai ]
+Ξi(a2
+i −a2
+j)(a2
+i −a2
+k)
+dϕi
+(3.33)
+and without loss of generality, the y, z coordinates are taken in the regium
+0 ≤a1 ≤y ≤a2 ≤z ≤a3 ≤1 .
+(3.34)
+– 16 –
+
+
+The parameterization in this metric differs slightly from those used in AdS5 and
+AdS6 black hole solutions, where redefining the charge parameter as qI = 2ms2
+I offers
+considerable convenience. However, this simplification no longer applies to the AdS7
+solution given in (3.32), due to the presence of the (c1 −c2) term in the blackening
+factor. This expression becomes tractable only in the equal-charge case. The event
+horizon is located at r+, defined as the largest root of U(r+) = 0. In AdS5,6 cases, one
+can invert this relation to express m explicitly in terms of the horizon radius, leading
+to a convenient form for the blackening factor. In contrast, for AdS7, the function U(r)
+is quadratic in m, which significantly complicates such an inversion. This increased
+complexity enriches the structure of the parameter space and opens up new possibilities
+for exploring different EVH decoupling limits.
+The thermodynamic quantities of AdS7 black hole (3.32) are then computed by
+Komar integral [36]:
+S =
+π3
+4GNΞ1Ξ2Ξ3
+p
+S(r+)
+r+
+T = r2
++U ′(r+)
+4π
+p
+S(r+)
+(3.35)
+J1 =
+π2m
+16GNΞ1
+Q3
+j=1 Πj
+
+4a1c1c2 + 4(1 −c1c2)(a2 + a1a3)(a3 + a1a2)
++(c1 −c2)2
+ 
+2a2a3 + a1(1 + 2Ξ1 −
+3
+X
+j=1
+Ξj)
+!  
+1 + 2a1a2a3 −
+3
+X
+j=1
+Ξj
+!
+Q1 =
+π2ms1
+4GNΞ1Ξ2Ξ3
+h
+2c1 −(c1 −c2)(a2
+1 + a2
+2 + a2
+3 + 2a1a2a3)
+i
+with the angular momentum given by
+Ω1 =
+1
+S(r+)
+"
+1
+2
+ 3
+Y
+i=1
+(r2
++ + a2
+i ) + 2ms2
+1(r2
++ −2a1a2a3)
+!
+(3.36)
+×
+
+a1(1 + r2
++)(r2
++ + a2
+2)(r2
++ + a2
+3) + 2ms2
+2(a1r2
++ −a2a3)
+
++1
+2
+ 3
+Y
+i=1
+(r2
++ + a2
+i ) + 2ms2
+2(r2
++ −2a1a2a3)
+!
+×
+
+a1(1 + r2
++)(r2
++ + a2
+2)(r2
++ + a2
+3) + 2ms2
+1(a1r2
++ −a2a3)
+
+−m(c1 −c2)2(r2
++ + a2
+2)(r2
++ + a2
+3)
+n
+2(r2
++ −a1)(a1 + a2a3)(a2 + a1a3)(a3 + a1a2)
++(1 + a1)2(a1 + a2a3)(1 −a1 −a2 −a3)(1 −a1 + a2 + a3)
+oi
+– 17 –
+
+
+together with chemical potential as
+Φ1 = 2mr2
++s1c1[Q
+i(r2
++ + a2
+i ) + 2ms2
+2(r2
++ −a1a2a3)]
+S(r+)
+(3.37)
+−mr2
++s1(c1 −c2)
+S(r+)
+h
+(a2
+1 + a2
+2 + a2
+3 + 2a1a2a3)
+ Y
+i
+(r2
++ + a2
+i ) + 2ms2
+2(r2
++ −2a1a2a3)
+!
++4ms2
+2(a1 + a2a3)(a2 + a1a3)(a3 + a1a2)
+i
+where the functions S is defined as
+S(r) =
+2
+Y
+I=1
+h
+(r2 + a2
+1)(r2 + a2
+2)(r2 + a2
+3) + 2ms2
+I(r2 −a1a2a3)
+i
+(3.38)
++2m(c1 −c2)2(r2 + a2
+1)(r2 + a2
+2)(r2 + a2
+3)(a1 + a2a3)(a2 + a1a3)(a3 + a1a2) .
+The charges, angular momenta and chemical potentials with other indices can be worked
+out by permutating the indices. The energy is displayed as
+E =
+mπ2
+8GNΞ1Ξ2Ξ3
+"
+3
+X
+i=1
+2
+Ξi
+−1 + 5(s2
+1 + s2
+2)
+2
++ s2
+1 + s2
+2
+2
+3
+X
+i=1
+2(1 + a2
+i −Σ2 −2Π1)
+Ξi
+−Ξi
+#
++ mπ(c1 −c2)2
+32GNΞ1Ξ2Ξ3
+h
+−10Σ2 −16Π1 + 11Σ4 + 13Π22 + 32Π1Σ2 −3(Σ6 + 5Π42 + 4Π2
+1)
+−16Π1Σ2
+2 + Π62 + 3Π44 −5Π2
+1Σ2 + 8Π1(2Π2 + Π42) + Π2
+1(Σ4 + 3Π22)
+i
+(3.39)
+where factors are defined as [36]
+Σn = an
+1 + an
+2 + an
+3
+Πn = an
+1an
+2an
+3
+Πnm = an
+1(am
+2 + am
+3 ) + an
+2(am
+1 + am
+3 ) + an
+3(am
+1 + am
+2 )
+(3.40)
+These quantities were checked in [36] to satisfy the first law of thermodynamics, as the
+consistency check of the validity of the solution. The thermodynamics of more special
+solutions were also studied in [63, 73]. The supersymmetry condition for this solution7
+is given by
+E = Q1 + Q2 −J1 −J2 −J3 .
+(3.41)
+which imposes a relation among the charges:
+a1 + a2 + a3 =
+2
+1 −eδ1+δ2 .
+(3.42)
+7Our conventions for the BPS condition follow [36], differing from those for AdS5,6 BPS black holes
+by the replacement ai →−ai.
+– 18 –
+
+
+This is supplemented by a constraint on the horizon size,
+r2
+0 = a1a2 + a2a3 + a1a3
+1 −a1 −a2 −a3
+(3.43)
+to fully determine the parameters describing the BPS black holes. The chemical po-
+tentials in the BPS limit can be defined as
+∆I = β(ΦI + 1),
+ωi = β(Ωi + 1)
+(3.44)
+which is subject to the constraint
+3
+X
+i=1
+ωi −2
+2
+X
+I=1
+∆I = 2πi
+(3.45)
+We are also interested in identifying possible (near)-EVH limits from these black
+hole solutions. To systematically explore such limits, we adopt the following guidelines:
+• The near-horizon limit is defined as ϵ →0, with the radial coordinate rescaled as
+r = ϵx to render ϵ dimensionless.
+• The entropy S and temperature T are assumed to scale with ϵ as
+S ∼ϵn,
+T ∼ϵm−n+1,
+m, n ∈Z ,
+(3.46)
+which in turn fixes the scaling of the entropy function and the blackening factor:
+S(r+) ∼ϵ2n+2,
+U ′(r+) ∼ϵm .
+(3.47)
+For simplicity, we restrict our analysis to integer values of m and n.
+Our tasks are to find the scaling of ai, qI parameters to match the possible (3.47), in
+order to achieve the near-EVH scalings of entropy and temperature (3.46). In this
+paper, we will only discuss S ∼T k for some integer k, which could be potentially
+interpretable as field theory with scaling symmetry but excluding Lifshitz scaling [74]
+or hyperscaling violation scalings [75]. Therefore, the possible solutions are
+(m, n) = (1, 1) :
+S ∼T
+(m, n) = (2, 2) :
+S ∼T 2
+(m, n) = (3, 3) :
+S ∼T 3
+(3.48)
+Within these choices, the S ∼T near-EVH limits are well-known to produce the
+pinched BTZ like geomtries in the IR. Just as the near-EVH BTZ black holes emergent
+– 19 –
+
+
+in static R-charged AdS5 black holes are supported by two order G−1
+N
+charges and
+one perturbative R-charge [27], the BTZ in the near-EVH of AdS7 black holes can
+be supported by two angular momenta of order G−1
+N
+and one perturbative angular
+momenta.
+More nontrivial are the scalings S ∼T 2 and S ∼T 3. Previous analysis of the near-
+EVH limit in AdS6 identifies S ∼T 2 as signaling the emergence of a D = 4 EMMD
+black hole in the infrared. In AdS7, however, no suitable parameter regime exists that
+realizes a consistent near-EVH limit with S ∼T 2. On the other hand, the case S ∼T 3
+has previously been identified in the near-EVH limit of AdS7 black holes [1]. In the
+following, we present the specific parameter choices that define each of these limits and
+describe the corresponding infrared geometries.
+Example: D = 3 decoupled geometry
+It is observed [26, 40] AdS3 and BTZ geometry can appear in the near-horizon limits
+of AdS7 black hole. Such limits can be achieved by taking two non-vanishing angular
+momentum and treat the third angular momenta to be perturbative.
+We can simply take the near-EVH limits as
+sI ≡0,
+a3 = r+ = 0,
+r = ϵx,
+(3.49)
+while the near-EVH limits are defined as
+a3 = λϵ2,
+r+ = ϵx+ .
+(3.50)
+Notice these exactly reduce to the Kerr-AdS7 black holes [39, 40] and are inconsistent
+with supersymmetry condition (3.42). Their thermodynamic quantities are
+E =
+mπ2
+4GNΞ1Ξ1Ξ3
+ 
+3
+X
+i=1
+1
+Ξi
+−1
+2
+!
+,
+Ji =
+maiπ2
+4GNΞi(Q3
+j=1 Ξj)
+,
+S =
+π2
+4GNr+
+3
+Y
+i=1
+r2
++ + a2
+i
+Ξi
+,
+Ωi =
+aiΞi
+r2
++ + a2
+i
+,
+T = 1
+2π
+"
+r+(1 + r2
++)
+3
+X
+i=1
+1
+r2
++ + a2
+i
+−1
+r+
+#
+.
+(3.51)
+The near-EVH limits defined in (3.50) thus results in
+S ∼T ∼ϵ,
+lim
+ϵ→0
+S
+T =
+π3a2
+1a2
+2
+2(1 −a2
+1)(1 −a2
+2)(1 + 1
+a2
+1 + 1
+a2
+2 −λ
+r4
++) ,
+(3.52)
+– 20 –
+
+
+which confirms this is a reasonable near-EVH limits. The black hole geometry in the
+limit (3.50) is of the following ansatz
+ds2
+7 = y2z2
+a2
+1a2
+2
+ds2
+3 +
+y2(y2 −z2)
+(1 −y2)(a2
+1 −y2)(a2
+2 −y2)dy2 +
+z2(z2 −y2)
+(1 −z2)(a2
+1 −z2)(a2
+2 −z2)dz2
++(1 −y2)(a2
+1 −y2)(a2
+2 −y2)
+y2(y2 −z2)
+ 
+−a1(a2
+1 −z2)
+Ξ1(a2
+1 −a2
+2)dϕ1 −a2(a2
+2 −z2)
+Ξ2(a2
+2 −a2
+1)dϕ2
+!2
++(1 −z2)(a2
+1 −z2)(a2
+2 −z2)
+z2(z2 −y2)
+ 
+−a1(a2
+1 −y2)
+Ξ1(a2
+1 −a2
+2)dϕ1 −a2(a2
+2 −y2)
+Ξ2(a2
+2 −a2
+1)dϕ2
+!2
+,
+(3.53)
+where the three dimensional part is pinched AdS3 in the EVH limit
+ds2
+3 = −ϵ2x2
+l2
+3
+dτ 2 + ϵ2 l2
+3
+x2dx2 + ϵ2x2d˜ϕ2
+3,
+l2
+3 =
+a2
+1a2
+2
+a2
+1 + a2
+2 + a2
+1a2
+2
+,
+(3.54)
+and pinched extremal BTZ in the near-EVH limits with extremality condition r+ = r−:
+ds2
+3 = −(x2 −x2
++)2
+l2
+3x2
+dτ 2 +
+l2
+3x2
+(x2 −x2
++)2dx2 + ϵ2x2
+ x2
++
+l3x2dτ −d˜ϕ3
+2
+.
+(3.55)
+In string theory, the local AdS3 geometry arises as the near-horizon limit of a
+bound state consisting of n1 D1-branes, n5 D5-branes, and momentum P along a com-
+mon compact direction. The D1-branes, viewed as instantons within the D5-branes,
+combine with the momentum charge to produce a two-dimensional conformal field the-
+ory known as the D1–D5 CFT. This theory has central charge c = 6n1n5, which counts
+the number of degrees of freedom in the bound state. We refer to [76] for a compre-
+hensive review. In the context of R-charged AdS5 black holes, an local AdS3 geometry
+similarly emerges in the near-EVH limit when two R-charges are present. The three
+R-charges, corresponding to the Cartan generators of the SO(6) R-symmetry, repre-
+sent different species of giant gravitons. The effective theory arising from two species
+of giant gravitons—localized at their intersection—has degrees of freedom proportional
+to the product of the two macroscopic R-charges, yielding a central charge c ∼Q1Q2
+[27, 31]. Similarly, for Kerr–AdS7 black holes in the near-EVH limit, the central charge
+of the dual CFT2 associated with the emergent AdS3 is proportional to the product of
+two angular momenta:
+c ∼l3 ∼a1a2 ∼J1J2 .
+(3.56)
+This suggests that the CFT2 dual to the emergent AdS3 resides on the intersection of
+dual giant-like objects in AdS7 [77].
+– 21 –
+
+
+Example: D = 5 decoupled geometry
+As the S ∼T 3 near-EVH limit exist in equal charged AdS black hole with three
+distinct angular momenta, we can just take the equal charged solution [35] to examine
+its near-EVH geometry for simplicity. Therefore, we take q = 2ms2
+1 = 2ms2
+2. Especially
+in the BPS limit, the horizon size is completely fixed by rotation parameters (3.43).
+Therefore, the EVH-BPS limit related to taking r+ ∼ϵ is completely fixed by the
+scalings of rotation parameter, independent of whether charges are taken equal or not.
+The EVH limit to approach S ∼T 3 is defined as
+a1 = a2 = 0,
+q = 0,
+r = ϵx,
+x+ = 0,
+˜t = ϵτ .
+(3.57)
+In order to have well-defined geometry in this limit and consistent with (3.34), the
+parametrization
+y2 = a2
+1 cos2 θ1 + a2
+2 sin2 θ1,
+z = a3 cos θ2
+(3.58)
+automatically translate from the Jacobi coordinate (3.1) to spherical coordinate (θ1, θ2).
+In this coordinate, the EVH geometry of AdS7 black hole (3.32) is paramterized by
+coordinates (t, r, θ1, θ2, ϕi) for i = 1, 2, 3:
+ds2 = −(1 −a2
+3 cos2 θ2)
+1 −a2
+3
+(1 + r2)dt2 +
+r2 + a2
+3 cos2 θ2
+(r2 + 1)(r2 + a2
+3)dr2
++ r2 cos2 θ2(dθ2
+1 + sin2 θ1dϕ2
+1 + cos2 θ1dϕ2
+2)
++ r2 + a2
+3 cos2 θ2
+1 −a2
+3 cos2 θ2
+dθ2
+2 + r2 + a2
+3
+1 −a2
+3
+sin2 θ2dϕ2
+3 .
+(3.59)
+At the location θ2 →0, the geometry decouples to global AdS5 spanned by (t, r, θ1, ϕ1,2)
+and S2 spanned by (θ2, ϕ3). We take the [35] metric ansatz and the following near-EVH
+limits
+a1 = λ1ϵ2,
+a2 = λ2ϵ2,
+q = a3x2
++ϵ2 + q(4)ϵ4,
+r = ϵx
+(3.60)
+It is convenient to define the new coordinate y = wϵ2, which satisfy
+w2 = λ2
+1 cos2 θ1 + λ2
+2 sin2 θ1
+(3.61)
+The entropy and temperature in the near-EVH limit (3.60) are then
+S =
+π3a3x3
++ϵ3
+4GN(1 −a1) + O(ϵ4)
+T = (1 + a3 + a2
+3)x4
++ + a3λ2λ3 −q(4)a3
+a3(1 + a3)πx3
++
+ϵ + O(ϵ2) ,
+(3.62)
+– 22 –
+
+
+confirming the existence of S ∼T 3 scaling in this limit for generic values of q(4). The
+special value of q(4) making the temperature vanishing should be further checked. In
+this paper, we will not go to this fine tuning values. The relations (3.62) are valid
+even without imposing the BPS condition, thus generalizing the EVH-BPS limit of
+AdS7 proposed in [1]. If supersymmetry condition is imposed, the horizon size x+ = x0
+where
+x2
+0 = a3(λ1 + λ2)
+1 −a3
+,
+(3.63)
+the entropy of the EVH-BPS black hole will be
+S =
+π3
+4GN
+
+a3
+1 −a3
+ 5
+2
+(λ1 + λ2)
+3
+2ϵ3 .
+(3.64)
+We now implement the near-EVH limits given in (3.60) for the AdS7 black hole
+metric. As in the AdS6 case, the angular coordinate θ2, which ranges between 0 and
+π
+2, governs the emergence of distinct decoupled geometries in the near-horizon region.
+In the limit θ2 →0, the metric decouples into the following five-dimensional form:
+ds2
+7 = H
+2
+5
+
+ϵ2ds2
+5 +
+a2
+3
+(1 −a2
+3)dΩ2
+2
+
+,
+dΩ2
+2 = dθ2
+2 + sin2 θ2dϕ2
+3
+(3.65)
+where the five-dimensional geometry is given by
+ds2
+5 = −(x2 −x2
++)2
+(x2 +
+x2
++
+a3 )2 dτ 2 +
+x4dx2
+(x2 −x2
++)2 + x2dΩ2
+3 ,
+dΩ2
+3 = dθ2
+1 + sin2 θ1dϕ2
+1 + cos2 θ2dϕ2
+2 .
+(3.66)
+In the opposite limit θ2 →π
+2, the decoupled metric spanned by the coordinates (τ, x, θ1, ϕ1,2)
+reduces to a five-dimensional Reissner–Nordstr¨om black hole. For generic values of θ2,
+the resulting geometry retains a structure analogous to that of (3.66).
+Moreover, the geometry in (3.66) is conformally related to a D = 5 EMMD black
+hole with exponents (N1, N2) = (1, 2). In the extremal case, the latter takes the form
+(cf. (A.15)):
+d˜s2
+5 = (x2 + q2 −q1)
+2
+3
+x
+4
+3
+
+−(x2 −q1)2dt2
+(x2 + q2 −q1)2 +
+x4dx2
+(x2 −q1)2 + x2dΩ2
+3
+
+(3.67)
+By identifying the EMMD charges q1 and q2 (assuming q1 < q2 without loss of gener-
+ality) with parameters of the AdS7 solution, we obtain:
+x2
++ = q1,
+x2
++
+a3
+= q2 −q1,
+q2 > q1
+(3.68)
+– 23 –
+
+
+As in the AdS6 case, the correspondence between the near-EVH limit of the AdS7 black
+hole and the D = 5 EMMD description extends to non-extremal configurations. This is
+realized by modifying the near-EVH limits in (3.60) to include subleading corrections:
+q = a3x+x−ϵ2 + q(4)ϵ4
+(3.69)
+yielding the decoupled five-dimensional metric:
+ds2
+5 = −(x2 −x2
++)(x2 −x2
+−)
+(x2 + x+x−
+a3 )2
+dτ 2 +
+x4dx2
+(x2 −x2
++)(x2 −x2
+−) + x2dΩ2
+3
+(3.70)
+3.3
+Discussion
+The AdSD black holes in D = 6, 7 analyzed in this section exhibit an infrared scaling
+relation S ∼T D−3, reflecting the emergence of an effective (D −2)-dimensional geom-
+etry in the decoupling limit. We identify these geometries as EMMD black holes [64].
+Furthermore, the rich parameter space of AdS7 allows three-dimensional BTZ geome-
+tries to emerge in the decoupling limit as well. The decoupled geometries discussed in
+this work can be viewed as specific ground states—analogous to AdS2—that encode the
+ground-state degeneracy of the higher-dimensional black holes. A key distinction, how-
+ever, is that the near-EVH limit permits excitations along additional directions, giving
+rise to a lower-dimensional effective field theory.
+In this picture, extremal EMMD
+black holes—characterized by vanishing temperature—correspond to the ground states
+of these lower-dimensional effective theories. A structural distinction also exists be-
+tween the AdS3-type near-EVH geometry and the EMMD-type geometry. The former
+corresponds to a pinched, locally AdS3 spacetime, in which the compact S1 direction
+has period 2πϵ and the dr2 component remains of order ϵ0 [1, 29, 78]. In contrast, the
+near-EVH limits of AdSD=6,7 exhibit a decoupling structure of the form
+ds2
+D = ϵ2ds2
+EMMD + dΩ2
+2
+(3.71)
+which resembles a class of non-relativistic geometries known as MpT spacetimes [79].
+We will revisit these observations in Section 5.
+Several limitations in our study deserve mention. First, we have restricted our
+analysis to (near)-EVH limits in which the rotation parameters scale with ϵ as integer
+powers, following the approach of [1, 29]. While most generic scaling choices do not yield
+a well-defined decoupling limit with a smooth horizon geometry, it may be worthwhile
+to explore more exotic scalings—such as those involving non-integer powers—which
+could be dual to other decoupled sectors in the holographic field theory. Second, our
+discussion has been confined to on-shell solutions of supergravity in D = 6, 7 [34,
+35]. An interesting open question is whether these supergravity Lagrangians (3.2) and
+– 24 –
+
+
+(3.31) can be related off-shell to the EMMD theory Lagrangian, for example (A.1).
+Such a connection would help clarify how EMMD theories emerge from fine-tuned
+decoupled vacua of ten-dimensional string theory or 11D supergravity via specific brane
+configurations.
+As reviewed in Appendix A, the supergravity framework admits three distinct
+classes of EMMD black hole geometries, labeled by a pair of integers (N1, N2) satisfying
+N1 + N2 = 2(D −2)
+D −3 .
+(3.72)
+For D > 5, this constraint cannot be satisfied by integer pairs—a fact that may be
+related to the property that AdS7 black hole is the highest-dimensional AdS black
+holes embeddable in string theory with a known superconformal field theory dual. For
+lower dimensions, the possible integer pairs (taking N1 < N2 without loss of generality
+due to symmetry) are:
+D = 4 :
+(N1, N2) = (2, 2),
+(1, 3),
+D = 5 :
+(N1, N2) = (1, 2).
+(3.73)
+It remains unclear why, although the near-EVH limits of AdS6,7 black holes yield
+EMMD black holes of types (2, 2) and (1, 2) respectively, while the (1, 3) type—to
+the best of our knowledge—does not appear in the near-EVH limits studied here. It
+is also possible that such a solution may emerge from the near-EVH limit of as-yet-
+unknown supergravity solutions in D = 6 or 7, which would be an interesting direction
+for future work.
+4
+Holography with S ∼T D−3
+The entropy of BPS AdSD black holes is known from microstate counting in the dual
+superconformal field theory [13, 20–23, 80]. These results can be applied to study the
+entropy of the emergent (D −2)-dimensional geometries arising in the near-extremal
+vanishing horizon (EVH) limit. Although the extremization of the entropy functional in
+D = 6 and 7 exhibits certain similarities, it differs from the corresponding extremization
+in the near-EVH limit of AdS5. This further confirms that the near-EVH decoupling
+geometry in D = 6, 7, with entropy scaling as S ∼T D−3, is not of BTZ type.
+Consider the AdS6 black hole as an example. Its entropy is given by the functional
+[13, 20]
+S = i π
+3GN
+∆3
+ωaωb
++ ϕQ + ωaJa + ωbJb + Λ(3∆−ωa −ωb + 2πi) ,
+(4.1)
+– 25 –
+
+
+where Λ is a Lagrange multiplier enforcing the constraint among chemical potentials.
+Extremizing this functional via the saddle-point approximation,
+∂S
+∂∆= ∂S
+∂ωa
+= ∂S
+∂ωb
+= 0 ,
+(4.2)
+simplifies the entropy expression to
+S = 2πiΛ .
+(4.3)
+For the entropy to be real with real physical charges, Λ must be purely imaginary. This
+leads to two constraint equations involving S [13]:
+Q S2
+4π2 + 3Ja + Jb
+2GN
+S −Q3
+27 = 0
+ S
+2π
+3
+−
+π
+3GN
+ S
+2π
+2
++ Q2
+6π S +
+π
+3GN
+JaJb = 0 .
+(4.4)
+Solving these gives the BPS entropy in terms of the charges and angular momenta:
+S = π
+Q
+"s
+(Ja + Jb)2 π2
+9G2
+N
++ 4
+27Q3 −(Ja + Jb) π
+3GN
+#
+(4.5)
+subject to the charge constraint:
+1
+Q
+"s
+(Ja + Jb)2 π2
+9G2
+N
++ 4
+27Q3 −(Ja + Jb) π
+3GN
+#
+=
+2
+3GN
+Q2
+Q2 + (Ja + Jb)Q −27JaJb
+3(Ja + Jb)2 π2
+G2
+N + 3 π2
+G2
+N (Ja + Jb)Q −8Q4 .
+(4.6)
+In the EVH limit Q = Ja = 0, the right-hand side vanishes identically, while the left-
+hand side remains proportional to the entropy S. Thus, the entropy also vanishes in
+this limit.
+In the near-EVH limit given by (3.13) together with the BPS conditions, the en-
+tropy expression (3.21) can also be reproduced by extremizing the functional in (4.1).
+This mechanism differs significantly from that of the near-EVH entropy in AdS5 (see
+(2.13)), where the entropy scales as N 2ϵ due to an extremization between terms of
+order N 2 and N 2ϵ2, leading to the emergence of a 2D Cardy formula [1]. In the AdS6
+case, the thermodynamic quantities scale as follows:
+S ∼i π
+3GN
+∆3
+ωaωb
+∼N
+5
+2ϵ2,
+∆∼ωb ∼ϵ,
+Q ∼Jb ∼N
+5
+2ϵ
+Ja ∼N
+5
+2ϵ3,
+ωa ∼2πi + O(ϵ)
+(4.7)
+– 26 –
+
+
+Since the angular momentum Ja is subleading compared to Jb and Q, it can be neglected
+at leading order. Incorporating the near-EVH scaling relations (4.7) with the entropy
+functional and the chemical potential constraint can be shown to correctly reproduce
+the black hole entropy in the near-EVH limit (3.21).
+The entropy of AdS7 black hole is reproduced by following functional [18, 24, 36, 63]
+S = −π2
+8GN
+∆4
+ω1ω2ω3
++ Q∆−
+3
+X
+i=1
+Jiωi −Λ
+ 
+3
+X
+i=1
+ωi −4∆−2πi
+!
+(4.8)
+This can be derived from either 6d SCFT or the 5d N = 2 Yang-Mills theory on S5
+[81]. The entropy evaluated as saddle point approximation is still captured by the
+Lagrange multipler (4.3) due to the homogeneity of this functional. To have real values
+of physical entropy with real charges and angular momenta, the entropy are determined
+by two equations
+S2 = 4π2
+π2
+GN (J1J2 + J2J3 + J1J3) −128
+81 Q3
+π2
+GN −2048Q
+81
+16S4
+π4
++
+81(J1 + J2 + J3)
+32GN
+−24Q2
+π2
+
+S2 + Q4 −81π2
+8GN
+J1J2J3 = 0
+(4.9)
+In the exact EVH limit where J1,2 = Q = 0, the constraint (4.9) indicate the entropy
+vanishing, consistent with the computation on gravity side. In the near-EVH limit
+(3.60), the thermodynamic quantities scale with ϵ as
+ω1 ∼ω2 ∼iπ,
+∆∼ω3 ∼ϵ,
+J1 ∼J2 ∼N 3ϵ4,
+J3 ∼Q ∼N 3ϵ2,
+(4.10)
+Therefore, the contributions from angular momenta J1,2 are completely subleading in
+the near-EVH limits as N 3ϵ3 is fixed. This phenomenon is similar to the extremization
+of AdS6 entropy functional instead of AdS5, where the subleading angular momenta
+are crucial to derive the Cardy formula.
+A few remarks are in order.
+• First, the contribution from the close to vanishing angular momenta is subleading,
+resulting in an inhomogeneous entropy functional that does not separate into a
+two-step extremization procedure—consistent with the fact that the near-EVH
+geometry is not of BTZ type.
+• Second, we propose that the entropy functional in the limit (4.7) should be in-
+terpreted as that of an EMMD black hole. It is essential to note that EMMD
+black holes do not carry angular momenta or support angular velocities [64]. To
+– 27 –
+
+
+establish this correspondence, the quantities in (4.7) must therefore be mapped
+to the thermodynamic variables of EMMD black holes in the decoupled limit.
+Furthermore, the explicit form of the EMMD metric exhibits a mild dependence
+on the coordinate θ2, which is integrated out in the near-EVH black hole en-
+tropy expressions (3.21) and (3.64). As a result, the near-EVH limit of the black
+hole entropy effectively averages over a family of EMMD geometries, making the
+matching between the EMMD black hole entropy and the near-EVH limit a more
+subtle task. This additional degree of freedom may be absorbed into a redefinition
+of the lower-dimensional Newton constant.
+• Finally, The EVH limits are defined to have certain subset of charges and angular
+momentum vanishing, which correspond to the enhanced supersymmetry. These
+are equivalent to define appropriate subsectors of the superconformal field theories
+dual to the AdS6,7 black holes.
+All these holographic aspects, however, lie beyond the scope of the present work.
+5
+Conclusion and future work
+In this work, we systematically explore possible near-horizon decoupled geometries
+in higher-dimensional AdS black holes embedded in string theory and M-theory [38].
+Thanks to their high dimensionality and rich parameter space, the D = 6, 7 black holes
+support model-dependent decoupled EMMD geometries of dimension D ≥4, which
+generalize the universal AdS2 throats appearing in the near-horizon limits of extremal
+black holes. The analysis are restricted to the leading order of the near-EVH limits,
+which might be invisible to the presence of the cosmological constant in the decoupled
+EMMD geometries. Our main findings are summarized in Table 1:
+Black hole
+Allowed near horizon decoupled geometry
+AdS4
+AdS2, BTZ
+AdS5
+AdS2, BTZ
+AdS6
+AdS2, EMMD in D = 4
+AdS7
+AdS2, BTZ or EMMD in D = 5
+Table 1: The summary of the decoupled geometries appear in the near-EVH limits.
+The first open question is to understand the microscopic states dual to the classes of
+decoupled EMMD black holes (3.24) and (3.66), which are asymptotically flat [64, 65].
+The field theories dual to these black holes should be viewed as decoupled subsectors
+– 28 –
+
+
+in the higher dimensional dual SCFT in D = 5, 6 [20–22]. The decoupled subsectors
+in these higher dimensional SCFTs however, are not as well-studied as the decoupled
+subsectors of N = 4 SYM, which is known as the Spin Matrix theory [82–88]. Besides
+the SCFT in D = 5, 6 and especially the 6d N = (2, 0) theory are far from being
+understood as they lack of weak coupling descriptions [89].
+The relevant works to
+construct the Lagrangian description can be found in [90]. From the analysis of this
+paper, we expect studying these decoupled subsectors of SCFTs in D = 5, 6 should be
+holographically dual to the asymptotically flat EMMD black holes. These models thus
+propose a new algorithm, to use higher dimensional AdS/CFT models where the flat
+black holes are embedded in to understand the microscopic states of non-AdS black
+hole, providing an example of holography beyond the AdS/CFT correspondence.
+Analytic solutions for black objects in higher dimensions are more readily available
+in asymptotically flat spacetimes. Notable examples include the Myers–Perry black
+holes with the maximal number of independent rotations [91], the Cvetic–Youm solu-
+tion incorporating U(1) charges in arbitrary dimensions [92], as well as solutions with
+nontrivial topologies such as black rings [93–95] and black saturns [96]. For compre-
+hensive reviews, we refer to [97]. These nontrivial configurations may give rise to even
+richer geometric structures in the near-EVH regime [98, 99].
+Unlike AdS5 black hole, whose near horizon limits are pinched AdS3/BTZ geometry,
+the near EVH limits of AdSD=6,7 black holes are of the following forms
+ds2
+D = ϵ2Ω× ds2
+EMMDD−2 + ds2
+S2
+(5.1)
+where Ωis a conformal factor. These kinds of geometries are similar to the recently
+found MpT geometries which are generalizations of the non-relativistic Newton-Cartan
+geometry to make the Dp-brane actions have well-defined non-relativistic limits [79,
+100]. The form of decoupled geometry (5.1) in the near-EVH limits of AdS6,7 enlightens
+that we can study them from the perspectives of non-relativistic strings and branes.
+They might provide a non-perturbative configurations in non-relativistic string theory
+with finite temperature.
+The EMMD geometries emerging in the near-EVH limits of AdSD black holes are
+specific to particular gauged supergravity models, whereas AdS2 throats universally
+appear in the near-horizon region of near-extremal black holes. Although finite-energy
+excitations break the strict AdS2 boundary conditions, their dynamics are universally
+captured by Jackiw–Teitelboim (JT) gravity—a nearly AdS2 theory proposed to be dual
+to the Sachdev–Ye–Kitaev (SYK) model [101–105]. This framework accounts for the
+linear term S1T in the low-temperature entropy expansion S = S0 +S1T; see [106, 107]
+for pedagogical treatments. Extensions to three dimensions have also been explored,
+providing a higher-dimensional analogue of the near-AdS2/SYK correspondence [108].
+– 29 –
+
+
+These developments have further been applied to study the dynamics of near-BPS AdS5
+black holes and to identify mass gaps [109]. In our context, the EMMD black holes
+serve as novel low-energy effective geometries in the infrared, characterized by higher
+power-law scalings S ∼T D−3. They may similarly be understood as gravitational duals
+to strongly coupled low-energy sectors, much like higher-dimensional generalizations of
+the SYK model capturing nontrivial infrared dynamics.
+Acknowledgement
+We thank Yan Liu, Hong Lv, Sanjaye Ramgoolam, Ziqi Yan for useful discussions. Y.L.
+also thanks Nordita, Eurostrings 2025 and Niels Bohr Institute where this work is in
+progress. Y.L. is supported by a Project Funded by the Priority Academic Program De-
+velopment of Jiangsu Higher Education Institutions (PAPD) and by National Natural
+Science Foundation of China (NSFC) No.12305081 and the international collaboration
+grant between NSFC and Royal Society No.W2421035.
+A
+Review of EMMD gravity
+In this section, we provide a brief review of the Einstein–Maxwell–Maxwell–Dilaton
+gravity model investigated in [64, 65]. The Lagrangian of the D-dimensional super-
+gravity under investigation is given by
+1
+eL = R −1
+2(∂ϕ)2 −1
+4ea1ϕF 2
+1 −1
+4ea2ϕF 2
+2 −V (ϕ),
+(A.1)
+where a1 and a2 are dilaton coupling constants. To obtain analytic solutions in this
+supergravity theory, it is convenient to parameterize the couplings as
+a2
+1 = 4
+N1
+−2(D −3)
+D −2 ,
+a2
+2 = 4
+N2
+−2(D −3)
+D −2 ,
+(A.2)
+with Ni being positive integers in the context of supergravity. Our focus lies particularly
+on black hole solutions that satisfy
+a1a2 = −2(D −3)
+D −2 .
+(A.3)
+Under this condition, analytic solutions carrying two independent charges can be con-
+structed, as shown in [64].
+– 30 –
+
+
+General solutions to the field equations derived from the action (A.1) take the form
+ds2 = −(HN1
+1 HN2
+2 )−D−3
+D−2fdt2 + (HN1
+1 HN2
+2 )
+1
+D−3
+dr2
+f
++ r2dΩ2
+D−2
+
+A1 =
+√N1c1
+s1
+dt
+H1
+,
+A2 =
+√N2c2
+s2
+dt
+H2
+ϕ = 1
+2N1a1 ln H1 + 1
+2N2a2 ln H2,
+f = 1 −
+µ
+rD−3
+H1 = 1 + µs2
+1
+rD−3,
+H2 = 1 + µs2
+2
+rD−3
+(A.4)
+subject to the constraints
+N1a1 + N2a2 = 0,
+N1 + N2 = 2(D −2)
+D −3
+(A.5)
+In four dimensions (D = 4), the possible solutions include (N1, N2) = (2, 2), (1, 3), (3, 1),
+while in three dimensions (D = 5) the only admissible pairs are (N1, N2) = (2, 1), (1, 2).
+We now examine each of these cases in turn.
+D = 4 geometry with (N1, N2) = (2, 2)
+This symmetric choice of parameters, with a1 = −a2 = 1, yields a particularly simple
+and elegant solution. Defining the charge parameters as
+q1 = µs2
+1,
+q2 = µs2
+2 ,
+(A.6)
+the metric in (A.4) simplifies to
+ds2 = −
+r(r −µ)
+(r + q1)(r + q2)dt2 + (r + q1)(r + q2)
+r(r −µ)
+dr2 + (r + q1)(r + q2)dΩ2
+2
+(A.7)
+To reveal its underlying conformal structure, we can factor the metric.
+Assuming
+without loss of generality that q2 −q1 = q > 0, it can be recast into the form
+ds2 = r + q2
+r + q1
+
+−(r −µ)r
+(r + q2)2dt2 + (r + q1)2
+r(r −µ) dr2 + (r + q1)2dΩ2
+2
+
+(A.8)
+This conformal representation highlights how the solution interpolates between different
+geometries but with the same asymptotic, with the prefactor playing a crucial role.
+– 31 –
+
+
+D = 4 geometry with (N1, N2) = (1, 3)
+Due to the symmetry in the indices of N1 and N2, it is sufficient to analyze the (1, 3)
+case, as the (3, 1) solution is its direct counterpart. The corresponding dilaton couplings
+are fixed as
+a1 =
+√
+3,
+a2 = −1
+√
+3 .
+(A.9)
+In this asymmetric configuration, the metric (A.4) becomes
+ds2 = −
+r(r −µ)
+p
+(r + q1)(r + q2)3dt2 +
+p
+(r + q1)(r + q2)3
+r(r −µ)
+dr2 +
+p
+(r + q1)(r + q2)3dΩ2
+2
+(A.10)
+Expressing this metric in a conformally rescaled frame provides a clearer geometric
+interpretation:
+ds2 =
+rr + q1
+r + q2
+
+−
+r(r −µ)
+(r + q1)(r + q2)dt2 + (r + q2)2dr2
+r(r −µ)
++ (r + q2)2dΩ2
+2
+
+(A.11)
+D = 5 geometry with (N1, N2) = (1, 2)
+We now turn to a five-dimensional example characterized by (N1, N2) = (1, 2). The
+associated dilaton couplings are given by
+a1 =
+r
+8
+3,
+a2 =
+r
+2
+3 .
+(A.12)
+The full metric in this case reads
+ds2 = −
+r2(r2 −µ)dt2
+(r2 + q1)
+2
+3(r2 + q2)
+4
+3 + (r2 + q1)
+1
+3(r2 + q2)
+2
+3
+r2 −µ
+dr2 + (r2 + q1)
+1
+3(r2 + q2)
+2
+3dΩ2
+3
+(A.13)
+A clearer picture of the geometry emerges after performing the coordinate transforma-
+tion
+x2 = r2 + q1,
+q = q2 −q1 > 0 .
+(A.14)
+In these new coordinates, the metric simplifies to the following conformally flat form:
+ds2 = (x2 + q)
+2
+3
+x
+4
+3
+
+−(x2 −q1)(x2 −q1 −µ)dt2
+(x2 + q)2
++
+x4dx2
+(x2 −q1)(x2 −q1 −µ) + x2dΩ2
+3
+
+(A.15)
+This final form reduces to the standard five dimensional RN-black hole by taking q = 0.
+– 32 –
+
+
+References
+[1] K. Goldstein, V. Jejjala, Y. Lei, S. van Leuven and W. Li, Probing the EVH limit of
+supersymmetric AdS black holes, JHEP 02 (2020) 154, [1910.14293].
+[2] LIGO Scientific, VIRGO, KAGRA collaboration, Black Hole Spectroscopy and
+Tests of General Relativity with GW250114, 2509.08099.
+[3] S. W. Hawking, Black holes in general relativity, Commun. Math. Phys. 25 (1972)
+152–166.
+[4] KAGRA, Virgo, LIGO Scientific collaboration, A. G. Abac et al., GW250114:
+Testing Hawking’s Area Law and the Kerr Nature of Black Holes, Phys. Rev. Lett.
+135 (2025) 111403, [2509.08054].
+[5] A. Strominger, Black hole entropy from near horizon microstates, JHEP 02 (1998)
+009, [hep-th/9712251].
+[6] J. M. Bardeen and G. T. Horowitz, The Extreme Kerr throat geometry: A Vacuum
+analog of AdS(2) x S**2, Phys. Rev. D 60 (1999) 104030, [hep-th/9905099].
+[7] M. Guica, T. Hartman, W. Song and A. Strominger, The Kerr/CFT Correspondence,
+Phys. Rev. D 80 (2009) 124008, [0809.4266].
+[8] H. Lu, J.-w. Mei, C. N. Pope and J. F. Vazquez-Poritz, Extremal Static AdS Black
+Hole/CFT Correspondence in Gauged Supergravities, Phys. Lett. B 673 (2009) 77–82,
+[0901.1677].
+[9] D. D. K. Chow, M. Cvetic, H. Lu and C. N. Pope, Extremal Black Hole/CFT
+Correspondence in (Gauged) Supergravities, Phys. Rev. D 79 (2009) 084018,
+[0812.2918].
+[10] H. Lu, J. Mei and C. N. Pope, Kerr/CFT Correspondence in Diverse Dimensions,
+JHEP 04 (2009) 054, [0811.2225].
+[11] V. P. Frolov, P. Krtous and D. Kubiznak, Black holes, hidden symmetries, and
+complete integrability, Living Rev. Rel. 20 (2017) 6, [1705.05482].
+[12] F. Benini, K. Hristov and A. Zaffaroni, Black hole microstates in AdS4 from
+supersymmetric localization, JHEP 05 (2016) 054, [1511.04085].
+[13] S. Choi, C. Hwang, S. Kim and J. Nahmgoong, Entropy Functions of BPS Black
+Holes in AdS4 and AdS6, J. Korean Phys. Soc. 76 (2020) 101–108, [1811.02158].
+[14] S. Choi, C. Hwang and S. Kim, Quantum vortices, M2-branes and black holes, JHEP
+09 (2024) 096, [1908.02470].
+[15] S. Choi and C. Hwang, Universal 3d Cardy Block and Black Hole Entropy, JHEP 03
+(2020) 068, [1911.01448].
+– 33 –
+
+
+[16] A. Cabo-Bizet, D. Cassani, D. Martelli and S. Murthy, Microscopic origin of the
+Bekenstein-Hawking entropy of supersymmetric AdS5 black holes, JHEP 10 (2019)
+062, [1810.11442].
+[17] F. Benini and E. Milan, Black Holes in 4D N=4 Super-Yang-Mills Field Theory,
+Phys. Rev. X 10 (2020) 021037, [1812.09613].
+[18] S. Choi, J. Kim, S. Kim and J. Nahmgoong, Large AdS black holes from QFT,
+1810.12067.
+[19] K. Goldstein, V. Jejjala, Y. Lei, S. van Leuven and W. Li, Residues, modularity, and
+the Cardy limit of the 4d N = 4 superconformal index, JHEP 04 (2021) 216,
+[2011.06605].
+[20] S. Choi and S. Kim, Large AdS6 black holes from CFT5, JHEP 08 (2024) 228,
+[1904.01164].
+[21] J. Nahmgoong, 6d superconformal Cardy formulas, JHEP 02 (2021) 092,
+[1907.12582].
+[22] N. Bobev, M. David, V. Dimitrov and J. Hong, AdS7 Black Holes and Holography,
+2509.02833.
+[23] S. M. Hosseini, K. Hristov and A. Zaffaroni, A note on the entropy of rotating BPS
+AdS7 × S4 black holes, JHEP 05 (2018) 121, [1803.07568].
+[24] A. Zaffaroni, AdS black holes, holography and localization, Living Rev. Rel. 23 (2020)
+2, [1902.07176].
+[25] F. Larsen, J. Nian and Y. Zeng, AdS5 black hole entropy near the BPS limit, JHEP
+06 (2020) 001, [1907.02505].
+[26] M. David, J. Nian and L. A. Pando Zayas, Gravitational Cardy Limit and AdS Black
+Hole Entropy, JHEP 11 (2020) 041, [2005.10251].
+[27] V. Balasubramanian, J. de Boer, V. Jejjala and J. Simon, Entropy of near-extremal
+black holes in AdS(5), JHEP 05 (2008) 067, [0707.3601].
+[28] J. de Boer, M. Johnstone, M. M. Sheikh-Jabbari and J. Simon, Emergent IR Dual 2d
+CFTs in Charged AdS5 Black Holes, Phys. Rev. D 85 (2012) 084039, [1112.4664].
+[29] M. Johnstone, M. M. Sheikh-Jabbari, J. Simon and H. Yavartanoo, Near-Extremal
+Vanishing Horizon AdS5 Black Holes and Their CFT Duals, JHEP 04 (2013) 045,
+[1301.3387].
+[30] R. Fareghbal, C. N. Gowdigere, A. E. Mosaffa and M. M. Sheikh-Jabbari, Nearing
+11d Extremal Intersecting Giants and New Decoupled Sectors in D = 3,6 SCFT’s,
+Phys. Rev. D 81 (2010) 046005, [0805.0203].
+– 34 –
+
+
+[31] R. Fareghbal, C. N. Gowdigere, A. E. Mosaffa and M. M. Sheikh-Jabbari, Nearing
+Extremal Intersecting Giants and New Decoupled Sectors in N = 4 SYM, JHEP 08
+(2008) 070, [0801.4457].
+[32] J. M. Maldacena, J. Michelson and A. Strominger, Anti-de Sitter fragmentation,
+JHEP 02 (1999) 011, [hep-th/9812073].
+[33] J. L. Cardy, Operator Content of Two-Dimensional Conformally Invariant Theories,
+Nucl. Phys. B 270 (1986) 186–204.
+[34] D. D. K. Chow, Charged rotating black holes in six-dimensional gauged supergravity,
+Class. Quant. Grav. 27 (2010) 065004, [0808.2728].
+[35] D. D. K. Chow, Equal charge black holes and seven dimensional gauged supergravity,
+Class. Quant. Grav. 25 (2008) 175010, [0711.1975].
+[36] N. Bobev, M. David, J. Hong and R. Mouland, AdS7 black holes from rotating
+M5-branes, JHEP 09 (2023) 143, [2307.06364].
+[37] M. Cvetic, M. J. Duff, P. Hoxha, J. T. Liu, H. Lu, J. X. Lu et al., Embedding AdS
+black holes in ten-dimensions and eleven-dimensions, Nucl. Phys. B 558 (1999)
+96–126, [hep-th/9903214].
+[38] M. J. Duff, TASI lectures on branes, black holes and Anti-de Sitter space, in 9th CRM
+Summer School: Theoretical Physics at the End of the 20th Century, pp. 3–125, 12,
+1999. hep-th/9912164.
+[39] G. W. Gibbons, H. Lu, D. N. Page and C. N. Pope, Rotating black holes in higher
+dimensions with a cosmological constant, Phys. Rev. Lett. 93 (2004) 171102,
+[hep-th/0409155].
+[40] W. Chen, H. Lu and C. N. Pope, General Kerr-NUT-AdS metrics in all dimensions,
+Class. Quant. Grav. 23 (2006) 5323–5340, [hep-th/0604125].
+[41] S.-Q. Wu, General Nonextremal Rotating Charged AdS Black Holes in
+Five-dimensional U(1)3 Gauged Supergravity: A Simple Construction Method, Phys.
+Lett. B 707 (2012) 286–291, [1108.4159].
+[42] J. B. Gutowski and H. S. Reall, General supersymmetric AdS(5) black holes, JHEP
+04 (2004) 048, [hep-th/0401129].
+[43] M. Cvetic, H. Lu and C. N. Pope, Charged rotating black holes in five dimensional
+U(1)**3 gauged N=2 supergravity, Phys. Rev. D 70 (2004) 081502, [hep-th/0407058].
+[44] Z. W. Chong, M. Cvetic, H. Lu and C. N. Pope, Five-dimensional gauged supergravity
+black holes with independent rotation parameters, Phys. Rev. D 72 (2005) 041901,
+[hep-th/0505112].
+[45] Z. W. Chong, M. Cvetic, H. Lu and C. N. Pope, General non-extremal rotating black
+– 35 –
+
+
+holes in minimal five-dimensional gauged supergravity, Phys. Rev. Lett. 95 (2005)
+161301, [hep-th/0506029].
+[46] H. K. Kunduri, J. Lucietti and H. S. Reall, Supersymmetric multi-charge AdS(5) black
+holes, JHEP 04 (2006) 036, [hep-th/0601156].
+[47] S. M. Hosseini, K. Hristov and A. Zaffaroni, An extremization principle for the
+entropy of rotating BPS black holes in AdS5, JHEP 07 (2017) 106, [1705.05383].
+[48] J. Kinney, J. M. Maldacena, S. Minwalla and S. Raju, An Index for 4 dimensional
+super conformal theories, Commun. Math. Phys. 275 (2007) 209–254,
+[hep-th/0510251].
+[49] A. Cabo-Bizet and S. Murthy, Supersymmetric phases of 4d N = 4 SYM at large N,
+JHEP 09 (2020) 184, [1909.09597].
+[50] F. Benini, E. Colombo, S. Soltani, A. Zaffaroni and Z. Zhang, Superconformal indices
+at large N and the entropy of AdS5 × SE5 black holes, Class. Quant. Grav. 37 (2020)
+215021, [2005.12308].
+[51] A. Arabi Ardehali and S. Murthy, The 4d superconformal index near roots of unity
+and 3d Chern-Simons theory, JHEP 10 (2021) 207, [2104.02051].
+[52] V. Jejjala, Y. Lei, S. van Leuven and W. Li, SL(3, Z) Modularity and New Cardy
+limits of the N = 4 superconformal index, JHEP 11 (2021) 047, [2104.07030].
+[53] O. Aharony, F. Benini, O. Mamroud and E. Milan, A gravity interpretation for the
+Bethe Ansatz expansion of the N = 4 SYM index, Phys. Rev. D 104 (2021) 086026,
+[2104.13932].
+[54] A. Cabo-Bizet, On the 4d superconformal index near roots of unity: bulk and localized
+contributions, JHEP 02 (2023) 134, [2111.14941].
+[55] E. Colombo, The large-N limit of 4d superconformal indices for general BPS charges,
+JHEP 12 (2022) 013, [2110.01911].
+[56] O. Aharony, O. Mamroud, S. Nowik and M. Weissman, Bethe Ansatz for the
+superconformal index with unequal angular momenta, Phys. Rev. D 109 (2024)
+085015, [2402.03977].
+[57] V. Jejjala, Y. Lei, S. van Leuven and W. Li, Modular factorization of superconformal
+indices, JHEP 10 (2023) 105, [2210.17551].
+[58] A. Cabo-Bizet, From multi-gravitons to Black holes: The role of complex saddles,
+2012.04815.
+[59] W. Nahm, Supersymmetries and Their Representations, Nucl. Phys. B 135 (1978)
+149.
+– 36 –
+
+
+[60] M. Cvetic, H. Lu and C. N. Pope, Gauged six-dimensional supergravity from massive
+type IIA, Phys. Rev. Lett. 83 (1999) 5226–5229, [hep-th/9906221].
+[61] M. Mishra and A. Virmani, Thermodynamics of BPS and near-BPS AdS6 black holes,
+JHEP 06 (2022) 087, [2203.05279].
+[62] D. Wu and S.-Q. Wu, Ultra-spinning Chow’s black holes in six-dimensional gauged
+supergravity and their properties, JHEP 11 (2021) 031, [2106.14218].
+[63] D. Cassani and L. Papini, The BPS limit of rotating AdS black hole thermodynamics,
+JHEP 09 (2019) 079, [1906.10148].
+[64] H. Lu, Charged dilatonic ads black holes and magnetic AdSD−2 × R2 vacua, JHEP 09
+(2013) 112, [1306.2386].
+[65] G.-Y. Lu, M.-N. Yang and H. Lu, Black Hole Mass/Charge Relation and Weak
+No-hair Theorem Conjecture, 2508.14158.
+[66] H. Nastase, D. Vaman and P. van Nieuwenhuizen, Consistency of the AdS(7) x S(4)
+reduction and the origin of selfduality in odd dimensions, Nucl. Phys. B 581 (2000)
+179–239, [hep-th/9911238].
+[67] H. Nastase, D. Vaman and P. van Nieuwenhuizen, Consistent nonlinear K K
+reduction of 11-d supergravity on AdS(7) x S(4) and selfduality in odd dimensions,
+Phys. Lett. B 469 (1999) 96–102, [hep-th/9905075].
+[68] J. T. Liu and R. Minasian, Black holes and membranes in AdS(7), Phys. Lett. B 457
+(1999) 39–46, [hep-th/9903269].
+[69] S.-Q. Wu, Two-charged non-extremal rotating black holes in seven-dimensional gauged
+supergravity: The Single-rotation case, Phys. Lett. B 705 (2011) 383–387,
+[1108.4158].
+[70] D. D. K. Chow, Single-rotation two-charge black holes in gauged supergravity,
+1108.5139.
+[71] Z. W. Chong, M. Cvetic, H. Lu and C. N. Pope, Non-extremal charged rotating black
+holes in seven-dimensional gauged supergravity, Phys. Lett. B 626 (2005) 215–222,
+[hep-th/0412094].
+[72] M. Cvetic, G. W. Gibbons, H. Lu and C. N. Pope, Rotating black holes in gauged
+supergravities: Thermodynamics, supersymmetric limits, topological solitons and time
+machines, hep-th/0504080.
+[73] F. Larsen and S. Paranjape, Thermodynamics of near BPS black holes in AdS4 and
+AdS7, JHEP 10 (2021) 198, [2010.04359].
+[74] S. Kachru, X. Liu and M. Mulligan, Gravity duals of Lifshitz-like fixed points, Phys.
+Rev. D 78 (2008) 106005, [0808.1725].
+– 37 –
+
+
+[75] X. Dong, S. Harrison, S. Kachru, G. Torroba and H. Wang, Aspects of holography for
+theories with hyperscaling violation, JHEP 06 (2012) 041, [1201.1905].
+[76] J. R. David, String theory and black holes, other thesis, 11, 1999.
+[77] V. Gupta, More holographic M5 branes in AdS7 × S4, Phys. Lett. B 853 (2024)
+138650, [2301.02528].
+[78] J. de Boer, M. M. Sheikh-Jabbari and J. Simon, Near Horizon Limits of Massless
+BTZ and Their CFT Duals, Class. Quant. Grav. 28 (2011) 175012, [1011.1897].
+[79] C. D. A. Blair, J. Lahnsteiner, N. A. Obers and Z. Yan, Unification of Decoupling
+Limits in String and M Theory, Phys. Rev. Lett. 132 (2024) 161603, [2311.10564].
+[80] P. M. Crichigno and D. Jain, The 5d Superconformal Index at Large N and Black
+Holes, JHEP 09 (2020) 124, [2005.00550].
+[81] G. K´antor, C. Papageorgakis and P. Richmond, AdS7 black-hole entropy and 5D N =
+2 Yang-Mills, JHEP 01 (2020) 017, [1907.02923].
+[82] T. Harmark, K. R. Kristjansson and M. Orselli, Decoupling limits of N=4 super
+Yang-Mills on R × S3, JHEP 09 (2007) 115, [0707.1621].
+[83] T. Harmark and M. Orselli, Spin Matrix Theory: A quantum mechanical model of the
+AdS/CFT correspondence, JHEP 11 (2014) 134, [1409.4417].
+[84] T. Harmark and N. Wintergerst, Nonrelativistic Corners of N = 4 Supersymmetric
+Yang–Mills Theory, Phys. Rev. Lett. 124 (2020) 171602, [1912.05554].
+[85] S. Baiguera, T. Harmark and N. Wintergerst, Nonrelativistic near-BPS corners of
+N = 4 super-Yang-Mills with SU(1, 1) symmetry, JHEP 02 (2021) 188, [2009.03799].
+[86] S. Baiguera, T. Harmark, Y. Lei and N. Wintergerst, Symmetry structure of the
+interactions in near-BPS corners of N = 4 super-Yang-Mills, JHEP 04 (2021) 029,
+[2012.08532].
+[87] S. Baiguera, T. Harmark and Y. Lei, Spin Matrix Theory in near 1
+8-BPS corners of
+N = 4 super-Yang-Mills, JHEP 02 (2022) 191, [2111.10149].
+[88] S. Baiguera, T. Harmark and Y. Lei, The Panorama of Spin Matrix theory, JHEP 04
+(2023) 075, [2211.16519].
+[89] C.-M. Chang, 5d and 6d SCFTs Have No Weak Coupling Limit, JHEP 09 (2019)
+016, [1810.04169].
+[90] N. Lambert, (2,0) Lagrangian Structures, Phys. Lett. B 798 (2019) 134948,
+[1908.10752].
+[91] R. C. Myers and M. J. Perry, Black Holes in Higher Dimensional Space-Times,
+Annals Phys. 172 (1986) 304.
+– 38 –
+
+
+[92] M. Cvetic and D. Youm, Near BPS saturated rotating electrically charged black holes
+as string states, Nucl. Phys. B 477 (1996) 449–464, [hep-th/9605051].
+[93] R. Emparan and H. S. Reall, A Rotating black ring solution in five-dimensions, Phys.
+Rev. Lett. 88 (2002) 101101, [hep-th/0110260].
+[94] R. Emparan and H. S. Reall, Black Rings, Class. Quant. Grav. 23 (2006) R169,
+[hep-th/0608012].
+[95] I. Bena, S. F. Ross and N. P. Warner, Coiffured Black Rings, Class. Quant. Grav. 31
+(2014) 165015, [1405.5217].
+[96] H. Elvang and P. Figueras, Black Saturn, JHEP 05 (2007) 050, [hep-th/0701035].
+[97] N. A. Obers, Black Holes in Higher-Dimensional Gravity, Lect. Notes Phys. 769
+(2009) 211–258, [0802.0519].
+[98] A. Ghodsi, H. Golchin and M. M. Sheikh-Jabbari, More on Five Dimensional EVH
+Black Rings, JHEP 09 (2014) 036, [1407.7484].
+[99] H. Golchin, M. M. Sheikh-Jabbari and A. Ghodsi, Dual 2d CFT Identification of
+Extremal Black Rings from Holes, JHEP 10 (2013) 194, [1308.1478].
+[100] C. D. A. Blair, J. Lahnsteiner, N. A. Obers and Z. Yan, Matrix theory reloaded: a
+BPS road to holography, JHEP 02 (2025) 024, [2410.03591].
+[101] A. Almheiri and J. Polchinski, Models of AdS2 backreaction and holography, JHEP 11
+(2015) 014, [1402.6334].
+[102] J. Engels¨oy, T. G. Mertens and H. Verlinde, An investigation of AdS2 backreaction
+and holography, JHEP 07 (2016) 139, [1606.03438].
+[103] M. Cvetiˇc and I. Papadimitriou, AdS2 holographic dictionary, JHEP 12 (2016) 008,
+[1608.07018].
+[104] J. Maldacena, D. Stanford and Z. Yang, Conformal symmetry and its breaking in two
+dimensional Nearly Anti-de-Sitter space, PTEP 2016 (2016) 12C104, [1606.01857].
+[105] J. Maldacena and D. Stanford, Remarks on the Sachdev-Ye-Kitaev model, Phys. Rev.
+D 94 (2016) 106002, [1604.07818].
+[106] G. S´arosi, AdS2 holography and the SYK model, PoS Modave2017 (2018) 001,
+[1711.08482].
+[107] T. G. Mertens and G. J. Turiaci, Solvable models of quantum black holes: a review on
+Jackiw–Teitelboim gravity, Living Rev. Rel. 26 (2023) 4, [2210.10846].
+[108] J. Cotler and K. Jensen, A theory of reparameterizations for AdS3 gravity, JHEP 02
+(2019) 079, [1808.03263].
+[109] J. Boruch, M. T. Heydeman, L. V. Iliesiu and G. J. Turiaci, BPS and near-BPS black
+holes in AdS5 and their spectrum in N = 4 SYM, JHEP 07 (2025) 220, [2203.01331].
+– 39 –

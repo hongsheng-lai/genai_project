@@ -1,0 +1,1776 @@
+Economic Linear Quadratic MPC With Non-Unique Optimal
+Solutions ⋆
+Mario Zanon a
+aIMT School for Advanced Studies Lucca, Piazza San Francesco 19, 55100, Lucca, Italy
+Abstract
+Asymptotic stability in economic receding horizon control can be obtained under a strict dissipativity assumption, related to
+positive-definiteness of a so-called rotated cost, and through the use of suitable terminal cost and constraints. In the linear-
+quadratic case, a common assumption is that the rotated cost is positive definite. The positive semi-definite case has received
+surprisingly little attention, and the connection to the standard dissipativity assumption has not been investigated. In this
+paper, we fill this gap by connecting existing results in economic model predictive control with the stability results for the
+semi-definite case, the properties of the constrained generalized discrete algebraic Riccati equation, and of two optimal control
+problems. Moreover, we extend recent results relating exponential stability to the choice of terminal cost in the absence of
+terminal constraints.
+Key words: Economic model predictive control; dissipativity; exponential stability; generalized Riccati equations
+1
+Introduction
+Model Predictive Control (MPC) is a control technique
+in which a finite-horizon Optimal Control Problem
+(OCP) is solved at each time step. The first optimal
+control input is applied, the next state is measured, and
+the OCP is solved again in order to update the optimal
+control input in a receding horizon fashion [1,2].
+While the stability theory typically assumes that the
+cost function has its minimum at the optimal steady
+state, in economic MPC (EMPC) generic costs are al-
+lowed. While this allows one to potentially improve
+closed-loop performance, providing asymptotic stability
+guarantees becomes much harder and typically requires
+some strict dissipativity assumption to hold [3]. Early
+results include [4,5], where the main idea was first pre-
+sented. Necessity of strict dissipativity has been proven
+in [6]. Stability in the absence of terminal constraints
+has been analyzed in [7–11]. The periodic case has been
+analyzed in [12,13] and the discounted case has been
+studied in [14,15]. Computationally efficient algorithms
+tailored to EMPC have been proposed in [16–19].
+⋆This paper was not presented at any IFAC meeting. Cor-
+responding author M. Zanon.
+Email address: mario.zanon@imtlucca.it (Mario
+Zanon).
+The linear-quadratic case has been analyzed in [20–23],
+where the use of a quadratic positive-definite cost has
+also been proposed to formulate tracking MPC so as to
+approximate EMPC. While a positive-definite rotated
+cost is assumed in these works, the relaxation of that as-
+sumption has received less attention. The only work we
+are aware of, which only assumes that the rotated stage
+cost is positive semi-definite is [24], which has received
+surprisingly little attention. In [24], exponential stability
+is proven by relying on a seemingly non-strict dissipativ-
+ity assumption. However, whie the standard strict dissi-
+pativity assumption is known to yield the same result,
+the connection about these two (at first sight) rather
+different assumptions has never been investigated be-
+fore, to the best of the author’s knowledge. As we wil
+prove in this paper, the two assumptions actually imply
+each other. Moreover, the connection between them can
+be done through the formulation of two infinite-horizon
+OCPs, one causal and forward in time, while the other
+one anticausal and backward in time. This result fur-
+ther highlights the deep connection between dissipativ-
+ity and OCPs formulated in forward and backward time,
+as discussed in the seminal papers on dissipativity [25–
+27] (though the concept of strict dissipativity has been
+introduced only much later). Finally, [10] investigates
+how exponential stability can be obtained by means of a
+suitable terminal cost in finite horizon linear quadratic
+EMPC under the requirement that the rotated cost is
+positive definite. We will extend those results to the pos-
+Preprint submitted to Automatica
+20 November 2025
+arXiv:2511.15630v1  [eess.SY]  19 Nov 2025
+
+
+itive semi-definite case.
+The main difficulty when relaxing the requirement on
+the cost to be positive definite is that the OCP solution
+is not related to the Discrete Algebraic Riccati Equa-
+tion (DARE). Nevertheless, it can be related to a Con-
+strained Generalized DARE (CGDARE), see [28] which
+provides an excellent discussion and a very sharp anal-
+ysis of the properties of the CGDARE and its solutions,
+their relation to the corresponding infinite-horizon op-
+timal control problem and to exponential stability. We
+will exploit those results and extend them to prove our
+results.
+The remainder of this paper is structured as follows. In
+Section 2 we state the optimal control problem and the
+corresponding Riccati equations. In Section 3 we provide
+some preliminray results that will be helpful to prove
+our main results which are provided in Section 4 for the
+infinite-horizon case and in Section 5 for the finite hori-
+zon case. We briefly comment on the case in which some
+optimal controls might be stabilizing while others are
+not in Secrtion 6 and we conclude the paper in Section 7.
+2
+Problem Statement
+Consider the linear system
+xk+1 = Axk + Buk,
+with state x ∈Rnx and control input u ∈Rnu; and
+the following linear-quadratic Optimal Control Problem
+(OCP)
+V (ˆx0) = min
+x,u
+lim
+N→∞
+N−1
+X
+k=0
+"
+xk
+uk
+#⊤
+H
+"
+xk
+uk
+#
++ x⊤
+NP fxN
+(1a)
+s.t. x0 = ˆx0,
+(1b)
+xk+1 = Axk + Buk,
+(1c)
+with symmetric H and Pf, and
+H :=
+"
+Q S⊤
+S R
+#
+.
+Under suitable assumptions on P f, the LQR solution is
+characterized by a solution P with associated feedback
+matrix K of the Constrained Generalized Discrete Alge-
+braic Riccati Equation (CGDARE) [28]
+P = Q + A⊤PA −(S⊤+ A⊤PB)K,
+(2a)
+K = (R + B⊤PB)†(S + B⊤PA),
+(2b)
+ker(R + B⊤PB) ⊆ker(S⊤+ A⊤PB),
+(2c)
+where † denotes the Moore-Penrose pseudo-inverse. Note
+that, as discussed in [28], Condition (2c) is necessary in
+order for the CGDARE to correctly relate to OCP (1), as
+it can be shown to be directly related to the optimality
+conditions of OCP (1). Furthermore, we are interested
+in symmetric solutions only, and we will simply refer to
+symmetric solutions as solutions in the remainder of this
+paper.
+We define
+QP := Q + A⊤PA −P,
+SP := S + B⊤PA,
+(3a)
+RP := R + B⊤PB,
+HP :=
+"
+QP S⊤
+P
+SP RP
+#
+.
+(3b)
+such that the CGDARE can be written as
+0 = QP −S⊤
+P K,
+(4a)
+K = R†
+P SP ,
+(4b)
+ker(RP ) ⊆ker(S⊤
+P ).
+(4c)
+We will also use the same shorthand notation in order
+to define various dissipativity assumptions.
+As proven in [28], the CGDARE provides both the op-
+timal feedback law
+F(x, v) = −Kx + Gv,
+v arbitrary,
+(5)
+where
+G = I −R†
+P RP ,
+defining the closed-loop system
+x+ = (A −BK)x + BGv,
+v arbitrary,
+(6)
+and the associated quadratic value function
+V (x) = x⊤Px.
+Note that, in case RP is invertible, then the CGDARE
+coincides with the Discrete Algebraic Riccati Equation
+(DARE) [28]
+0 = QP −S⊤
+P K,
+(7a)
+K = R−1
+P SP ,
+(7b)
+where, since RP is full rank ker(RP ) = 0, and the last
+condition is automatically satisfied.
+Finally, throughout the paper, we will also exploit the
+properties of the regularized DARE (rDARE)
+0 = QP −S⊤
+P K,
+(8a)
+K = (RP + G)−1SP ,
+(8b)
+2
+
+
+as we will prove that, under a quadratic strict pre-
+dissipativity assumption, it has the same solutions as
+the CGDARE.
+If it exists, we will denote as Ps the stabilizing solution to
+the CGDARE or rDARE, i.e., having the corresponding
+feedback Ks such that the eigenvalues of A−BKs are all
+inside the unit circle. Note that we will prove later that,
+under some conditions that will turn out to be necessary
+for stability the two coincide and need therefore not be
+distinguished.
+In order to prove our results, we will also exploit the Re-
+verse Constrained Generalized Discrete-time Algebraic
+Riccati Equation (RCGDARE), defined as:
+¯P = ¯Q + ¯A⊤¯P ¯A −( ¯S⊤+ ¯A⊤¯P ¯B) ¯K,
+(9a)
+¯K = ( ¯R + ¯B⊤¯P ¯B)†( ¯S + ¯B⊤¯P ¯A),
+(9b)
+ker( ¯R + ¯B⊤¯P ¯B) ⊆ker( ¯S + ¯B⊤¯P ¯A),
+(9c)
+where
+¯A := A−1,
+¯B := A−1B,
+¯Q := −¯A⊤Q ¯A,
+¯S := S ¯A −¯B⊤Q ¯A,
+¯R := −R + S ¯B + ¯B⊤S⊤−¯B⊤Q ¯B,
+¯H :=
+" ¯Q ¯S⊤
+¯S ¯R
+#
+.
+If it exists, we define as ¯Ps the stabilizing solution
+of the RCGDARE (and the corresponing rRDARE).
+Note that, if R −SA−1B is nonsingular, this solution
+coincides with the antistabilizing solution of the CG-
+DARE/rDARE [29]. This establishes a strong similarity
+with the continuous-time case, where the antistabilizing
+solution is the stabilizing solution of the same problem
+formulated in reverse time.
+Remark 2.1 Note that, though throughout the paper we
+assume that (A, B) is stabilizable, we will first restrict our
+attention to the study of its controllable subpart. In that
+case, we will exploit the fact that for any controllable sys-
+tem, one can introduce some suitably designed feedback
+matrix F which makes A −BF full rank. Consequently,
+as discussed in, e.g., [10, Theorem 3.8, Remark 3.9], the
+existence of A−1 can be assumed without loss of gener-
+ality in the controllable case. After deriving the results
+for the controllable case, we will generalize them to the
+stabilizable case.
+3
+Preliminary Results
+Before proving our main results, we state the following
+useful properties of the CGDARE.
+We define Z as the null space matrix of RP , i.e.
+RP Z = 0,
+Z⊤Z = I.
+(10)
+Lemma 3.1 Matrix G satisfies
+G = ZZ⊤,
+where Z is defined as per (10).
+PROOF. We observe that a singular value decomposi-
+tion on the symmetric matrices RP and R†
+P yields
+G = I −R†
+P RP
+= I −V Σ†V ⊤V ΣV ⊤
+= V V ⊤−V Σ†ΣV ⊤.
+(11)
+Note that V =
+h
+Y Z
+i
+is orthonormal, where Y and Z
+are, respectively, range and null space matrices of RP
+and, consequently, also of R†
+P . Moreover,
+Σ†Σ =
+"
+I 0
+0 0
+#
+,
+I −Σ†Σ =
+"
+0 0
+0 I
+#
+.
+Consequently, we have that (11) reads
+G = ZZ⊤,
+where, in case RP is full rank, Σ†Σ = I, Z is empty, and
+G = 0.
+2
+We recall that, for P1, P2 solutions of the CGDARE [28,
+Theorem 4.3] states that ker RP1 = ker RP2. Conse-
+quently, matrix G is independent of which P solving the
+CGDARE is used to define it.
+Lemma 3.2 For any P solving the CGDARE it holds
+that
+(RP + G)−1 = R†
+P + G,
+(RP + G)−1SP = R†
+P SP .
+Consequently, any solution P with corresponding feed-
+back K of the CGDARE is a solution of the rDARE,
+though the converse might not be true.
+3
+
+
+PROOF. We observe that
+RP + G = RP + I −R†
+P RP
+= V ΣV ⊤+ V V ⊤−V Σ†ΣV ⊤
+= V
+ "
+Σ+ 0
+0
+0
+#
++
+"
+0 0
+0 I
+#!
+V ⊤,
+such that
+(RP + G)−1 = V
+ "
+Σ−1
++
+0
+0
+0
+#
++
+"
+0 0
+0 I
+#!
+V ⊤
+= R†
+P + G.
+Moreover, since S⊤
+P G = 0, we have that GSP = 0, which
+proves that P, K are a solution of the rDARE.
+Finally, we observe that, for all P solving the CGDARE
+one can simplify the rDARE as
+0 = QP −S⊤
+P K,
+K = (RP + G)−1SP
+= R†
+P SP .
+However, the rDARE can have additional solutions Pdare
+which do not satisfy
+RPdareG = 0,
+S⊤
+PdareG = 0,
+which can not be solutions of the CGDARE.
+2
+In order to further clarify the result of Lemma 3.2, and its
+implications on the connection between solutions of the
+CGDARE and the rDARE, let us introduce the following
+example.
+Example 3.3 Consider a system with matrices
+A =
+"
+2 1
+0 1
+#
+,
+B =
+"
+2 0
+1 1
+#
+,
+with stage cost matrices
+Q =
+"
+0 0
+0 1
+#
+,
+R = 0,
+S = 0.
+The CGDARE has solution
+P =
+"
+0 0
+0 1
+#
+,
+K = 1
+2
+"
+0 1
+0 1
+#
+,
+G = 1
+2
+"
+1 −1
+−1
+1
+#
+.
+The rDARE has a stabilizing solution
+Ps = I,
+Ks =
+"
+0.75 0.5
+−0.25 0.5
+#
+.
+One can verify that P solves the rDARE, though it is
+not the stabilizing solution. Finally, one can also check
+that Ps does not solve the CGDARE. Nore that for this
+example we have
+BG =
+"
+1 −1
+0
+0
+#
+,
+i.e., the closed-loop behavior is not unique, as different
+optimal control inputs yield different state trajectories.
+This example motivates a deeper study of the case
+BG = 0. We will prove in Section 4 that, under a
+quadratic strict pre-dissipativity assumption we can
+guarantee that BG = 0. In the next lemma, we prove
+that BG = 0 entails that the solutions of the CGDARE
+coincide with the solutions of the rDARE. We will
+prove in Section 4 that quadratic strict pre-dissipativity
+guarantees, among other properties, that BG = 0.
+Lemma 3.4 Assume that BG = 0 and RP ⪰0. Then
+any P solving the CGDARE is a solution of the rDARE
+and viceversa.
+PROOF. We observe that BG = 0 entails RG = 0 and
+S⊤G = 0, such that for all Λ it holds that
+RΛG = 0,
+S⊤
+Λ G = 0.
+Consequently, for any Λ such that RΛ ⪰0 we have
+(RΛ + G)−1 = R†
+Λ + G,
+(RΛ + G)−1SΛ = R†
+ΛSΛ.
+(12)
+Because RP ⪰0 for all P solving the CGDARE, then
+Lemma 3.2 entails that RP +G ≻0 solves the rDARE for
+all P solving the CGDARE. Consequently, RP + G ≻0
+for all P solving the CGDARE as they also solve the
+rDARE, then RP + G ≻0 for all P solving the rDARE.
+In turn, this entails that RP ⪰0 for all P solving the
+rDARE. Consequently, (12) holds for all P solving the
+rDARE, which entails that all P solving the rDARE also
+solve the CGDARE.
+2
+Lemma 3.5 If any P solving the CGDARE with H ⪰0
+is full rank, then BG = 0.
+4
+
+
+PROOF. By [28, Theorem 4.3], G is independent of
+which symmetric P solving the CGDARE is used to de-
+fine it. Moreover, by [28, Lemmas 4.1, 4.2], in case H ⪰0
+ker RP = ker
+"
+PB
+R
+#
+,
+for any P solving the CGDARE. Because we assume that
+P is full rank, we further have
+ker RP = ker
+"
+PB
+R
+#
+= ker
+"
+B
+R
+#
+.
+(13)
+Lemma 3.1 yields G = ZZ⊤. Moreover, by (13), Z is a
+null space matrix for B and BG = BZZ⊤= 0.
+2
+Because it is easier to study the properties of OCP (1)
+and the corresponding CGDARE in case H ⪰0, we will
+exploit so-called cost rotations to reconduct the generic
+case to the case H ⪰0. For a given matrix Λ, these
+cost rotations consist in replacing the stage and terminal
+cost matrices H and P f with HΛ defined as per (3) and
+P f
+Λ := P f −Λ.
+Remark 3.6 In the literature on economic MPC, cost
+rotations for a given matrix Λ are usually defined as H−Λ
+and P f
+Λ := P f + Λ. Since that is just a convention and
+because in the context of this paper it is notationally and
+conceptually simpler to use HΛ and P f
+Λ := P f −Λ, we
+will stick to this last convention.
+We will prove in Section 4 that assuming the existence of
+matrix Λ such that HΛ ⪰0 is not restrictive. We provide
+next some useful properties related to cost rotations.
+We define the rotated linear-quadratic OCP as
+VΛ(ˆx0) = min
+x,u
+lim
+N→∞
+N−1
+X
+k=0
+"
+xk
+uk
+#⊤
+HΛ
+"
+xk
+uk
+#
++ x⊤
+NP f
+ΛxN
+(14a)
+s.t. x0 = ˆx0,
+(14b)
+xk+1 = Axk + Buk,
+(14c)
+which only differs from the original OCP (1) in that H
+and P f are replaced by HΛ and P f
+Λ = P f −Λ.
+Lemma 3.7 The costs of the rotated OCP (14) and the
+original OCP (1) only differ by the constant term x⊤
+0 Λx0
+and the cost-to-go matrix of the rotated OCP satisfies
+PΛ = P −Λ. Moreover, any state-input trajectory that
+is optimal for the rotated OCP is also optimal for the
+original OCP and viceversa.
+PROOF. The first claim is proven in, e.g., [5,10] or
+[24, Lemma 2.2], where it is observed that for feasible
+trajectories the costs only differ by the constant term
+ˆx⊤
+0 Λˆx0. The second claim directly follows from the first
+one.
+2
+We recalled before that G is independent of which CG-
+DARE solution P is used to define it. We prove next
+that it is also independent of cost rotations.
+Lemma 3.8 Matrix G is independent of cost rotations.
+PROOF. We exploit the fact that PΛ = P −Λ to write
+RΛ + B⊤PΛB = R + B⊤ΛB + B⊤(P −Λ)B
+= R + B⊤PB.
+Consequently, G is independent of cost rotations.
+2
+We prove next a technical result related to the RCG-
+DARE which will be useful later on.
+Lemma 3.9 Suppose that BG = 0 and A−1 exists, such
+that the RCGDARE is well defined. Then, ¯G = G.
+PROOF. Because BG = 0 we have
+RG = 0,
+S⊤G = 0.
+Consequently, we immediately obtain
+¯BG = 0,
+¯RG = 0,
+¯S⊤G = 0,
+(15)
+such that
+ker
+" ¯B
+¯R
+#
+⊇ker
+"
+B
+R
+#
+.
+Additionally, because A−1 is full rank, we can write
+" ¯B
+¯R
+#
+= Ψ
+"
+B
+R
+#
+,
+with Ψ full row rank, such that
+ker
+" ¯P ¯B
+¯R
+#
+= ker
+" ¯B
+¯R
+#
+= ker
+"
+B
+R
+#
+= ker
+"
+PB
+R
+#
+,
+which entails ker ¯R ¯
+P = ker RP , i.e., ¯Z = Z and, in turn,
+¯G = G.
+2
+5
+
+
+Finally, as it will be helpful to state our results in the
+more general context of nonlinear systems with generic
+stage costs, we recall next the common assumption used
+in the generic setting. For a given stage cost ℓ(x, u) and
+system dynamics x+ = f(x, u), strict dissipativity with
+respect to steady state xs, us is defined as follows.
+Definition 3.10 (Strict Dissipativity) There exists
+a function λ such that
+L(x, u) := ℓ(x, u) −ℓ(xs, us) + λ(x) −λ(f(x, u))
+≥ρ(∥x −xs∥),
+(16)
+for all x, u ∈Z ⊂Rnx+nu, with Z compact and ρ a
+positive definite function.
+Note that L is referred to as rotated cost and ρ is pos-
+itive definite with respect to x, but not u, such that in
+the linear-quadratic case we call such a function posi-
+tive semi-definite. The weaker dissipativity assumption
+is obtained if (16) holds with ρ(·) = 0. It has been proven
+in [5] that strict dissipativity is sufficient for asymptotic
+stability, while necessity has been proven in [6] under a
+local controllability assumption.
+4
+Main Results
+In this section, we first connect the existence of a solu-
+tion to the CGDARE with dissipativity concepts. Sub-
+sequently, we connect the existence of a stabilizing solu-
+tion to the CGDARE with strict dissipativity concepts.
+While the first part is mostly known, we find it useful to
+present the existing results with a point of view which
+better connects them with the second part of the paper
+and further clarifies the relationship with concepts com-
+monly used in the literature about EMPC. The second
+part recalls some existing results, connects them with
+existing results stated for the general nonlinear case and
+further explains the deep connection of strict dissipativ-
+ity and Riccati equations.
+4.1
+Existence of the Solution
+In order to discuss the existence of a solution to the
+CGDARE and its correspondence with the solution of
+the OCP (1), we introduce the following dissipativity
+assumption.
+Assumption 4.1 (Quadratic Pre-Dissipativity)
+There exists a matrix Λ such that
+HΛ ⪰0.
+While in the next theorem we assume stabilizability, that
+could be relaxed by assuming that the uncontrollable
+unstable modes yield zero cost. However, as the focus of
+our analysis is proving exponential stability, our stronger
+assumption is not restrictive in the context of this paper.
+Theorem 4.2 Suppose that Assumption 4.1 holds and
+(A, B) is stabilizable. Then the CGDARE formulated
+with the rotated stage cost matrix HΛ ⪰0 has a solu-
+tion PΛ ⪰0, which is also the cost-to-go of the infinite-
+horizon rotated OCP with terminal cost P f
+Λ = 0 whose
+optimal feedback law is given by
+u = −Kx + Gv,
+v arbitrary.
+The solution of the problem formulated using the original
+cost yields the same state and control input trajecotires
+as the one of the rotated problem. The cost-to-go matrix
+of the original OCP satisfies
+P = PΛ + Λ.
+PROOF. The result is a consequence of [28, Theo-
+rem 2.1]. The key observation is that the rotated prob-
+lem (14) and the original problem (1) deliver the same
+feedback law and a shifted cost-to-go matrix PΛ = P −Λ.
+Then, as proven in [30,28], P f
+Λ = 0 guarantees that the
+optimal solution is obtained from the generalized Ric-
+cati difference equation (i.e., by value iteration).
+One can then apply [28, Theorem 2.1] to the rotated cost,
+since stabilizability of (A, B) entails the existence of an
+infinite sequence of inputs yielding a finite rotated cost.
+The optimal state and input trajectories of the original
+and rotated OCP coincide as proven in Lemma 3.7. Fi-
+nally, one can write the rotated CGDARE as
+0 = QPΛ+Λ −S⊤
+PΛ+ΛK,
+K = R†
+PΛ+ΛSPΛ+Λ,
+ker(RPΛ+Λ) ⊆ker(S⊤
+PΛ+Λ).
+By replacing P = PΛ + Λ one immediately recovers the
+original CGDARE.
+2
+Note that the (in general non-unique) solutions of the
+CGDARE are independent of the terminal cost, whose
+proper choice is a necessary condition for the positive
+semi-definite solution to be the optimal cost, but not
+for its existence. Additionally, if the terminal cost ma-
+trix P f is selected as any solution of the CGDARE, then
+the optimal cost-to-go matrix matches that specific so-
+lution of the CGDARE. A detailed analysis of the role
+of the terminal cost can be found in [10] for the case
+in which quadratic strict (x, u) pre-dissipativity holds,
+i.e., if there exists Λ such that HΛ ≻0. The extension
+6
+
+
+of the results of [10] to the weaker quadratic strict pre-
+dissipativity Assumption 4.5-4.7 will be discussed in Sec-
+tion 5.
+Before moving forward with our analysis, we would like
+to discuss the necessity of Assumption 4.1. To that end,
+we recall that, as discussed in [31], if any solution P of the
+CGDARE satisfies RP ⪰0, then all solutions satisfy the
+same inequality. Note that Theorem 4.2 establishes that
+both RΛ ⪰0 and PΛ ⪰0, such that also RP = RPΛ ⪰0.
+Theorem 4.3 Assume that the CGDARE has a sym-
+metric solution P satisfying RP ⪰0. Then Assump-
+tion 4.1 holds.
+PROOF. Since by assumption RP
+⪰0, then [28,
+Lemma 2.1]
+HP ⪰0
+⇔
+QP −S⊤
+P R†
+P SP ⪰0.
+However, since P solves the CGDARE, we have
+QP −S⊤
+P R†
+P SP = 0,
+such that Assumption 4.1 holds with Λ = P.
+2
+We observe that the condition RP ⪰0 is necessary
+for the optimal control input yielded by (1) to remain
+bounded, as also discussed in [31]. This proves the ne-
+cessity of quadratic pre-dissipativity for the OCP (1) to
+have bounded solutions ∥u(x)∥< ∞for all ∥x∥< ∞,
+∥v∥< ∞.
+4.2
+Exponential Stability for Controllable (A, B)
+In this section, we discuss the stability properties of the
+closed-loop system (6). To that end we define stability
+as follows.
+Definition 4.4 (Stability) Given a system x+ = Ax,
+the origin is
+(i) stable if for every ϵ > 0 there exists δ(ϵ) > 0 such
+that ∥Akx∥< ϵ for all k and all ∥x∥< δ(ϵ);
+(ii) (globally) asymptotically stable if it is stable and
+limk→∞Akx = 0
+We observe that [32, Theorem 10.9]:
+(i) stability ⇔all eigenvalues of A are within or on the
+unit circle of the complex plane, and every eigen-
+value that is on the unit circle has an associated
+Jordan blockof order 1;
+(ii) asymptotic stability ⇔all eigenvalues of A are
+within the unit circle, i.e., matrix A is Schur stable.
+Consequently, asymptotic stability is a global property
+and is equivalent to exponential stability.
+Conditions guaranteeing exponential stability of the
+closed-loop system (6) have been established in [24],
+and rely on the following assumption.
+Assumption 4.5 There exist matrices Λ1, Λ2 such that
+HΛ1 ⪰0,
+HΛ2 ⪰0,
+rank(Λ1 −Λ2) = nx.
+We will prove next that the following seemingly stronger
+assumptions are actually equivalent to Assumption 4.5.
+Assumption 4.6 There exist matrices Λ1, Λ2 such that
+HΛ1 ⪰0,
+HΛ2 ⪰0,
+Λ1 −Λ2 ≻0.
+Assumption 4.7 (Quadratic Strict Pre-Dissipativity)
+There exist matrix Λ such that
+RΛ ⪰0,
+QΛ −S⊤
+Λ R†
+ΛSΛ ≻0.
+Before providing our results,we ought to observe that
+Assumption 4.7 is the linear-quadratic equivalent of the
+standard strict pre-dissipativity assumption for the non-
+linear case, i.e., Definition 3.10 where Z need not be com-
+pact [33]. As we will prove that Assumptions 4.5, 4.6, 4.7
+are equivalent, we will refer to all of them as quadratic
+strict pre-dissipativity whenever the distinction is not
+relevant. Finally, let us clarify that checking Assump-
+tions 4.5 or 4.7 is nontrivial, while Assumption 4.6 can
+be checked by solving a suitably formulated SDP. We
+will discuss this aspect in Section 4.4.
+In [24] it is claimed that Assumption 4.5 is sufficient and
+necessary for exponential stability. We prove next that
+the same is true for Assumptions 4.6 and 4.7.
+Theorem 4.8 Suppose that (A, B) is controllable and
+either Assumption 4.6 or Assumption 4.7 holds. Then,
+the closed-loop system (6) is exponentially stable and
+BG = 0. Moreover, both Assumption 4.6 and 4.7 are
+necessary for exponential stability, hence they imply each
+other.
+PROOF. We consider first the case in which Assump-
+tion 4.7 holds for some matrix Λ2. This immediately en-
+tails that a full-rank solution PΛ2 ≻0 exists, such that,
+7
+
+
+by Lemma 3.5 we have BG = 0. One can prove that
+PΛ2 ≻0 by observing that, starting with zero terminal
+cost, the first step of the Riccati iterations (i.e., value it-
+eration) yields cost-to-go PΛ2,1 = QΛ2−S⊤
+Λ2R†
+Λ2SΛ2 ≻0,
+such that for all n > 1 we have PΛ2 ⪰Pn ⪰P1 ≻0 [10,
+Lemma 3.17]. Consequently, we can alternatively rotate
+the cost using Λ1 = Λ2 +PΛ2 ≻Λ2, and Assumption 4.7
+entails Assumption 4.6.
+We prove next that Assumption 4.6 is yields exponential
+stability. We define Λ1,2 = Λ1 −Λ2 ≻0, such that
+HΛ1 = HΛ2+Λ1,2,
+By Theorem 4.2 HΛ2 ⪰0 entails the existence of a solu-
+tion PΛ2 ⪰0 and, in turn of a solution
+PΛ1 = PΛ2 + Λ1,2 ≻0,
+which, by Lemma 3.5 entails BG = 0. Moreover, by
+defining ¯K = R†
+PΛ1SPΛ1, we have
+(A −B ¯K)⊤PΛ1(A −B ¯K) −PΛ1
+= QΛ1 −¯K⊤SΛ1 −S⊤
+Λ1 ¯K + ¯K⊤RΛ1 ¯K ⪯0.
+This entails that A−B ¯K has all eigenvalues inside or on
+the unit circle, possibly except for some of them on the
+unit circle (corresponding to 1 by 1 Jordan blocks) [32,
+Theorem 10.11].
+Because the system is controllable, an exponentially sta-
+bilizing solution to OCP (1) formulated with the addi-
+tional constraint limk→∞xk = 0 exists and yields a lin-
+ear feedback Ks with quadratic cost-to-go matrix Ps.
+In order to prove necessity, consider the case in which
+one of the solutions Ps, Ks of the CGDARE yields expo-
+nential stability, such that BG = 0. Then, for any ˜Q ≻0
+there exists a matrix V ≻0 satisfying
+(A −BKs)⊤V (A −BKs) −V = −˜Q ≺0.
+Let us select Λ = Ps −V such that PΛ,s = V ≻0, and
+HΛ ⪰0 if and only if
+RΛ ⪰0,
+QΛ −S⊤
+Λ R†
+ΛSΛ ⪰0.
+We observe that the first condition holds for ˜Q small
+enough, while the second one can be transformed as fol-
+lows. We first rewrite the rotated CGDARE as
+(A −BKs)⊤PΛ,s(A −BKs) −PΛ,s
+= −(QΛ −K⊤
+s SΛ −S⊤
+Λ Ks + K⊤
+s RΛKs) = −˜Q,
+such that we can write
+QΛ −S⊤
+Λ R†
+ΛSΛ
+= ˜Q −S⊤
+Λ R†
+ΛSΛ + S⊤
+Λ Ks + K⊤
+s SΛ −K⊤
+s RΛKs
+= ˜Q −(S⊤
+Λ −K⊤
+s RΛ)R†
+Λ(SΛ −RΛKs).
+We observe next that
+SΛ −RΛKs = SPs −RPsKs + B⊤V (A −BKs),
+= B⊤V (A −BKs).
+Consequently,
+˜Q −(S⊤
+Λ −K⊤
+s RΛ)R†
+Λ(SΛ −RΛKs)
+= ˜Q −(A −BKs)⊤V BR†
+ΛB⊤V (A −BKs).
+Therefore, HΛ ⪰0 if and only if
+RΛ ⪰0,
+˜Q ⪰(A −BKs)⊤˜V (A −BKs),
+(17)
+where ˜V := V BR†
+ΛB⊤V . We prove next that Condi-
+tion (17) can be satisfied for a sufficiently small ˜Q. As-
+sume that the condition does not hold for some ˆQ ≻0
+yielding Lyapunov matrix ˆV , and select ˜Q = a ˆQ with
+a > 0. Note that for a ≤1 we have 0 ⪯RΛ = RPs−V =
+RPs−a ˆV ⪰RPs−ˆV , such that R†
+Λ ⪯R†
+Ps−ˆV , we obtain
+˜V ⪯V BR†
+Ps−ˆV B⊤ˆV = a2 ˆV BR†
+Ps−ˆV B⊤ˆV ,
+such that ˜V is upper bounded by a quantity that scales
+quadratically with a, while ˜Q scales linearly. Hence, for
+a sufficiently small Condition (17) holds. Moreover, also
+RΛ ⪰0 holds for a sufficiently small. This also proves
+that in (17) the second inequality can be enforced in
+a strict sense, therefore proving necessity of Assump-
+tion 4.7 for exponential stability.
+So far, we have proven that Assumption 4.7 holds. As
+we proved that Assumption 4.7 implies Assumption 4.6
+we could stop here. However, we would like to provide
+an additional brief and insightful proof that does not
+rely on a strict inequality in (17). Following the proof
+of [10, Lemma 3.12] we have that dissipativity for the
+(rotated) CGDARE also entails dissipativity for the (ro-
+tated) RCGDARE, such that there exists a solution
+¯PΛ ⪯0. Consequently, one can simply choose Λ1 = Λ +
+PΛ,s and Λ2 = Λ+ ¯PΛ, such that Λ1−Λ2 = PΛ,s−¯PΛ ≻0.
+2
+The result of Theorem 4.8 entails that the closed-loop
+system is asymptotically stable for all optimal control
+8
+
+
+inputs. However, there are also cases in which some op-
+timal control inputs stabilize the system, while others
+do not, as exemplified by the following example. While
+an in-depth analysis of such cases is beyond the scope
+of this paper, we will provide a brief discussion on the
+subject in Section 6.
+Example 4.9 Consider the following system:
+A =
+"
+0.9 1
+0
+1
+#
+,
+B =
+"
+2 0
+1 1
+#
+,
+Q =
+"
+0 0
+0 1
+#
+,
+R = 0,
+S = 0.
+The solution of the DARE is
+P =
+"
+0 0
+0 1
+#
+,
+K =
+"
+0 0.5
+0 0.5
+#
+,
+G =
+"
+0.5 −0.5
+−0.5
+0.5
+#
+,
+such that
+A −BK =
+"
+0.9 0
+0
+0
+#
+,
+has all eigenvalues strictly inside the unit circle, but some
+optimal solutions can destabilize the system, e.g., for
+feedback matrix L = −I, yielding v = −Lx we have
+A −BK −BGL =
+"
+1.9 −1
+0
+0
+#
+,
+which has one eigenvalue outside the unit circle.
+Note
+that,
+while
+Assumption
+4.1
+holds,
+Assump-
+tions 4.5, 4.6, 4.7 do not hold. Indeed, as stated by The-
+orems 4.2 and 4.8, a positive semi-definite solution P
+yielding the optimal cost-to-go exists, but the closed-loop
+system is not exponentially stable for all optimal control
+inputs.
+Note that, if
+A =
+"
+1 1
+0 1
+#
+,
+similar considerations follow, but v = 0 does not yield
+exponential stability, even though there exist infinitely
+many matrices L such that v = −Lx does yield exponen-
+tial stability. See [28, Example5.1 ] for more details.
+This example shows that, whenever BG ̸= 0, there exist
+optimal control inputs that destabilize the system, while
+other optimal control inputs might stabilize the system.
+Indeed, if BG ̸= 0 Assumptions 4.5, 4.6, and 4.7 cannot
+hold, as they would imply BG = 0.
+4.3
+Exponential Stability for Stabilizable (A, B)
+The results above focused on the case in which (A, B) is
+controllable. We provide next the extension to the case
+in which (A, B) is stabilizable.
+Theorem 4.10 Suppose that (A, B) is stabilizable.
+Then, Assumptions 4.5, 4.6, and 4.7 all imply each
+other. Hence, if any of them holds, the closed-loop sys-
+tem (6) is exponentially stable and BG = 0. Moreover,
+Assumptions 4.5, 4.6, and 4.7 are also necessary for
+exponential stability.
+PROOF. Let us assume without loss of generality that
+the system is in the form of the Kalman controllability
+decomposition
+A =
+"
+A11
+0
+A21 A22
+#
+,
+B =
+"
+0
+B2
+#
+,
+(18)
+with (A22, B2) controllable, and A11 asymptotically sta-
+ble. Then we have
+B⊤PB = B⊤
+2 P22B2;
+B⊤PA =
+h
+s1(P12, P22) s2(P22)
+i
+,
+with
+s1(P12, P22) := B⊤
+2 P12A11 + B⊤
+2 P22A21,
+s2(P22) := B⊤
+2 P22A22;
+and
+A⊤PA =
+"
+q11(P11, P12, P22) q12(P12, P22)
+q12(P12, P22)⊤
+p22(P22)
+#
+,
+with
+q11(P11, P12, P22) := A⊤
+11P11A11 + A⊤
+11A⊤
+11P12A21
++ A⊤
+21P ⊤
+12A11 + A⊤
+21P22A21,
+q12(P12, P22) := A⊤
+11P12A22 + A⊤
+21P22A22,
+q22(P22) := A⊤
+22P22A22.
+9
+
+
+Consequently,
+HP =
+"
+Hu
+P Hm
+P
+⊤
+Hm
+P Hc
+P22
+#
+,
+Hu
+P := Q11 + q11(P11, P12, P22) −P11,
+Hm
+P :=
+"
+Q21+q12(P12, P22)⊤−P ⊤
+12
+S1+s1(P12, P22)
+#
+,
+Hc
+P22 :=
+"
+Q22 + q22(P22) −P22 S⊤
+2 + s2(P22)⊤
+S2 + s2(P22)
+R + B⊤
+2 P22B2
+#
+.
+This entails that the lower right block Hc
+P22 only depends
+on P22, i.e., the controllable subsystem is independent
+of the rest. We can then apply Theorem 4.8 to the con-
+trollable subsystem.
+We prove next that, if quadratic strict pre-dissipativity
+holds for the controllable subsystem, then it also holds
+for the full system, since all uncontrollable modes are
+exponentially stable. Note that, by Theorem 4.8 and [24]
+the three quadratic strict pre-dissipativity assumptions
+are equivalent for controllable systems, hence we do not
+need to distinguish among them.
+By Lemma 3.5 quadratic strict pre-dissipativity entails
+B2G = 0 and, consequently, BG = 0. Hence,
+Hc,G
+P22 := Hc
+P22 +
+"
+0 0
+0 G
+#
+≻0.
+Moreover, stabilizability entails that A11 has all eigen-
+values inside the unit circle. Hence, for fixed matrices
+P12, P22, the quantity A⊤
+11P11A11 −P11 can be made ar-
+bitrarily large by a suitable choice of P11. Consequently,
+if we rewrite the blocks of HP such that
+HP =
+"
+ΩΣ⊤
+Σ Θ
+#
+,
+where Θ := R + B⊤
+2 P22B2 ⪰0, we have that
+Ω−Σ⊤Θ†Σ = Ω−Σ⊤(Θ + G)†Σ
+= Ω−Σ⊤(Θ + G)−1Σ ≻0,
+i.e., Assumption 4.7 holds.
+The proof of Theorem 4.8 then directly entails that also
+Assumption 4.6 and, in turn, Assumption 4.5 hold for
+the controllable subsystem. Additionally, if both Ps and
+¯Ps exist for the controllable subsystem, they must also
+exist for the full system, as the uncontrollable modes are
+exponentially stable. Consequently, Assumption 4.6 and
+Assumption 4.5 must hold for the full system. Exploiting
+the fact that the solutions of the CGDARE and of the
+rDARE coincide, we then obtain that HG
+Λ ≻0, such
+that, by taking the Schur complement we conclude that
+also Assumption 4.7 must hold.
+2
+Remark 4.11 Note that, because Lemma 3.4 states that
+if BG = 0 the solutions of the CGDARE are solutions
+of the rDARE and viceversa, the CGDARE inherits also
+all well-known properties of DAREs, i.e., if it exists, the
+stabilizing solution is unique, and all solutions P satisfy
+Ps ⪰P, if Ps exists; P ⪰¯Ps, if ¯Ps exists; Ps ≻¯Ps if both
+exist.
+4.4
+Checking Quadratic Strict Pre-Dissipativity
+While the theory we developed proved that the quadratic
+strict pre-dissipativity assumptions we considered are
+equivalent, in practice they are not equally easy to check.
+A procedure to check Assumption 4.5 in several steps is
+given in [24]. Assumption 4.7 is not easy to check as the
+second inequality is nonlinear. Assumption 4.6, instead,
+can be checked by solving one suitably formulated SDP.
+One option consists in solving
+min
+Λ1,Λ2,a −a
+(19a)
+s.t. HΛ1 ⪰0,
+(19b)
+HΛ2 ⪰0,
+(19c)
+Λ1 −Λ2 ⪰aI,
+(19d)
+and checking if a > 0.
+We provide next an alternative formulation, which we
+consider insightful for the case in which (A, B) is con-
+trollable. As an alternative to (19), one can solve
+min
+Λ1,Λ2 −tr(Λ1 −Λ2)
+(20a)
+s.t. HΛ1 ⪰0,
+(20b)
+HΛ2 ⪰0.
+(20c)
+and check whether Λ1 ≻Λ2.
+For controllable systems SDP (20) allows us to further
+discuss the tight relation between quadratic strict pre-
+dissipativity, especially in the form of Assumption 4.6,
+and the stabilizing solutions of the CGDARE and
+RCGDARE. In fact, as we prove in the next lemma,
+if quadratic strict pre-dissipativity holds and (A, B) is
+controllable, its solution is Λ1 = Ps, Λ2 = ¯Ps.
+Lemma 4.12 Assume that (A, B) is controllable. Then,
+any Λ such that HΛ ⪰0 satisfies Ps ⪰Λ if Ps exists; and
+Λ ⪰¯Ps if ¯Ps exists.
+PROOF. We first prove that Λ ⪰Ps cannot satisfy
+dissipativity. Using the same argument we will obtain
+10
+
+
+that that Λ ⪯¯Ps cannot satisfy dissipativity. Finally, we
+will use those results to complete the proof.
+Let us consider the interpretation of the CGDARE as
+the solution of OCP (1) over horizon one, with terminal
+cost P0 = Ps. Let us add a matrix E ̸= 0, E ⪰0 to the
+terminal cost. First, we observe that RPs+E ⪰RPs ⪰0.
+Moreover, we obtain cost-to-go matrix P1 ̸= Ps, P1 ⪰Ps.
+The one-step Riccati recursion reads
+Q + A⊤(Ps + E)A −P1 −S⊤
+Ps+ER†
+Ps+ESPs+E = 0.
+(21)
+Moreover, since Ps is the maximal solution of the DARE,
+P1 ̸= Ps + E, such that
+QPs+E −S⊤
+Ps+ER†
+Ps+ESPs+E ̸= 0.
+We observe that by [10, Theorem 4.7] the Riccati recur-
+sion with terminal cost matrix P0 = Ps + E converges,
+such that by [10, Lemma 3.17] we must have
+P1 ⪰̸ P0 = Ps + E,
+which, using (21), entails
+QPs+E −S⊤
+Ps+ER†
+Ps+ESPs+E ⪰̸ 0,
+and, in turn HPs+E ⪰̸ 0. The exact same argument can
+be used to prove that H ¯
+Ps−E ⪰̸ 0.
+This proves that both Λ ⪰Ps and Λ ⪯¯Ps cannot satisfy
+dissipativity. Consider now the case in which Λ ⪰̸ Ps,
+Λ ⪯̸ Ps, and split Λ as
+Λ = Λ+ + Λ−+ Ps,
+Λ+ ⪰0,
+Λ−⪯0.
+Rotate the cost a first time using Λ−+Ps. Then, rotating
+a second time using Λ+ ⪰0 falls under the case we
+proved above, which proves the claims.
+2
+In the lemma above, we assumed controllability, because
+if the uncontrollable modes in A are stable, then the
+uncontrollable modes in ¯A are unstable. Consequently,
+¯Ps does not exist. In case the system is not controllable,
+assuming without loss of generality that the system is in
+the Kalman controllability decomposition (18), one can
+partition matrix E consistently as
+E =
+"
+E11 E12
+E21 E22
+#
+,
+where E11 and E12 = E⊤
+21 can be chosen arbitrarily,
+while E22 ⪯0.
+For E12 = E⊤
+21 = 0, E22 = 0 this yields
+S⊤
+Ps+ER†
+Ps+ESPs+E = S⊤
+PsR†
+PsSPs.
+Additionally, E11 can be chosen such that
+A⊤
+11E11A11 −E11≺0.
+Consequently, any matrix satisfying the inequality above
+can be multiplied by an arbitrarily large constant while
+still satisfying the inequality. Hence, the SDP solution
+is unbounded. Clearly, infinitely many others are also
+possible. Consequently, if (A, B) is stabilizable but not
+controllable, SDP (20) is unbounded. A simple fix can
+then be to introduce a constraint of the form
+Λ1 −Λ2 ⪯bI,
+for some fixed and sufficiently large constant b. Alter-
+natively, one could add the term b(tr(Λ1 −Λ2))2 to the
+cost for some fixed constant b.
+5
+Finite Horizon and Terminal Cost
+In this section, we consider the finite-horizon case and
+we discuss the role of the terminal cost in providing ex-
+ponential stability. To that end, we exploit the theory
+developed so far to extend the results of [10] to the case
+in which quadratic strict (x, u) pre-dissipativity does not
+hold, but quadratic strict pre-dissipativity does hold.
+The main question is how exponential stability can be
+enforced in finite-horizon EMPC by means of suitable
+terminal costs, without terminal constraints.
+We introduce the Receding-Horizon OCP(RHOCP)
+V (ˆx0) = min
+x,u
+N−1
+X
+k=0
+"
+xk
+uk
+#⊤
+H
+"
+xk
+uk
+#
++ x⊤
+NP fxN
+(22a)
+s.t. x0 = ˆx0,
+(22b)
+xk+1 = Axk + Buk,
+(22c)
+which delivers the optimal feedback law
+FN(x, v) = −KNx + GNv,
+v arbitrary,
+(23)
+with PN, KN defined by the generalized Riccati recur-
+sion
+Pn+1 = Q + A⊤PnA −(S⊤+ A⊤PnB)Kn+1,
+(24a)
+Kn+1 = (R + B⊤PnB)†(S + B⊤PnA),
+(24b)
+where P0 = P f, and
+GN := I −R†
+PN RPN .
+11
+
+
+The corresponding the closed-loop system is
+x+ = (A −BKN)x + BGNv,
+v arbitrary.
+(25)
+In order to obtain the desired results, we will exploit
+the fact that, if quadratic strict pre-dissipativity holds,
+then the properties of the CGDARE can be studied by
+exploiting the rDARE instead. Moreover, if BG = 0,
+then (see Lemma 3.4)
+RΛG = 0,
+S⊤
+Λ G = 0,
+holds for all Λ, and not just for those solving the CG-
+DARE. This will be particularly helpful for the finite
+horizon case, as the finite-horizon solution does in gen-
+eral not match the infinite-time solution. Additionally,
+also the RCGDARE can be studied by exploiting the
+corresponding rRDARE, as we prove in the next lemma.
+Theorem 5.1 (Extension of [10, Theorem 4.7])
+Consider a strictly pre-dissipative OCP (1) with control-
+lable (A, B) and let ¯Ps be the stabilizing solution of the
+RCGDARE. Choose the terminal cost matrix Pf ≻¯Ps.
+Then the optimal solution is given by the unique stabiliz-
+ing solution of the corresponding DARE. In particular,
+the origin is an asymptotically stable equilibrium of the
+optimally controlled system.
+PROOF. The key observation is given in Lemma 3.4,
+which states that, as quadratic strict pre-dissipativity
+entails BG = 0 and RP ⪰0 for all P colving the
+CGDARE, then the solutions of the CGDARE and
+the rDARE coincide. Consequently, we can directly
+apply [10, Theorem 4.7].
+2
+Theorem 5.2 (Extension of [10, Theorem 4.9])
+Consider a controllable pair (A, B) equipped with a
+strictly pre-dissipative stage cost and let ¯Ps be the sta-
+bilizingsolution of the corresponding RCGDARE. Select
+the terminal cost matrix as P f ≻¯Ps. Then, for any suf-
+ficiently large finite horizon N the RHOCP (22) yields
+a closed-loop system (25) for which the origin is globally
+exponentially stable.
+PROOF. Also in this case, we invoke Lemma 3.4, in
+particular the fact that (12) holds for any Λ, i.e., GN =
+G, and the equivalence between the original formulation
+and the one with regularization u⊤Gu holds not only
+for the infinite horizon problem (i.e., the CGDARE and
+rDARE share the same solutions), but also throughout
+the generalized Riccati iterations (i.e., the value itera-
+tion). This allows us to apply [10, Theorem 4.9] to the
+regularized problem and carry over the result to the orig-
+inal problem.
+2
+The extension of the results above to the stabilizable case
+is directly obtained by applying the arguments used in
+the proof of Theorem 4.10 and further noticing that the
+choice of bounded P f
+11, P f
+12 can be made arbitrarily, as it
+does not affect KN and only shifts the non-controllable
+blocks of PN.
+6
+The Stabilizable but Possibly Unstable Case
+In this section, we briefly discuss the case in which
+the CGDARE does have a solution P
+satisfying
+R + B⊤PB ⪰0, but does not yield an exponentially
+stable optimal closed-loop system (6). Note that this
+case is discussed in [28] and in Example 4.9, which is
+taken from [28].
+Note that, if BG = 0, by Lemma 3.4 all P, K solutions
+to the CGDARE are also solutions of the rDARE and
+viceversa. Hence, quadratic strict (x, u) pre-dissipativity
+cannot hold for the rDARE and, in turn, quadratic strict
+pre-dissipativity cannot hold for the CGDARE. When
+instead, BG ̸= 0, the optimal closed-loop system (6)
+does not define a single state trajectory, and the cost
+might allow both stabilizing and destabilizing optimal
+solutions. In case some of the optimal solutions are stabi-
+lizing, one might be interested in selecting one of those.
+Unfortunately, straightforward attempts at generalizing
+quadratic strict pre-dissipativity yield inequalities of the
+form
+HΛ +
+"
+L⊤TL TL
+L⊤T
+T
+#
+⪰0,
+"
+PB
+R
+#
+T = 0.
+Note that the first condition is a nonlinear matrix in-
+equality and the second condition is not easy to satisfy
+without solving the CGRDARE first. However, if one
+does solve the CGDARE, one can pick T = G, but the
+first condition still remains nonlinear in L. The idea to
+remove nonlinearities by regularizing the control input
+only, i.e., by selecting L = 0, cannot work if some uncon-
+trollable and unstable mode has zero cost. Such a situ-
+ation occurs, e.g., in the second case in Example 4.9, as
+we explain next.
+Example 6.1 Consider once more the second system in
+Example 4.9, i.e.:
+A =
+"
+1 1
+0 1
+#
+,
+B =
+"
+2 0
+1 1
+#
+,
+Q =
+"
+0 0
+0 1
+#
+,
+R = 0,
+S = 0.
+12
+
+
+Any cost rotation yields
+Q + A⊤ΛA =
+"
+0
+Λ11
+Λ11 Λ11 + 2Λ12
+#
+⊁0.
+Consequently, there exists no cost rotation that can sat-
+isfy Assumption 4.7.
+However, if the system is pre-stabilized first, e.g., using
+feedback ˆK = 0.5I, A −B ˆK has all eigenvalues inside
+the unit circle, and in this specific case the cost matrices
+remain unchanged [10], since S = 0, R = 0. The solution
+of the DARE is
+P =
+"
+0 0
+0 1
+#
+,
+K =
+"
+−0.25 0.25
+−0.25 0.25
+#
+,
+G =
+"
+0.5 −0.5
+−0.5
+0.5
+#
+.
+As expected, P is unchanged, while K does change. In
+this case, regularizing the rotated cost as
+HG
+Λ := HΛ +
+"
+0 0
+0 G
+#
+,
+makes it possible to find a matrix Λ such that HG
+Λ ≻0.
+The example above suggests a possible, though a bit
+cumbersome, procedure to takle the case in which some
+optimal controls might be stabilizing while others might
+not be. In particular, one can: (i) pre-stabilize the system
+using the desired technique to compute feedback matrix
+ˆK and update the cost matrices as
+ˆH =
+" ˆQ ˆS⊤
+ˆS R
+#
+,
+ˆQ := Q −S⊤ˆK −ˆK⊤S + ˆK⊤R ˆK,
+ˆS := S −R ˆK;
+(ii) compute any solution of the CGDARE to obtain G;
+(iii) define the cost of the corresponding rDARE and
+verify if quadratic strict (x, u) dissipativity holds, i.e., if
+there exists some matrix Λ such that ˆHΛ ≻0. In case
+of a positive answer, then at least one of the optimal
+control inputs yields an exponentially stable closed-loop
+system. We ought to stress that the obtained solution is
+an arbitrary choice among the infinitely many optimal
+solutions, which depends on the initial pre-stabilization
+in a way which is possibly difficult to predict.
+7
+Conclusions
+In this paper, we studied economic linear quadratic op-
+timal control in case the optimal solution is not unique.
+We connected existing stability results for the linear
+and nonlinear case and we discussed how the quadratic
+strict pre-dissipativity assumption can be interpreted in
+terms of solutions to two optimal control problems for-
+mulated in forward and backward time. Furthermore, we
+provided an assumption with a corresponding compu-
+tationally viable procedure to verify if quadratic strict
+pre-dissipativity holds. Finally, we discussed the finite-
+horizon case and the case in which the non-unique con-
+trol input solution results in non-unique state trajecto-
+ries, such that some optimal solutions might be stabiliz-
+ing while others not.
+The interpretation of quadratic strict pre-dissipativity
+in terms of solutions to optimal control problems estab-
+lishes a strong connection with the seminal paper [25]
+and suggests connections with some more recent con-
+tributions in economic MPC, e.g., [34]. It is possible,
+though arguably nontrivial, that our interpretation of
+strict dissipativity in terms of optimal control can be car-
+ried over to the full nonlinear case. Such investigations
+will be the subject of future research.
+References
+[1]
+J. B. Rawlings, D. Q. Mayne, and M. Diehl, Model Predictive
+Control: Theory, Computation, and Design, 2nd ed.
+Nob
+Hill Publishing, 2017.
+[2]
+L. Grüne and J. Pannek, Nonlinear Model Predictive Control,
+2nd ed., ser. Communications and Control Engineering.
+Springer International Publishing, 2017.
+[3]
+T.
+Faulwasser,
+L.
+Grüne,
+and
+M.
+Müller,
+“Economic
+nonlinear model predictive control: Stability, optimality and
+performance,”
+Foundations and Trends in Systems and
+Control, vol. 5, no. 1, pp. 1–98, 2018.
+[4]
+M. Diehl, R. Amrit, and J. Rawlings, “A Lyapunov Function
+for Economic Optimizing Model Predictive Control,” IEEE
+Trans. of Automatic Control, vol. 56, no. 3, pp. 703–707,
+March 2011.
+[5]
+R.
+Amrit,
+J.
+Rawlings,
+and
+D.
+Angeli,
+“Economic
+optimization using model predictive control with a terminal
+cost,” Annual Reviews in Control, vol. 35, pp. 178–186, 2011.
+[6]
+M. A. Müller, D. Angeli, and F. Allgöwer, “On necessity
+and robustness of dissipativity in economic model predictive
+control,” IEEE Transactions on Automatic Control, vol. 60,
+no. 6, pp. 1671–1676, 2015.
+[7]
+L. Grüne, “Economic receding horizon control
+without
+terminal constraints,” Automatica, vol. 49, pp. 725–734, 2013.
+[8]
+M. Zanon and T. Faulwasser, “Economic MPC without
+terminal
+constraints:
+Gradient-correcting
+end
+penalties
+enforce asymptotic stability,” Journal of Process Control,
+vol. 63, pp. 1 – 14, 2018.
+[9]
+T.
+Faulwasser
+and
+M.
+Zanon,
+“Asymptotic
+Stability
+of Economic NMPC: The Importance of Adjoints,”
+in
+Proceedings of the IFAC Nonlinear Model Predictive Control
+Conference, 2018.
+[10] M. Zanon and L. Grüne, “Stabilization of strictly pre-
+dissipative receding horizon linear quadratic control by
+terminal costs,” Preprint, arXiv:2501.03691, 2025, submitted
+to Automatica.
+13
+
+
+[11] L. Grüne and M. Zanon, “Stabilization of strictly pre-
+dissipative nonlinear receding horizon control by terminal
+costs,”
+Preprint,
+arXiv:2412.13538,
+2025,
+submitted
+to
+Automatica.
+[12] M. Zanon, L. Grüne, and M. Diehl, “Periodic optimal control,
+dissipativity and MPC,” IEEE Transactions on Automatic
+Control, vol. 62, no. 6, pp. 2943–2949, 2017.
+[13] M. A. Müller and L. Grüne, “Economic model predictive
+control without terminal constraints for optimal periodic
+behavior,” Automatica, vol. 70, pp. 128 – 139, 2016.
+[14] V. Gaitsgory, L. Grüne, M. Höger, C. M. Kellett, and
+S. R. Weller, “Stabilization of strictly dissipative discrete
+time systems with discounted optimal control,” Automatica,
+vol. 93, pp. 311 – 320, 2018.
+[15] M. Zanon and S. Gros, “A New Dissipativity Condition
+for Asymptotic Stability of Discounted Economic MPC,”
+Automatica, vol. 141, p. 110287, 2022.
+[16] R. Quirynen, B. Houska, and M. Diehl, “Symmetric hessian
+propagation for lifted collocation integrators in direct optimal
+control,” in Proceedings of the American Control Conference
+(ACC), 2016.
+[17] ——, “Efficient symmetric Hessian propagation for direct
+optimal control,” Journal of Process Control, vol. 50, pp. 19–
+28, 2017.
+[18] R. Verschueren, M. Zanon, R. Quirynen, and M. Diehl, “A
+Sparsity Preserving Convexification Procedure for Indefinite
+Quadratic Programs Arising in Direct Optimal Control,”
+SIAM Journal on Optimization, vol. 27, no. 3, pp. 2085–2109,
+2017.
+[19] M. Zanon, “A Gauss-Newton-Like Hessian Approximation
+for Economic NMPC,” IEEE Transactions on Automatic
+Control, vol. 66, no. 9, pp. 4206–4213, 2021.
+[20] M. Zanon, S. Gros, and M. Diehl, “Indefinite Linear MPC
+and Approximated Economic MPC for Nonlinear Systems,”
+Journal of Process Control, vol. 24, pp. 1273–1281, 2014.
+[21] ——,
+“A
+Tracking
+MPC
+Formulation
+that
+is
+Locally
+Equivalent to Economic MPC,” Journal of Process Control,
+vol. 45, pp. 30 – 42, 2016.
+[22] ——, “A Periodic Tracking MPC that is Locally Equivalent
+to Periodic Economic MPC,” in Proceedings of the 2017 IFAC
+World Congress, vol. 50, no. 1, 2017, pp. 10 711–10 716.
+[23] M. Facchino, A. Bemporad, and M. Zanon, “Tracking mpc
+tuning in continuous time: A first-order approximation of
+economic mpc,” IEEE Control Systems Letters, vol. 7, pp.
+2197–2202, 2023.
+[24] O. I. Olanrewaju and J. M. Maciejowski, “Implications
+of dissipativity on stability of economic model predictive
+control—the indefinite linear quadratic case,” Systems &
+Control Letters, vol. 100, pp. 43–50, 2017.
+[25] J. C. Willems, “Least Squares Stationary Optimal Control
+and the Algebraic Riccati Equation,” IEEE Transactions on
+Automatic Control, vol. AC-16, no. 6, pp. 621–634, 1971.
+[26] J. Willems, “Dissipative Dynamical Systems Part I: General
+Theory,”
+Archive for Rational Mechanics and Analysis,
+vol. 45, no. 5, pp. 321–351, 1972.
+[27] ——,
+“Dissipative
+Dynamical
+Systems
+Part
+II:
+Linear
+Systems with Quadratic Supply Rates,” Archive for Rational
+Mechanics and Analysis, vol. 45, no. 5, pp. 352–393, 1972.
+[28] L. Ntogramatzidis and A. Ferrante, “The discrete-time
+generalized algebraic riccati equation: Order reduction and
+solutions’ structure,” Systems & Control Letters, vol. 75, pp.
+84–93, 2015.
+[29] V. Ionescu, “Reverse discrete-time riccati equation and
+extended
+nehari’s
+problem,”
+Linear
+Algebra
+and
+its
+Applications, vol. 236, pp. 59–94, 1996.
+[30] D. Rappaport and L. Silverman, “Structure and stability
+of discrete-time optimal systems,” IEEE Transactions on
+Automatic Control, vol. 16, no. 3, pp. 227–233, 1971.
+[31] A. A. Stoorvogel and A. Saberi, “The Discrete Algebraic
+Riccati Equation and Linear Matrix Inequality,” Linear
+Algebra and its Applications, vol. 274, no. 1, pp. 317–365,
+1998.
+[32] P. J. Antsaklis and A. N. Michel, Linear systems. New York:
+McGraw-Hill, 1997.
+[33] L. Grüne and R. Guglielmi, “On the relation between
+turnpike properties and dissipativity for continuous time
+linear quadratic optimal control problems,” Mathematical
+Control and Related Fields, vol. 11, no. 1, pp. 169–188, 2021.
+[34] B.
+Houska,
+“Enforcing
+asymptotic
+orbital
+stability
+of
+economic model predictive control,” Automatica, vol. 57, pp.
+45 – 50, 2015.
+14

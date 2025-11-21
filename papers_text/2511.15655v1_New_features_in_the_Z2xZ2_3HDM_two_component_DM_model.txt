@@ -1,0 +1,700 @@
+New features in the Z2xZ2 3HDM two component DM
+model
+Jorge C. Rom˜ao∗, Rafael Boto†, Pedro N. Figueiredo‡, Jo˜ao P. Silva§
+Instituto Superior T´ecnico, Departamento de F´ısica and CFTP
+A. Rovisco Pais 1, 1049-001, Lisboa, Portugal
+November 20, 2025
+Abstract
+We investigate1 the constraints and phenomenology of a three Higgs doublet
+model (3HDM) with a Z2 × Z2 symmetry, featuring two inert scalar doublets that
+give rise to a two-component dark matter (DM) scenario. We analyze the model’s
+vacuum structure, exploring the competition between different symmetry-breaking
+minima, and subject it to comprehensive theoretical and current experimental con-
+straints.
+Our analysis reveals previously unexplored regions of parameter space
+with viable dark matter candidates. Notably, we identify scenarios where both DM
+particles contribute comparably to the observed relic density, offering distinctive
+experimental signatures that could guide future searches.
+1
+Introduction
+N-Higgs Doublet Models (NHDM) offer simple yet effective extensions of the Standard
+Model (SM) with a variety of new features. These models allow for the possibility of
+CP violation, provide viable candidates for Dark Matter (DM), and possess large regions
+of parameter space that are experimentally accessible, particularly at the Large Hadron
+Collider (LHC).
+A common variant is the 2HDM, which introduces besides the SM a new scalar doublet
+with a Z2 symmetry. This symmetry leaves the SM fields unchanged and leads to the
+Inert Doublet Model (IDM) scenario. In this setup, the DM particle states were initially
+in thermal equilibrium with the primordial plasma before decoupling via the freeze-out
+mechanism. The relic abundance of DM, given by ΩDMh2 ≈0.12 (Planck, 2021)[2], is
+determined through the thermally averaged cross-section ⟨σv⟩. The viable DM mass range
+∗jorge.romao@tecnico.ulisboa.pt
+†rafael.boto@tecnico.ulisboa.pt
+‡pedro.m.figueiredo@tecnico.ulisboa.pt
+§jpsilva@cftp.tecnico.ulisboa.p
+1This talk presented at the conference My Favourite Dark Matter Model Apr 14-17, 2025, Azores,
+summarizes the work published in Ref.[1].
+1
+arXiv:2511.15655v1  [hep-ph]  19 Nov 2025
+
+
+in this model typically lies between Mh/2 ≲MDM ≲Mh, or alternatively, 500 GeV ≲
+MDM.
+In a more complex extension, the Two Inert 3HDM introduces a Z2 × Z2 symmetry,
+which again does not alter the SM fields but enforces additional constraints. This sym-
+metry forbids the decay of one sector to the other, further enhancing the stability of the
+DM candidate and providing new avenues for study in both direct and indirect detection
+experiments.
+We discuss in detail all possible vacua, and the conditions guaranteeing that the
+double inert vacuum is indeed the global minimum.
+We also discuss all the collider,
+astrophysical and cosmological constraints which we will use in our simulations.
+We
+show that it is possible to have a DM candidate mass at any value [1
+2mh, 1000GeV],
+while it is possible that both candidates contribute equally to the relic density for either
+1
+2mh < mH1 < 80 GeV or mH1 ⪆500 GeV.
+2
+The Model
+We consider the Z2 × Z2 3HDM. The potential is written as[3],
+V =m2
+11ϕ†
+1ϕ1 + m2
+22ϕ†
+2ϕ2 + m2
+33ϕ†
+3ϕ3 + λ1(ϕ†
+1ϕ1)2 + λ2(ϕ†
+2ϕ2)2 + λ3(ϕ†
+3ϕ3)2
++ λ4(ϕ†
+1ϕ1)(ϕ†
+2ϕ2) + λ5(ϕ†
+1ϕ1)(ϕ†
+3ϕ3) + λ6(ϕ†
+2ϕ2)(ϕ†
+3ϕ3) + λ7(ϕ†
+1ϕ2)(ϕ†
+2ϕ1)
++ λ8(ϕ†
+1ϕ3)(ϕ†
+3ϕ1) + λ9(ϕ†
+2ϕ3)(ϕ†
+3ϕ2)
++
+h
+λ′′
+10(ϕ†
+1ϕ2)2 + λ′′
+11(ϕ†
+1ϕ3)2 + λ′′
+12(ϕ†
+2ϕ3)2 + h.c.
+i
+.
+(1)
+3
+Model Consistency
+3.1
+BFB
+The first thing we have to check is if the potential is bounded from below(BFB). To this
+end, and also to look at the possible minima we use the parameterization of Ref.[4],
+ϕ1 = √r1
+
+sin α1
+cos α1 eiβ1
+
+,
+ϕ2 = √r2eiγ
+
+sin α2
+cos α2 eiβ2
+
+,
+ϕ3 = √r3
+0
+1
+
+.
+(2)
+The necessary and sufficient conditions for the Z2 ×Z2 3HDM to be bounded from below
+are only known along neutral directions [5], α1 = α2 = 0. Only sufficient when considering
+charge breaking directions[4]. We have derived[3] a general method of obtaining sufficient
+conditions for 3HDM’s.
+To obtain these we start by writing the quartic part of the
+potential as
+V4 = VN + VCB + VZ2×Z2,
+(3)
+where
+VN =λ1(ϕ†
+1ϕ1)2 + λ2(ϕ†
+2ϕ2)2 + λ3(ϕ†
+3ϕ3)2 + (λ4 + λ7)(ϕ†
+1ϕ1)(ϕ†
+2ϕ2)
++ (λ5 + λ8)(ϕ†
+1ϕ1)(ϕ†
+3ϕ3) + (λ6 + λ9)(ϕ†
+2ϕ2)(ϕ†
+3ϕ3) ,
+(4)
+VCB = −λ7z12 −λ8z13 −λ9z23 ,
+(5)
+VZ2×Z2 =
+h
+λ′′
+10(ϕ†
+1ϕ2)2 + λ′′
+11(ϕ†
+1ϕ3)2 + λ′′
+12(ϕ†
+2ϕ3)2 + h.c.
+i
+,
+(6)
+2
+
+
+where
+0 ≤zij = (ϕ†
+iϕi)(ϕ†
+jϕj) −(ϕ†
+iϕj)(ϕ†
+jϕi) ≤rirj .
+(7)
+Now the idea is to find a potential lower than the original one and for which it is simple
+to find the BFB conditions. These will be sufficient but not necessary conditions.
+V4 ≥V lower
+4
+= VN + V lower
+CB
++ V lower
+Z2×Z2 ≡1
+2
+X
+ij
+riAijrj ,
+(8)
+V lower
+CB
+= r1r2 min(0, −λ7) + r1r3 min(0, −λ8) + r2r3 min(0, −λ9) ,
+(9)
+V lower
+Z2×Z2 = −2|λ′′
+10|r1r2 −|λ′′
+11|r1r3 −|λ′′
+12|r2r3 ,
+(10)
+where the A matrix is,
+A =
+
+
+¯λ11
+¯λ12
+¯λ13
+¯λ12
+¯λ22
+¯λ23
+¯λ13
+¯λ23
+¯λ33
+
+,
+(11)
+and
+¯λ11 = 2λ1, ¯λ22 = 2λ2, ¯λ33 = 2λ3 ,
+(12)
+¯λ12 = λ4 + λ7 + min(0, −λ7) −2|λ′′
+10| ,
+(13)
+¯λ13 = λ5 + λ8 + min(0, −λ8) −2|λ′′
+11| ,
+(14)
+¯λ23 = λ6 + λ9 + min(0, −λ9) −2|λ′′
+12| .
+(15)
+The potential is BFB if the matrix A is copositive. The copositivity conditions for a 3×3
+matrix can be found in Ref.[6].
+3.2
+Vacua
+We are interested in a 2-Inert minimum, (0, 0, v). We need to identify the parameter
+space with the 2-Inert configuration as the global minimum, having for all other minima,
+V2Inert < VX .
+We now list all the possible minima, either among the neutral directions or along the
+charge breaking ones.
+3.2.1
+Possible Vacua: The Neutral case
+We start with the vacua along the neutral directions. The most general neutral vacuum
+configuration may be parameterized as,
+⟨ϕ1⟩=
+
+0
+v1eiξ1
+
+,
+⟨ϕ2⟩=
+
+0
+v2eiξ2
+
+,
+⟨ϕ3⟩=
+ 0
+v3
+
+.
+(16)
+This was studied in Ref.[7]. We use their notation for the naming of the different vacua,
+as shown in Tab. 1.
+We have confirmed their vacua but we have found a new one that we called F0DM0’.
+3
+
+
+Name
+vevs
+Symmetry
+Properties
+EWs
+(0,0,0)
+Z2 × Z′
+2
+EW Symmetry
+2-Inert
+(0, 0, v3)
+Z2 × Z′
+2
+SM + 2 DM candidates
+DM1
+(0, v2, v3)
+Z2
+2HDM + 1 DM candidates
+DM2
+(v1, 0, v3)
+Z′
+2
+2HDM + 1 DM candidates
+F0DM1
+(0, v2, 0)
+Z2
+1 DM candidates + massless fermions
+F0DM2
+(v1, 0, 0)
+Z′
+2
+1 DM candidates + massless fermions
+F0DM0
+(v1, v2, 0)
+None
+No DM candidate + massless fermions
+N
+(v1, v2, v3)
+None
+3HDM no DM candidate
+sCPv
+(v1eiξ1, v2eiξ2, v3)
+None
+Spontaneous CP violation
+F0DM0’
+(v1, iv2, 0)
+None
+No DM candidate + massless fermions
+Table 1: List of the neutral vacua.
+3.2.2
+Possible Vacua: The Charged case
+Now we turn to the charge breaking vacua. We continue to follow the notation of Ref.[7].
+The list of all possible charge breaking vacua are shown in Tab. 2. As before, we have
+identified an extra possibility; the last entry in the table. To confirm our results we have
+also numerically minimized the potential with Minuit[8] for random initial conditions to
+make sure all possibilities were verified.
+3.2.3
+Global minima procedure:
+To find the correct global minimum we therefore follow the steps,
+• Identify all possible minima.
+• Apply BFB and conditions for 2-Inert to be global minima.
+• Numerically minimize the potential with Minuit for random initial conditions.
+• Confirm none of the points ever give a lower vacuum.
+• In particular we verified that the sufficient BFB were correct has we did not find
+any point unbounded from below.
+3.2.4
+Other Constraints
+The remaining restrictions to consider include,
+• The S matrix must satisfy perturbative unitarity (use the results from[9] for all the
+3HDMs).
+• Agreement with the S, T and U electroweak precision parameters using the formulas
+from[10].
+• For h125, we use µh
+if from ATLAS[11] .
+• For the other scalars we use HiggsTools 1.1.3 [12] that uses the experimental cross
+section limits from the LEP, the Tevatron and the LHC (at 95% C.L).
+• Upper limit on the Higgs total decay width is set by [13] at Γtot ≤9.1 MeV .
+4
+
+
+Name
+vevs
+CB1
+ u1
+c1
+
+ u2
+c2
+
+ 0
+c3
+
+CB2
+ u1
+0
+
+ u2
+c2
+
+ 0
+c3
+
+CB3
+ u1
+c1
+
+ u2
+0
+
+ 0
+c3
+
+CB4
+ u1
+c1
+
+ u2
+c2
+
+ 0
+0
+
+CB5
+ 0
+c1
+
+ u2
+c2
+
+ 0
+c3
+
+CB6
+ u1
+c1
+
+ 0
+c2
+
+ 0
+c3
+
+CB7
+ u1
+0
+
+ u2
+0
+
+ 0
+c3
+
+CB8
+ u1
+0
+
+ 0
+0
+
+ 0
+c3
+
+CB9
+ 0
+0
+
+ u2
+0
+
+ 0
+c3
+
+F0CB
+ u1
+c1
+
+ 
+u2
+−u∗
+1u2
+c∗
+1
+!
+ 0
+0
+
+Table 2: List of the charge breaking vacua.
+3.2.5
+Constraints from Dark Matter
+Finally we have to comply with the constraints coming from DM. These are,
+• The total relic density[2] is given by the sum of the contributions from the DM
+candidates,
+ΩTh2 = ΩH1h2 + ΩH2h2 = 0.1200 ± 0.0012.
+(17)
+• The invisible Higgs branching ratio[14], Br(h →invisible) < 0.11.
+• From direct detection - Spin-independent (SI) scattering cross section from LZ[15]
+with future DARWIN/XLZD and PandaX-xT. Rescale the calculated σ by the
+relative relic density.
+• From indirect detection - detect gamma rays, cosmic rays or neutrinos from DM
+annihilation. For GeV scale, use Fermi-LAT[16] γ′s in dwarf galaxies, antiproton
+from flux AMS[17] and γ′s in Galactic Center from H.E.S.S.[18].
+4
+The Scan
+To perform the scan it proves useful to define[7],
+Λ1 = 1
+2 (λ4 + λ7 + 2λ′′
+10) , Λ2 = 1
+2 (λ6 + λ9 + 2λ′′
+12) , Λ3 = 1
+2 (λ5 + λ8 + 2λ′′
+11) .
+(18)
+The parameter space has 15 parameters that we choose as follows:
+v2, m2
+H1, m2
+H2, m2
+H3 = m2
+SM, m2
+A1, m2
+A2, m2
+H±
+1 , m2
+H±
+2 , Λ1, Λ2, Λ3, λ1, λ2, λ4, λ7.
+(19)
+5
+
+
+bb
+WW
+τ
+τ
+ZZ
+γ
+γ
+µ
+µ
+ B normalized to SM prediction
+×
+ 
+σ
+ZH
+WH
+VBF
+bbH
+ggF+
+ttH
+tH
+0
+1
+2
+ 
+1
+2
+3
+4
+ 
+0
+1
+2
+ 
+1
+2
+3
+ 
+0
+1
+2
+ 
+5
+−
+0
+5
+10
+0
+1
+2
+3
+4
+ 
+Run 2
+ 
+ATLAS
+Data (Total uncertainty)
+Syst. uncertainty
+SM prediction
+Figure 1: Signal strengths from ATLAS[11].
+We choose random values in the ranges
+Λ1, Λ2, Λ3, λ1, λ2, λ4, λ7 ∈±
+
+10−3, 10
+
+;
+mH1, mH2, mA1, mA2 ∈[50, 1000] GeV;
+mH±
+1 , mH±
+2 ∈[70, 1000] GeV,
+(20)
+We built a FORTRAN program for the model to calculate all the quantities for a randomly
+generated set of parameters and test all the constraints. We then generate the FeynRules
+and CalcHEP model files in order to implement the model in micrOMEGAs 6.0.5. The
+couplings were derived with the help of FeynMaster[19, 20, 21].
+5
+Results
+5.1
+Direct detection
+In this section we present the results coming from applying all the constraints. First we
+focus in direct detection. The results are shown in Fig. 2.
+Figure 2: Direct detection constraints on H1 (H2) on the left (right) figure. See text for
+details.
+The points pass all previous constraints, including collider and we take mH2 > mH1
+always. The presence of orange/pink points above LZ line shows that this is a relevant
+6
+
+
+exclusion method. For low mH1 it is possible that direct detection probes H1 without
+affecting H2. We also note that final exposures of DARWIN may reach the high mass
+section of the neutrino floor. Then other probes must be used.
+5.2
+Indirect detection
+Now we turn to the indirect constraints. Fig. 3-left shows the total ⟨σv⟩. The figure
+Figure 3: The colours of the points have the same meaning as in Fig. 2. The left figure
+shows the total ⟨σv⟩as a function of mH1. The right figure shows the dominant contribu-
+tion to ⟨σv⟩as a function of the mass of the DM candidate, mDM, which corresponds to
+the ⟨σv⟩plotted on the vertical axis. The lines coming from Fermi-LAT [16] and H.E.S.S.
+[18] assume a Navarro-Frenk-White (NFW) DM density profile and the AMS-02 [17] lines
+correspond to the conservative approach derived in Ref. [22], with the colour codes also
+shown in the figure.
+shows the total ⟨σv⟩as a function of mH1. candidate. We assume a Navarro-Frenk-
+White (NFW) DM density profile. We calculate the contributing channels and take the
+upper limit from the reconstruction of the experimental signal for the dominant channel:
+above the W threshold, the annihilation proceeds mostly into WW; it occurs into b¯b
+otherwise. Importantly we have found that the Planck constraints (almost) guarantee
+indirect detection to not have effect.
+5.3
+Relic density
+The results for the relic density are shown in Fig. 4. All points shown satisfy all con-
+straints, including direct and indirect detection, and have the correct total relic density.
+If H1 were the only DM component, combining relic density and direct detection con-
+Figure 4: Range of allowed (mH1, mH2) masses with a “temperature” colour code for
+Ω1/ΩT (Ω2/ΩT) on the left (right).
+straints would lead to the same mass regions as in the IDM. It is possible to have a
+7
+
+
+DM candidate mass at any value [1
+2mh, 1000GeV ] . In the intermediate mass range, by
+requiring that it is H2 which is mostly responsible for the relic density. Equal abundance
+is possible for either 1
+2mh < mH1 < 80GeV or mH1 ⪆500GeV .
+6
+Conclusions
+In view of recent interest in multi-component DM models, we focus our attention on
+a Z2 × Z2 symmetric 3HDM with a double inert vacuum. We begin by revisiting the
+potential solutions to the stationarity equations, ensuring that our solution represents
+the absolute minimum. In the process, we identify two new significant minima, which we
+designate as F0DM0’ and F0CB.
+To guarantee that we account for all global minima, we must compare not only with
+the previously identified solutions F0DM1, F0DM2, and F0DM0, but also with these new
+minima: F0DM0’ and F0CB.
+We have derived explicit expressions for all these cases, which makes direct compar-
+ison straightforward. Additionally, we ensure consistency with key physical constraints,
+including unitarity, Bounded-From-Below (BFB) conditions, and compatibility with the
+oblique parameters S, T and U.
+Following this step, we apply all current collider constraints to the parameter space of
+our model, including limits on the 125 GeV couplings, searches for additional scalars, and
+flavor observables. Next, we focus on the implications of relic density, direct detection
+(DD), and indirect detection (ID) of dark matter (DM).
+Through an extensive scan of the parameter space, we observe that the simplistic
+conclusions drawn from narrow regions of the parameter space no longer hold. Instead,
+a much broader and more diverse range of possibilities emerges. Notably, we find regions
+where two distinct DM candidates contribute equally to the relic density. In the Z2 × Z2
+model, the entire mass spectrum for a given component can be populated, including
+intermediate mass ranges where one component dominates the relic density calculation
+while the other plays a secondary role.
+Additionally, we take into account the future sensitivity of direct detection experi-
+ments, which are expected to probe the high-mass section of the neutrino ”fog” without
+ruling out the model. This highlights the need for complementary probes to fully test
+the viability of the model.
+Acknowledgments
+This work is supported in part by the Portuguese Funda˜A§˜A£o para a Ciencia e Tec-
+nologia (FCT) through the PRR (Recovery and Resilience Plan), within the scope of the
+investment “RE-C06-i06 - Science Plus Capacity Building”, measure “RE-C06-i06.m02
+- Reinforcement of financing for International Partnerships in Science, Technology and
+Innovation of the PRR”, under the project with reference 2024.01362.CERN. The work
+is also supported by FCT under Contracts UIDB/00777/2020, and UIDP/00777/2020.
+The FCT projects are partially funded through POCTI (FEDER), COMPETE, QREN,
+and the EU. The work of R. Boto is also supported by FCT with the PhD grant
+PRT/BD/152268/2021.
+8
+
+
+References
+[1] R. Boto, P. N. Figueiredo, J. C. Rom˜ao and J. P. Silva, JHEP 11, 108 (2024),
+https://doi.org/10.1007/JHEP11(2024)108.
+[2] Planck Collaboration, N. Aghanim et al., Astron. Astrophys. 641 (2020) A6, http:
+//arxiv.org/abs/1807.06209arXiv:1807.06209. [Erratum:
+Astron.Astrophys.
+652, C4 (2021)].
+[3] R. Boto, J. C. Rom˜ao, and J. P. Silva, Phys. Rev. D 106 (2022), no. 11 115010,
+[http://arxiv.org/abs/2208.01068arXiv:2208.01068].
+[4] F. S. Faro and I. P. Ivanov, Phys. Rev. D 100 (2019), no. 3 035038, [http://arxiv.
+org/abs/1907.01963arXiv:1907.01963].
+[5] B. Grzadkowski, O. M. Ogreid, and P. Osland, Phys. Rev. D 80 (2009) 055013,
+http://arxiv.org/abs/0904.2173 [arXiv:0904.2173].
+[6] K. Kannike, Eur. Phys. J. C 72, 2093 (2012) https://doi.org/10.1140/epjc/
+s10052-012-2093-z, [arXiv:1205.37819].
+[7] J. Hernandez-Sanchez, V. Keus, S. Moretti, D. Rojas-Ciofalo, and
+D. Sokolowska, http://arxiv.org/abs/2012.11621 [arXiv:2012.11621].
+[8] F. James and M. Roos, Comput. Phys. Commun. 10 (1975) 343--367.
+[9] M. P. Bento, J. C. Rom~ao, and J. P. Silva, JHEP 08 (2022)273,
+http://arxiv.org/abs/2204.13130 [arXiv:2204.13130].
+[10] W. Grimus, L. Lavoura, O. M. Ogreid, and P. Osland, Nucl. Phys.
+B801 (2008) 81--96, http://arxiv.org/abs/0802.4353 [arXiv:0802.4353].
+[11] ATLAS Collaboration, G. Aad et al., Nature 607 (2022), no. 7917
+52--59, http://arxiv.org/abs/2207.00092 [arXiv:2207.00092]. [Erratum:
+Nature 612, E24 (2022)].
+[12] H. Bahl, T. Biek¨otter, S. Heinemeyer, C. Li, S. Paasch, G. Weiglein,
+and J. Wittbrodt, Comput. Phys. Commun. 291 (2023) 108803, http:
+//arxiv.org/abs/2210.09332 [arXiv:2210.09332].
+[13] CMS Collaboration, A. M. Sirunyan et al., Phys. Rev. D 99 (2019),
+no. 11 112003, http://arxiv.org/abs/1901.00174 [arXiv:1901.00174].
+[14] G. Aad et al. [ATLAS], Phys. Lett. B 842, 137963 (2023) https:
+//doi.org/10.1016/j.physletb.2023.137963 [arXiv:2301.10731].
+[15] LZ Collaboration, J. Aalbers et al., Phys. Rev. Lett. 131 (2023),
+no. 4 041002, http://arxiv.org/abs/2207.03764 [arXiv:2207.03764].
+[16] Fermi-LAT Collaboration, M. Ackermann et al., Phys. Rev.
+Lett. 115 (2015), no. 23 231301, http://arxiv.org/abs/1503.02641
+[arXiv:1503.02641]
+9
+
+
+[17] AMS Collaboration, M. Aguilar et al., Phys. Rev. Lett. 117
+(2016), no. 9 091103, https://doi.org/10.1103/PhysRevLett.117.091103.
+[18] H.E.S.S. Collaboration, H. Abdalla et al., Phys. Rev. Lett.
+129 (2022), no. 11 111101, http://arxiv.org/abs/2207.10471
+[arXiv:2207.10471].
+[19] D. Fontes and J. C. Rom~ao, Comput. Phys. Commun. 256 (2020) 107311,
+http://arxiv.org/abs/1909.05876 [arXiv:1909.05876].
+[20] D. Fontes and J. C. Rom~ao, JHEP 06 (2021) 016, http://arxiv.org/abs/
+2103.06281 [arXiv:2103.06281]. [Erratum:
+JHEP 12, 005 (2021)].
+[21] D. Fontes and J. C. Rom~ao, http://arxiv.org/abs/2504.01865
+[arXiv:2504.01865].
+[22] A. Reinert and M. W. Winkler, JCAP 01 (2018) 055, http://arxiv.org/
+abs/1712.00002 [arXiv:1712.00002].
+10

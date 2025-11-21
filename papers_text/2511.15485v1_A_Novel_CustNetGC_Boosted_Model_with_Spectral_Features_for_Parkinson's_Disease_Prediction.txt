@@ -1,0 +1,1922 @@
+ 
+1 
+ 
+ 
+ 
+A Novel CustNetGC Boosted Model with Spectral Features for 
+Parkinson's Disease Prediction 
+Abishek Karthik¹, Pandiyaraju V², Dominic Savio M³, Rohit Swaminathan S⁴ 
+ 
+Abstract 
+ 
+Parkinson's disease is a neurodegenerative disorder that can be very tricky to diagnose 
+and treat. Such early symptoms can include tremors, wheezy breathing, and changes in voice 
+quality as critical indicators of neural damage. Notably, there has been growing interest in 
+utilizing changes in vocal attributes as markers for the detection of PD early on. Based on this 
+understanding, the present paper was designed to focus on the acoustic feature analysis based 
+on voice recordings of patients diagnosed with PD and healthy controls (HC). Previous studies 
+have indicated that PD affects most aspects of speech, underlining the differences between 
+affected and unaffected individuals. 
+In this paper, we introduce a novel classification and visualization model known as CustNetGC, 
+combining a Convolutional Neural Network (CNN) with Custom Network Grad-CAM and 
+CatBoost to enhance the efficiency of PD diagnosis. We use a publicly available dataset from 
+Figshare, including voice recordings of 81 participants: 40 patients with PD and 41 healthy 
+controls. From these recordings, we extracted the key spectral features: L-mHP and Spectral 
+Slopes. The L-mHP feature combines three spectrogram representations: Log-Mel 
+spectrogram, harmonic spectrogram, and percussive spectrogram, which are derived using 
+Harmonic-Percussive Source Separation (HPSS). Grad-CAM was used to highlight the 
+important regions in the data, thus making the PD predictions interpretable and effective. 
+Our proposed CustNetGC model achieved an accuracy of 99.06% and precision of 95.83%, 
+with the area under the ROC curve (AUC) recorded at 0.90 for the PD class and 0.89 for the 
+HC class. Additionally, the combination of CatBoost, a gradient boosting algorithm, enhanced 
+the robustness and the prediction performance by properly classifying PD and non-PD samples. 
+Therefore, the results provide the potential improvement in the CustNetGC system in 
+enhancing diagnostic accuracy and the interpretability of the Parkinson's Disease prediction 
+model. 
+Key words: Parkinson’s Disease, Grad-CAM, Deep Learning, CatBoost, Acoustic Features 
+ 
+ 
+
+
+ 
+2 
+ 
+ 
+ 
+1. INTRODUCTION 
+Parkinson's disease is a complex, multi-faceted neurodegenerative disorder that causes 
+impairment in various motor and non-motor functions of the nervous system. It is characterized 
+by gradual degeneration in the CNS generally associated with impairment of motor functions, 
+making it challenging to diagnose [2]. As of 2016, more than 6.06 million people in the world 
+have PD, after Alzheimer's disease. Besides this, the continuous progression of the disease 
+devastates the quality of life for most patients as they lose both physical and cognitive 
+capabilities and thus result in fatalities. Reports claim that PD contributed to 211.3 thousand 
+deaths in 2016 [3]. 
+Although there isn't a decisive remedy for the treatment of PD, early as well as the exact 
+diagnosis really contribute to progression with timely interventions coupled with appropriate 
+specific treatment. Primary signs of PD involve subliminal, such as a tremble or shivering body 
+and voice variation. 
+The timing as well as right detection is absolutely fundamental in initiation of proper medicare 
+and application of specific remedy treatment. 
+There's one marked area of PD-specific difference: Its interference with one's speech pattern. 
+Individuals with PD tend to show hypophonia, a very soft and sometimes inaudible voice due 
+to the degeneration of neural circuits involved in regulating speech-producing muscles. These 
+vocal manifestations are one of the most informative markers for diagnosis and could be 
+analyzed rather efficiently using techniques in advanced deep learning. Specifically, L-mHP 
+and Spectral Slopes features can be exploited to identify PD from speech signals. They include 
+discrete spectral characteristics and provide an effective representation of audio signals. The 
+log-mel spectrogram captures the global acoustic properties, whereas the harmonic 
+spectrogram focuses on the frequency distribution and the percussive spectrogram focuses on 
+transient features. Thus, the combination of these features presents a solid basis for PD 
+detection. 
+This research study explores feature extraction of L-mHP from recordings of voices with the 
+aid of Spectral Slopes for differentiating between healthy subjects and PD-afflicted individuals. 
+The features have been further extracted and then filtered through a deep customized learning 
+framework designed with the application of an Xception fine-tuned, enhanced CatBoost model 
+with gradients. The proposed model was trained, validated, and tested on the Figshare dataset, 
+which holds voice recordings of individuals with and without PD [5]. Those performance 
+
+
+ 
+3 
+ 
+ 
+ 
+metrics were applied, such as accuracy, precision, and recall to measure the predictive power 
+of the model. MFCC and HFCC also were applied for feature extraction, and optimization of 
+parameters is one of the major challenges while building the proposed CustNetGC model. 
+The advent of deep learning, especially Convolutional Neural Networks (CNNs), has 
+revolutionized computational methods in biological research. Unlike traditional machine 
+learning classifiers, which mainly rely on handcrafted global features (e.g., pitch, jitter, 
+shimmer, and MFCC), CNNs are more adept at extracting hierarchical and localized features, 
+making them well-suited for complex classification tasks. Despite their computational 
+demands, CNN ensembles, leveraging checkpoint-based or snapshot-based techniques, can 
+significantly enhance predictive accuracy. This paper also discusses several fine-tuning 
+strategies to make the training of CNNs easier and more efficient. 
+ 
+2. LITERATURE SURVEY 
+Karaman et al. (2021) has conducted much research on the early and precise diagnosis of 
+Parkinson's Disease (PD). They applied CNN architectures, including ResNet101, 
+DenseNet161, and SqueezeNet1_1, for fine-tuning the mPower Voice database. In this 
+experiment, DenseNet161 performed with a high accuracy of 89.75%, precision of 88.40%, 
+and sensitivity of 91.50%. In addition, Iyer et al. (2023) implemented the use of Inception V3 
+with transfer learning to inspect voice spectrograms, and it was able to give insights into class-
+specific area under the curve values. The performances of the machine learning models of 
+SVM, Naïve Bayes, KNN, and ANN are compared by Rana et al. (2023), with a maximum 
+accuracy of 96.7% given by the model of ANN. Xu et al. (2020) proposed Spectrogram-Deep 
+Convolutional GAN to augment the data while using ResNet50 and Global Average Pooling 
+in order to enhance feature extraction and classify voiceprint data. Majda-Zdancewicz et al. 
+(2021) used AlexNet and SVM, with sensitivity of 97% and compared conventional signal 
+classification approaches. Quan et al. (2021) used LSTM algorithms with moderate accuracy 
+of 73.35%. The accuracies of the SVM, Random Forest, and Logistic Regression model 
+attained in Govindu et al. (2023) are 91.83%, and sensitivity with SVM is around 0.95. Here 
+also, those architectures use pre-trained versions. Senturk et al. (2020) have reported 
+Regression Trees, Neural Networks, and SVM in its usage. And they have claimed that 
+accuracy to reach 93.84%. Besides, some newly evolved detection methods in the literature 
+
+
+ 
+4 
+ 
+ 
+ 
+report. Khosla et al. (2024) applied Freezing-of-Gait (FOG) detection with impressive metrics 
+such as 99% accuracy, 97.4% precision, and 99.1% sensitivity. 
+Borzì et al. (2020) applied a FOG detection algorithm with minimal data and reported achieving 
+85.5% accuracy using leaveone- subject-out validation. Goyal et al. (2021) discussed the 
+application of hybrid CNN models in vocal loss detection with 99.37% accuracy. Zahid et al. 
+(2020) focused on the speech spectrograms and achieved a diagnostic accuracy of 99% with 
+machine learning classifiers. Hireš et al. (2021) used CNNs and ROC curve analysis for the 
+detection of PD based on voice recordings from 50 patients with PD and 50 healthy subjects. 
+Faragó et al. (2023) evaluated noise reduction techniques applying Wiener filters on continuous 
+speech recordings in noisy environments for improved differentiation of Parkinsonian speech. 
+Guatelli et al. (2023) experimented with Extreme Learning Machines and CNN models based 
+on the spectrogram, which were the best detection accuracy by ResNet50. Senturk et al. (2022) 
+reported 99.74% accuracy using RNNs and CFNNs for voice-based PD detection, while Er et 
+al. (2021) employed LSTM models integrated with ResNet-18, ResNet-50, and ResNet-101, 
+achieving reliable classification from mel-spectrograms. 
+Celik et al. (2023) proposed a SkipConNet + RF model with 99.11% accuracy via a CNN-
+based approach and diagnosis using a unique method. Narasimha Rao et al. (2023) proposed a 
+three-stage classification framework using Optimized ResNet, GoogleNet, and RBF-Gated 
+Recurrent Unit named ORG-RGRU. Nijhawan et al. (2023) compared the best state-of-the-art 
+models via MLP, SVM, Random Forest, and Gradient-Boosted Decision Trees. They proved 
+that the best model is Gradient Boosting. Several studies researched feature engineering in 
+improving the detection accuracy. Hawi et al. (2022) demonstrated that the long-term features 
+combined with MFCCs improved the model performance. Solana-Lavalle et al. (2020) attained 
+94.7% accuracy, 98.4% sensitivity, and 97.22% precision with MLP, SVM, and RF. Zhang et 
+al. (2021) used energy direction-based features achieved by using Empirical Mode 
+Decomposition and effectively distinguished PD from healthy candidates. 
+ 
+ 
+ 
+ 
+ 
+
+
+ 
+5 
+ 
+ 
+ 
+Table 1. Summary of Literature Survey 
+Techniques 
+Performance 
+Demerits 
+SqueezeNet1_1, ResNet101, 
+DenseNet161 
+Accuracy: 89%, Sensitivity: 91.5%, 
+Precision: 88.4% 
+Accuracy < 90% 
+Inception V3 with Transfer 
+Learning 
+High AUC 
+Difficulty identifying 
+spectrogram regions 
+SVM, NaÃ¯ve Bayes, KNN 
+Accuracy: SVM: 87.17%, NaÃ¯ve Bayes: 
+74.11%, KNN: 87.17% 
+Low accuracy 
+S-DCGAN 
+Accuracy: 91.25% 
+Limited patient 
+voiceprint datasets 
+SVM, AlexNet CNN 
+Sensitivity: 97% 
+Data inaccuracies from 
+real recordings 
+LSTM 
+Accuracy: 73.35%, F-score: 79.67%, 
+MCC: 0.3773 
+Accuracy < 90% 
+SVM, Random Forest, KNN, 
+Logistic Regression 
+Accuracy: 91.83%, Sensitivity: 95% 
+Reliance on pre-trained 
+models 
+Regression Trees, Neural 
+Networks, SVM 
+Accuracy: 93.84% 
+Reliance on pre-trained 
+models 
+Freezing-of-Gait (FoG) Detection 
+Precision: 99%, Sensitivity: 97.4%, 
+Accuracy: 99.1%, F1-score: 98.1% 
+Reliance on pre-trained 
+models 
+CNN Hybrid Method 
+Accuracy: 99.37% 
+Limited data used 
+ResNet50 
+Superior performance to CNN 
+Lack of specific region 
+selection 
+Logistic Regression, Random 
+Forest, Gradient Boosted Trees 
+Recall: 0.797, Precision: 0.901, F1: 0.836 
+Reliance on pre-trained 
+models 
+Transfer Learning Using Speech 
+Spectrograms 
+Accuracy: 99.1% 
+Limited data, reliance 
+on pre-trained models 
+CNN for PD Detection from Voice 
+Sensitivity: 86.2%, Specificity: 93.3%, 
+AUC: 89.6% 
+Lack of specific region 
+selection 
+CFNN, RNN, Feedforward NNs 
+RNN with 300 voice features 
+Lack of specific region 
+selection 
+Speech Classification Using 
+CNN 
+Accuracy: Speech: 93%, Energy: 96%, Mel 
+Spectrogram: 92% 
+Noisy environments 
+AlexNet, VGG-16, SqueezeNet, 
+Inception V3, ResNet-50 
+High accuracy from pre-trained CNNs 
+Long training times 
+LSTM 
+High classification accuracy 
+Lack of specific region 
+selection 
+SkipConNet + RF 
+Accuracy: 99.11% 
+Evaluation on pre-
+trained model 
+MFCC + Long-Term Features 
+Accuracy: 88.84% 
+Accuracy < 90% 
+Optimized ResNet, GoogleNet, 
+RGRU 
+Accuracy: 95%, MCC: 91% 
+Use of traditional 
+approaches 
+GBDTs vs. MLP, SVM, RF 
+GBDTs outperform others by 1% AUC 
+Conventional ML 
+techniques used 
+k-NN, MLP, SVM, RF 
+Accuracy: 94.7%, Sensitivity: 98.4%, 
+Specificity: 92.68%, Precision: 97.22% 
+Reliance on pre-trained 
+models 
+EDF-EMD Features 
+Accuracy: Sakar: 96.54%, CPPDD: 
+92.59% 
+No DL used, reliance on 
+pre-trained models 
+ 
+
+
+ 
+6 
+ 
+ 
+ 
+3.PROPOSED SYSTEM ARCHITECTURE 
+ 
+ 
+Figure 1. Proposed CustNetGC Boosted model 
+The audio dataset utilized in this experiment consists of 81 voice recordings that are from both 
+patients with Parkinson's disease (PD) and healthy controls (HC). Since the recordings varied 
+widely in their duration, their spectrogram lengths were inconsistent. A speed ratio formula 
+was utilized to standardize the duration across the dataset, and then the adjusted audio samples 
+were resampled. These voice samples were then converted into Log-Mel spectrograms, 
+harmonic spectrograms, and percussive spectrograms. Combined spectrograms will give an 
+inclusive visual representation of the voice records carrying additional information from each 
+description. 
+Clearly, the differentiation pattern between the audio samples from patients with PD versus 
+those without it is reflected clearly in the plots of spectral slopes. These patterns were fed into 
+a custom-trained Xception model, which is a CNN optimized for classification tasks involving 
+Grad-CAM images. Finally, the model's predictions were refined using CatBoost, a gradient 
+boosting algorithm, to enhance classification accuracy. The proposed system has been verified 
+based on measures such as Accuracy, F1-Score, Precision, FAR, AUC-ROC Curve, 
+Specificity, Recall, Confusion Matrix, False Positive Rate, True Positive Rate, and Thresholds. 
+
+
+ 
+7 
+ 
+ 
+ 
+3.1 Dataset Exploration 
+The audio dataset was retrieved from the publicly available Figshare repository. Voice 
+recordings are available in the format of.wav files. They contain recordings where the vowel 
+/a/ is pronounced very slowly. Recordings were conducted by using the phones of the 
+participants. A total of 81 voices of 40 individuals with PD and 41 HC voices are used as shown 
+in Figure 2. No history of Parkinson's disease, Parkinsonian symptoms, or other 
+neurological/psychological disorder has been found among the HC participants. 
+ 
+Figure 2. Dataset Distribution Graph 
+This audio dataset contains voices of Parkinson. In paper [2] the type of connection between 
+attributes at higher and lower structural levels is described. However, this is there is still a 
+difficult in studying on the English phonetics, and the reader will undoubtedly appreciate the 
+author's clear vision and strong sense of purpose — and possibly gain some new insights as 
+well as been mentioned. In 2023, Iyer, Anu, et al used the ML method to process voice samples 
+for identification of PD [5] in which they had used this same dataset for the work. 
+ 
+ 
+ 
+
+
+ 
+8 
+ 
+ 
+ 
+Table 2. Sample of Dataset Demographics 
+Sample ID 
+Label 
+Age 
+Se
+x 
+AH_064F_7AB034C9-72E4-438B-A9B3-AD7FDA1596C5 
+HC 
+69 
+M 
+AH_114S_A89F3548-0B61-4770-B800-2E26AB3908B6 
+HC 
+43 
+M 
+AH_121A_BD5BA248-E807-4CB9-8B53-47E7FFE5F8E2 
+HC 
+18 
+F 
+AH_123G_559F0706-2238-447C-BA39-DB5933BA619D 
+HC 
+28 
+M 
+AH_195B_39DA6A45-F4CC-492A-80D4-FB79049ACC22 
+HC 
+68 
+M 
+AH_197T_7552379A-2310-46E1-9466-9D8045C990B8 
+HC 
+24 
+M 
+AH_545622717-461DFFFE-54AF-42AF-BA78-
+528BD505D624 
+PwPD 
+77 
+M 
+AH_545622718-C052AD58-5E6B-4ADC-855C-
+F76B66BAFA6E 
+PwPD 
+72 
+F 
+AH_545622719-52C23861-6E0D-41E0-A3D8-
+9358C28C019B 
+PwPD 
+69 
+F 
+AH_545622720-E1486AF6-8C95-47EB-829B-
+4D62698C987A 
+PwPD 
+68 
+M 
+AH_545622722-3C79DA68-36BB-43A2-B29C-
+61AEF480E07E 
+PwPD 
+69 
+M 
+AH_545629296-C2C009C6-8C17-42EA-B6BE-
+362942FC4692 
+PwPD 
+74 
+F 
+ 
+These samples are total of 81 voice recordings in which 40 are of Parkinson Diseased persons 
+and the rest 41 are the voice of healthy candidates. Some samples of dataset is provided in table 
+2. These audio recordings are of different persons are of uneven durations of length in the 
+recording. Since these recordings have frequently varied lengths in their durations it is 
+impossible to convert them into batch inputs to the machine learning models. But there are 
+different ways to pre-processing the data. 
+ 
+ 
+ 
+
+
+ 
+9 
+ 
+ 
+ 
+3.2 Preprocessing 
+To balance the issue with unequal audio time lengths in the dataset, there could be some 
+utilization of making tempo adjustments on voice samples. With playback speed, the alteration 
+involves both changing durations and pitches because the tempo manipulation modifies the 
+record frequency proportionate to the actual playback speed at which the playback takes place. 
+We thus use a greater sample rate for the original audio in slowing down the playback to give 
+quality audio since a low playback rate can reduce the audio clarity. The process is repeated 
+for all audio samples in the dataset and gives uniformity in target duration. 
+    𝑠𝑝𝑒𝑒𝑑_𝑟𝑎𝑡𝑖𝑜 = 𝑡𝑎𝑟𝑔𝑒𝑡_𝑑𝑢𝑟𝑎𝑡𝑖𝑜𝑛
+𝑐𝑢𝑟𝑟𝑒𝑛𝑡_𝑑𝑢𝑟𝑎𝑡𝑖𝑜𝑛 
+------- (1) 
+Take the equation (1) and multiplied with the playback speed we get the adjusted audio length. 
+    𝑎𝑑𝑗𝑢𝑠𝑡𝑒𝑑_𝑎𝑢𝑑𝑖𝑜 = 𝑝𝑙𝑎𝑦𝑏𝑎𝑐𝑘_𝑠𝑝𝑒𝑒𝑑 𝑋 𝑠𝑝𝑒𝑒𝑑_𝑟𝑎𝑡𝑖𝑜  
+------- (2) 
+Standardization of the audio sample length can make it possible to generate spectrograms of 
+voice recordings with equal lengths for effective feature analysis. Previous researches [4] have 
+found CNN architectures and feature selection techniques that improve the speech pattern-
+based classification of PD cases. Altering the playback speed may reduce audio quality, hence, 
+voice characteristic analysis may become complicated. Calculating voice characteristics may 
+then be wrong. To counter this, other preprocessing techniques, including padding and 
+truncation, are applied to normalize the duration of the audio recordings effectively. 
+Padding and truncation help to ensure uniformity in the lengths of audio files. Padding adds 
+zeros to shorter sequences, making them equal in length to the longest sample in the dataset or 
+to the maximum allowable length of the model. On the other hand, truncation shortens longer 
+sequences to the desired length. This way, audio samples are turned into rectangular tensors 
+suitable for machine learning models. Padding and truncation is performed such that all 
+samples become uniform based on some given equations. When the process of padding and 
+truncation is implemented, the audio samples are normalized to three seconds in length. 
+Following the above two procedures, normalizing the dataset, with a purpose of taming noise 
+and scales. The purpose of normalization is normalization so as to maintain the data with a 
+uniform range by making proper scaling and adjustments within the signal. This applies a 
+
+
+ 
+10 
+ 
+ 
+ 
+constant gain, which may be either positive or negative, to all recordings, meaning that all 
+samples in the dataset would have similar levels of amplitude. Without normalizing, errors in 
+audio scale might result in misinterpretations of signals; hence, feature extraction will be 
+compromised. 
+Truncation, 
+    𝑡𝑟𝑢𝑛𝑐𝑎𝑡𝑒𝑑_𝑠𝑎𝑚𝑝𝑙𝑒= 𝑟𝑜𝑢𝑛𝑑{𝑜𝑟𝑖𝑔𝑖𝑛𝑎𝑙_𝑠𝑎𝑚𝑝𝑙𝑒
+𝑠𝑐𝑎𝑙𝑖𝑛𝑔_𝑓𝑎𝑐𝑡𝑜𝑟} 
+------- (3) 
+From equation (3) we get the value for the truncated sample. 
+For Padding, 
+    𝑛𝑢𝑚_𝑧𝑒𝑟𝑜𝑠_𝑡𝑜_𝑎𝑑𝑑 =  𝑑𝑒𝑠𝑖𝑟𝑒𝑑_𝑙𝑒𝑛𝑔𝑡ℎ − 𝑙𝑒𝑛(𝑜𝑟𝑖𝑔𝑖𝑛𝑎𝑙_𝑠𝑎𝑚𝑝𝑙𝑒𝑠) 
+------- (4) 
+From equation (4) we got the value for the number of zeros that needed to be added for original 
+samples then it is used in the equation (5) to get the padded signal. 
+    𝑝𝑎𝑑𝑑𝑒𝑑_𝑠𝑖𝑔𝑛𝑎𝑙 =  𝑜𝑟𝑖𝑔𝑖𝑛𝑎𝑙_𝑠𝑎𝑚𝑝𝑙𝑒𝑠 + [0] ∗ 𝑛𝑢𝑚_𝑧𝑒𝑟𝑜𝑠_𝑡𝑜_𝑎𝑑𝑑 
+------- (5) 
+Normalization further normalizes volume levels across the dataset. Sample rate is a critical 
+parameter in digital audio processing that refers to the number of samples taken per second and 
+is measured in Hertz (Hz). Calculating and maintaining the right sample rate is important to 
+ensure that audio data does not get deteriorated. The formula to compute sample rate is as 
+follows:. This step prepares the dataset for further robust and accurate analysis in the 
+subsequent stages: 
+𝑆𝑎𝑚𝑝𝑙𝑒 𝑅𝑎𝑡𝑒 (𝑆𝑅) = 2 𝑋 𝐹𝑚𝑎𝑥 
+------- (6) 
+Where: 
+● Fmax –  Represents the maximum frequency recorded in the audio signal. 
+Sample rate is calculated by 2 times maximum frequency recorded in the audio signal but we 
+alternatively using the number of samples captured, 
+
+
+ 
+11 
+ 
+ 
+ 
+𝑆𝑎𝑚𝑝𝑙𝑒 𝑅𝑎𝑡𝑒 (𝑆𝑅) = 𝑁𝑠
+𝑇 
+------- (7) 
+Where: 
+● Ns – Represents the number of samples captured. 
+● T – Represents the duration of the audio in seconds. 
+Here T = 3 as we altered the length durations of the audio dataset to 3 seconds. After 
+computations we found the value of Ns to be 24000. That is 24 thousand of samples captured 
+in duration of 3 seconds. So, the calculated sample rate is 8000 that is 8 thousand of samples 
+captured per second. For normalization we need to change the sample rate of the audio data. 
+The sample rate modification process ensures that all voice samples are of the same format, 
+which makes their processing easier. After repeated normalization, it was found that 
+resampling the audio samples to a rate of 1 kHz made the accuracy of the feature extraction 
+phase better. So, all the audio samples are resampled to 1 kHz. The processed audio samples 
+are then stored in a specific file, so that it becomes easy to handle them for the next steps. 
+Next, Log-Mel spectrograms are computed for the processed audio samples and saved 
+individually. Spectrograms are graphical representations of the frequency content of sound 
+waves recorded over time and are rapidly gaining popularity in voice signal analysis. In 
+essence, a spectrogram is the squared magnitude spectrum of an audio signal. Using Log-Mel 
+spectrograms, the deep learning model uses well-established techniques in image classification. 
+These spectrograms feed the model in a manner that is almost like the input to human senses, 
+thereby enhancing the capacity of the system to extract meaningful features from the data. 
+The passing of unprocessed audio waves through filter banks generates a Log-Mel 
+spectrogram. This is achieved by using a frequency-domain filter bank on windowed audio 
+streams. The centre frequencies of the filters, and consequently their corresponding time 
+instants for the analysis windows, are the two- and three-dimensional representations of the 
+second and third outputs of the spectrogram, respectively. By definition of the Log-Mel scale, 
+intervals with identical sound should give consistent measurements. This property makes Log-
+Mel spectrograms well-suited for the task of segmenting signals into uniform periods in a wide 
+array of audio processing applications. 
+
+
+ 
+12 
+ 
+ 
+ 
+The bands in the Log-Mel spectrogram can be divided based on either the Log-Mel scale or the 
+Hertz scale. The former is relatively preferred as it is closer to the human interpretation of 
+acoustic perception, therefore permitting a more intuitive representation of sound frequencies. 
+This also makes it a very good tool for deep learning models. The steps and equations for 
+computing Log-Mel spectrograms are as follow. 
+The equation from O'Shaughnessy 1987 [39] formula to find M Mel from f Hertz is, 
+𝑀= 2595 (1 + 𝑓
+700)  
+------- (8) 
+Now, 
+𝑀𝑛(𝑓) = ∑
+𝑋
+𝑁−1
+𝑓′=0
+(𝑓′, 𝑡). 𝐻𝑛(𝑓′) 
+------- (9) 
+Where, 
+X (f, t) – Represents the magnitude of the spectrum obtained, 
+f – Represents the frequency index and, 
+t – Represents the time index. 
+Hn(f) – Represents the nth Mel filter. 
+ 
+ 
+The Logarithmic Transformation is: 
+𝐿𝑛(𝑡) =𝑙𝑜𝑔𝑙𝑜𝑔 (𝑀𝑛(𝑡))  
+------- (10) 
+Here, 
+Mn(t) – Represents the nth Mel spectrogram frame at time index t and, 
+Ln(t) – Represents the nth Log – Mel spectrogram frame at time index t. 
+
+
+ 
+13 
+ 
+ 
+ 
+Figure 3. Log – Mel Spectrogram 
+L (t, m) which is a two – dimensional array that represents the Log – transformed Mel 
+spectrogram over the time index t and Mel frequency m, which is the final output of our Log – 
+Mel spectrogram as in figure 3. 
+After plotting Log – Mel spectrogram Harmonic spectrogram is plotted. An increasing 
+sequence of audible features that infrequently sound unnoticed above a fundamental pitch that 
+is audibly heard is called as a harmonic. A sounding pitch, which often known as the frequency, 
+is the result of our perception of several higher-frequency sound components that are working 
+together to produce the sound we are hearing. This is called as the pitch that we hear is the 
+fundamental. The harmonic spectrum of the sound, which is composed of these higher 
+frequencies or harmonics, which sound above the fundamental, influences the timbre of the 
+sound or tone colour of the sound. Harmonics exist even though they can be challenging to 
+identify as separate elements. In wide – ranging audio sound a harmonic sound is what we 
+understand to be pitched sound, which is what that allows us to recognise the chords and the 
+melodies from the sound. 
+The audio expression of a sinusoid, or of a horizontal line in a spectrogram representation, is 
+the prototype of a harmonic sound. Alternative way of illustration of what we meant by a 
+harmonic sound is that the sound which is produced by a violin. Once again, the most of the 
+structures seen in the spectrogram are horizontal in character despite being mixed with the 
+components that resemble the noise. The fundamental frequency is exactly multiplied with the 
+whole numbers at harmonic frequencies. The fundamental is the first harmonic, which is 
+followed by the second harmonic, which sounds is at twice the fundamental's frequency, the 
+third harmonic, which sounds is at three times the fundamental's frequency, and so on. So that 
+we can hear the sine waves among the noises. In the audio sample, the voice recordings are 
+same as sine waves that are pure sounds or sound signals, with a harmonic spectrum that 
+contains only one component frequency that of the fundamental. Equation for finding the 
+harmonic spectrogram is given below 
+
+
+ 
+14 
+ 
+ 
+ 
+Let, 
+X (k, ω) be Short-Time Fourier transform (STFT) of the audio signal, 
+H (k, ω) be the harmonic filterbank and, 
+H be the function that extracts harmonic components. 
+Then, 
+𝑌(𝑘, 𝜔) = 𝐻(𝑋(𝑘, 𝜔) ∗𝐻(𝑘, 𝜔)) 
+------- (11) 
+Here 
+Y (k, ω) – Represents the harmonic component spectrogram of audio. 
+To get harmonic spectrogram of the audio signal get need to get the magnitude of the extracted 
+harmonic components 
+𝐻𝑚𝑎𝑔(𝑘, 𝜔) =∣𝑌(𝑘, 𝜔) ∣ 
+------- (12) 
+Logarithmic Transformation is obtained by, 
+𝐻𝑙𝑜𝑔 (𝑘, 𝜔) =𝑙𝑜𝑔𝑙𝑜𝑔 (1 + 𝛼⋅𝐻𝑚𝑎𝑔(𝑘, 𝜔))  
+------- (13) 
+α – is the scaling factor.  
+Hmag (k, ω) – Represents the magnitude harmonic component and, 
+Hlog (k, ω) – Represents the harmonic spectrogram of the audio signal. 
+This Hlog (k, ω) used and plotted against the time index which is then used for our final output 
+of the harmonic spectrogram as in figure 4. 
+Figure 4. Harmonic Spectrogram 
+
+
+ 
+15 
+ 
+ 
+ 
+After plotting harmonic spectrogram Percussive spectrogram is plotted. The sound which we 
+hear as a click, clap, clash, or knock are all known as the percussive sound. Further common 
+instances include the sound of a drum stroke or a transient that happens during a musical tone's 
+attack phase are also called as the percussive sound.  This percussion is defined as a rhythmic 
+patterning of noise, or a tone attacking noise which is a precise arrangement of pitch and timing, 
+and this is mostly created by membranophone and idiophone musical instruments, as same as 
+by the human body by itself when it blows or inhales. 
+This percussion audio of a person visualizes the impulse, which is signified by a vertical line 
+in the spectrogram, this is the model of a percussive sound. These percussive components will 
+have the both temporal sparsity and spectral continuity, while harmonic components will have 
+none of these characteristics. Along with the frequency axis, the median filtering is used to 
+build the spectrogram that has been amplified by percussion. The harmonic and percussive 
+time-frequency masks are created by comparing the enhanced spectrograms. This application 
+of harmonic percussive separation can be used to improve the efficiency of audio analysis 
+techniques. The separation is a technique that breaks down a single voice signal into its 
+harmonic and percussion parts by taking the spectrogram image and the vertical and horizontal 
+line into account. The harmonic sound wave have a horizontally smooth time structure, 
+meanwhile the percussion sound wave have a vertically smooth frequency structure in the 
+spectrogram. Equation for percussive spectrogram is same as harmonic spectrogram which is 
+derived below. 
+ 
+Let, 
+X (k, ω) be short-time Fourier transform (STFT) of the audio signal, 
+H (k, ω) be the harmonic filterbank and, 
+P (k, ω) be the percussive filterbank and, 
+HPSS is a Harmonic-Percussive Source Separation function that extracts harmonic and 
+percussive components separately. 
+Then, 
+𝑃(𝑘, 𝜔), 𝐻(𝑘, 𝜔) =  𝐻𝑃𝑆𝑆(𝑋(𝑘, 𝜔)) 
+------- (14) 
+
+
+ 
+16 
+ 
+ 
+ 
+Here 
+To get percussive spectrogram of the audio signal get need to get the magnitude of the extracted 
+percussive components 
+𝑃𝑚𝑎𝑔(𝑘, 𝜔) =∣𝑃(𝑘, 𝜔) ∣ 
+------- (15) 
+Logarithmic Transformation is obtained by, 
+𝑃𝑙𝑜𝑔 (𝑘, 𝜔) =𝑙𝑜𝑔𝑙𝑜𝑔 (1 + 𝛼⋅𝑃𝑚𝑎𝑔(𝑘, 𝜔))  
+------- (16) 
+α – is the scaling factor.  
+Pmag (k, ω) – Represents the magnitude percussive component and, 
+Plog (k, ω) – Represents the percussive spectrogram of the audio signal. 
+ 
+Figure 5. Percussive Spectrogram 
+By these equations percussive spectrogram is plotted for the all-audio samples as in figure 5. 
+All the Log – Mel spectrogram, harmonic spectrogram and percussive spectrogram are plotted 
+for the voice samples and are stored in a separate file. Then these three spectrogram images are 
+analysed to find the difference between the PD and healthy candidates. Then from these three-
+spectrogram image we plotted Spectral slopes. 
+Algorithm 1: Data Pre-Processing  
+𝐹𝑢𝑛𝑐𝑡𝑖𝑜𝑛 𝐷𝑎𝑡𝑎_𝑃𝑟𝑒𝑃𝑟𝑜𝑐𝑒𝑠𝑠𝑖𝑛𝑔 (𝑖𝑛𝑝𝑢𝑡_𝑓𝑜𝑙𝑑𝑒𝑟, 𝑜𝑢𝑡𝑝𝑢𝑡_𝑓𝑜𝑙𝑑𝑒𝑟, 𝑡𝑎𝑟𝑔𝑒𝑡_𝑑𝑢𝑟𝑎𝑡𝑖𝑜𝑛
+= 3.0, 𝑡𝑎𝑟𝑔𝑒𝑡_𝑠𝑟= 256) 
+ 
+𝑓𝑜𝑟 𝑖←0 𝑡𝑜 𝑙𝑒𝑛 (𝑖𝑛𝑝𝑢𝑡_𝑓𝑜𝑙𝑑𝑒𝑟): 
+ 
+ 
+𝑖𝑓 𝑓𝑖𝑙𝑒𝑛𝑎𝑚𝑒 𝑒𝑛𝑑𝑠 𝑤𝑖𝑡ℎ ". 𝑤𝑎𝑣" 𝑜𝑟 ". 𝑚𝑝3": 
+ 
+ 
+ 
+ 
+𝑎𝑢𝑑𝑖𝑜 = 𝑟𝑒𝑠𝑎𝑚𝑝𝑙𝑒 (𝑎𝑢𝑑𝑖𝑜, 𝑜𝑟𝑖𝑔_𝑠𝑟= 𝑠𝑟, 𝑡𝑎𝑟𝑔𝑒𝑡_𝑠𝑟=
+
+
+ 
+17 
+ 
+ 
+ 
+𝑆𝑎𝑚𝑝𝑙𝑒 𝑅𝑎𝑡𝑒 (𝑆𝑅) = 𝑁𝑠
+𝑇 
+𝑡𝑎𝑟𝑔𝑒𝑡_𝑠𝑎𝑚𝑝𝑙𝑒𝑠 =  𝑖𝑛𝑡(𝑡𝑎𝑟𝑔𝑒𝑡_𝑑𝑢𝑟𝑎𝑡𝑖𝑜𝑛∗𝑠𝑟
+8 ) 
+ 
+ 
+ 
+𝑖𝑓 𝑙𝑒𝑛 (𝑎𝑢𝑑𝑖𝑜) >  𝑡𝑎𝑟𝑔𝑒𝑡 𝑙𝑒𝑛𝑔𝑡ℎ: 
+ 
+ 
+ 
+ 
+𝑡𝑟𝑢𝑛𝑐𝑎𝑡𝑒𝑑 𝑎𝑢𝑑𝑖𝑜= 𝑟𝑜𝑢𝑛𝑑{𝑜𝑟𝑖𝑔𝑖𝑛𝑎𝑙 𝑎𝑢𝑑𝑖𝑜
+𝑠𝑐𝑎𝑙𝑖𝑛𝑔 𝑓𝑎𝑐𝑡𝑜𝑟} 
+ 
+ 
+ 
+↲𝑒𝑛𝑑 𝑖𝑓 
+ 
+ 
+ 
+𝑒𝑙𝑠𝑒 
+ 
+ 
+ 
+ 
+𝑧𝑒𝑟𝑜𝑠_𝑡𝑜_𝑎𝑑𝑑 =  𝑑𝑒𝑠𝑖𝑟𝑒𝐿𝑒𝑛𝑔𝑡ℎ − 𝑙𝑒𝑛(𝑜𝑟𝑖𝑔𝑖𝑛𝑎𝑙_𝑠𝑎𝑚𝑝𝑙𝑒𝑠) 
+ 
+ 
+ 
+ 
+𝑜𝑟𝑖𝑔𝑖𝑛𝑎𝑙_𝑠𝑎𝑚𝑝𝑙𝑒𝑠 + [0] ∗ 𝑧𝑒𝑟𝑜𝑠_𝑡𝑜_𝑎𝑑𝑑 
+ 
+ 
+ 
+↲𝑒𝑛𝑑 𝑒𝑙𝑠𝑒 
+ 
+ 
+ 
+𝑠𝑓. 𝑤𝑟𝑖𝑡𝑒 (𝑝𝑟𝑜𝑐𝑒𝑠𝑠𝑒𝑑 𝑎𝑢𝑑𝑖𝑜 𝑝𝑎𝑡ℎ, 𝑎𝑢𝑑𝑖𝑜, 𝑠𝑟) 
+ 
+ 
+ 
+𝑃𝑟𝑖𝑛𝑡 (“𝑝𝑟𝑜𝑐𝑒𝑠𝑠𝑒𝑑: {𝑓𝑖𝑙𝑒𝑛𝑎𝑚𝑒}”) 
+ 
+ 
+↲𝑒𝑛𝑑 𝑖𝑓 
+ 
+↲𝑒𝑛𝑑 𝑓𝑜𝑟 
+↲𝑒𝑛𝑑 𝐹𝑢𝑛𝑐𝑡𝑖𝑜𝑛 
+𝐹𝑢𝑛𝑐𝑡𝑖𝑜𝑛 𝑃𝑙𝑜𝑡_𝐿𝑜𝑔−𝑀𝑒𝑙_𝑆𝑝𝑒𝑐𝑡𝑟𝑜𝑔𝑟𝑎𝑚 (𝑝𝑟𝑜𝑐𝑒𝑠𝑠𝑒𝑑 𝑎𝑢𝑑𝑖𝑜 𝑝𝑎𝑡ℎ): 
+ 
+𝑓𝑜𝑟 𝑖←0 𝑡𝑜 𝑙𝑒𝑛 (𝑝𝑟𝑜𝑐𝑒𝑠𝑠𝑒𝑑 𝑎𝑢𝑑𝑖𝑜 𝑝𝑎𝑡ℎ): 
+ 
+ 
+𝑖𝑓 𝑓𝑖𝑙𝑒𝑛𝑎𝑚𝑒 𝑒𝑛𝑑𝑠 𝑤𝑖𝑡ℎ ". 𝑤𝑎𝑣" 𝑜𝑟 ". 𝑚𝑝3": 
+ 
+ 
+ 
+𝑀= 2595𝑙𝑜(1 + 𝑓
+700)  
+ 
+ 
+ 
+ 
+𝑀𝑛[𝑓] = ∑
+𝑁−1
+𝑓′=0
+𝑋(𝑓′, 𝑡). 𝐻𝑛(𝑓′) 
+ 
+ 
+ 
+𝐿_𝑛 [𝑡] = 𝑙𝑜(𝑀𝑛(𝑡))  
+ 
+ 
+ 
+𝑌(𝑘, 𝜔) = 𝐻(𝑋(𝑘, 𝜔) ∗𝐻(𝑘, 𝜔)) 
+ 
+ 
+ 
+𝐻_𝑚𝑎𝑔 (𝑘, 𝜔) =∣𝑌(𝑘, 𝜔) ∣ 
+ 
+ 
+ 
+𝐻_𝑙𝑜𝑔  (𝑘, 𝜔) = 𝑙𝑜𝑔 (1 + 𝛼⋅𝐻_𝑚𝑎𝑔 (𝑘, 𝜔)) 
+ 
+ 
+ 
+𝑃(𝑘, 𝜔), 𝐻(𝑘, 𝜔) =  𝐻𝑃𝑆𝑆(𝑋(𝑘, 𝜔)) 
+ 
+ 
+ 
+𝑃_𝑚𝑎𝑔 (𝑘, 𝜔) =∣𝑃(𝑘, 𝜔) ∣ 
+ 
+ 
+ 
+𝑃_𝑙𝑜𝑔  (𝑘, 𝜔) = 𝑙𝑜𝑔 (1 + 𝛼⋅𝑃_𝑚𝑎𝑔 (𝑘, 𝜔)) 
+ 
+ 
+ 
+𝑑𝑖𝑠𝑝𝑙𝑎𝑦. 𝑠𝑝𝑒𝑐𝑠ℎ𝑜𝑤 (𝐿𝑛 [𝑡], 𝐻𝑙𝑜𝑔 (𝑘, 𝜔), 𝑃𝑙𝑜𝑔 (𝑘, 𝜔)) 
+ 
+ 
+ 
+𝑃𝑟𝑖𝑛𝑡 (𝑝𝑟𝑜𝑐𝑒𝑠𝑠𝑒𝑑: {𝑓𝑖𝑙𝑒𝑛𝑎𝑚𝑒}) 
+ 
+ 
+↲𝑒𝑛𝑑 𝑖𝑓 
+
+
+ 
+18 
+ 
+ 
+ 
+ 
+↲𝑒𝑛𝑑 𝑓𝑜𝑟 
+↲𝑒𝑛𝑑 𝐹𝑢𝑛𝑐𝑡𝑖𝑜𝑛 
+Spectral slopes and energy distribution characteristics are important in spectrogram analysis, 
+especially in the understanding of voice muscle related movement. It is proposed that various 
+spectral patterns could be caused by variations in the kinetics of vocal fold motion. It was 
+shown by a number of examples that the spectral harmonics do not follow earlier conclusions 
+[29]. The formants likewise affect the fundamental's amplitude in the radiated spectrum, but in 
+a predictable manner. Consequently, the influence on the amplitude of the fundamental of the 
+radiated spectrum can be adjusted for given the formant frequencies and the fundamental 
+frequency [30]. 
+So, we plotted spectral slopes and energy distribution graph after analysing all the three 
+spectrogram images. The spectral slopes are plotted separately for the PD audio dataset and 
+plotted separately for the healthy candidate’s audio dataset. Then we analysed these spectral 
+slopes and energy distribution graph and found out that there is a difference between these two 
+spectral slopes graph. The spectral slopes graph of healthy person the amplitude wave is 
+uniformly high and constant initially and it dips towards the end as in figure 7. 
+While in the spectral slopes graph of PD audio dataset between the two high amplitude waves 
+there exist a low amplitude as you can refer from figure 6. This pattern of low followed by a 
+high amplitude trend was observed in all PD spectral slopes graphs with a varying height of 
+the low amplitude. In some spectral slopes graphs of PD samples only a small amount of low 
+amplitude was able to be observed, whereas in other PD samples we observed a significant 
+difference between the low amplitude and high amplitude. 
+FIGURE 6. PD spectral slopes graphs 
+
+
+ 
+19 
+ 
+ 
+ 
+By referring both figure 6 and 7 these difference in patterns were observed between the PD 
+and HC spectral slopes graphs. Before sending these spectral slopes images into the model 
+we need highlight these important regions of the spectral slope’s graphs image. So, we use 
+Gradient-weighted Class Activation Mapping (Grad – CAM) technique which is used to 
+visualize the important region of the spectral slope’s graphs image. 
+Figure 7. HC spectral slopes graphs 
+ 
+3.3 Classification 
+Gradient-weighted Class Activation Mapping (Grad-CAM) is a method used for the 
+localisation of significant regions based on class-specific gradient information. Guided Grad-
+CAM is a new high-resolution and class-discriminative visualisation that is made possible by 
+combining these localizations with already-existing pixel-space visualisations [31]. By this 
+technique we can highlight the region in which the low amplitudes are found in the PD spectral 
+slopes graphs. It produces a heat map of the spectral slopes graphs and this heat map is then 
+superimposed on the spectral slopes graphs image. 
+3.3.1 Background of Grad – CAM 
+To identify the important part of the image which in turn corresponds to the classification of 
+our model in this we use Grad – CAM technique. We need to input the image as a square image. 
+So, we resize it and as a first step we send the image through the network as a forward pass to 
+find the output class score which is showed in figure 8. 
+
+
+ 
+20 
+ 
+ 
+ 
+ 
+Figure 8. Resizing the Spectral Slopes 
+𝐶𝑜𝑛𝑠𝑖𝑑𝑒𝑟 𝑎 𝑓() 𝑤ℎ𝑖𝑐ℎ 𝑑𝑒𝑓𝑖𝑛𝑒𝑠 𝑓𝑜𝑟𝑤𝑎𝑟𝑑 𝑝𝑎𝑠𝑠, 
+𝑋 𝑟𝑒𝑝𝑟𝑒𝑠𝑒𝑛𝑡𝑠 𝑡ℎ𝑒 𝑖𝑛𝑝𝑢𝑡 𝑖𝑚𝑎𝑔𝑒 𝑡𝑜 𝑡ℎ𝑒 𝑛𝑒𝑡𝑤𝑜𝑟𝑘. 
+𝑊𝑘 𝑟𝑒𝑝𝑟𝑒𝑠𝑒𝑛𝑡 𝑡ℎ𝑒 𝑘𝑡ℎ 𝑓𝑖𝑙𝑡𝑒𝑟 𝑖𝑛 𝑡ℎ𝑒 𝑙𝑎𝑠𝑡 𝑐𝑜𝑛𝑣𝑜𝑙𝑢𝑡𝑖𝑜𝑛𝑎𝑙 𝑙𝑎𝑦𝑒𝑟. 
+𝑇ℎ𝑒𝑛 𝑡ℎ𝑒 𝑜𝑢𝑡𝑝𝑢𝑡 𝑜𝑓 𝑡ℎ𝑒 𝑙𝑎𝑠𝑡 𝑐𝑜𝑛𝑣𝑜𝑙𝑢𝑡𝑖𝑜𝑛𝑎𝑙 𝑙𝑎𝑦𝑒𝑟 𝑖𝑠 𝑔𝑖𝑣𝑒𝑛 𝑎𝑠, 
+ 
+𝑓(𝑋) = ∑(𝑊𝑘∗𝑋)
+𝐾
+𝑘=1
++ 𝐵 
+------- (17) 
+Here B is the bias term which corresponds to each filter and, 
+𝑓(𝑋) is final output feature map. 
+This output 𝑓(𝑋) is then given as the input for  subsequent layers of the NN. The activation 
+map 𝐴𝑘 can be found by just applying the activation function to the output 𝑓(𝑋) of the last 
+convolutional layer. The purpose of class activation map visualisation in a CNN is to make that 
+the model is making decisions based on sound reasoning and is free of internal bias resulting 
+from learned spurious correlations or deliberately misleading data selection [38]. 
+Which is given by the equation, 
+𝐴𝑘= 𝜎(∑(𝑊𝑘∗𝑋)
+𝐾
+𝑘=1
++ 𝐵) 
+------- (18) 
+Resize 
+
+
+ 
+21 
+ 
+ 
+ 
+𝐴𝑘=  𝜎(𝑓(𝑋)) 
+------- (19) 
+Here  𝜎 is the activation function. 
+By this process of applying the activation function to the output feature map 𝑓(𝑋) it is 
+transformed into the activation map 𝐴𝑘, in which each element represents the activation level 
+at a particular feature from the input image as captured by the corresponding filter 𝑊𝑘. 
+This activation function  𝜎() brings non-linearity into the network model.  After finding 𝐴𝑘 
+activation function, it is necessary to calculate the gradient value of the target class score with 
+respect to the feature maps of the last convolutional layer as shown in Grad-CAM architecture 
+from figure 9. So the target class score is calculated by taking the dot product of t feature vector 
+and weights of fully connected layer. 
+𝑆𝑐= ∑𝑂𝑖 . 𝑊𝑓𝑐𝑖
+𝑁
+𝑖=1
+ 
+------- (20) 
+Here, 
+𝑆𝑐 represents target class score, 
+𝑂𝑖 represents output feature vector, 
+𝑊𝑓𝑐𝑖 represents weights of the fully connected layer. 
+
+
+ 
+22 
+ 
+ 
+ 
+Figure 9. Grad – CAM Visualization Architecture 
+Now we can use the chain rule of calculus to find the gradient of the Target Class Score (TCS).  
+𝑆𝑐 is the activation that maps 𝐴𝑘 using equation (21), 
+𝜕𝑆𝑐
+𝜕𝐴𝑘
+= ∑𝜕𝑆𝑐
+𝜕𝑂𝑖
+ . 𝜕𝑂𝑖
+𝜕𝐴𝑖
+𝑁
+𝑖=1
+ 
+------- (21) 
+𝜕𝑆𝑐
+𝜕𝑂𝑖 represents the grad of the TCS.  
+𝜕𝑂𝑖
+𝜕𝐴𝑖 represents the grad of the output feature vector with respect to (w.r.t) the activation feature 
+map (AFM). 
+𝜕𝑆𝑐
+𝜕𝐴𝑘 represents grad of the TCS w.r.t AFMs. 
+As a next step after obtaining the gradient of the TCS w.r.t the AFMs, 𝜕𝑆𝑐
+𝜕𝐴𝑘 , we would need to 
+compute the importance weights as the global average pooling of these gradients. 
+It is calculated as by the given below formula. 
+𝑤𝑘=
+1
+𝐻 𝑥 𝑊∑∑𝜕𝑆𝑐
+𝜕𝐴𝑖
+ (𝑖, 𝑗)
+𝑊
+𝑗=1
+𝐻
+𝑖=1
+ 
+
+
+ 
+23 
+ 
+ 
+ 
+------- (22) 
+𝐻 represents  height of the Activation Map (AM) 𝐴𝑘, 
+𝑊 represents the width of AM 𝐴𝑘, 
+𝜕𝑆𝑐
+𝜕𝐴𝑘 (𝑖,𝑗) represents the gradient at position (i, j) of AM 𝐴𝑘, 
+𝑤𝑘 represents the weights as the global average pooling of these gradients. Finally, we can 
+compute the final Grad-CAM heat map by the use of these importance weights which by 
+linearly combining with the activation maps weighted by their importance. It is found by the 
+equation given below 
+𝐿𝑐
+𝐺𝑟𝑎𝑑−𝑐𝑎𝑚= 𝑅𝑒𝐿𝑈(∑𝑤𝑘 .  𝐴𝑘
+𝑘
+) 
+------- (23) 
+𝐿𝑐
+𝐺𝑟𝑎𝑑−𝑐𝑎𝑚 represents the Grad-CAM Heat Map (HM) of input image. 
+By this step it produces the Grad-CAM HM of  input image, which highlights the part of regions 
+from the image that are most applicable for predicting the target class 𝑐 for the model (refer 
+figure 10). 
+The Grad-CAM heat map obtained from the input spectral slopes graph further helps  
+Figure 10. Grad – CAM Visualised Spectral Slopes 
+the model narrow down on the critical regions that pertain to the predictions made by it. To do 
+so, the areas pertinent to the critical decision-making part are overlaid on the graph image of 
+
+
+ 
+24 
+ 
+ 
+ 
+spectral slopes. The generated heat map-added images are separately saved in a new file and 
+later used for training this model. The customized or fine-tuned Xception model processes 
+these images, generates localization maps through Grad-CAM to indicate regions of interest 
+for concept prediction, and, most importantly, does not apply across all the other CNN model 
+families. Increasing CNN sizes and depth have been pushed further in an attempt to improve 
+the performance of a CNN and are responsible for the increase in computation and storage. 
+3.3.2 Working of CustNetGC 
+CustomNetGC is a CNN architecture using depthwise separable convolutions. The former are 
+more computationally efficient than traditional convolutions. They were first proposed in 2014, 
+and the idea is to separate the filtering and combination stages of convolution. Generalizing 
+this idea, Xception, which is short for "Extreme Inception," first applies filters to individual 
+depth maps and then compresses the input space using a 1×1 convolution. Xception does not 
+apply non-linearity, like in the case of ReLU in some processes unlike Inception. The Xception 
+model typically applies 71 layers to process an image of 299×299 pixels. For the project, 
+however, the images are resized to 244×244 pixels. As a result, some of its parameters have to 
+be adjusted for the needs of the model. 
+The customizations of the Xception model aim for the more accurate result to achieve reduction 
+in the computational cost. Based on [37], using separable convolutions reduce the size as well 
+as computation overheads for CNNs; there is also a constant try made here for enhancing those 
+in this work too toward Xception. Xception outperforms Inception-v3 by having little accuracy 
+with regards to ImageNet. There are traditional two-step convolution layers: the first is 
+depthwise convolution, where filters the input and the second one is a 1×1 convolution which 
+combines the filtered values to create new features. In this work, fine-tuned parameters of 
+Xception for a project-specific purpose and appropriate input size can help in effective 
+processing with good accuracy. 
+𝐷𝑒𝑓𝑖𝑛𝑒 𝐶𝑢𝑠𝑡𝑜𝑚𝑁𝑒𝑡 𝑎𝑟𝑐ℎ𝑖𝑡𝑒𝑐𝑡𝑢𝑟𝑒 
+𝑓𝑢𝑛𝑐𝑡𝑖𝑜𝑛 𝑑𝑒𝑝𝑡ℎ𝑤𝑖𝑠𝑒_𝑠𝑒𝑝𝑎𝑟𝑎𝑏𝑙_𝑐𝑜𝑛𝑣(𝑖𝑛𝑝𝑢𝑡= (244, 244), 𝑓𝑖𝑙𝑡𝑒𝑟𝑠, 𝑘𝑒𝑟𝑛𝑒𝑙_𝑠𝑖𝑧𝑒= (3,3)): 
+This CustomNet is a depth – wise separable convolution as same as the Xception model the 
+first step we need to perform is that the input channel is needed to be convolved with a different 
+kernel. This is first step to be performed in a depth wise convolution 
+𝐷𝑒𝑝𝑡ℎ𝑤𝑖𝑠𝑒 𝑐𝑜𝑛𝑣𝑜𝑙𝑢𝑡𝑖𝑜𝑛 
+
+
+ 
+25 
+ 
+ 
+ 
+    𝑖𝑛𝑝𝑢𝑡 =  𝐷𝑒𝑝𝑡ℎ𝑤𝑖𝑠𝑒𝐶𝑜𝑛𝑣2𝐷(𝑘𝑒𝑟𝑛𝑒𝑙_𝑠𝑖𝑧𝑒, 𝑝𝑎𝑑𝑑𝑖𝑛𝑔= ′𝑠𝑎𝑚𝑒′)(𝑖𝑛𝑝𝑢𝑡)    𝑖𝑛𝑝𝑢𝑡 
+=  𝐵𝑎𝑡𝑐ℎ𝑁𝑜𝑟𝑚𝑎𝑙𝑖𝑧𝑎𝑡𝑖𝑜𝑛()(𝑖𝑛𝑝𝑢𝑡)    𝑖𝑛𝑝𝑢𝑡 
+=  𝐴𝑐𝑡𝑖𝑣𝑎𝑡𝑖𝑜𝑛(′𝑟𝑒𝑙𝑢′)(𝑖𝑛𝑝𝑢𝑡)     
+As a next we perform the point wise convolution that it uses a kernel which iterates through 
+every single pixel of the image by the help of a 1x1 kernel size. In this the depth of the kernel 
+is as same as the number of channel input that the image has. 
+    𝑃𝑜𝑖𝑛𝑡𝑤𝑖𝑠𝑒 𝑐𝑜𝑛𝑣𝑜𝑙𝑢𝑡𝑖𝑜𝑛 
+    𝑖𝑛𝑝𝑢𝑡 =  𝐶𝑜𝑛𝑣2𝐷(𝑓𝑖𝑙𝑡𝑒𝑟𝑠, (1, 1), 𝑝𝑎𝑑𝑑𝑖𝑛𝑔= ′𝑠𝑎𝑚𝑒′)(𝑖𝑛𝑝𝑢𝑡)    𝑖𝑛𝑝𝑢𝑡 
+=  𝐵𝑎𝑡𝑐ℎ𝑁𝑜𝑟𝑚𝑎𝑙𝑖𝑧𝑎𝑡𝑖𝑜𝑛()(𝑖𝑛𝑝𝑢𝑡)    𝑖𝑛𝑝𝑢𝑡 
+=  𝐴𝑐𝑡𝑖𝑣𝑎𝑡𝑖𝑜𝑛(′𝑟𝑒𝑙𝑢′)(𝑖𝑛𝑝𝑢𝑡)     
+    𝑟𝑒𝑡𝑢𝑟𝑛 𝑖𝑛𝑝𝑢𝑡 
+Then we load our input layer which has a dimension of 244 x 244 and a depth of 4 that is 
+RGBA (Red, Green, Blue and Alpha). The RGBA value is an extension of RGB colour value 
+in which R indicates amount of red present in the image, G indicates amount of green present 
+in the image and B indicates the blue value present in the inputted image. A indicates the 
+opacity of the image. So to train out model we don’t need this Alpha value as it remains same 
+for all. So, we are removing this value from the image data to reduce the model’s complexity. 
+To remove the Alpha value we use the below formula 
+𝑛𝑒𝑤_𝐶ℎ𝑎𝑛𝑛𝑒𝑙_𝐶𝑜𝑑𝑒=  𝐶+ ((255 −𝐶) ∗𝐴)/255 
+------- (24) 
+Where, 
+C is the existing Channel code, 
+A is the Alpha value of the particular pixel. 
+𝐼𝑛𝑝𝑢𝑡 𝑙𝑎𝑦𝑒𝑟 
+𝑖𝑛𝑝𝑢𝑡_𝑙𝑎𝑦𝑒𝑟 =  𝐼𝑛𝑝𝑢𝑡(𝑠ℎ𝑎𝑝𝑒= 𝑖𝑛𝑝𝑢𝑡_𝑠ℎ𝑎𝑝𝑒(244,244)) 
+𝑛𝑒𝑤_𝑅=  𝑅+ ((255 −𝑅) ∗𝐴)/255 
+𝑛𝑒𝑤_𝐺=  𝐺+ ((255 −𝐺) ∗𝐴)/255 
+𝑛𝑒𝑤_𝐵=  𝐵+ ((255 −𝐵) ∗𝐴)/255 
+So by this formula we removed the alpha value from the image and the image is loaded to the 
+model which is been trained. Then we add the entry flow of our model. 
+𝐸𝑛𝑡𝑟𝑦 𝑓𝑙𝑜𝑤 
+
+
+ 
+26 
+ 
+ 
+ 
+𝑥 =  𝐶𝑜𝑛𝑣2𝐷(32, (3, 3), 𝑠𝑡𝑟𝑖𝑑𝑒𝑠= (2, 2), 𝑝𝑎𝑑𝑑𝑖𝑛𝑔= ′𝑠𝑎𝑚𝑒′)(𝑖𝑛𝑝𝑢𝑡_𝑙𝑎𝑦𝑒𝑟)𝑥 
+=  𝐵𝑎𝑡𝑐ℎ𝑁𝑜𝑟𝑚𝑎𝑙𝑖𝑧𝑎𝑡𝑖𝑜𝑛()(𝑥)𝑥 =  𝐴𝑐𝑡𝑖𝑣𝑎𝑡𝑖𝑜𝑛(′𝑟𝑒𝑙𝑢′)(𝑥)𝑥 
+=  𝐶𝑜𝑛𝑣2𝐷(64, (3, 3), 𝑝𝑎𝑑𝑑𝑖𝑛𝑔= ′𝑠𝑎𝑚𝑒′)(𝑥)𝑥 
+=  𝐵𝑎𝑡𝑐ℎ𝑁𝑜𝑟𝑚𝑎𝑙𝑖𝑧𝑎𝑡𝑖𝑜𝑛()(𝑥)𝑥 =  𝐴𝑐𝑡𝑖𝑣𝑎𝑡𝑖𝑜𝑛(′𝑟𝑒𝑙𝑢′)(𝑥) 
+This entry flow in the network model helps to extract features from the inputted image by a 
+series of convolutional and pooling operations. This entry flow step gradually increases the 
+level of construction of the model. Then it undergoes the middle flow. 
+𝑀𝑖𝑑𝑑𝑙𝑒 𝑓𝑙𝑜𝑤 
+𝑓𝑜𝑟 _ 𝑖𝑛 𝑟𝑎𝑛𝑔𝑒(𝑛𝑢𝑚_𝑚𝑖𝑑𝑑𝑙𝑒_𝑏𝑙𝑜𝑐𝑘𝑠): 
+    𝑟𝑒𝑠𝑖𝑑𝑢𝑎𝑙 =  𝑥 
+    𝑥 =  𝑑𝑒𝑝𝑡ℎ𝑤𝑖𝑠𝑒_𝑠𝑒𝑝𝑎𝑟𝑎𝑏𝑙𝑒_𝑐𝑜𝑛𝑣(𝑥, 128, (3, 3))    𝑥 
+=  𝑑𝑒𝑝𝑡ℎ𝑤𝑖𝑠𝑒_𝑠𝑒𝑝𝑎𝑟𝑎𝑏𝑙𝑒_𝑐𝑜𝑛𝑣(𝑥, 128, (3, 3))    𝑥 
+=  𝑑𝑒𝑝𝑡ℎ𝑤𝑖𝑠𝑒_𝑠𝑒𝑝𝑎𝑟𝑎𝑏𝑙𝑒_𝑐𝑜𝑛𝑣(𝑥, 128, (3, 3))    𝑥 =  𝐴𝑑𝑑()([𝑟𝑒𝑠𝑖𝑑𝑢𝑎𝑙, 𝑥]) 
+The Middle flow is just a series of repeated blocks of code in for loop, each performs a depth 
+wise separable convolution. This step is done to help the model to capture a higher – level of 
+features and to make the model to learn more of the complexity of the inputted image data. 
+Then it finally it goes through the exit flow. 
+𝐸𝑥𝑖𝑡 𝑓𝑙𝑜𝑤 
+𝑟𝑒𝑠𝑖𝑑𝑢𝑎𝑙 =  𝐶𝑜𝑛𝑣2𝐷(1024, (1, 1), 𝑠𝑡𝑟𝑖𝑑𝑒𝑠= (2, 2), 𝑝𝑎𝑑𝑑𝑖𝑛𝑔= ′𝑠𝑎𝑚𝑒′)(𝑥)𝑟𝑒𝑠𝑖𝑑𝑢𝑎𝑙 
+=  𝐵𝑎𝑡𝑐ℎ𝑁𝑜𝑟𝑚𝑎𝑙𝑖𝑧𝑎𝑡𝑖𝑜𝑛()(𝑟𝑒𝑠𝑖𝑑𝑢𝑎𝑙)𝑥 
+=  𝑑𝑒𝑝𝑡ℎ𝑤𝑖𝑠𝑒_𝑠𝑒𝑝𝑎𝑟𝑎𝑏𝑙𝑒_𝑐𝑜𝑛𝑣(𝑥, 244, (3, 3))𝑥 
+=  𝑑𝑒𝑝𝑡ℎ𝑤𝑖𝑠𝑒_𝑠𝑒𝑝𝑎𝑟𝑎𝑏𝑙𝑒_𝑐𝑜𝑛𝑣(𝑥, 244, (3, 3))𝑥 
+=  𝑀𝑎𝑥𝑃𝑜𝑜𝑙𝑖𝑛𝑔2𝐷((3, 3), 𝑠𝑡𝑟𝑖𝑑𝑒𝑠= (2, 2), 𝑝𝑎𝑑𝑑𝑖𝑛𝑔= ′𝑠𝑎𝑚𝑒′)(𝑥)𝑥 
+=  𝐴𝑑𝑑()([𝑟𝑒𝑠𝑖𝑑𝑢𝑎𝑙, 𝑥] 
+𝑥 =  𝑑𝑒𝑝𝑡ℎ𝑤𝑖𝑠𝑒_𝑠𝑒𝑝𝑎𝑟𝑎𝑏𝑙𝑒_𝑐𝑜𝑛𝑣(𝑥, 728, (3, 3))𝑥 
+=  𝑑𝑒𝑝𝑡ℎ𝑤𝑖𝑠𝑒_𝑠𝑒𝑝𝑎𝑟𝑎𝑏𝑙𝑒_𝑐𝑜𝑛𝑣(𝑥, 728, (3, 3))𝑥 
+=  𝑀𝑎𝑥𝑃𝑜𝑜𝑙𝑖𝑛𝑔2𝐷((3, 3), 𝑠𝑡𝑟𝑖𝑑𝑒𝑠= (2, 2), 𝑝𝑎𝑑𝑑𝑖𝑛𝑔= ′𝑠𝑎𝑚𝑒′)(𝑥)𝑥 
+=  𝐴𝑑𝑑()([𝑟𝑒𝑠𝑖𝑑𝑢𝑎𝑙, 𝑥]) 
+In the exit flow batch normalization is done and followed by global average pooling or max 
+pooling 2D is done to refine the extracted feature and to make them prepared for the final 
+prediction. By these the output layer is formed for the model which is a dense layer.  
+𝑂𝑢𝑡𝑝𝑢𝑡 𝑙𝑎𝑦𝑒𝑟 
+𝑜𝑢𝑡𝑝𝑢𝑡 =  𝐺𝑙𝑜𝑏𝑎𝑙𝐴𝑣𝑒𝑟𝑎𝑔𝑒𝑃𝑜𝑜𝑙𝑖𝑛𝑔2𝐷()(𝑥)𝑜𝑢𝑡𝑝𝑢𝑡 =  𝐷𝑒𝑛𝑠𝑒(𝑛𝑢𝑚_𝑐𝑙𝑎𝑠𝑠𝑒𝑠, 𝑎𝑐𝑡𝑖𝑣𝑎𝑡𝑖𝑜𝑛
+= ′𝑠𝑜𝑓𝑡𝑚𝑎𝑥′)(𝑜𝑢𝑡𝑝𝑢𝑡) 
+
+
+ 
+27 
+ 
+ 
+ 
+Finally, the model is created by the customized input image size and parameters. Which is used 
+for making prediction for our work. 
+𝐶𝑟𝑒𝑎𝑡𝑒 𝑚𝑜𝑑𝑒𝑙 
+ 
+𝑚𝑜𝑑𝑒𝑙 =  𝑀𝑜𝑑𝑒𝑙(𝑖𝑛𝑝𝑢𝑡𝑠= 𝑖𝑛𝑝𝑢𝑡_𝑙𝑎𝑦𝑒𝑟, 𝑜𝑢𝑡𝑝𝑢𝑡𝑠= 𝑜𝑢𝑡𝑝𝑢𝑡) 
+After creation of the model the model is been trained and it is evaluated against the evaluation 
+metrics.  
+Algorithm 2: Grad – CAM  
+ 
+ 
+𝑭𝒖𝒏𝒄𝒕𝒊𝒐𝒏 𝑔𝑟𝑎𝑑_𝑐𝑎𝑚(𝑚𝑜𝑑𝑒𝑙, 𝑖𝑚𝑔_𝑎𝑟𝑟, 𝑙𝑎𝑦𝑒𝑟𝑁𝑎𝑚𝑒, 𝑖𝑛𝑑𝑒𝑥, 𝑠𝑖𝑧𝑒= (244, 244)) 
+ 
+𝑖𝑚𝑔 =  𝑝𝑟𝑒𝑝𝑟𝑜𝑐𝑒𝑠𝑠𝑖𝑛𝑔. 𝑖𝑚𝑎𝑔𝑒(𝑖𝑚𝑎𝑔𝑒𝑃𝑎𝑡ℎ, 𝑡𝑎𝑟𝑔𝑒𝑡_𝑠𝑖𝑧𝑒= (244, 244)) 
+ 
+𝑖𝑚𝑔 =  𝑡𝑓. 𝑘𝑒𝑟𝑎𝑠. 𝑝𝑟𝑒𝑝𝑟𝑜𝑐𝑒𝑠𝑠𝑖𝑛𝑔. 𝑖𝑚𝑎𝑔𝑒. 𝑖𝑚𝑔_𝑡𝑜_𝑎𝑟𝑟𝑎𝑦(𝑖𝑚𝑔) 
+ 
+ 
+𝑖𝑚𝑔 =  𝑛𝑝. 𝑒𝑥𝑝𝑎𝑛𝑑_𝑑𝑖𝑚𝑠(𝑖𝑚𝑔, 𝑎𝑥𝑖𝑠= 0) 
+ 
+𝑋=  𝑖𝑚𝑔 
+ 
+𝑓(𝑋) = ∑(𝑊𝑘∗𝑋)
+𝐾
+𝑘=1
++ 𝐵 
+ 
+𝐴𝑘= 𝜎(∑(𝑊𝑘∗𝑋)
+𝐾
+𝑘=1
++ 𝐵) 
+ 
+𝑆𝑐= ∑𝑂𝑖 . 𝑊𝑓𝑐𝑖
+𝑁
+𝑖=1
+ 
+ 
+𝜕𝑆𝑐
+𝜕𝐴𝑘
+= ∑𝜕𝑆𝑐
+𝜕𝑂𝑖
+ . 𝜕𝑂𝑖
+𝜕𝐴𝑖
+𝑁
+𝑖=1
+ 
+ 
+𝑤𝑘=
+1
+𝐻 𝑥 𝑊∑∑𝜕𝑆𝑐
+𝜕𝐴𝑖
+ (𝑖, 𝑗)
+𝑊
+𝑗=1
+𝐻
+𝑖=1
+ 
+ 
+𝐿𝑐
+𝐺𝑟𝑎𝑑−𝑐𝑎𝑚= 𝑅𝑒𝐿𝑈(∑𝑤𝑘 .  𝐴𝑘
+𝑘
+) 
+ 
+ℎ𝑒𝑎𝑡𝑚𝑎𝑝 = 𝐿𝑐
+𝐺𝑟𝑎𝑑−𝑐𝑎𝑚 
+ 
+𝒓𝒆𝒕𝒖𝒓𝒏← ℎ𝑒𝑎𝑡𝑚𝑎𝑝 
+↲𝒆𝒏𝒅 𝑭𝒖𝒏𝒄𝒕𝒊𝒐𝒏 
+
+
+ 
+28 
+ 
+ 
+ 
+Algorithm 3: CustomNet  
+  
+𝒇𝒖𝒏𝒄𝒕𝒊𝒐𝒏 𝑑𝑒𝑝𝑡ℎ𝑤𝑖𝑠𝑒_𝑠𝑒𝑝𝑎𝑟𝑎𝑏𝑙𝑒_𝑐𝑜𝑛𝑣(𝑖𝑛𝑝𝑢𝑡, 𝑓𝑖𝑙𝑡𝑒𝑟𝑠, 𝑘𝑒𝑟𝑛𝑒𝑙_𝑠𝑖𝑧𝑒): 
+ 
+𝑖𝑛𝑝𝑢𝑡 =  𝐷𝑒𝑝𝑡ℎ𝑤𝑖𝑠𝑒𝐶𝑜𝑛𝑣2𝐷(𝑘𝑒𝑟𝑛𝑒𝑙_𝑠𝑖𝑧𝑒, 𝑝𝑎𝑑𝑑𝑖𝑛𝑔= ′𝑠𝑎𝑚𝑒′)(𝑖𝑛𝑝𝑢𝑡) 
+𝑖𝑛𝑝𝑢𝑡 =  𝐵𝑎𝑡𝑐ℎ𝑁𝑜𝑟𝑚𝑎𝑙𝑖𝑧𝑎𝑡𝑖𝑜𝑛()(𝑖𝑛𝑝𝑢𝑡) 
+𝑖𝑛𝑝𝑢𝑡 =  𝐴𝑐𝑡𝑖𝑣𝑎𝑡𝑖𝑜𝑛(′𝑟𝑒𝑙𝑢′)(𝑖𝑛𝑝𝑢𝑡)     
+ 
+ 
+𝑖𝑛𝑝𝑢𝑡 =  𝐶𝑜𝑛𝑣2𝐷(𝑓𝑖𝑙𝑡𝑒𝑟𝑠, (1, 1), 𝑝𝑎𝑑𝑑𝑖𝑛𝑔=′ 𝑠𝑎𝑚𝑒′)(𝑖𝑛𝑝𝑢𝑡) 
+𝑖𝑛𝑝𝑢𝑡 =  𝐵𝑎𝑡𝑐ℎ𝑁𝑜𝑟𝑚𝑎𝑙𝑖𝑧𝑎𝑡𝑖𝑜𝑛( )(𝑖𝑛𝑝𝑢𝑡) 
+𝑖𝑛𝑝𝑢𝑡 =  𝐴𝑐𝑡𝑖𝑣𝑎𝑡𝑖𝑜𝑛(′𝑟𝑒𝑙𝑢′)(𝑖𝑛𝑝𝑢𝑡) 
+𝒓𝒆𝒕𝒖𝒓𝒏 ← 𝑖𝑛𝑝𝑢𝑡 
+ 
+𝑖𝑛𝑝𝑢𝑡_𝑙𝑎𝑦𝑒𝑟 =  𝐼𝑛𝑝𝑢𝑡(𝑠ℎ𝑎𝑝𝑒= 𝑖𝑛𝑝𝑢𝑡_𝑠ℎ𝑎𝑝𝑒(256,256)) 
+𝑛𝑒𝑤_𝑅=  𝑅+ ((255 −𝑅) ∗𝐴)/255 
+𝑛𝑒𝑤_𝐺=  𝐺+ ((255 −𝐺) ∗𝐴)/255 
+𝑛𝑒𝑤_𝐵=  𝐵+ ((255 −𝐵) ∗𝐴)/255 
+ 
+𝑥= 𝐶𝑜𝑛𝑣2𝐷(32, (3, 3), 𝑠𝑡𝑟𝑖𝑑𝑒𝑠= (2, 2), 𝑝𝑎𝑑𝑑𝑖𝑛𝑔= ′𝑠𝑎𝑚𝑒′)(𝑖𝑛𝑝𝑢𝑡_𝑙𝑎𝑦𝑒𝑟) 
+𝑥= 𝐵𝑎𝑡𝑐ℎ𝑁𝑜𝑟𝑚𝑎𝑙𝑖𝑧𝑎𝑡𝑖𝑜𝑛()(𝑥) 
+𝑥= 𝐴𝑐𝑡𝑖𝑣𝑎𝑡𝑖𝑜𝑛(′𝑟𝑒𝑙𝑢′)(𝑥) 
+𝑥= 𝐶𝑜𝑛𝑣2𝐷(64, (3, 3), 𝑝𝑎𝑑𝑑𝑖𝑛𝑔= ′𝑠𝑎𝑚𝑒′)(𝑥) 
+𝑥= 𝐵𝑎𝑡𝑐ℎ𝑁𝑜𝑟𝑚𝑎𝑙𝑖𝑧𝑎𝑡𝑖𝑜𝑛()(𝑥) 
+𝑥= 𝐴𝑐𝑡𝑖𝑣𝑎𝑡𝑖𝑜𝑛(′𝑟𝑒𝑙𝑢′)(𝑥) 
+ 
+𝒇𝒐𝒓  𝑖←𝑖𝑛 𝑟𝑎𝑛𝑔𝑒(𝑛𝑢𝑚_𝑚𝑖𝑑𝑑𝑙𝑒_𝑏𝑙𝑜𝑐𝑘𝑠): 
+ 
+ 
+𝑟𝑒𝑠𝑖𝑑𝑢𝑎𝑙 ⇐ 𝑥 
+    𝑥 =  𝑑𝑒𝑝𝑡ℎ𝑤𝑖𝑠𝑒_𝑠𝑒𝑝𝑎𝑟𝑎𝑏𝑙𝑒_𝑐𝑜𝑛𝑣(𝑥, 128, (3, 3)) 
+    𝑥 =  𝑑𝑒𝑝𝑡ℎ𝑤𝑖𝑠𝑒_𝑠𝑒𝑝𝑎𝑟𝑎𝑏𝑙𝑒_𝑐𝑜𝑛𝑣(𝑥, 128, (3, 3)) 
+    𝑥 =  𝑑𝑒𝑝𝑡ℎ𝑤𝑖𝑠𝑒_𝑠𝑒𝑝𝑎𝑟𝑎𝑏𝑙𝑒_𝑐𝑜𝑛𝑣(𝑥, 128, (3, 3)) 
+    𝑥 =  𝐴𝑑𝑑()([𝑟𝑒𝑠𝑖𝑑𝑢𝑎𝑙, 𝑥]) 
+ 
+↲𝒆𝒏𝒅 𝒇𝒐𝒓 
+ 
+𝑟𝑒𝑠𝑖𝑑𝑢𝑎𝑙 ⇐ 𝐶𝑜𝑛𝑣2𝐷(1024, (1, 1), 𝑠𝑡𝑟𝑖𝑑𝑒𝑠= (2, 2), 𝑝𝑎𝑑𝑑𝑖𝑛𝑔= ′𝑠𝑎𝑚𝑒′)(𝑥) 
+𝑟𝑒𝑠𝑖𝑑𝑢𝑎𝑙 ⇐ 𝐵𝑎𝑡𝑐ℎ𝑁𝑜𝑟𝑚𝑎𝑙𝑖𝑧𝑎𝑡𝑖𝑜𝑛()(𝑟𝑒𝑠𝑖𝑑𝑢𝑎𝑙) 
+ 
+𝑥 =  𝑑𝑒𝑝𝑡ℎ𝑤𝑖𝑠𝑒_𝑠𝑒𝑝𝑎𝑟𝑎𝑏𝑙𝑒_𝑐𝑜𝑛𝑣(𝑥, 256, (3, 3)) 
+𝑥 =  𝑑𝑒𝑝𝑡ℎ𝑤𝑖𝑠𝑒_𝑠𝑒𝑝𝑎𝑟𝑎𝑏𝑙𝑒_𝑐𝑜𝑛𝑣(𝑥, 256, (3, 3)) 
+𝑥 =  𝑀𝑎𝑥𝑃𝑜𝑜𝑙𝑖𝑛𝑔2𝐷((3, 3), 𝑠𝑡𝑟𝑖𝑑𝑒𝑠= (2, 2), 𝑝𝑎𝑑𝑑𝑖𝑛𝑔= ′𝑠𝑎𝑚𝑒′)(𝑥) 
+𝑥 =  𝐴𝑑𝑑()([𝑟𝑒𝑠𝑖𝑑𝑢𝑎𝑙, 𝑥]) 
+
+
+ 
+29 
+ 
+ 
+ 
+Integrated with CatBooost 
+𝑓𝑜𝑟 𝑖←1 𝑡𝑜 𝑙𝑒𝑛 (𝑛𝑢𝑚𝑏𝑒𝑟 𝑜𝑓 𝑛𝑜𝑑𝑒𝑠): 
+ 
+𝑓𝑜𝑟 𝑗←1 𝑡𝑜 𝑖: 
+ 
+ 
+𝑀 ← 𝐿𝑒𝑎𝑟𝑛𝑂𝑛𝑒𝑇𝑟𝑒𝑒 (𝑋𝑗, 𝑌𝑗) 
+ 
+↲𝑒𝑛𝑑 𝑓𝑜𝑟 
+ 
+𝑀𝑖 ← 𝑀𝑖 +  𝑀 
+↲𝑒𝑛𝑑 𝑓𝑜𝑟 
+𝑅𝑒𝑡𝑢𝑟𝑛← 𝑀1 … 𝑀𝑛; 
+ 
+4.PERFORMANCE EVALUATION 
+4.1 Implementation Platform of proposed Model 
+The proposed model used for voice based Parkinson disease detection is implemented by 
+using python programming. Tensorflow, keras, numpy  etc. Are the libraries used for 
+implementing our work. 
+ 
+4.2 Evaluation Metrics 
+After pre-processing the audio dataset, the L-mHP feature-a combination of Log-Mel 
+spectrogram, harmonic spectrogram, and percussive spectrogram-was computed. Analysis of 
+these spectrograms and their patterns showed a clear spectral slope characteristic in Parkinson's 
+Disease (PD) voice samples: a low-amplitude wave repeating between high-amplitude waves. 
+For the model to focus on this prominent pattern, an attention mechanism was used through 
+Grad-CAM. It identified significant regions in the spectral slopes graph through a generated 
+heat map in which red color is shown to have high importance decision regions and less 
+important regions being marked by the blue color. The heat maps were overlaid on the spectral 
+slope graphs of PD and normal voice samples, respectively. Next, the overlaid spectral slope 
+images were split into training and validation datasets. 
+To upload these images to the model, a fine-tuned custom model, here named CustomNet, was 
+developed, taking in input images of size 244×244 with specific stride values. The Grad-CAM 
+visualizations from both classes were fed into this model. Using categorical boosting technique 
+called CatBoost further enhanced the model named CustNetGC Boosted. Once well trained, 
+testing the model was carried out using standard metrics. While there are plenty of performance 
+
+
+ 
+30 
+ 
+ 
+ 
+metrics available in the deep learning community, selecting the most appropriate one to 
+evaluate classifier performance is difficult [41]. One of the key evaluation metrics used here is 
+accuracy, which was calculated as correct predictions over the total predictions and multiplied 
+by 100 to be expressed as a percentage. Accuracy is calculated by the following formula, 
+𝑁𝑢𝑚𝑏𝑒𝑟_𝑜𝑓_𝐶𝑜𝑟𝑟𝑒𝑐𝑡_𝑃𝑟𝑒𝑑𝑖𝑐𝑡𝑖𝑜𝑛𝑠= 𝑇𝑃+ 𝐹𝑁 
+𝑇𝑜𝑡𝑎𝑙_𝑁𝑢𝑚𝑏𝑒𝑟_𝑜𝑓_𝑃𝑟𝑒𝑑𝑖𝑐𝑡𝑖𝑜𝑛𝑠= 𝑇𝑃+ 𝑇𝑁+ 𝐹𝑃+ 𝐹𝑁 
+From above two equation we get, 
+𝐴𝑐𝑐𝑢𝑟𝑎𝑐𝑦=
+𝑇𝑃+ 𝐹𝑁
+𝑇𝑃+ 𝑇𝑁+ 𝐹𝑃+ 𝐹𝑁 × 100% 
+------- (25) 
+ 
+Here, 
+𝑇𝑃 represents True Positives, 𝑇𝑁 represents True Negatives, 𝐹𝑃 represents False Positives and 
+𝐹𝑁 represents False Negatives present in the model. 
+Then confusion matrix is plotted to showcase the presentation of our classification model on 
+the given set of validation data for which the true values are found. The confusion matrix is a 
+2 X 2 matrix using the components of TP, FP, TN, and FN.  From the confusion matrix, we 
+can get to know about various performance metrics can be derived with these metrics we can 
+provide insights of the model's performance from a different perspective. 
+Precision of the model is evaluated using the formula is given below as 
+𝑃𝑟𝑒𝑐𝑖𝑠𝑖𝑜𝑛 =
+𝑇𝑃
+𝑇𝑃+ 𝐹𝑃 
+------- (26) 
+Similarly specificity of the model is evaluated using the formula is given below as 
+𝑆𝑝𝑒𝑐𝑖𝑓𝑖𝑐𝑖𝑡𝑦=
+𝑇𝑁
+𝑇𝑁+ 𝐹𝑃 
+------- (27) 
+For recall is given as  
+ 
+
+
+ 
+31 
+ 
+ 
+ 
+𝑅𝑒𝑐𝑎𝑙𝑙 =
+𝑇𝑃
+𝑇𝑃+ 𝐹𝑁 
+------- (28) 
+Next to get F1 score of the model, we  use the formula  given below as 
+ 
+𝐹1 𝑠𝑐𝑜𝑟𝑒 = 2 𝑋 𝑃𝑟𝑒𝑐𝑖𝑠𝑖𝑜𝑛  𝑋 𝑅𝑒𝑐𝑎𝑙𝑙 
+𝑃𝑟𝑒𝑐𝑖𝑠𝑖𝑜𝑛  + 𝑅𝑒𝑐𝑎𝑙𝑙  
+------- (29) 
+As a next evaluation metrics Receiver Operating Characteristic (ROC) curve is plotted. This 
+curve illustrates the diagnostic ability of a binary classification model across various threshold 
+values. This ROC curve is plotted as keeping the X – axis as the False Positive Rate or it can 
+be denoted as 1 – Specificity and the Y – axis as True Positive Rate or also known as 
+Sensitivity. It is computed as 
+𝑅𝑂𝐶 = (
+𝐹𝑃
+𝐹𝑃+ 𝑇𝑁,
+𝑇𝑃
+𝑇𝑃+ 𝐹𝑁) 
+------- (30) 
+The Area Under the ROC Curve formula is given by, 
+𝐴𝑈𝐶= (
+(𝑏1 + 𝑏2)𝑋ℎ
+2
+) 
+------- (31) 
+Then False Positive Rate (FPR) is a performance metric which used to find the number of false 
+data which are predicted as true for the given data set can found. This is a complementary of 
+specificity. Its equation is given below. 
+𝐹𝑃𝑅 =
+𝐹𝑃
+𝐹𝑃+ 𝑇𝑁 
+------- (32) 
+The Thresholds metrics of the model is used to identify the instances into positive or negative 
+classes by the basis of the predicted probabilities output by a model. By this we can be able to 
+identify the point at which predicted probabilities are found to be considered as positive 
+predictions. 
+
+
+ 
+32 
+ 
+ 
+ 
+Algorithm 4: Evaluation metrics  
+𝐹𝑢𝑛𝑐𝑡𝑖𝑜𝑛 𝑒𝑣𝑎𝑢𝑙𝑡𝑖𝑜𝑛_𝑚𝑒𝑡𝑟𝑖𝑐𝑠(𝑇𝑃, 𝑇𝑁, 𝐹𝑃, 𝐹𝑁) 
+ 
+𝐴𝑐𝑐𝑢𝑟𝑎𝑐𝑦=
+𝑇𝑜𝑡𝑎𝑙_𝑁𝑢𝑚𝑏𝑒𝑟_𝑜𝑓_𝑃𝑟𝑒𝑑𝑖𝑐𝑡𝑖𝑜𝑛𝑠
+𝑁𝑢𝑚𝑏𝑒𝑟_𝑜𝑓_𝐶𝑜𝑟𝑟𝑒𝑐𝑡_𝑃𝑟𝑒𝑑𝑖𝑐𝑡𝑖𝑜𝑛𝑠 × 100% 
+ 
+𝐴𝑐𝑐𝑢𝑟𝑎𝑐𝑦=
+𝑇𝑃+𝑇𝑁
+𝑇𝑃+𝑇𝑁+𝐹𝑃+𝐹𝑁 × 100% 
+ 
+𝑆𝑝𝑒𝑐𝑖𝑓𝑖𝑐𝑖𝑡𝑦=
+𝑇𝑟𝑢𝑒 𝑁𝑒𝑔𝑎𝑡𝑖𝑣𝑒𝑠
+𝑇𝑟𝑢𝑒 𝑁𝑒𝑔𝑎𝑡𝑖𝑣𝑒𝑠+𝐹𝑎𝑙𝑠𝑒 𝑃𝑜𝑠𝑖𝑡𝑖𝑣𝑒𝑠 
+ 
+𝑆𝑝𝑒𝑐𝑖𝑓𝑖𝑐𝑖𝑡𝑦=
+𝑇𝑁
+𝑇𝑁+𝐹𝑃 
+ 
+𝑓𝑜𝑟 𝑖←0 𝑡𝑜 1: 
+  
+𝑓𝑜𝑟 𝑗←0 𝑡𝑜 1: 
+ 
+ 
+𝐶𝑜𝑛𝑓𝑢𝑠𝑖𝑜𝑛[0][0] = 𝑇𝑃 
+ 
+ 
+𝐶𝑜𝑛𝑓𝑢𝑠𝑖𝑜𝑛[0][1] = 𝐹𝑃 
+ 
+ 
+𝐶𝑜𝑛𝑓𝑢𝑠𝑖𝑜𝑛[1][0] = 𝑇𝑁 
+ 
+ 
+𝐶𝑜𝑛𝑓𝑢𝑠𝑖𝑜𝑛[1][1] = 𝐹𝑁 
+ 
+↲𝑒𝑛𝑑 𝑓𝑜𝑟 
+ 
+ 
+𝑆𝑒𝑛𝑠𝑖𝑡𝑖𝑣𝑖𝑡𝑦=
+𝑇𝑟𝑢𝑒 𝑃𝑜𝑠𝑖𝑡𝑖𝑣𝑒𝑠
+𝑇𝑟𝑢𝑒 𝑃𝑜𝑠𝑖𝑡𝑖𝑣𝑒𝑠+𝐹𝑎𝑙𝑠𝑒 𝑁𝑒𝑔𝑎𝑡𝑖𝑣𝑒𝑠 
+ 
+𝑆𝑒𝑛𝑠𝑖𝑡𝑖𝑣𝑖𝑡𝑦=
+𝑇𝑃
+𝑇𝑃+𝐹𝑁 
+ 
+ 
+𝐹1 𝑠𝑐𝑜𝑟𝑒 = 2 𝑋 
+𝑃𝑟𝑒𝑐𝑖𝑠𝑖𝑜𝑛  𝑋 𝑅𝑒𝑐𝑎𝑙𝑙 
+𝑃𝑟𝑒𝑐𝑖𝑠𝑖𝑜𝑛  +𝑅𝑒𝑐𝑎𝑙𝑙  
+ 
+ 
+𝑃𝑟𝑒𝑐𝑖𝑠𝑖𝑜𝑛 =
+𝑇𝑟𝑢𝑒 𝑃𝑜𝑠𝑖𝑡𝑖𝑣𝑒𝑠
+𝑇𝑟𝑢𝑒 𝑃𝑜𝑠𝑖𝑡𝑖𝑣𝑒𝑠+𝐹𝑎𝑙𝑠𝑒 𝑃𝑜𝑠𝑖𝑡𝑖𝑣𝑒𝑠 
+ 
+𝑃𝑟𝑒𝑐𝑖𝑠𝑖𝑜𝑛 =
+𝑇𝑃
+𝑇𝑃+𝐹𝑃 
+ 
+ 
+𝐹𝑃𝑅 =
+𝐹𝑎𝑙𝑠𝑒 𝑃𝑜𝑠𝑖𝑡𝑖𝑣𝑒𝑠
+𝐹𝑎𝑙𝑠𝑒 𝑃𝑜𝑠𝑖𝑡𝑖𝑣𝑒𝑠+𝑇𝑟𝑢𝑒 𝑁𝑒𝑔𝑎𝑡𝑖𝑣𝑒𝑠 
+ 
+𝐹𝑃𝑅 =
+𝐹𝑃
+𝐹𝑃+𝑇𝑁 
+ 
+ 
+ 
+𝑅𝑂𝐶 = (
+𝐹𝑎𝑙𝑠𝑒 𝑃𝑜𝑠𝑖𝑡𝑖𝑣𝑒𝑠
+𝐹𝑎𝑙𝑠𝑒 𝑃𝑜𝑠𝑖𝑡𝑖𝑣𝑒𝑠+𝑇𝑟𝑢𝑒 𝑁𝑒𝑔𝑎𝑡𝑖𝑣𝑒𝑠,
+𝑇𝑟𝑢𝑒 𝑃𝑜𝑠𝑖𝑡𝑖𝑣𝑒𝑠
+𝑇𝑟𝑢𝑒 𝑃𝑜𝑠𝑖𝑡𝑖𝑣𝑒𝑠+𝐹𝑎𝑙𝑠𝑒 𝑁𝑒𝑔𝑎𝑡𝑖𝑣𝑒𝑠) 
+ 
+𝑅𝑂𝐶 = (
+𝐹𝑃
+𝐹𝑃+𝑇𝑁,
+𝑇𝑃
+𝑇𝑃+𝐹𝑁) 
+ 
+
+
+ 
+33 
+ 
+ 
+ 
+ 
+𝐴𝑈𝐶= (
+(𝑏1+𝑏2)𝑋ℎ
+2
+) 
+ 
+↲𝑒𝑛𝑑 𝐹𝑢𝑛𝑐𝑡𝑖𝑜𝑛 
+𝑟𝑒𝑡𝑢𝑟𝑛 ←𝑚𝑒𝑡𝑟𝑖𝑐𝑠 
+ 
+ 
+ 
+5.RESULT AND DISCUSSIONS 
+5.1 Results Analysis 
+Figure 11. Boosted Model Accuracy                       Figure 12. Boosted Model Loss 
+ The CustNetGC Boosted model had achieved the training accuracy at 0.9906, which translates 
+into excellent performance for most of the training examples. For evaluating the model using 
+the unseen data, a confusion matrix was plotted using a validation dataset containing 162 
+samples with equal samples being taken from each of the PD class and the remaining in the 
+HC class. The model correctly classified 80 PD samples as PD-affected voices and 78 HC 
+samples as healthy voices. In this, it incorrectly classified 4 HC samples as PD-affected voices. 
+ The F1-Score of the model was 0.8459, indicating that it has found a good trade-off between 
+precision and recall. It also reflected precision to be at 0.9583 with high accuracy for 
+identification of PD samples. Using these measures, the model's specificity and recall were 
+computed. In addition, the Precision-Threshold curve and the ROC curve were graphed. The 
+AUC for the PD class was 0.90 and that of the HC class was 0.89, thus verifying the model's 
+excellent performance on the task of discriminating between the two classes. 
+
+
+ 
+34 
+ 
+ 
+ 
+Training loss is the error during training; validation loss corresponds to the unseen data from 
+the validation set about the performance of the model. The training procedure for the 
+CustNetGC model showed a training loss that dropped with an increasing number of epochs, 
+which proves that the model is learning effectively as the number of epochs increases. 
+Similarly, the validation loss also shows a downward trend, indicating generalization of the 
+model to the unseen data without overfitting or underfitting. 
+The CustNetGC Boosted model indicates stable training with consistent decline in both training 
+and validation losses across epochs, thereby achieving reliable performance on both known 
+and unseen datasets.  
+Figure 13. Confusion Matrix                          Figure 14. Confusion Matrix(ANNN) 
+A confusion matrix is a tool used to evaluate the performance of our CustNetGC model on a 
+separate validation dataset, where the true values are known. It provides a detailed visualization 
+of how well the model predicts each class. 
+● Columns in the matrix represent the predicted instances for each class. 
+● Rows in the matrix represent the true instances for each class. 
+This matrix highlights the correctness and errors in the model's predictions, offering valuable 
+insights into its performance. 
+
+
+ 
+35 
+ 
+ 
+ 
+In addition to the confusion matrix, other performance metrics such as F1 score and precision 
+are used to quantify the model's ability to correctly classify PD and HC classes. These metrics 
+provide a comprehensive evaluation of the CustNetGC model's performance. 
+ 
+Figure 15. Boosted model F1 - Score                           Figure 16. Boosted  model Precision 
+Figure 17. Training Accuracy and Loss                          Figure 18. Validation Accuracy and Loss 
+  
+
+
+ 
+36 
+ 
+ 
+ 
+Figure 19. Total Accuracy and Loss                   Figure 20. Precision vs. Threshold Curve    
+             Figure 21. ROCAUC                         Figure 22. Specificity and Recall comparison 
+ 
+ROC curve (area = 0.90) for class PD 
+ROC curve (area = 0.89) for class HC 
+ 
+
+
+ 
+37 
+ 
+ 
+ 
+Figure 23. F1 and Recall                                           Figure 24. Precision and Recall 
+ 
+Figure 25. Comparison of metrics 
+ 
+ 
+
+
+ 
+38 
+ 
+ 
+ 
+ 
+Figure 26 & 27. Performance Metrics for each class 
+ 
+ 
+5.2 Comparative Analysis of Proposed Method with Existing Techniques 
+Table 3. Comparative Analysis of Proposed Model 
+ 
+Model 
+Precision 
+(%) 
+Accuracy 
+(%) 
+F1-Score 
+(%) 
+Recall 
+(%) 
+Specificity 
+(%) 
+HMM [42] 
+86.33 
+85.29 
+85.75 
+84.26 
+84.69 
+VLBSOA [43] 
+89.36 
+88.23 
+87.14 
+87.12 
+88.00 
+VLGA [44] 
+90.22 
+89.23 
+89.77 
+88.23 
+88.63 
+Proposed 
+CustNetGC 
+96 
+99 
+90 
+95 
+94 
+In Table-3, HMM from [42], the model VLGA from [43] and the model VLBSOA from [44] 
+are compared 
+
+
+ 
+39 
+ 
+ 
+ 
+From this analysis we can see that our proposed model gives better results from other 
+performance model. The graph for the table has been plotted below. 
+ 
+Figure 28. Comparative Analysis of Proposed Model 
+Our fine-tuned CNN model that is CustNet evaluation metrics is also compared with the 
+existing CNN models. The table below show a comparative analysis of our CustNet CNN 
+model with the existing CNN. The models VGG16, VGG19 and the ResNet50 model are 
+performed in [45] which are used for comparative analysis. The graph for the table has been 
+plotted below. 
+Table 4. Comparative Analysis of CNN 
+ 
+CNN 
+F1 score 
+Specificity 
+Recall 
+Precision 
+Accuracy 
+VGG16 [45] 
+0.69 
+0.40 
+0.85 
+0.59 
+0.63 
+VGG19[45] 
+0.77 
+0.65 
+0.85 
+0.71 
+0.75 
+ResNet50[45] 
+0.70 
+0.50 
+0.80 
+0.62 
+0.65 
+Proposed 
+CustNet 
+0.90 
+0.94 
+0.95 
+0.96 
+ 
+0.99 
+
+
+ 
+40 
+ 
+ 
+ 
+ 
+ 
+Figure 29. Comparative Analysis of Proposed CNN 
+From this analysis we can see that our proposed CustNet CNN model gives better results from 
+other performance of CNN model.  
+Our proposed model CustNetGC evaluation metrics is then compared with the other state-of-
+the-art-algorithms[46] as shown in Table-5.  
+ 
+ 
+ 
+ 
+ 
+ 
+
+
+ 
+41 
+ 
+ 
+ 
+Table 5. Comparative Analysis of Algorithm 
+ 
+Model 
+F1 score 
+(%) 
+Specificity 
+(%) 
+Recall 
+(%) 
+Precision 
+(%) 
+Accuracy 
+(%) 
+SAE [46] 
+75.85 
+74.22 
+74.45 
+81.33 
+76.85 
+RBF-SVM 
+[46] 
+86.03 
+86.18 
+85.44 
+88.04 
+87.22 
+CNN-TL 
+[46] 
+89.23 
+89.33 
+89.44 
+92.33 
+90.25 
+Proposed 
+CustNetGC 
+90 
+94 
+95 
+96 
+99 
+From this analysis we can see that our proposed CustNetGC model gives better results from 
+other state-of-the-art-algorithms performance model. The graph for the table has been plotted 
+below. 
+ 
+Figure 30. Comparative Analysis of Algorithm 
+
+
+ 
+42 
+ 
+ 
+ 
+6.CONCLUSION AND FUTURE DIRECTION 
+In this proposed paper, we provide a novel CNN-based model called CustNetGC Boosted for 
+the accurate classification and detection of Parkinson's disease. The proposed model was able 
+to achieve an accuracy of 0.9902, showing its ability to differentiate PD from healthy controls. 
+The model also achieved an F1-score of 0.8459 and precision of 0.9582. The calculation of the 
+model's specificity and recall is made possible by using these metrics. To perform the analysis 
+on the performance of the model, we used Precision-Threshold Curve and plotted ROC curve. 
+And the AUC was calculated at 0.90 for class PD and at 0.89 for HC class, so the model does 
+not have too much difference regarding robustness from one class to another. 
+The current paper has limited sample size; however, encouraging evidence has been found that 
+mobility training may benefit patients with Parkinson's disease. The results of our study are 
+consistent with previous reports, which stated that the patient with PD is unable to exert control 
+over the vocalization because of damage caused to the muscles in the articulation areas. This 
+loss of control leads to diffusion of energy and changed information flow, which can be 
+responsible for voice tremors seen in patients with PD. 
+The future work focuses on scaling up this study, expanding towards a greater scale and 
+practical applications toward real-world use. This includes the development of a device that 
+should be wearable radioing audio recordings from the person and predicting the chance of PD. 
+Further, the result could be a mobile application for similar diagnostic tasks and making it 
+much easier for clinicians as well as patients. Such developments will help with early detection 
+and management of Parkinson's disease and ensure better patient care. 
+ 
+REFERENCES 
+[1] Moro-Velazquez, L., Gomez-Garcia, J. A., Arias-Londoño, J. D., Dehak, N., & Godino-
+Llorente, J. I. (2021). Advances in Parkinson's disease detection and assessment using voice 
+and speech: A review of the articulatory and phonatory aspects. Biomedical Signal Processing 
+and Control, 66, 102418. 
+[2] Polat, K., & Nour, M. (2020). Parkinson disease classification using one against all based 
+data sampling with the acoustic features from the speech signals. Medical hypotheses, 140, 
+109678. 
+
+
+ 
+43 
+ 
+ 
+ 
+[3] Wu, K., Zhang, D., Lu, G., & Guo, Z. (2018). Learning acoustic features to detect 
+Parkinson’s disease. Neurocomputing, 318, 102-108. 
+[4] Karaman, O., Çakın, H., Alhudhaif, A., & Polat, K. (2021). Robust automated Parkinson 
+disease detection based on voice signals with transfer learning. Expert Systems with 
+Applications, 178, 115013. 
+[5] Iyer, A., Kemp, A., Rahmatallah, Y., Pillai, L., Glover, A., Prior, F.,& Virmani, T. (2023). 
+A machine learning method to process voice samples for identification of Parkinson’s disease. 
+Scientific Reports, 13(1), 20615. 
+[6] Rana, A., Dumka, A., Singh, R., Rashid, M., Ahmad, N., & Panda, M. K. (2022). An 
+efficient machine learning approach for diagnosing parkinson’s disease by utilizing voice 
+features. Electronics, 11(22), 3782. 
+[7] Xu, Z. J., Wang, R. F., Wang, J., & Yu, D. H. (2020). Parkinson’s disease detection based 
+on spectrogram-deep convolutional generative adversarial network sample augmentation. 
+IEEE Access, 8, 206888-206900. 
+[8] Majda-Zdancewicz, E., Potulska-Chromik, A., Jakubowski, J., Nojszewska, M., & Kostera-
+Pruszczyk, A. (2021). Deep learning vs feature engineering in the assessment of voice signals 
+for diagnosis in Parkinson’s disease. Bulletin of the Polish Academy of Sciences Technical 
+Sciences, e137347-e137347. 
+[9] Quan, C., Ren, K., & Luo, Z. (2021). A deep learning-based method for Parkinson’s disease 
+detection using dynamic features of speech. IEEE Access, 9, 10239-10252. 
+[10] Govindu, A., & Palwe, S. (2023). Early detection of Parkinson's disease using machine 
+learning. Procedia Computer Science, 218, 249-261. 
+[11] Senturk, Z. K. (2020). Early diagnosis of Parkinson’s disease using machine learning 
+algorithms. Medical hypotheses, 138, 109603. 
+[12] Khosla, A., Kumar, N., & Khera, P. (2024). Machine learning approach for predicting 
+state transitions via shank acceleration data during freezing of gait in Parkinson’s disease. 
+Biomedical Signal Processing and Control, 92, 106053. 
+[13] Borzì, L., Mazzetta, I., Zampogna, A., Suppa, A., Olmo, G., & Irrera, F. (2021). Prediction 
+of freezing of gait in Parkinson’s disease using wearables and machine learning. Sensors, 21(2), 
+614. 
+
+
+ 
+44 
+ 
+ 
+ 
+[14] Goyal, J., Khandnor, P., & Aseri, T. C. (2021). A hybrid approach for Parkinson’s disease 
+diagnosis with resonance and time-frequency based features from speech signals. Expert 
+Systems with Applications, 182, 115283. 
+[15] Shafeena, M. B., & Vijayan, S. (2022, August). Parkinson’s disease prognosis using the 
+ResNet-50 model from speech features. In 2022 International Conference on Innovations in 
+Science and Technology for Sustainable Development (ICISTSD) (pp. 282-286). IEEE. 
+[16] Tracy, J. M., Özkanca, Y., Atkins, D. C., & Ghomi, R. H. (2020). Investigating voice as a 
+biomarker: deep phenotyping methods for early detection of Parkinson's disease. Journal of 
+biomedical informatics, 104, 103362. 
+[17] Zahid, L., Maqsood, M., Durrani, M. Y., Bakhtyar, M., Baber, J., Jamal, H., ... & Song, 
+O. Y. (2020). A spectrogram-based deep feature assisted computer-aided diagnostic system for 
+Parkinson’s disease. IEEE Access, 8, 35482-35495. 
+[18] Hireš, M., Gazda, M., Drotár, P., Pah, N. D., Motin, M. A., & Kumar, D. K. (2022). 
+Convolutional neural network ensemble for Parkinson's disease detection from voice 
+recordings. Computers in biology and medicine, 141, 105021. 
+[19] Faragó, P., Ștefănigă, S. A., Cordoș, C. G., Mihăilă, L. I., Hintea, S., Peștean, A. S.,& 
+Ileșan, R. R. (2023). CNN-Based Identification of Parkinson’s Disease from Continuous 
+Speech in Noisy Environments. Bioengineering, 10(5), 531. 
+[20] Guatelli, R., Aubin, V., Mora, M., Naranjo-Torres, J., & Mora-Olivari, A. (2023). 
+Detection of Parkinson’s disease based on spectrograms of voice recordings and Extreme 
+Learning Machine random weight neural networks. Engineering Applications of Artificial 
+Intelligence, 125, 106700. 
+[21] Senturk, Z. K. (2022). Layer recurrent neural network-based diagnosis of Parkinson’s 
+disease using voice features. Biomedical Engineering/Biomedizinische Technik, 67(4), 249-
+266. 
+[22] Er, M. B., Isik, E., & Isik, I. (2021). Parkinson’s detection based on combined CNN and 
+LSTM using enhanced speech signals with variational mode decomposition. Biomedical Signal 
+Processing and Control, 70, 103006 
+
+
+ 
+45 
+ 
+ 
+ 
+[23] Celik, G., & Başaran, E. (2023). Proposing a new approach based on convolutional neural 
+networks and random forest for the diagnosis of Parkinson's disease from speech signals. 
+Applied Acoustics, 211, 109476. 
+[24] Rao, P. N., & Meher, S. (2024). ORG-RGRU: An automated diagnosed model for multiple 
+diseases by heuristically based optimized deep learning using speech/voice signal. Biomedical 
+Signal Processing and Control, 88, 105493. 
+[25] Nijhawan, R., Kumar, M., Arya, S., Mendirtta, N., Kumar, S., Towfek, S. K., ... & 
+Abdelhamid, A. A. (2023). A Novel Artificial-Intelligence-Based Approach for Classification 
+of Parkinson’s Disease Using Complex and Large Vocal Features. Biomimetics, 8(4), 351. 
+[26] Hawi, S., Alhozami, J., AlQahtani, R., AlSafran, D., Alqarni, M., & El Sahmarany, L. 
+(2022). Automatic Parkinson’s disease detection based on the combination of long-term 
+acoustic features and Mel frequency cepstral coefficients (MFCC). Biomedical Signal 
+Processing and Control, 78, 104013. 
+[27] Solana-Lavalle, G., Galán-Hernández, J. C., & Rosas-Romero, R. (2020). Automatic 
+Parkinson disease detection at early stages as a pre-diagnosis tool by using classifiers and a 
+small set of vocal features. Biocybernetics and Biomedical Engineering, 40(1), 505-516. 
+[28] Zhang, T., Zhang, Y., Sun, H., & Shan, H. (2021). Parkinson disease detection using 
+energy direction features based on EMD from voice signal. Biocybernetics and Biomedical 
+Engineering, 41(1), 127-141. 
+[29] Alipour, F., Scherer, R. C., & Finnegan, E. (2012). Measures of spectral slope using an 
+excised larynx model. Journal of voice, 26(4), 403-411. 
+[30] Cleveland, T., & Sundberg, J. (1985). Acoustic analysis of three male voices of different 
+quality. In SMAC 83. Proceedings of the Stockholm International Music Acoustics 
+Conference, Stockholm: Royal Swedish Academy of Music (Vol. 46, No. 1, pp. 143-156). 
+[31] Selvaraju, R. R., Das, A., Vedantam, R., Cogswell, M., Parikh, D., & Batra, D. (2016). 
+Grad-CAM: Why did you say that?. arXiv preprint arXiv:1611.07450. 
+[32] LeCun, Y. (2015). LeNet-5, convolutional neural networks. URL: http://yann. lecun. 
+com/exdb/lenet, 20(5), 14. 
+
+
+ 
+46 
+ 
+ 
+ 
+[33] Asanza, V., Sánchez-Pozo, N. N., Lorente-Leyva, L. L., Peluffo-Ordóñez, D. H., Loayza, 
+F. R., & Peláez, E. (2021). Classification of subjects with Parkinson’s disease using finger 
+tapping dataset. IFAC-PapersOnLine, 54(15), 376-381. 
+[34] Selvaraju, R. R., Cogswell, M., Das, A., Vedantam, R., Parikh, D., & Batra, D. (2017). 
+Grad-cam: Visual explanations from deep networks via gradient-based localization. In 
+Proceedings of the IEEE international conference on computer vision (pp. 618-626). 
+[35] Becking, D. (2020). Finding Storage-and Compute-Efficient Convolutional Neural 
+Networks (Doctoral dissertation, Masters thesis. Technische Universität Berlin). 
+[36] Asghar, M. Z., Albogamy, F. R., Al-Rakhami, M. S., Asghar, J., & Rahmat, M. K. (2022). 
+Facial mask detection using depthwise separable convolutional neural network model during 
+COVID-19 pandemic. Frontiers in Public Health, 10, 855254. 
+[37] Chen, L., Li, S., Bai, Q., Yang, J., Jiang, S., & Miao, Y. (2021). Review of image 
+classification algorithms based on convolutional neural networks. Remote Sensing, 13(22), 
+4712. 
+[38] Bennetot, A., Donadello, I., Qadi, A. E., Dragoni, M., Frossard, T., Wagner, B., ... & Dıaz 
+Rodrıguez, N. (2021). A practical tutorial on explainable AI techniques. arXiv preprint 
+arXiv:2111.14260. 
+[39] O'Shaughnessy, D. (1987). Speech communication, human and machine addison wesley. 
+Reading MA, 40. 
+[40] Katostaras, T., & Katostara, N. (2013, January). Area of the ROC curve when one point 
+is available. In ICIMTH (pp. 219-221). 
+[41] Liu, Y., Zhou, Y., Wen, S., & Tang, C. (2014). A strategy on selecting performance 
+metrics for classifier evaluation. International Journal of Mobile Computing and Multimedia 
+Communications (IJMCMC), 6(4), 20-35. 
+[42] Liao, T., Socha, K., de Oca, M. A. M., Stützle, T., & Dorigo, M. (2013). Ant colony 
+optimization for mixed-variable optimization problems. IEEE Transactions on evolutionary 
+computation, 18(4), 503-518. 
+[43] Vásquez-Correa, J. C., Arias-Vergara, T., Rios-Urrego, C. D., Schuster, M., Rusz, J., 
+Orozco-Arroyave, J. R., & Nöth, E. (2019). Convolutional neural networks and a transfer 
+learning strategy to classify Parkinson’s disease from speech in three different languages. In 
+
+
+ 
+47 
+ 
+ 
+ 
+Progress in Pattern Recognition, Image Analysis, Computer Vision, and Applications: 24th 
+Iberoamerican Congress, CIARP 2019, Havana, Cuba, October 28-31, 2019, Proceedings 24 
+(pp. 697-706). Springer International Publishing. 
+[44] Qiongbing, Z., & Lixin, D. (2016). A new crossover mechanism for genetic algorithms 
+with variable-length chromosomes for path optimization problems. Expert Systems with 
+Applications, 60, 183-189. 
+[45] Veetil, I. K., Chowdary, D. E., Chowdary, P. N., Sowmya, V., & Gopalakrishnan, E. A. 
+(2024). An analysis of data leakage and generalizability in MRI based classification of 
+Parkinson's Disease using Explainable 2D Convolutional Neural Networks. Digital Signal 
+Processing, 104407. 
+[46] Chen, F., Yang, C., & Khishe, M. (2022). Diagnose Parkinson’s disease and cleft lip and 
+palate using deep convolutional neural networks evolved by IP-based chimp optimization 
+algorithm. Biomedical Signal Processing and Control, 77, 103688. 
+[47] Pandiyaraju V, SenthilKumar. A.M, Praveen Joe. I.R,  Shravan Venkatraman, Pavan 
+Kumar.S, Aravintakshan.S, Abeshek. A, Kannan A,”Improved Tomato Leaf Disease 
+Classification through Adaptive Ensemble Models with Exponential Moving Average Fusion 
+and Enhanced Weighted Gradient Optimization”,  Frontiers in Plant Science, vol. 15, 
+p.1382416, 2024. 
+ 

@@ -1,0 +1,942 @@
+FairEnergy: Contribution-Based Fairness meets
+Energy Efficiency in Federated Learning
+Ouiame Marnissi, Hajar EL Hammouti, El Houcine Bergou
+College of Computing, Mohammed VI Polytechnic University, Ben Guerir, Morocco.
+{ouiame.marnissi, hajar.elhammouti, elhoucine.bergou}@um6p.ma
+Abstract—Federated learning (FL) enables collaborative model
+training across distributed devices while preserving data privacy.
+However, balancing energy efficiency and fair participation while
+ensuring high model accuracy remains challenging in wireless
+edge systems due to heterogeneous resources, unequal client
+contributions, and limited communication capacity. To address
+these challenges, we propose FairEnergy, a fairness-aware energy
+minimization framework that integrates a contribution score
+capturing both the magnitude of updates and their compression
+ratio into the joint optimization of device selection, bandwidth
+allocation, and compression level. The resulting mixed-integer
+non-convex problem is solved by relaxing binary selection
+variables and applying Lagrangian decomposition to handle
+global bandwidth coupling, followed by per-device subproblem
+optimization. Experiments on non-IID data show that FairEnergy
+achieves higher accuracy while reducing energy consumption by
+up to 79% compared to baseline strategies.
+Index Terms—Client selection, fairness, federated learning,
+energy efficiency, resource allocation, model compression.
+I. INTRODUCTION
+Federated learning (FL) has emerged as a decentralized
+approach that allows a set of distributed devices to jointly train
+a shared machine learning model (ML) while keeping their
+data local [1]. Instead of uploading raw data, devices periodi-
+cally exchange model updates with a coordinating server, thus
+preserving privacy and efficiently exploiting the computation
+and storage resources available at the network edge. Despite
+these advantages, practical deployment in wireless and edge
+environments faces two major challenges: energy efficiency
+and fair participation. Communication between devices and
+the central server typically dominates energy consumption,
+while the repeated exclusion of low-resource or low-quality
+clients leads to severe fairness degradation and biased mod-
+els. Balancing these competing objectives remains an open
+problem. To reduce the communication cost in FL, various
+compression approaches have been introduced. They aim to
+decrease the size of transmitted updates by applying sparsifi-
+cation [2] or quantization[3], where only a subset or a lower-
+precision representation of model parameters is sent to the
+server. Such schemes substantially decrease communication
+overhead but may degrade model accuracy if not carefully
+designed or dynamically adapted [4].
+In parallel, resource allocation strategies have been devel-
+oped to optimally distribute communication resources such as
+bandwidth and power among devices [5], [6]. For instance,
+the work in [5] jointly optimize bandwidth and computation
+resources to minimize training costs, while authors in [6]
+design an energy-efficient allocation scheme for heterogeneous
+edge devices.
+Another effective way to reduce communication overhead
+is client selection, where only a subset of devices participates
+in each round. Selecting clients with more informative or
+energy-efficient updates can accelerate convergence and reduce
+redundant communication [7]–[9]. Early approaches such as
+FedCS [7] prioritized devices based on channel and computa-
+tional conditions to meet latency constraints, while more recent
+studies have incorporated data-related or gradient-based crite-
+ria to improve convergence speed and model generalization
+[8], [10]. However, these strategies often overlook the long-
+term fairness of participation: devices with weaker channels
+or limited energy are repeatedly excluded, leading to model
+bias and slower convergence in heterogeneous networks.
+Recent efforts have highlighted the importance of fairness
+in FL as clients differ in data distribution, resources, and
+connectivity. Naive selection can systematically exclude cer-
+tain devices, leading to biased models and slower conver-
+gence. Approaches such as biased client selection analysis
+[9] and fairness-aware client scheduling [11] aim to balance
+participation by adjusting selection probabilities or reweight-
+ing local contributions. More advanced frameworks consider
+multiple fairness criteria simultaneously, including participa-
+tion frequency, data quality, and resource heterogeneity [12],
+[13]. While these methods promote balanced participation,
+they often ignore communication efficiency, compression, and
+energy constraints, which are critical in wireless and edge
+environments. A unified framework that jointly optimizes en-
+ergy efficiency, update quality, and long-term fairness remains
+largely unexplored.
+In this paper, we propose a Fairness-Aware Energy Min-
+imization Framework for FL, termed FairEnergy. The core
+idea is to promote energy-efficient and equitable participation
+among devices through a fairness-driven selection mechanism.
+Specifically, we define a score function based on the update
+magnitude and compression ratio. These scores guide the
+joint optimization of device selection, compression ratio, and
+bandwidth allocation to minimize total communication energy
+while ensuring fair long-term participation across heteroge-
+neous devices.
+Our main contributions are summarized as follows:
+• We formulate a fairness-aware energy minimization prob-
+lem that jointly optimizes client selection, compression,
+and bandwidth allocation. The formulation integrates two
+arXiv:2511.15454v1  [cs.LG]  19 Nov 2025
+
+
+important metrics: a contribution score combining update
+magnitude and compression, and a long-term fairness
+metric to ensure equitable participation among clients.
+• We develop a computationally efficient solution via La-
+grangian relaxation and dual decomposition. The method
+yields an intuitive threshold rule where a client is selected
+only if the benefit of its update outweighs the combined
+cost of energy and bandwidth. Optimal bandwidth allo-
+cation is determined via Golden Section Search (GSS),
+while Lagrange multipliers for bandwidth and fairness
+constraints are updated via subgradient ascent to ensure
+global feasibility.
+• Through experiments on non-IID FMNIST data, we
+demonstrate that FairEnergy achieves higher model ac-
+curacy while significantly reducing total energy con-
+sumption compared to benchmark strategies. Specifically,
+FairEnergy requires roughly 71% less energy than Score-
+Max and 79% less than EcoRandom to reach the same
+target accuracy.
+The remainder of this paper is organized as follows. In sec-
+tion II, we present the system model. Section III introduces the
+fairness-aware contribution metrics. In Section IV, we formu-
+late the joint optimization problem and present a Lagrangian
+based solution in Section V. Section VI summarizes the per-
+round algorithm and analyzes its computational complexity.
+Simulation experiments are discussed in Section VII. Finally,
+conclusions are drawn in Section VIII.
+II. SYSTEM MODEL
+A. Learning Setup
+We consider N connected clients that communicate with a
+central server over the wireless network. Each client trains the
+ML model on its private dataset Di of size |Di|. The global
+learning objective is to minimize the empirical risk:
+min
+w F(w) =
+N
+X
+i=1
+|Di|
+|D| Fi(w),
+where Fi is the local loss function of device i and w is the
+global model. We let the binary variable xr
+i ∈{0, 1} indicate
+whether client i is selected (xr
+i = 1) or not in round r.
+The training is performed in synchronous rounds r =
+1, 2, . . .. At the beginning of round r, the server broadcasts the
+current global model wr to a subset of selected devices. Each
+selected device then computes a local model update ur+1
+i
+, i.e.,
+the gradient of its local loss function ∇Fi(wr+1) and sends it
+to the server. Finally, the server aggregates these local updates
+to obtain the new global model wr+1.
+In this work, we focus on the communication aspect of
+FL, as it remains one of the main bottlenecks in distributed
+training [14]. In particular, the frequent exchange of model
+updates between clients and the server leads to significant
+communication overhead, especially in constrained networks.
+Consequently, we concentrate on minimizing the communi-
+cation energy consumption, leaving the computation cost of
+local training outside the scope of the optimization [2]. In the
+following, we present the communication model adopted to
+characterize uplink transmission and energy consumption.
+B. Communication Model
+Each device i communicates with the server via a wireless
+uplink channel. Let Br
+i denote the bandwidth assigned to
+device i in round r, and γr
+i ∈[γmin, 1] denote its sparsity
+ratio, which represents the fraction of non-zero coefficients in
+the compressed model update.
+The size of the transmitted payload is γr
+i S + I, where S
+is the size of the full model update and I is the overhead for
+encoding the indices of the non-zero coefficients [15].
+We assume an additive Gaussian noise channel with channel
+gain hr
+i , and noise spectral density N0. The achievable uplink
+rate then follows the Shannon capacity formula:
+Rr
+i = Br
+i log2
+
+1 + Pihr
+i
+N0Br
+i
+
+,
+where Pi is the transmit power of device i.
+The communication time of device i in round r is
+T r
+i = γr
+i S + I
+Rr
+i
+,
+and the corresponding communication energy is
+Er
+i = Pi T r
+i .
+A multi-objective trade-off is at the heart of efficient and fair
+FL. Allocating more bandwidth (Br
+i ) or transmitting less com-
+pressed updates (higher γr
+i ) can enhance learning efficiency
+but escalates communication energy. Conversely, aggressive
+compression or selecting only clients with good channels saves
+immediate energy but risks discarding informative updates
+from other clients, thereby degrading model accuracy and
+more importantly violating long-term fairness among clients.
+Therefore, in subsequent sections, we aim to answer the
+following question: How can the server jointly optimize client
+selection, bandwidth allocation, and compression ratios to
+minimize total communication energy, while simultaneously
+ensuring high model accuracy and guaranteeing long-term
+fairness for all participating clients?
+III. FAIRNESS-AWARE CONTRIBUTION METRICS
+To balance efficiency with fairness in resource-constrained
+FL, we introduce two key metrics: a contribution score that
+quantifies the utility of a compressed client update, and a long-
+term fairness metric that tracks participation history.
+A. Contribution Score
+Client heterogeneity leads to unequal contributions to the
+global model. Prioritizing clients with more impactful updates
+can accelerate convergence [8], yet in resource-constrained en-
+vironments, updates must often be compressed, which reduces
+communication cost but also limits the information available
+to the server.
+To capture an update’s importance after compression, we
+define the contribution score for client i in round r as:
+sr
+i (γr
+i ) = ∥ur
+i ∥· γr
+i ,
+
+
+where ∥ur
+i ∥is the L2 norm of the update ur
+i . The L2 norm
+of the update reflects the overall magnitude of the changes
+contributed by the client, while the compression factor scales
+this magnitude according to the information actually sent. This
+score provides a simple and practical measure of each client’s
+effective contribution.
+B. Long-Term Fairness Metric
+The proposed fairness metric is framed as long-term par-
+ticipation fairness, in that we track the effective participation
+rate of each client and enforce a minimum threshold on that
+rate. Prior works have argued for fairness in client selection by
+ensuring each client gets an equitable number of participation
+opportunities across rounds [12] and by incorporating clients’
+past selection history in the selection process [11].
+To capture this long-term participation, we adopt an expo-
+nential moving average (EMA):
+qr
+i = ρ qr−1
+i
++ (1 −ρ) xr
+i ,
+(1)
+where ρ controls the memory of past rounds and the initial-
+ization of q0
+i is discussed in Section VI-A. This formulation
+allows us to maintain a smooth and responsive measure of
+participation: clients that have been selected less frequently in
+recent rounds have a lower qr
+i and are thus more likely to be
+prioritized in future selections. By tuning ρ, we can control
+how strongly recent participation affects the metric, providing
+a flexible way to ensure long-term fairness. This also enables
+the selection framework to dynamically boost under-selected
+clients and maintain equitable participation over time. Finally,
+we impose a minimum participation threshold:
+qr
+i ≥πmin,
+∀i ∈{1, . . . , N},
+ensuring that every client contributes to the learning process
+at least at a minimal rate πmin over time.
+By combining sir and qr
+i , the framework simultaneously
+prioritizes high-quality updates and guarantees fair long-term
+participation across all devices. These metrics serve as the
+basis for jointly selecting devices, allocating resources, and
+adapting compression ratios.
+In the next section, we formalize this design as a fairness-
+aware energy minimization problem, where the goal is to
+optimize communication energy while ensuring both update
+quality and equitable participation.
+IV. PROBLEM FORMULATION
+In this section, we formulate the fairness-aware energy
+minimization problem. At each global round r, the server aims
+to select a subset of participating devices while jointly optimiz-
+ing their communication parameters (compression ratio and
+bandwidth allocation) to minimize the total communication
+energy. Each device i contributes to the global model with a
+score sr
+i (γr
+i ) that reflects the relevance and quality of its local
+update. To prevent over-representation of a few high-scoring
+devices, we introduce a long-term fairness constraint ensuring
+that each device participates in the training process with at
+least a minimum rate πmin. This translates into the following
+problem:
+minimize
+{xr
+i , γr
+i , Br
+i }N
+i=1
+N
+X
+i=1
+
+xr
+i Er
+i (γr
+i , Br
+i )−η xr
+i sr
+i (γr
+i )
+
+(2a)
+subject to
+N
+X
+i=1
+xr
+i Br
+i ≤Btot,
+(2b)
+γmin ≤γr
+i ≤1,
+∀i,
+(2c)
+xr
+i ∈{0, 1},
+∀i,
+(2d)
+qr
+i ≥πmin,
+∀i.
+(2e)
+Constraint (2b) ensures that the total allocated bandwidth does
+not exceed the available system budget. Constraint (2c) bounds
+the compression ratio within a feasible range. The binary
+variable xr
+i in (2d) indicates whether device i participate
+in round r. Finally, constraint (2e) ensures that each device
+maintains a minimum participation ratio over time, where qr
+i
+is the EMA fairness metric defined in equation (1)1.
+Problem (2) is mixed-integer, non-convex optimization
+problem. The binary participation variables xr
+i create com-
+binatorial complexity, while the coupling between selection,
+compression, and bandwidth makes joint optimization chal-
+lenging.
+To address these challenges, we adopt a Lagrangian relax-
+ation approach [16] that introduces dual variables associated
+with bandwidth and fairness constraints. The problem is de-
+composed to simpler per-device subproblems. Each device can
+then optimize its local compression and bandwidth decisions
+independently, while the server iteratively adjusts dual vari-
+ables to enforce global fairness and bandwidth feasibility.
+In the following section, we detail the Lagrangian formula-
+tion and the iterative resolution process adopted in our setup.
+V. PROBLEM RESOLUTION WITH LAGRANGIAN
+RELAXATION
+To efficiently solve the per-round optimization problem (2),
+we adopt a relaxation-decomposition strategy that enables
+distributed per-device updates while ensuring both bandwidth
+feasibility and long-term fairness. Concretely, we first relax
+the binary selection variables xr
+i ∈{0, 1} to the continuous
+interval [0, 1]. Next, we form the partial Lagrangian by dual-
+izing only the coupling constraints (bandwidth and fairness),
+which allows the problem to decompose across devices and
+enables efficient distributed optimization. Finally we recover
+feasible binary decisions through a repair step.
+A. Lagrangian Relaxation and Problem Decomposition
+After relaxing xr
+i ∈{0, 1} to xr
+i ∈[0, 1], we introduce
+dual variables λr ≥0 for the bandwidth constraint in (2b),
+1Although the global loss convergence is not explicitly added as a constraint
+in the studied optimization, our design is supported by our prior theoretical
+work [8], which established that selection based on update magnitude accel-
+erates convergence. Here, we extend this result to a more practical setting
+with compression and fairness criteria, and empirically show convergence in
+Section VII, leaving a full theoretical analysis for future work.
+
+
+and µr
+i ≥0 for the fairness constraint in (2e). The partial
+Lagrangian is therefore
+L(xr, γr, Br; λr, µr) =
+N
+X
+i=1
+xr
+i (Er
+i (γr
+i , Br
+i ) −η sr
+i (γr
+i ))
++λr N
+X
+i=1
+xr
+i Br
+i −Btot
+
++
+N
+X
+i=1
+µr
+i (πmin −qr
+i ).
+(3)
+By substituting the explicit form of the fairness metric in
+equation (1) into the Lagrangian and rearranging the terms, the
+global Lagrangian can be separated into a sum of independent,
+per-device Lagrangians:
+Li(xr
+i , γr
+i,Br
+i ;λr, µr)=xr
+i
+
+Er
+i(γr
+i , Br
+i )+λrBr
+i−ηsr
+i(γr
+i)−µr
+i(1−ρ)
+
++ µr
+i
+ πmin −ρqr−1
+i
+
+,
+(4)
+where the term µr
+i
+ πmin −ρqr−1
+i
+
+is a constant with respect
+to the current round’s decision variables.
+Thus, for fixed duals (λr, µr), the global problem decom-
+poses into N independent local minimization problems.
+min
+xr
+i ∈[0,1], γr
+i ∈[γmin,1], Bi≥0 Li(xr
+i , γr
+i , Br
+i ).
+B. Per-Device Minimization
+Because the function Li is affine in xr
+i , the minimizer over
+xr
+i ∈[0, 1] lies at the boundaries of the feasible interval.
+xr
+i =
+(
+1,
+Er
+i (γr
+i , Br
+i ) + λrBr
+i < η sr
+i (γr
+i ) + µr
+i (1 −ρ),
+0,
+otherwise.
+Hence, the relaxed solution yields a binary decision: the
+device participates (xi = 1) only if the benefit of its update
+outweighs the associated energy and bandwidth costs. We
+therefore consider the two possible cases:
+Case 1: Device not selected (xr
+i = 0)
+The Lagrangian reduces to a constant:
+Lnot
+i
+= µr
+i (πmin −ρqr−1
+i
+),
+and no further optimization over γr
+i or Br
+i is required.
+Case 2: Device selected (xr
+i = 1)
+We must solve the joint compression and bandwidth allocation
+subproblem:
+Lsel
+i
+= min
+γr
+i ,Br
+i
+ϕr
+i (γr
+i , Br
+i ) −µr
+i (1 −ρ) + µr
+i (πmin −ρqr−1
+i
+),
+where the core optimization is captured in the function:
+ϕr
+i (γr
+i , Br
+i ) = Er
+i (γr
+i , Br
+i ) + λrBr
+i −ηsr
+i (γr
+i ).
+(5)
+Only this term depends on the decision variables γr
+i and Br
+i .
+C. Joint Optimization of (γr
+i , Br
+i ) for Selected Clients
+When a client is selected, the minimization of the La-
+grangian over (γr
+i , Br
+i ) reduces to the following problem
+min
+γr
+i ,Br
+i
+ϕr
+i (γr
+i , Br
+i ).
+The function ϕr
+i is not convex in Br
+i , but exhibits a
+unimodal shape: for small Br
+i , transmission energy dominates;
+as Br
+i increases, energy decreases sharply, then flattens as the
+achievable rate saturates; finally, the linear term λrBr
+i grows,
+increasing the total cost. This decreasing-flattening-increasing
+pattern produces a single minimum, making the problem well-
+suited to derivative-free one-dimensional search methods such
+as the Golden Section Search (GSS) [17], [18].
+We therefore solve the joint minimization in three steps:
+1) Discretize
+γr
+i
+on
+a
+small
+finite
+grid
+Γ
+=
+{γ(1), . . . , γ(G)}.
+2) For
+each
+γ(g)
+∈
+Γ,
+find
+Br,⋆
+i
+(γ(g))
+=
+arg minBr
+i ϕr
+i (γ(g), Br
+i ) using GSS.
+3) Evaluate ϕr
+i (γ(g), Br,⋆
+i
+(γ(g))) and choose (γr,⋆
+i
+, Br,⋆
+i
+) =
+arg minγ(g)∈Γ ϕr
+i (γ(g), Br,⋆
+i
+(γ(g))).
+VI. ALGORITHM AND DUAL UPDATES
+In the following, we provide a brief summary of the per-
+resolution of the FairEnergy optimization algorithm, followed
+by an analysis of its computational complexity.
+Algorithm 1 Per-Round FairEnergy Optimization
+1: Input: previous fairness metrics qr−1
+i
+, parameters η, ρ, Γ,
+step sizes αλ, αµ > 0
+2: Initialize: dual variables λr, µr
+3: repeat
+4:
+for each device i = 1, . . . , N
+do
+5:
+For each γr
+i ∈Γ, use GSS to find Br,⋆
+i
+(γr
+i ) that
+minimizes ϕr
+i defined in equation (5).
+6:
+Select
+(γr,⋆
+i
+, Br,⋆
+i
+)
+=
+arg minγr
+i ∈Γ ϕr
+i (γr
+i , Br,⋆(γr
+i )).
+7:
+Determine selection:
+xr,∗
+i =
+(
+1, Er
+i (γr,⋆
+i , Br,⋆
+i
+)+λrBr,⋆
+i <η sr
+i (γr,⋆
+i
+)+µr
+i (1−ρ),
+0, otherwise.
+8:
+Update fairness metric: qr+1
+i
+= ρqr
+i + (1 −ρ)xr,⋆
+i
+9:
+Update fairness dual:
+µr
+i ←
+
+µr
+i + αµ(πmin −ρqr−1
+i
+−(1 −ρ)xr,⋆
+i )
++
+10:
+end for
+11:
+Server updates bandwidth dual:
+λr ←
+
+λr + αλ(
+X
+i
+xr,⋆
+i Br,⋆
+i
+−Btot)
++
+12: until convergence
+A. Algorithm
+Algorithm 1 summarizes the per-round resolution of the
+proposed FairEnergy optimization. For a given round r, each
+device i first solves a local optimization over the feasible
+compression ratios γr
+i ∈Γ to obtain the corresponding optimal
+bandwidth allocation Br,⋆
+i
+(γr
+i ) via GSS. The fairness metric qr
+i
+is subsequently updated using an EMA to capture the device’s
+participation history. For feasibility, we initialize q0
+i sufficiently
+large so that in the early rounds, fairness is not restrictive
+and selection is mainly driven by minimizing energy and
+maximizing score. As rounds progress, qr
+i naturally evolves to
+enforce fairness. Finally, the dual variables λ and µ associated
+
+
+respectively with the total bandwidth and fairness constraints
+are updated as shown in lines 10 and 12 of Algorithm 1. These
+updates follow the standard projected subgradient ascent rule
+commonly used in dual decomposition methods [16], [19],
+where the subgradients correspond to the constraint violations
+of the bandwidth and fairness limits. In practice, these dual
+variables are typically refined over several inner iterations to
+ensure convergence of the Lagrangian subproblem within each
+communication round. However, to keep notation concise and
+the algorithm readable, we present only one generic update
+per round, which implicitly captures this iterative process.
+B. Complexity Analysis
+The computational complexity of FairEnergy is dominated
+by the per-device joint optimization of the compression ratio
+(γr
+i and bandwidth Br
+i . For each device, γr
+i is discretized
+over a grid of size G, and for each grid point, Br
+i
+is
+optimized via the GSS method with TGSS function evaluations,
+yielding a per-device complexity of O(G TGSS). Subsequent
+computations of the selection metric, relaxed selection, and
+local fairness updates are negligible in comparison. The global
+bandwidth dual update λr requires a sum over N devices,
+giving O(N) complexity. Consequently, the total per-round
+complexity is O(N G TGSS).
+VII. SIMULATION RESULTS
+In this section, we evaluate the performance of our proposed
+framework in terms of test accuracy and communication en-
+ergy. Experiments are implemented in Keras with TensorFlow.
+We train a convolutional neural network with approximately
+2 million parameters on a non-IID partitioned FMNIST, a
+dataset of fashion products from 10 categories. We consider a
+network with N = 50 devices. The total available bandwidth
+is Btot = 10 MHz, and transmission power for each device
+is uniformly distributed in [0.1, 0.3] mW. To model heteroge-
+neous data distributions, local datasets are sampled using a
+Dirichlet distribution DirK(β) with concentration parameter
+β = 0.3 [20]. Compression ratios are constrained in [0.1, 1],
+and long-term fairness is enforced with threshold πmin = 0.2.
+The participation memory for fairness tracking is ρ = 0.6 and
+the learning rate is of 0.01.
+To ensure a fair comparison, the number of selected devices
+in the baseline schemes is fixed to the mean number of devices
+selected by FairEnergy across rounds.
+We evaluate the performance of FairEnergy to the following
+baselines designed to isolate components of our approach:
+• ScoreMax: selects devices with the highest contribution
+scores, ignoring energy and fairness. To isolate the effect
+of contribution score, updates are transmitted at full
+precision (γi = 1), and the available bandwidth Btot
+is equally divided among the selected devices. This ap-
+proach isolates the effect of importance-driven selection
+and has been extensively investigated in [8], [21].
+• EcoRandom: a communication-efficient random selection
+baseline that removes both fairness and contribution-
+awareness. In each round, devices are chosen randomly,
+and all selected devices transmit using the minimum
+compression ratio and bandwidth observed in FairEnergy.
+This configuration drives EcoRandom toward the lowest
+possible communication energy, in line with the principle
+of minimizing transmission cost explored in several state-
+of-the-art energy-aware FL studies [4], [22].
+These benchmarks allow us to assess the trade-offs between
+energy efficiency, model performance, and fairness under
+different device selection policies.
+Figure 1 shows that FairEnergy and ScoreMax achieve
+the highest test accuracy. Both methods select devices based
+on their contribution importance, leading to the inclusion of
+clients providing the most informative updates. In contrast,
+EcoRandom has slow convergence over the rounds mainly
+because of the large compression levels applied to reduce
+transmission energy. Notably, FairEnergy also applies com-
+pression, yet it maintains accuracy comparable to ScoreMax
+throughout the rounds. This is because FairEnergy balances
+contribution with fairness in client participation, ensuring that
+both high-quality and underrepresented devices contribute to
+model training.
+In Figure 2, we report the average energy consumption
+per global round. As expected, EcoRandom achieves the
+lowest per-round energy consumption due to its aggressive
+compression and favorable bandwidth allocation. FairEnergy
+follows closely, consuming slightly more energy. In contrast,
+ScoreMax operates with no compression and with uniform
+bandwidth across devices, which leads to consistently higher
+energy consumption over the rounds.
+In Figure 3, we compare the total cumulative energy
+required to reach a target accuracy of 80%. The results
+clearly highlights the effectiveness of the proposed FairEnergy
+framework, which achieves the target accuracy while consum-
+ing substantially less energy than the baselines. Specifically,
+FairEnergy requires roughly 71% less energy than ScoreMax
+and 79% less than EcoRandom. While EcoRandom consumes
+less energy per round, its slower convergence leads to a higher
+overall energy cost to reach the desired accuracy. ScoreMax,
+which operates without compression and uniform bandwidth,
+also requires significantly more energy due to inefficient
+communication. These results demonstrate that combining
+contribution-aware device selection with fairness-driven partic-
+ipation effectively reduces the total energy needed to achieve
+a target accuracy.
+Table I: Device participation statistics across strategies.
+Strategy
+Min
+Max
+Std
+FairEnergy
+401
+413
+2.85
+ScoreMax
+50
+697
+180.93
+EcoRandom
+369
+423
+15.79
+Table I highlights how FairEnergy enforces fairness in
+device participation, maintaining a tight selection range across
+devices. EcoRandom, being a random selection baseline,
+
+
+Figure 1: Test accuracy per round.
+Figure 2: Energy consumption per round.
+Figure 3: Total energy needed to achieve
+a target accuracy.
+shows moderate variability, while ScoreMax prioritizes only
+the most informative clients, resulting in highly uneven par-
+ticipation.
+VIII. CONCLUSION
+In this work, we proposed FairEnergy, a joint fairness and
+energy-aware framework for FL that optimizes device selec-
+tion, bandwidth allocation, and compression ratios. By using
+a contribution score combining update magnitude and com-
+pression ratio, along with long-term fairness constraints, our
+approach ensures efficient communication, equitable participa-
+tion, and faster model convergence . The proposed per-round
+resolution, based on Lagrangian relaxation and efficient per-
+device minimization, enables scalable implementation across
+large networks. Experiments demonstrate that FairEnergy
+achieves substantial energy savings while maintaining high
+model accuracy. Future work will extend this framework
+to dynamic channel environments and joint optimization of
+computation and communication resources.
+REFERENCES
+[1] Brendan McMahan, Eider Moore, Daniel Ramage, Seth Hampson,
+and Blaise Aguera y Arcas,
+“Communication-efficient learning of
+deep networks from decentralized data,” in Artificial intelligence and
+statistics. PMLR, 2017, pp. 1273–1282.
+[2] Jianqiao Wangni, Jialei Wang, Ji Liu, and Tong Zhang, “Gradient sparsi-
+fication for communication-efficient distributed optimization,” Advances
+in Neural Information Processing Systems, vol. 31, 2018.
+[3] Amirhossein Reisizadeh, Aryan Mokhtari, Hamed Hassani, Ali Jad-
+babaie, and Ramtin Pedarsani,
+“Fedpaq: A communication-efficient
+federated learning method with periodic averaging and quantization,” in
+International conference on artificial intelligence and statistics. PMLR,
+2020, pp. 2021–2031.
+[4] Ouiame Marnissi, Hajar El Hammouti, and El Houcine Bergou, “Adap-
+tive sparsification and quantization for enhanced energy efficiency in
+federated learning,” IEEE Open Journal of the Communications Society,
+2024.
+[5] Van-Dinh Nguyen, Shree Krishna Sharma, Thang X Vu, Symeon
+Chatzinotas, and Bj¨orn Ottersten, “Efficient federated learning algorithm
+for resource allocation in wireless iot networks,” IEEE Internet of Things
+Journal, vol. 8, no. 5, pp. 3394–3409, 2020.
+[6] Deepali Kushwaha and Rajesh M Hegde, “Optimal device selection and
+resource allocation in federated learning,” in ICASSP 2025-2025 IEEE
+International Conference on Acoustics, Speech and Signal Processing
+(ICASSP). IEEE, 2025, pp. 1–5.
+[7] Takayuki Nishio and Ryo Yonetani,
+“Client selection for federated
+learning with heterogeneous resources in mobile edge,” in ICC 2019-
+2019 IEEE international conference on communications (ICC). IEEE,
+2019, pp. 1–7.
+[8] Ouiame Marnissi, Hajar El Hammouti, and El Houcine Bergou, “Client
+selection in federated learning based on gradients importance,”
+in
+AIP Conference Proceedings. AIP Publishing LLC, 2024, vol. 3034,
+p. 100005.
+[9] Yae Jee Cho, Jianyu Wang, and Gauri Joshi, “Towards understanding bi-
+ased client selection in federated learning,” in International Conference
+on Artificial Intelligence and Statistics. PMLR, 2022, pp. 10351–10375.
+[10] Yae Jee Cho, Jianyu Wang, and Gauri Joshi,
+“Client selection in
+federated learning: Convergence analysis and power-of-choice selection
+strategies,” arXiv preprint arXiv:2010.01243, 2020.
+[11] Yuxin Shi, Zelei Liu, Zhuan Shi, and Han Yu, “Fairness-aware client
+selection for federated learning,” in 2023 IEEE international conference
+on multimedia and expo (ICME). IEEE, 2023, pp. 324–329.
+[12] Simin Javaherian, Sanjeev Panta, Shelby Williams, Md Sirajul Islam, and
+Li Chen, “Fedfair 3: Unlocking threefold fairness in federated learning,”
+in ICC 2024-IEEE International Conference on Communications. IEEE,
+2024, pp. 3622–3627.
+[13] Ying-Chi Mao, Li-Juan Shen, Jun Wu, Ping Ping, and Jie Wu, “Fed-
+erated dynamic client selection for fairness guarantee in heterogeneous
+edge computing,” Journal of Computer Science and Technology, vol.
+39, no. 1, pp. 139–158, 2024.
+[14] Felix Sattler, Simon Wiedemann, Klaus-Robert M¨uller, and Wojciech
+Samek, “Robust and communication-efficient federated learning from
+non-iid data,”
+IEEE transactions on neural networks and learning
+systems, vol. 31, no. 9, pp. 3400–3413, 2019.
+[15] Mohammad Mohammadi Amiri and Deniz G¨und¨uz, “Federated learning
+over wireless fading channels,” IEEE transactions on wireless commu-
+nications, vol. 19, no. 5, pp. 3546–3557, 2020.
+[16] Dimitri P Bertsekas,
+“Nonlinear programming,”
+Journal of the
+Operational Research Society, vol. 48, no. 3, pp. 334–334, 1997.
+[17] Heng Wang, Aijun Liu, Xiaofei Pan, and Jianfei Yang, “Optimization
+of power allocation for multiusers in multi-spot-beam satellite commu-
+nication systems,” Mathematical Problems in engineering, vol. 2014,
+no. 1, pp. 780823, 2014.
+[18] Jack Kiefer, “Sequential minimax search for a maximum,” Proceedings
+of the American mathematical society, vol. 4, no. 3, pp. 502–506, 1953.
+[19] Daniel P´erez Palomar and Mung Chiang, “A tutorial on decomposition
+methods for network utility maximization,” IEEE Journal on Selected
+Areas in Communications, vol. 24, no. 8, pp. 1439–1451, 2006.
+[20] Qinbin Li, Yiqun Diao, Quan Chen, and Bingsheng He,
+“Federated
+learning on non-iid data silos: An experimental study,” in 2022 IEEE
+38th international conference on data engineering (ICDE). IEEE, 2022,
+pp. 965–978.
+[21] Wenlin Chen, Samuel Horvath, and Peter Richtarik,
+“Optimal client
+sampling for federated learning,”
+arXiv preprint arXiv:2010.13723,
+2020.
+[22] Minsu Kim, Walid Saad, Mohammad Mozaffari, and Merouane Debbah,
+“Green, quantized federated learning over wireless networks: An energy-
+efficient design,” IEEE transactions on wireless communications, vol.
+23, no. 2, pp. 1386–1402, 2023.

@@ -1,0 +1,1600 @@
+Viscous Dark Energy and Mass-Varying Dark Matter in
+Lyra Manifold: Cosmological Dynamics and
+Observational Constraints
+Giridhari Deogharia 1, Madhurima Pandey 1 and Ashadul Halder2∗
+1 School of Applied Science and Humanities,
+Haldia Institute of Technology, Haldia-721657, W.B., India
+2 Department of Physics,
+St. Xavier’s College, 30, Mother Teresa Sarani, Kolkata-700016, India
+Abstract: We investigate the cosmological dynamics of a universe described by Lyra’s
+geometry in the presence of dark energy (DE) and dark matter (DM). Dark energy is modeled
+as a quintessence scalar field with bulk viscosity, while dark matter is allowed to interact
+with the scalar sector. The displacement vector field, arising naturally in Lyra’s manifold,
+provides an additional geometric contribution. By employing dynamical system techniques,
+we analyze stability properties and late-time attractors. Our results indicate that viscosity
+and DE–DM interaction enrich the phase space structure and can help address both the
+cosmic acceleration and the coincidence problem. Furthermore, by performing a Markov
+Chain Monte Carlo (MCMC) analysis with recent observational datasets, we derive best-fit
+values for the model parameters that exhibit good consistency with current data.
+Keywords:
+Mass-Varying Dark Matter; Viscous Dark Energy; Interaction in
+Dark Sector; Lyra Geometry; Dynamical System Analysis.
+1
+Introduction
+Modern cosmology has undoubtedly entered into a data - driven era, propelled by a series of
+groundbreaking observations that have reshaped our understanding of the Universe’s large -
+∗Corresponding author: E-mail: ashadul.halder@gmail.com
+1
+arXiv:2511.15422v1  [astro-ph.CO]  19 Nov 2025
+
+
+2
+scale dynamics. Over the past two decades, diverse and independent probes, such as Type
+Ia supernovae (SNIa) [1, 2], baryon acoustic oscillations (BAO) [3] and cosmic microwave
+background radiation (CMBR) [4, 5] have provided compelling evidence for the late - time
+accelerated expansion of the Universe. Observational cosmology has established that the
+luminous baryonic component, comprising star, interstellar gas, and other radiating matter,
+accounts for only about 4.9 % of the total mass - energy density of the Universe. High
+precision measurements from the PLANCK satellite have provided captivating evidence that
+the remaining cosmic inventory is dominated by two non - luminous constituents; such
+as dark matter (DM) and dark energy (DE). The DM component is non - baryonic and
+collisionless in nature. It’s presence can be understood solely through gravitational effects
+on galactic rotation curves, gravitational lensing, large scale structure formation etc. Dark
+matter contributes 26.8 % of the total energy density of the Universe. The rest around 69.3
+% is attributed to DE. It is a hypothetical form of energy, which exists negative pressure that
+acts in opposition to gravity and driving the accelerated expansion of the Universe observed
+in the late - time cosmological epoch.
+As discussed earlier, the negative pressure attributed to DE counteracts the attractive
+influence of gravity, thereby causing the accelerated expansion of the Universe and preventing
+an ultimate gravitational collapse. Therefore, a wide range of theoretical models have been
+developed to explain the physical origin and dynamical properties of DE and the ensuing
+late - time acceleration. The most straight forward and widely accepted explanation is the
+cosmological constant (Λ), introduced by Einstein in his field equations of general relativity
+as a constant vacuum energy density term.
+This forms the basis of the Λ - cold dark
+matter (CDM) model, where DE is characterized by a constant equation of state parameter,
+ω = p/ρ = −1, implying a uniform energy density through out spacetime. High - precision
+data from the Planck CMB mission have reaffirmed the ΛCDM model as the observationally
+consistent and theoretically feasible description of the Universe’s large scale dynamics [5].
+Although the ΛCDM model remains one of the cornerstones of modern cosmology, it is
+not yet regarded as the ultimate framework for understanding our Universe [9]. From a the-
+oretical perspective, the underlying physics of DE and DM continues to elude a fundamental
+explanation. The model also suffers from persistent conceptual challenges, notably the fine
+tuning and cosmic coincidence problems associated with the cosmological constant [9, 10]. It
+has been observed that, while Λ successfully reproduces the large scale distribution of matter
+and the evolution of cosmic structures, it encounters several inconsistencies on galactic and
+sub - galactic scales, such as the missing satellites, core - cusp and too - big - to fail problem
+[11]. In parallel, the advent of high - precision cosmological observations has brought to light
+additional tensions within the ΛCDM framework. The most prominent one among these is
+the H0 tension, referring to the nearly 5σ discrepancy between the Hubble constant (H0)
+
+
+3
+inferred from Planck CMB measurements and that derived from local standard candle and
+gravitational lensing time delay observations [12] - [14]. Another emerging inconsistency is
+the S8 tension, which reflects 1 - 2σ deviation between the parameter S8 = σ8(Ωm)0.5 ob-
+tained from Planck data and the results from weak lensing surveys [15] -[18]. With the rapid
+progress of observational cosmology, such discrepancies have been more significant, suggest-
+ing potential limitations of the ΛCDM model and motivating the search for new physics
+beyond the standard cosmological problem.
+As the fundamental nature and origin of DE remain elusive, cosmologists have proposed a
+broad spectrum of theoretical models to interpret this cosmic phenomenon. In general, the
+proposals are classified into two categories: DE model [19, 20] and modified gravity theories
+[21, 22]. The former class retains the framework of Einstein’s general relativity but introduces
+additional components, such as scalar fields, exotic fields or dynamical vacuum energy to
+account for the observed accelerated expansion. Prominent examples such as quintessence,
+k - essence and phantom field models attribute cosmic acceleration to a time varying energy
+component with negative pressure. Dynamical DE models, such as quintessence scalar fields,
+have therefore been widely explored [23, 24, 25]. The latter one postulates that general
+relativity may break down on cosmological scales and therefore modifies the Einstein - Hilbert
+action by introducing alternative gravitational terms motivated by deeper physical principles.
+Representative theories in this category include f(R) gravity, Brans - Dicke theory and Gauss
+- Bonet modifications. They are all aiming to reproduce the effects of DE through geometric
+or curvature - based mechanisms rather than involving a separate energy field.
+In thermodynamics, every realistic fluid system inherently involves dissipative processes,
+which refer to the irreversible loss of energy due to internal friction and viscosity. These
+processes play a significant role in cosmological dynamics, as they influence how the Uni-
+verse evolves over time. In cosmology, such dissipation manifests through bulk and shear
+viscosities within the stress–energy tensor of the cosmic fluid [26, 27]. While shear viscosity,
+which relates to the resistance against shape deformation, can usually be ignored on large
+cosmic scales due to the Universe’s isotropy and homogeneity. On the other hand, bulk
+viscosity, associated with resistance to volume changes during cosmic expansion, becomes
+crucial. The effects of bulk viscosity have been extensively explored in the frameworks of
+viscous dark matter (VDM) [28, 29], viscous dark energy (VDE) [30] - [33], and cosmic in-
+flation. Interestingly, viscosity has been proposed as a potential factor behind the present
+acceleration of the Universe. Apart from influencing the Hubble expansion, viscosity also
+leads to additional entropy production, which heats both baryonic and DM components.
+Therefore, it influences the thermal history and structure formation of the Universe.
+Another line of investigation involves allowing DE to exchange energy with DM. Inter-
+action terms of the form Q ∝Hρ are consistent with observations and may alleviate the
+
+
+4
+coincidence problem as well as the H0 and σ8 tensions [34, 35, 36, 37]. In addition, such
+interactions can emerge naturally in frameworks where the DM mass depends on the scalar
+field [38, 39]. A further intriguing theory that has arisen as a potential framework to provide
+fresh perspectives on this cosmic interplay is mass - varying DM. Here, we explore the math-
+ematical models that describe the DE - DM interaction, concentrating on mass - varying
+DM. The theory of mass - varying DM postulates that the mass of DM particles, which
+is commonly represented by the symbol (m), is a function of time rather than a constant,
+(m = m(t)). This theory presents a scalar field to characterize the variance in DM mass,
+which is commonly represented as (ϕ). For mass -varying DM, the Lagrangian can be writ-
+ten as: Lmass-varying DM = 1
+2gµν∂µϕ∂νϕ −V (ϕ) + LDM(m(t), ΨDM), where, gµν is the metric
+tensor. ∂µ represents the covariant derivative with respect to spacetime coordinate µ. V (ϕ)
+is the potential energy associated with the scalar field ϕ. ΨDM represents the DM fields. An
+effective coupling term that modulates the interaction intensity between the scalar field ϕ
+and DE fields describes the interaction between mass - varying DM and DE.
+On the geometric side, Lyra [40] proposed a modification of Riemannian geometry through
+a displacement vector field. Sen [41] later formulated field equations in this setting, which
+reduce to general relativity when the displacement vector vanishes. Constant or time-varying
+displacement vectors can mimic a cosmological constant or stiff matter, offering novel mecha-
+nisms to model cosmic acceleration [42, 43, 44]. Recent work has extended scalar-tensor the-
+ories to Lyra geometry, yielding modified Friedmann equations with rich dynamics [45, 46].
+In this work, we investigate a cosmological framework that integrates Lyra geometry,
+a canonical scalar field and bulk viscous dark energy interacting with mass-varying dark
+matter.
+Through a detailed dynamical systems analysis, we show that the interplay of
+the Lyra displacement field and viscous effects.
+The model admits stable de Sitter like
+attractors driven by viscous dark energy and supports smooth transitions between matter
+and dark-energy–dominated epochs. Using Pantheon+ SNe Ia, BAO measurements and the
+SH0ES H0 prior, we further constrain the model parameters via MCMC analysis, finding
+excellent agreement with current low-redshift observations. The small negative interaction
+parameter and the allowed viscosity values help reproduce the present expansion rate and
+may alleviate the H0 tension. Overall, the combined dynamical and observational results
+indicate that viscous dark energy in the Lyra manifold is a viable extension of standard
+cosmology capable of providing a unified description of cosmic evolution.
+The structure of this paper is outlined as follows. Section 2 deals with the formation of
+the mathematical model consisting of interacting viscous DE and mass-varying DM in the
+background of Lyra geometry. Section 3 addresses the dynamical analysis of the evaluated
+model through critical point studies. It also includes physical interpretations of the evaluated
+critical points and a stability analysis of such critical points.
+Section 4 focuses on the
+
+
+5
+cosmological stability and instability through phase portrait analysis. In section 5, we present
+a Markov Chain Monte Carlo (MCMC) analysis using some recent observational datasets to
+validate our result observationally. Lastly, in section 6 we conclude the paper.
+2
+Model Formulation: Interacting Viscous Dark En-
+ergy in Lyra Geometry
+In Lyra’s modification of Riemannian geometry [40], the affine connection is altered by the
+introduction of a displacement vector field ψµ and corresponding metric tensor gµν. Sen [41]
+showed that the corresponding field equations can be written as
+Gµν + 3
+2ψµψν −3
+4gµνψαψα = Tµν,
+(1)
+where Gµν is the Einstein tensor and Tµν denotes the matter energy–momentum tensor.
+When ψµ = 0, the above reduces to Einstein’s field equations.
+For a spatially flat Friedmann–Lemaˆıtre–Robertson–Walker (FLRW) spacetime
+ds2 = −dt2 + a2(t) (dr2 + r2dΩ2).
+(2)
+We assume ψµ = (β(t), 0, 0, 0), where β(t) is a function of cosmic time.
+The energy-
+momentum tensor consists of pressureless DM and DE described by a scalar field with bulk
+viscosity. Explicitly,
+Tµν = (ρtot + ptot)uµuν −ptotgµν,
+(3)
+where ρtot is total density defined by ρtot = ρm(matter density)+ρϕ(energy density) and total
+pressure ptot = peff
+ϕ . uµ and uν indicate four velocity tensors.
+The scalar field energy density and pressure are
+ρϕ = 1
+2
+˙ϕ2 + V (ϕ),
+(4)
+pϕ = 1
+2
+˙ϕ2 −V (ϕ).
+(5)
+The presence of viscosity in DE fluid influences the dynamics of the Universe. The effective
+pressure at thermal equilibrium for a typical bulk viscous DE fluid can be expressed as
+peff
+ϕ = pϕ −ζθ,
+(6)
+where ζ denotes bulk viscosity coefficient. The expansion scalar (θ) can be written as θ =
+3H = ˙a
+a, H and a stand for the Hubble parameter and scalar factor respectively. Therefore,
+the effective pressure can be restated as
+peff
+ϕ = pϕ −3ζH.
+(7)
+
+
+6
+The negative contribution −3ζH modifies the dilution rate of dark energy and can mimic
+phantom-like behavior when sufficiently large [47, 48, 49].
+By considering these factors, the Lyra-modified Friedmann equations become
+3H2 −β2(t) = ρm + ρϕ,
+(8)
+2 ˙H + 3H2 + β2(t) = −peff
+ϕ .
+(9)
+The terms involving β2(t) represent the contribution of Lyra’s displacement vector. For a
+constant β, this behaves as a cosmological constant; for a dynamical β(t), it acts as an
+additional time-dependent dark sector component.
+2.1
+Interaction in the Dark Sector
+In standard cosmology, dark matter and dark energy are assumed to evolve independently,
+each conserving its energy density separately. Here, we rely on this assumption and allow
+an explicit interaction term Q that mediates energy transfer between the two sectors. The
+total conservation equation
+˙ρtot + 3H(ρtot + ptot) = 0,
+(10)
+is then split as
+˙ρm + 3Hρm = Q,
+(11)
+˙ρϕ + 3H(ρϕ + peff
+ϕ ) = −Q.
+(12)
+Therefore, a positive Q corresponds to energy transfer from DE to DM, while a negative
+Q represents the reverse. The functional form of Q is not uniquely determined; commonly
+adopted forms include
+Q1 = 3δ ˙ϕρm,
+Q2 = 3δ ˙ϕρϕ,
+Q3 = 3δ ˙ϕM ′
+m(ϕ)
+Mm(ϕ)ρm,
+Q = 3δ ˙ϕ
+
+ρm + ρϕ + M ′
+m(ϕ)
+Mm(ϕ)ρm
+
+,
+(13)
+with δ a dimensionless coupling parameter constrained by observations [34, 35, 36] and
+Mm(ϕ) is the scalar field-dependent mass of the matter component. Such interactions can
+ease the cosmic coincidence problem and affect the late-time attractors of the system.
+2.2
+Effective Dark Sector Dynamics
+Combining Eqs. (8)–(12), we see that three distinct ingredients govern cosmic dynamics in
+this framework:
+1. The displacement field β(t) from Lyra geometry, which adds a geometric correction
+that can mimic a cosmological constant or stiff component depending on its evolution.
+
+
+7
+2. Bulk viscous pressure in the scalar field sector, which alters the effective equation of
+state and can drive accelerated or phantom-like expansion.
+3. Interaction between DM and DE, parametrized by Q, which redistributes energy in
+the dark sector and modifies the background expansion and structure growth.
+This combined setup provides a richer phase space than standard quintessence or inter-
+acting models, and allows us to investigate whether the interplay between Lyra geometry,
+viscosity, and interaction can naturally generate late-time accelerated attractors consistent
+with observations.
+2.3
+Autonomous System Representation
+To study the asymptotic dynamics, we introduce dimensionless variables normalized by the
+Hubble scale:
+x2 =
+˙ϕ2
+6H2,
+y2 = V (ϕ)
+3H2 ,
+Ωβ =
+β
+√
+3H2,
+ΩV iscous = ζ
+H .
+(14)
+The density parameters are
+Ωϕ = x2 + y2,
+(15)
+Ω2
+β = ΩLyra,
+(16)
+Ωm = 1 −x2 −y2 −ΩLyra.
+(17)
+In the above equations Ωϕ, Ωm ,ΩV iscous, Ωβ, and ΩLyra represent the fractional densities due
+to DE, DM, viscous fluid, Lyra geometric displacement field, and auxiliary term, respectively.
+The effective equation of state parameter is
+weff = x2 −y2 + ΩLyra −ΩV iscous.
+(18)
+Assuming an exponential potential V (ϕ) = V0e−γϕ, mass varying exponential coefficient of
+dark matter, Mm(ϕ) = M0eαϕ and interaction Q = 3δ ˙ϕ
+n
+ρm + ρϕ + M′
+m(ϕ)
+Mm(ϕ)ρm
+o
+, the dynamical
+equations for (x, y,
+p
+ΩLyra, ΩV iscous) with respect to N = ln a become
+dx
+dN
+=
+q
+3
+2
+ΩV iscous
+x
+−
+q
+3
+2 δ
+h
+1 −ΩLyra −α
+ 1 −ΩLyra −x2 −y2i
++3
+2x
+ ΩLyra −ΩV iscous + x2 −y2 −1
+
+−
+q
+3
+2 γy2,
+dy
+dN
+= y
+hq
+3
+2 γx + 3
+2
+ 1 + ΩLyra −ΩV iscous + x2 −y2i
+,
+dΩβ
+dN
+= 3
+2Ωβ
+h
+−1 + ΩLyra −ΩV iscous + x2 −y2i
+,
+dΩV iscous
+dN
+= 3
+2 ΩV iscous
+ 1 + ΩLyra −ΩV iscous + x2 −y2
+.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+(19)
+This autonomous system allows us to identify critical points and determine their stability,
+thereby characterizing the possible cosmological scenarios emerging from viscous interacting
+DE in Lyra’s manifold.
+
+
+8
+3
+Dynamical Analysis
+To study the asymptotic behavior of the cosmological model under Lyra geometry with vis-
+cous effects, we perform a dynamical systems analysis. The system of autonomous equations
+governing the dimensionless variables is given by (19). The parameters α, γ, and δ denote
+coupling and potential slope constants.
+dx
+dN =
+r
+3
+2
+ΩV iscous
+x
+−
+r
+3
+2 δ
+h
+1 −ΩLyra −α
+ 1 −Ω2
+β −x2 −y2i
++ 3
+2x
+ Ω2
+β −ΩV iscous + x2 −y2 −1
+
+−
+q
+3
+2 γy2,
+(20)
+dy
+dN = y
+hq
+3
+2 γx + 3
+2
+ 1 + Ω2
+β −ΩV iscous + x2 −y2i
+,
+(21)
+dΩβ
+dN = 3
+2Ωβ
+h
+−1 + Ω2
+β −ΩV iscous + x2 −y2i
+,
+(22)
+dΩV iscous
+dN
+= 3
+2 ΩV iscous
+ 1 + Ω2
+β −ΩV iscous + x2 −y2
+.
+(23)
+3.1
+Critical Points of the Dynamical System
+We assume that the Lyra term satisfies ΩLyra ≡Ω2
+β, which ensures algebraic consistency
+among the equations. The last two differential equations can then be written as
+dΩβ
+dN = 3
+2 Ωβ F,
+F = −1 + Ω2
+β −ΩV iscous + x2 −y2,
+(24)
+dΩV iscous
+dN
+= 3
+2 ΩV iscous G,
+G = 1 + Ω2
+β −ΩV iscous + x2 −y2.
+(25)
+At any equilibrium, each prefactor or bracket must vanish. Hence, a fixed point must satisfy
+Ωβ = 0 or F = 0,
+ΩV iscous = 0 or G = 0.
+Since G −F = 2, both F = 0 and G = 0 cannot hold simultaneously. Below we list all
+admissible families of equilibrium points under this constraint.
+3.1.1
+Family I: ΩV iscous = 0 (vanishing viscous component)
+In this case G = 1 + Ω2
+β + x2 −y2. The conditions dΩβ/dN = 0 and dy/dN = 0 give
+Ωβ = 0
+or
+F = −1 + Ω2
+β + x2 −y2 = 0,
+(26)
+y = 0
+or
+q
+3
+2γx + 3
+2G = 0.
+(27)
+Finally, dx/dN = 0 reduces to
+0 = −
+q
+3
+2 δ
+h
+1 −Ω2
+β −α
+ 1 −Ω2
+β −x2 −y2i
++ 3
+2x(Ω2
+β + x2 −y2 −1) −
+q
+3
+2 γy2.
+(28)
+The simultaneous solution of these algebraic equations defines the equilibrium points.
+
+
+9
+(a) Pure scalar-field solutions.
+Setting Ωβ = 0 gives:
+0 = −
+q
+3
+2 δ
+h
+1 −α(1 −x2 −y2)
+i
++ 3
+2x(x2 −y2 −1) −
+q
+3
+2γy2,
+(29)
+0 = y
+hq
+3
+2γx + 3
+2(1 + x2 −y2)
+i
+.
+(30)
+Explicit critical points for Ωβ = ΩLyra = 0, ΩV iscous = 0
+Define the auxiliary quantities
+D ≡αδ −γ,
+Σ ≡
+q
+D
+ αδγ2 + 12δ −γ3 + 6γ
+
++ 9 ,
+Ξ ≡−3 Σ −D
+n
+δ
+ α(γ2 −12) −6
+
++ γ
+ Σ −γ2 + 6
+o
++ 9.
+Assuming D ̸= 0 and the radicands below are nonnegative, the four algebraic critical
+points with ΩLyra = Ω2
+β = 0 and ΩV iscous = 0 read (the two independent ± signs under the
+square roots produce four combinations):
+P(s,t) :
+x(s,t) = −s Σ + αδγ −γ2 −3
+2
+√
+6 D
+,
+y(s,t) = −
+t
+s
+−3 s Σ −D
+h
+δ
+ α(γ2 −12) −6
+
++ γ
+ s Σ −γ2 + 6
+i
++ 9
+D
+2√3αδ −3γ
+,
+Ωβ (s,t) = 0,
+ΩV iscous (s,t) = 0,
+where s, t ∈{+1, −1}. Concretely, the four points are
+P(+,+), P(+,−), P(−,+), P(−,−)
+obtained by taking all combinations of s = ±1 (the sign in front of Σ in x) and t = ±1 (the
+overall sign of the square-root in y).
+Existence conditions
+For any of the points P(s,t) to be admissible (real-valued and reg-
+ular) the following must hold:
+1. D = αδ −γ ̸= 0 .
+2. Σ2 = D(αδγ2 + 12δ −γ3 + 6γ) + 9 ≥0.
+
+
+10
+3. The inner radicand for y,
+Ry ≡−3sΣ −D
+h
+δ
+ α(γ2 −12) −6
+
++ γ
+ sΣ −γ2 + 6
+i
++ 9,
+satisfies Ry
+D ≥0.
+4. The denominator 3αδ −3γ = 3(αδ −γ) = 3D must be positive; equivalently the sign
+of D must be consistent with the sign choice in the inner radicand so that the quotient
+is nonnegative.
+Physical significance (interpretation of these four branches)
+• All four points lie in the subspace where the Lyra displacement and viscous fraction
+vanish: ΩLyra = Ω2
+β = 0, ΩV iscous = 0. Thus they are pure scalar-field equilibria:
+the cosmic dynamics at these points is controlled solely by the scalar field (kinetic +
+potential balance encoded in x, y).
+• The two branches with x given by the +Σ formula (points P(+,±)) typically correspond
+to one family of scalar-dominated solutions where the sign of y distinguishes expanding
+vs. contracting potential contributions (or physically the sign of the scalar field veloc-
+ity/potential pairing). The explicit form of y shows dependence on α, δ, γ and encodes
+whether potential energy dominates (y large) or not.
+• The two branches with x given by the −Σ formula (points P(−,±)) are the comple-
+mentary scalar-field roots coming from the other algebraic branch of the quartic/cubic
+system. Depending on parameters they can represent:
+– Kinetic-dominated like behaviour (if |x| is large and y small) — typically unstable
+/ early-time repellers, or
+– Potential-dominated (if y large relative to x) — candidates for late-time acceler-
+ated attractors.
+In order to signify the early stages of universe, we can find a special case:
+(i) P : (x, y, Ωβ, ΩV iscous) = (±1, 0, 0, 0),
+which exist only if δ = 0. They correspond to a kinetic-energy dominated universe
+(weff = 1), typically unstable.
+(b) Mixed Lyra–scalar equilibria.
+
+
+11
+Explicit form of critical points(Pβ)
+For ΩV iscous = 0 we have Ω2
+β = 1 −x2 + y2. Using
+the given model (19), we can have
+x = −
+3
+p
+3/2 γ
+= −
+√
+6
+γ .
+The second branch (with x = −
+√
+6/γ) yields an explicit closed-form solution. Substituting
+xc = −
+√
+6/γ into the x-equilibrium equation and using ΩV iscous = 0 and ΩLyra = Ω2
+β gives
+the following exact coordinates:
+Pβ :
+xc = −
+√
+6
+γ ,
+yc = ±
+√
+6
+r
+−
+δ
+2αδ −δ + γ
+γ
+= ±
+√
+6
+p
+−δ/(2αδ −δ + γ)
+γ
+,
+Ωβc = ±1
+γ
+s
+−12αδ + γ2(2αδ −δ + γ) −6γ
+2αδ −δ + γ
+,
+ΩV iscous c = 0.
+Existence conditions
+1. 2αδ −δ + γ < 0
+(if δ > 0),
+2. −12αδ + γ2(2αδ −δ + γ) −6γ ≥0.
+Both conditions must hold simultaneously for a real-valued Pβ.
+(If δ changes sign, the
+inequality signs must be interpreted accordingly.)
+Cosmological Significance
+The critical point Pβ represents a dynamical balance be-
+tween the Lyra geometric modification and the scalar field evolution in the cosmological
+phase space. The absence of viscous contribution (ΩV iscous,c = 0) suggests that this point
+corresponds to a stage where the universe behaves as an effective perfect fluid dominated by
+the scalar field and Lyra manifold contribution.
+Physically, the term Ωβ measures the influence of the Lyra displacement vector on the
+cosmic dynamics, while the variables (x, y) represent the kinetic and potential energy com-
+ponents of the scalar field, respectively.
+The signs of yc and Ωβc correspond to distinct
+evolutionary branches:
+• The positive branch (xc, +yc, +Ωβc) is typically associated with an accelerating phase
+of the universe, where the potential energy dominates and leads to a quintessence-like
+behavior.
+
+
+12
+• The negative branch (xc, −yc, −Ωβc) corresponds to a contracting or decelerating phase,
+where the kinetic contribution of the scalar field dominates, possibly mimicking a stiff-
+fluid or matter-like regime.
+The branch Pβ thus describes a cosmological configuration where:
+• The Lyra displacement field induces an additional geometric potential that modifies
+the late-time cosmic dynamics.
+• The absence of viscous effects indicates that dissipation is negligible, corresponding to
+a nearly adiabatic universe.
+• Depending on the choice of the coupling parameters (α, δ, γ), the point Pβ can represent
+either a stable accelerated attractor (dark-energy–like behavior) or a transient scaling
+regime where the scalar field energy tracks the background matter content.
+Hence, the critical branch Pβ provides a viable geometrically induced dark-energy config-
+uration that emerges naturally within the Lyra manifold formulation and can describe both
+early and late-time cosmic acceleration depending on parameter tuning.
+3.1.2
+Family II: Ωβ = 0 (vanishing Lyra contribution)
+Now F = −1 −ΩV iscous + x2 −y2 and G = 1 −ΩV iscous + x2 −y2. The conditions G = 0 or
+ΩV iscous = 0 yield:
+(a) Pure scalar field
+Ωβ = ΩV iscous = 0, identical to Family I(a).
+(b) Viscous-scaling equilibria.
+For ΩV iscous ̸= 0, set G = 0 giving
+ΩV iscous = 1 + x2 −y2.
+(31)
+The y-equation then reads
+y
+hq
+3
+2γx + 3
+2G
+i
+= y
+hq
+3
+2γx + 3
+2(1 + x2 −y2 −ΩV iscous)
+i
+= 0,
+(32)
+which is automatically satisfied since G = 0. The x-equation reduces to
+0 =
+q
+3
+2
+ΩV iscous
+x
+−
+q
+3
+2δ
+h
+1 −α(1 −x2 −y2)
+i
++ 3
+2x(x2 −y2 −ΩV iscous) −
+q
+3
+2γy2.
+(33)
+Substituting ΩV iscous = 1 + x2 −y2 yields an algebraic equation for x, y:
+0 =
+q
+3
+2
+1 + x2 −y2
+x
+−
+q
+3
+2δ
+h
+1 −α(1 −x2 −y2)
+i
+−3
+2x(1) −
+q
+3
+2γy2.
+(34)
+
+
+13
+Regularity of the original vector field requires x ̸= 0 when ΩV iscous ̸= 0 (because f1 contains
+the term ∝ΩV iscous/x). Eliminating y2 via ΩV iscous = 1 + x2 −y2 gives a single polynomial
+equation for x (in general cubic), so the viscous-scaling equilibria are given implicitly by the
+real roots xc of that polynomial, with
+y2
+c = 1 + x2
+c −ΩV iscous c,
+ΩV iscous c = 1 + x2
+c −y2
+c.
+In other words, the PV points satisfy the above cubic-type algebraic equation and must
+be obtained either by exact algebraic root formulas (lengthy closed-form expressions) or
+numerically for given parameters (α, δ, γ).
+Cosmological Significance of the Family of Critical Points PV
+The family of critical
+points PV corresponds to a regime in which the cosmic dynamics are dominated by the viscous
+component of the dark sector. These points are characterized by the coordinates
+PV :
+xc = xV ,
+yc = yV ,
+Ωβ c = 0,
+ΩViscous c = 1 + x2
+c −y2
+c.
+Here, x and y represent the dimensionless kinetic and potential components of the scalar field,
+while ΩViscous quantifies the fractional energy density of the bulk viscous fluid. The vanishing
+of Ωβ indicates that the Lyra manifold correction is negligible at this stage, implying that the
+geometry behaves effectively as in standard general relativity but with viscous modifications.
+Physical Interpretation
+At PV , the dynamics of the universe are governed by an effective
+viscous fluid. The nonzero ΩViscous c represents a dominant bulk viscosity contribution, which
+acts as an effective negative pressure component. Such pressure naturally drives accelerated
+expansion and can mimic the behavior of dark energy. The scalar field variables (xc, yc)
+contribute only as subdominant corrections, modulating the effective equation of state.
+Effective Equation of State and Cosmic Evolution
+At the critical point PV , the total
+effective equation of state parameter can be expressed as
+weff = x2
+c −y2
+c −ΩViscous c.
+Using the constraint ΩViscous c = 1 + x2
+c −y2
+c, we obtain
+weff = −1,
+which clearly describes a de Sitter phase of the universe. This indicates that the PV family
+corresponds to a cosmological constant–like state driven not by a true vacuum energy but
+by viscous dissipation within the cosmic fluid.
+
+
+14
+Cosmological Role
+The family PV therefore represents a class of late-time attractor so-
+lutions characterized by:
+• Dominance of the viscous fluid sector (ΩViscous c > 0),
+• Negligible contribution from the Lyra geometric field (Ωβ c = 0),
+• An effective equation of state weff = −1, consistent with dark-energy–dominated ac-
+celerated expansion.
+Such solutions can describe the transition of the universe from a matter-dominated decel-
+erating era to a viscous-fluid–driven accelerated epoch. The damping nature of viscosity also
+stabilizes perturbations in the late universe, supporting the interpretation of PV as a stable
+attractor corresponding to a viscous de Sitter regime. This branch thus provides a purely
+hydrodynamic explanation of dark energy behavior, emerging naturally within the viscous
+Lyra cosmological framework.
+3.1.3
+Summary of equilibrium families
+Label
+Critical
+Point
+(xc, yc, Ωβc, ΩViscous c)
+Dominant
+Com-
+ponent
+Typical Behavior
+P1,2
+(±1, 0, 0, 0)
+Scalar (kinetic)
+Early-time, unstable
+P(+,±)
+(xc, yc, 0, 0)
+Scalar dominance
+Late-time, stable (de Sit-
+ter) or early-time expan-
+sion, unstable
+P(−,±)
+(xc, yc, 0, 0)
+Kinetic-dominated
+(if
+|x|
+large,
+y
+small) or potential-
+dominated
+(if
+y
+large)
+Early-time expansion, un-
+stable or late-time stable
+(de Sitter)
+Pβ
+
+xc, yc,
+p
+1 −x2c + y2c, 0
+
+Lyra–scalar mix
+Geometric scaling
+PV
+
+xc, yc, 0, 1 + x2
+c −y2
+c
+
+Viscous fluid
+Viscous scaling
+Table 1: Symbolic critical points (families) of the dynamical system.
+Physical interpretation
+• P1,2: Kinetic-energy dominated stiff-fluid era (weff = 1), representing early-time ex-
+pansion before potential or geometric effects become important.
+
+
+15
+• P(±,±)):
+1. Potential-dominated or de Sitter phases (ωeff ≈−1), typical late-time attractors.
+2. Matter-dominated phases(ωeff < 1) typically repellers
+• Pβ: Mixed Lyra–scalar equilibria where the Lyra displacement field contributes effec-
+tively as a cosmological term.
+• PV : Viscous-scaling equilibria in which the effective bulk viscosity of the cosmic fluid
+balances the scalar-field energy, leading to possible accelerated but dissipative expan-
+sion.
+3.2
+Stability Analysis: Eigenvalue Approach
+Recall the Jacobian entries (with s ≡
+p
+3/2) derived earlier.
+We denote the Jacobian
+evaluated at a critical point by Jc and its eigenvalues by {λi}4
+i=1.
+(A) Kinetic points P1,2 = (±1, 0, 0, 0)
+These points exist as equilibria only when the coupling parameter vanishes (i.e. δ = 0).
+At P1 = (1, 0, 0, 0) (δ = 0) :
+Eigeenvalues
+λ1 = 3,
+λ2 = sγ + 3,
+λ3 = 0,
+λ4 = 3.
+At P2 = (−1, 0, 0, 0) (δ = 0) :
+Eigeenvalues
+λ1 = 3,
+λ2 = −sγ+3,
+λ3 = 0,
+λ4 = 3.
+Because two eigenvalues equal 3 > 0, both P1,2 are generically unstable (repellers).
+(B) Scalar-only branches P(±,±) with Ωβ = ΩLyra = 0, ΩV iscous = 0
+Let (xc, yc) denote any root from the algebraic list P(+,+), P(+,−), P(−,+), P(−,−).
+At such
+points Ωβ = 0, ΩV iscous = 0.
+Two of the eigenvalues are given by the Lyra and viscous diagonal entries (they decouple):
+λΩβ = 3
+2(−1 + x2
+c −y2
+c),
+λΩV iscous = 3
+2(1 + x2
+c −y2
+c).
+The remaining two eigenvalues come from the upper-left 2 × 2 block acting on (x, y):
+M2×2 =
+ 
+A
+B
+C
+D
+!
+c
+,
+
+
+16
+where (evaluated at Ωβ = ΩV iscous = 0)
+A ≡∂xf1
+
+c = −s 0
+x2
+c
++ sδ(−2αxc) + 3
+2(x2
+c −y2
+c −1) + 3x2
+c,
+B ≡∂yf1
+
+c = −sδ(−2αyc) + 3
+2xc(−2yc) −2sγyc,
+C ≡∂xf2
+
+c = yc
+ sγ + 3xc
+
+,
+D ≡∂yf2
+
+c = sγxc + 3
+2(1 + x2
+c −y2
+c) −3y2
+c.
+The two eigenvalues λ1,2 in the (x, y) sector are the roots of
+λ2 −τλ + ∆= 0,
+τ = A + D,
+∆= AD −BC.
+Thus
+λ1,2 = τ ±
+√
+τ 2 −4∆
+2
+,
+with A, B, C, D as above evaluated at the chosen branch (xc, yc).
+Stability criterion for P(±,±).
+• If λΩβ < 0, λΩV iscous < 0 and ℜ(λ1,2) < 0, the point is a stable attractor.
+• Mixed signs imply a saddle.
+• Presence of any positive real part implies instability.
+(C) Lyra–scalar mixed family Pβ (with ΩV iscous = 0 and F = 0)
+Lets evaluate the Jacobian diagonal entries for the Lyra and viscous directions:
+λΩβ = 3(1 −x2
+c + y2
+c),
+λΩV iscous = 3
+2
+ 1 + (1 −x2
+c + y2
+c) + x2
+c −y2
+c
+
+= 3.
+Therefore two eigenvalues are λΩV iscous = 3 and λΩβ = 3(1 −x2
+c + y2
+c).
+The remaining two eigenvalues come from the 2×2 (x, y) block evaluated at Pβ. Denoting
+those entries by Aβ, Bβ, Cβ, Dβ (forms analogous to the scalar-only case but with Ωβ ̸= 0
+substituted). Their characteristic polynomial again reads
+λ2 −τβλ + ∆β = 0,
+τβ = Aβ + Dβ, ∆β = AβDβ −BβCβ.
+Thus the two scalar eigenvalues are
+λ1,2 =
+τβ ±
+q
+τ 2
+β −4∆β
+2
+.
+
+
+17
+• One eigenvalue equals 3 > 0 (the viscous direction), so Pβ generically has an unstable
+direction unless non-generic cancellations occur; this tends to make Pβ a saddle in
+many parameter regimes.
+• Conclude: Pβ is generically a saddle because of the positive viscous eigenvalue, but
+specific parameter tuning may change this outcome (requiring further nonlinear/center-
+manifold analysis).
+(D) Viscous-scaling family PV (with Ωβ = 0 and G = 0)
+Lets evaluate diagonal Jacobian entries for the Ω-directions using Ωβ = 0 and G = 1 + Ω2
+β −
+ΩV iscous + x2
+c −y2
+c = 0:
+λΩV iscous = −3
+2(1 + x2
+c −y2
+c) = −3
+2,
+λΩβ = 3
+2(−1 −ΩV iscous c + x2
+c −y2
+c)
+Thus two eigenvalues are negative and simple: λΩβ = −3 and λΩV iscous = −3/2.
+The remaining two eigenvalues again come from the (x, y) 2 × 2 block evaluated at PV .
+Denote its entries by AV , BV , CV , DV (computable by substituting Ωβ = 0 and ΩV iscous =
+1 + x2
+c −y2
+c into the general derivative formulae). Their characteristic polynomial is
+λ2 −τV λ + ∆V = 0,
+τV = AV + DV ,
+∆V = AV DV −BV CV ,
+so the scalar-sector eigenvalues are
+λ1,2 = τV ±
+p
+τ 2
+V −4∆V
+2
+.
+Stability criterion for PV .
+• Two eigenvalues are strictly negative (−3 and −3/2). If ℜ(λ1,2) < 0 as well, then
+all four eigenvalues have negative real parts and PV is a stable node/spiral (late-time
+attractor) — this is the common viscous-de Sitter attractor scenario.
+• If one of λ1,2 has positive real part, PV is a saddle.
+4
+Phase Portrait Analysis: Cosmological Stability and
+Instability
+In this section, we present the global phase portrait evolution and corresponding trajectories
+of the cosmological dynamical system under various regimes of the interaction and viscous
+
+
+18
+parameters. Each portrait illustrates the evolution of the system in the (x, y)-plane and the
+corresponding cosmological density parameters Ωm, ΩLyra, and ΩV iscous as functions of the
+e-folding number N. The nature of the critical points and their stability are analyzed for
+each case using linear perturbation theory around the equilibrium points.
+4.1
+Interaction-free and Non-viscous Dark energy Component
+For the case γ = −1, α = 1, and δ = 0, both interaction and viscous terms vanish. The
+phase portrait in Figure 1 shows symmetric trajectories approaching the central attractor,
+indicating a stable configuration where the universe asymptotically evolves toward a Lyra-
+dominated de Sitter phase. The trajectories rapidly converge to the equilibrium state, and
+ΩLyra →1 while Ωm and Ωϕ decay, implying a dark energy-displacement dominance due to
+presence of Lyra manifold geometry. In addition to this, we have two repeller points and
+one attractor point. For both repeller points, the speculated scalar potential revolves around
+zero. Again for (xc, yc) ≈(0.49, 0.64), which corresponds to a late-time accelerating phase
+of the universe with Ωϕ →1 while Ωm and ΩLyra decay.
+Moreover in the evolution part (right panel), we can observe that in the early universe
+(N ≈−5) dominance of Lyra displacement is visible, after that gradually matter dominance
+begins almost from N ≈−2.5.
+Dark energy component grows at N ≈−2 as well as
+matter component decreases and gradually and it overtakes the matter component.
+At
+present (N = 0), graphs shows Ωϕ = 0.65, Ωm = 0.27. In future if there is no interaction
+happened between non-viscous dark energy and mass-varying dark matter, dark energy will
+fully dominate as a result universe will expand exponentially.
+Figure 1: Phase portrait and corresponding evolution of cosmological parameters for γ =
+−1, α = 1, δ = 0 with initial values x(0) = 0.18, y(0) = 0.73, Ωβ(0) = 0.065, Ωviscous(0) = 0.
+The system evolves toward a Lyra-dominated stable attractor.
+
+
+19
+4.2
+Interaction-free and Low Viscous Dark Energy
+When a small viscous component is introduced (ΩV iscous(0) = 0.01), the phase portrait
+(Figure 2) reveals slightly distorted trajectories, but the system still converges toward a
+stable attractor.
+The damping due to viscous dark energy slightly modifies the rate of
+convergence. There are four critical points in the viable region: two attractor and and two
+saddle points. Hence, the critical point with scalar potential yc > 0 i.e, (xc, yc) ≈(0.56, 0.82)
+remains stable, representing a universe evolving to a quasi–de Sitter attractor with small
+dissipative corrections.
+In the evolution part (right panel), due to viscous property of dark energy dark matter is
+comparatively suppressed and indicating a present situation where Ωm = 0.13 and Ωϕ = 0.88.
+Figure 2: Phase portrait and cosmological evolution for γ = −1, α = 1, δ = 0, x(0) = 0.32,
+y(0) = 0.86, Ωβ(0) = 0.065, Ωviscous(0) = 0.01.
+Weak viscosity leads to damped stable
+trajectories.
+4.3
+Small Interaction and Non-viscous Dark Energy
+Introducing a small interaction (δ = 0.07) while keeping ΩV iscous = 0 results in more dynamic
+trajectories (Figure 3). Two distinct families of critical points appear — one unstable (saddle-
+like) near (x, y) ≈(0, 0) and one stable node near (x, y) ≈(0.4, 0.8). The interaction term
+shifts the source of attraction, allowing transient matter-dominated evolution before settling
+to the Lyra field attractor. Hence, the phase space consists of both transient (unstable)
+and asymptotically stable domains, representing a transition from matter-dominated era to
+energy dominance in the background of the Lyra manifold.
+In addition, the cosmological evolution panel shows that dark matter increased in density
+just before the present era due to the small interaction introduced and ended up taking a
+
+
+20
+higher value in the present situation. Again, the equation of state for dark energy (ωeff)
+will blow up beyond the phantom barrier in the near future.
+Figure 3: Phase portrait and parameter evolution for γ = −1, α = 1, δ = 0.07, x(0) = 0.16,
+y(0) = 0.81, Ωβ(0) = 0.06, Ωviscous(0) = 0.
+Weak interaction shifts the stability basin,
+yielding one stable and one saddle point.
+4.4
+Small Interaction and Low Viscous Dark Energy
+For small interaction and weak viscosity (δ = 0.07, ΩV iscous(0) = 0.01), the portrait in
+Figure 4 shows smoother spiraling trajectories approaching a stable focus. The combined
+damping from interaction and viscosity reduces oscillatory motion, producing a globally
+stable attractor. Hence, the system exhibits oscillatory convergence toward the de Sitter
+state, implying a stable late-time cosmological configuration.
+
+
+21
+Figure 4: Phase portrait and cosmological evolution for γ = −1, α = 1, δ = 0.07, x(0) = 0.19,
+y(0) = 0.76, Ωd(0) = 0.13, Ωviscous(0) = 0.01. Both weak interaction and viscosity yield a
+globally stable focus-type attractor.
+4.5
+Substantial Interaction and High Viscous Dark Energy
+In the regime of strong coupling between the dark energy and highly mass-varying dark
+matter, along with significant bulk viscous effects of dark energy, the dynamical behavior
+becomes more complex.
+For the parameters γ = −1, α = 1, δ = 0.07 and the initial
+conditions x(0) = 0.38, y(0) = 0.81, Ωβ(0) = 0.1, and Ωviscous(0) = 0.1, the system demon-
+strates the combined influence of strong viscous energy and interaction. The phase portrait
+in Figure 5 exhibits multiple families of trajectories converging toward dominant attrac-
+tors. Compared to the weak-viscosity cases, the trajectories are heavily damped and show
+minimal oscillations. This indicates that viscosity now plays a leading role in dissipating
+dynamical fluctuations, suppressing any transient oscillatory modes that might have existed
+in the weakly interacting cases.
+From the cosmological parameter evolution (right panel), Ωϕ gradually dominates as N
+increases, while Ωm and ΩLyra asymptotically approach small constant values. This behavior
+corresponds to a late-time accelerating phase where Lyra geometry drives the expansion but
+with residual energy contributions from matter and viscous effects. For this case, Ωm does
+not vanishes due to sufficient interaction in the dark sector.
+
+
+22
+Figure 5: Phase portrait and corresponding evolution of cosmological parameters for γ = −1,
+α = 1, δ = 0.07, with assigned initial values x(0) = 0.38, y(0) = 0.81, Ωd(0) = 0.1, and
+Ωviscous(0) = 0.1. Strong coupling and viscosity enhance damping and alter the basin of
+attraction.
+The strong dissipative regime ensures that any deviation from the equilibrium is rapidly
+suppressed, yielding a globally stable cosmological phase. Such a configuration represents a
+universe dominated by Lyra dark energy with minimal dynamical feedback from the interact-
+ing matter and viscous sectors. This regime thus corresponds to a robustly stable late-time
+de Sitter attractor, ensuring the asymptotic stability of the cosmic dynamics.
+4.6
+Overall Summary of the Dynamical Regimes
+The five dynamical regimes presented in Figures 1–5 represent a systematic exploration of
+the cosmological system under varying interaction strengths (δ) and viscous effects (Ωviscous).
+Each regime captures a distinct phase of the universe’s evolution in the framework of Lyra
+geometry and presence of coupling viscous dark energy and mass-varying dark matter. The
+combined analysis of phase portraits and time-evolution plots reveals the transition from
+unstable early-time expansion to stable late-time acceleration as dissipation and interaction
+are gradually introduced.
+The systematic progression from Regime 1 to Regime 5 demonstrates how the inclusion
+of interaction (δ) and viscous effects enhances the dynamical stability of the cosmologi-
+cal model. While the null cases describe unstable or transitional early-time dynamics, the
+strongly interacting and viscous cases produce a stable de Sitter attractor consistent with
+observational late-time acceleration. Thus, viscosity and interaction play complementary
+roles: viscosity damps dynamical fluctuations, while interaction promotes geometric-matter
+energy exchange that drives the universe toward a Lyra–dominated equilibrium.
+
+
+23
+Regime
+Dominant
+Component
+Stability
+Type
+Cosmological Behavior
+Interaction-free
+&
+Non-
+Viscous DE
+Scalar (kinetic)
+Unstable node
+Early-time expansion
+Interaction-free & Low Vis-
+cous DE
+Scalar + damping
+Marginally
+stable
+Onset of inflationary be-
+havior
+Small
+Interaction
+&
+Non-
+Viscous DE
+Lyra–scalar mix
+Saddle-type
+Intermediate scaling phase
+Small Interaction & Low Vis-
+cous DE
+Viscous scaling
+Stable spiral
+Late-time accelerated at-
+tractor
+Substantial
+Interaction
+&
+High Viscous DE
+Lyra dominated
+Stable node
+de Sitter late-time phase
+Table 2: Summary of stability and cosmological interpretation for different interaction–
+viscosity regimes.
+We extend our analysis by examining the behavior of the stable points under the variation
+of the viscous parameter δ. Figure 6 shows how these points change in the (x, y) plane for
+different values of δ, while keeping the other model parameters fixed at α = 1.0, γ = −1.0,
+Ωβ0 = 0.13, and Ωvis0 = 0.01. Different colors represent the values of δ, which increases from
+violet to red, as indicated in the colorbar.
+The red dots close to the origin (0, 0) indicate the stable points of the system among the
+total six stable points, that do not move significantly with the change in δ. However, as δ
+increases, the coordinates of the other four critical points shift along the plane, showing that
+the position and stability of the equilibrium states depend strongly on the viscous parameter.
+Two of the stable points lie near the y-axis but are located away from it, while the remaining
+stable points on the x-axis gradually move toward higher positive x values as δ increases.
+This behavior suggests that stronger viscous effects lead to a more prominent response in
+the Universal dynamic and modify the overall stability structure of the model.
+Overall, this analysis shows that the viscous parameter δ plays an important role in de-
+termining the evolution of the system.
+Even small changes in its value can modify the
+phase-space configuration and influence the late-time behavior of the cosmological model.
+5
+Markov Chain Monte Carlo (MCMC) Analysis
+In order to constrain the free parameters of the model, a Markov Chain Monte Carlo
+(MCMC) analysis was carried out using a combination of recent observational datasets, in-
+
+
+24
+−1.0
+−0.5
+0.0
+0.5
+1.0
+1.5
+x
+−1.00
+−0.75
+−0.50
+−0.25
+0.00
+0.25
+0.50
+0.75
+1.00
+y
+0.0
+0.2
+0.4
+0.6
+0.8
+1.0
+δ
+Figure 6: The figure shows how the stable points of the system change when the parameter
+δ varies, while keeping the other parameters fixed at α = 1.0, γ = −1.0, Ωβ0 = 0.13, and
+Ωvis0 = 0.01.
+cluding the Pantheon+ Type Ia supernovae sample [59], Baryon Acoustic Oscillation (BAO)
+data [60, 61], and the SH0ES measurement of the Hubble constant [64]. The total likelihood
+was evaluated through the combined chi-square estimator, defined as
+χ2
+tot = χ2
+SN + χ2
+BAO + χ2
+SH0ES,
+(35)
+where the contribution from the CMB shift parameter is not considered in the present
+computation to focus on low-redshift constraints.
+For the supernova dataset, the distance modulus µ(z) was evaluated from the theoretical
+model prediction µth(z), and the corresponding χ2
+SN is obtained as
+χ2
+SN =
+X
+i
+µobs(zi) −µth(zi)
+σµi
+2
+,
+(36)
+where µobs and σµ denote the observed distance modulus and its uncertainty from the Pan-
+theon+ compilation.
+The contribution of BAO is incorporated through the inverse covariance matrix C−1,
+following the standard procedure outlined in Refs. [62, 63]. The dilation scale DV (z) and the
+comoving angular diameter distance ere obtained from the numerically integrated Hubble
+function H(z). The resulting χ2
+BAO is expressed as
+χ2
+BAO = (Tth −Tobs)TC−1(Tth −Tobs),
+(37)
+where Tth and Tobs are the theoretical and observed BAO ratios, respectively.
+
+
+25
+The local measurement of the Hubble constant from SH0ES provides a strong low-redshift
+prior, which is included via
+χ2
+SH0ES =
+H0 −73.04
+1.04
+2
+,
+(38)
+with H0 expressed in units of km s−1 Mpc−1.
+The MCMC sampling was performed using a uniform (flat) prior distribution for all free
+parameters within their physically motivated bounds. The posterior probability is therefore
+given by
+P(θ|D) ∝exp
+
+−1
+2χ2
+tot(θ)
+
+,
+(39)
+where θ = (α, γ, log10 δ, h0, log10 χ0, log10 ψ0, log10 Ωβ0, log10 Ωvis0) denotes the parameter vec-
+tor.
+Figure 7 shows the marginalized posterior distributions and the corresponding 2D confi-
+dence contours (68%, 95%) for all free parameters obtained from the MCMC chains. The
+parameters are found to converge smoothly with well-defined Gaussian-like posteriors, indi-
+cating good consistency among the datasets. The best-fit values (mean with 1σ uncertainty)
+of different parameters are tabulated in Table 3.
+Table 3: Best-fit values of the cosmological parameters obtained from the MCMC analysis.
+α
+γ
+log10 δ
+h0
+log10 χ0
+log10 ψ0
+log10 Ωβ0
+log10 Ωvis0
+0.10+0.02
+−0.02
+−0.01+0.02
+−0.02
+−2.00+0.03
+−0.03
+0.69+0.08
+−0.08
+−3.00+0.02
+−0.02
+−0.12+0.01
+−0.01
+−3.00+0.08
+−0.08
+−3.18+0.03
+−0.03
+
+
+26
+Figure 7: Corner plot showing the marginalized posterior distributions and 2D confidence
+regions (68% and 95%) for the model parameters. The diagonal panels represent the one-
+dimensional marginalized posteriors.
+6
+Summary and Conclusion
+In this study, we have carried out a detailed dynamical systems analysis of a cosmological
+model incorporating a Lyra geometric displacement field, a canonical scalar field and a bulk
+viscous dark energy component interacting with mass-varying dark matter. Our investigation
+demonstrates that the interplay of Lyra geometry and viscous effects provides rich dynamical
+behaviors capable of explaining both early- and late-time cosmic evolution within a unified
+framework. The critical point analysis reveals several distinct equilibrium configurations rep-
+
+
+27
+resenting different cosmological epochs. The kinetic-energy–dominated points (P1,2) behave
+as early-time repeller states, consistent with stiff-fluid–like expansion scenarios (weff = 1)
+in the primordial universe [50]. The scalar-field–dominated branches (P(±,±)) contain both
+saddle and attractor solutions, with certain roots leading to potential-dominated accelerated
+expansion reminiscent of quintessence-driven de Sitter behavior [51, 52]. These solutions
+align with the theoretical requirement that dark energy must dominate at late times, driving
+cosmic acceleration as supported by observational data from Supernovae Ia, CMB (Planck
+2018), and BAO surveys [55, 53, 54]. The Lyra–scalar mixed branch (Pβ) demonstrates
+how geometric modification through the Lyra displacement field acts as an effective cosmo-
+logical term [56]. Although typically saddle-like, this branch contributes a viable transient
+stage connecting matter and dark energy phases. Most notably, the viscous-scaling family
+(PV ) emerges as a dynamically robust late-time attractor, where viscous dark energy drives
+an effective equation of state weff ≈−1, enabling de Sitter expansion without invoking an
+explicit cosmological constant. This connects well with the idea that dissipative processes
+such as bulk viscosity could act as a natural mechanism behind dark energy and cosmic
+acceleration [57, 58]. The phase portrait analyses reinforce these findings, showing smooth
+transitions from matter-influenced epochs toward stable attractor solutions characterized by
+accelerated expansion. Weak viscosity and interaction maintain a de Sitter–like regime with
+mild damping, whereas strong viscous effects suppress dynamical oscillations rapidly, leading
+to a globally stable and observationally compatible accelerating universe. The model further
+indicates that residual matter and Lyra geometric contributions may persist at small but
+non-vanishing levels in the far future, consistent with dynamical dark energy expectations.
+The obtained results highlight that Lyra geometry in conjunction with viscous dark energy
+provides a physically compelling framework capable of addressing key cosmological phenom-
+ena, including past deceleration, current acceleration, and asymptotic stability of the cosmic
+dynamics. Future work may incorporate perturbation analysis and observational constraints
+to refine parameter ranges and explore signatures distinguishable from the ΛCDM paradigm.
+We further constrain the model parameters by performing a Markov Chain Monte Carlo
+(MCMC) analysis using a combined set of low-redshift cosmological observations—namely,
+the Pantheon+ Type Ia supernovae compilation [59], Baryon Acoustic Oscillation (BAO)
+measurements [60, 61, 62, 63] and the SH0ES Hubble constant prior [64]. The likelihood
+is built through the total χ2 function combining these observed datasets and the numerical
+evolution of the model equations.
+The posterior distributions of the model parameters are illustrated in Fig. 7. The best-
+fit values obtained (see Table 3) are α = 0.10+0.02
+−0.02, γ = −0.01+0.02
+−0.02, log10 δ = −2.00+0.03
+−0.03,
+h0 = 0.69+0.08
+−0.08, log10 χ0 = −3.00+0.02
+−0.02, log10 ψ0 = −0.12+0.01
+−0.01, log10 Ωβ0 = −3.00+0.08
+−0.08, and
+log10 Ωvis0 = −3.18+0.03
+−0.03.
+These values of the model parameters agree well with current
+
+
+28
+cosmological observations.
+Our analysis shows that the model can describe the present
+expansion rate of the Universe and remains consistent with low-redshift observational data.
+The interaction parameter γ is small and negative, which indicates that there is a weak
+transfer of energy from dark matter to the viscous dark energy component. This energy
+exchange, along with the effect of bulk viscosity, helps the Universe accelerate at late times
+without needing a separate cosmological constant. The estimated Hubble parameter h0 also
+matches well with the local SH0ES result, suggesting that including viscosity in the dark
+sector may help reduce the difference between local and global measurements of H0. Overall,
+our results show that viscous dark energy models in the Lyra manifold give a stable and
+realistic description of the Universal evolution and are consistent with current observations.
+References
+[1] A. G. Riess et al., Observational Evidence from Supernovae for an Accelerating Universe
+and a Cosmological Constant, Astron. J. 116, 1009 (1998).
+[2] S. Perlmutter et al., Measurements of Ωand Λ from 42 High-Redshift Supernova, As-
+trophys. J. 517, 565 (1999).
+[3] David H. Weinberg et al., Observational probes of cosmic acceleration, acceleration,
+Phys. Rep. 530, 87 (2013).
+[4] C. L. Bennett et al., Nine-year wilkinson microwave anisotropy probe (wmap) observa-
+tions: Final maps and results, Astrophys. J. Suppl. Ser. 208, 20 (2013).
+[5] P. Collaboration, Planck 2013 results. XVI. Cosmological parameters, Astron. Astro-
+phys. 571, A16 (2014),
+[6] S. Weinberg, The Cosmological Constant Problem, Rev. Mod. Phys. 61, 1 (1989).
+[7] I. Zlatev, L. Wang, P. J. Steinhardt, Quintessence, Cosmic Coincidence, and the Cos-
+mological Constant, Phys. Rev. Lett. 82, 896 (1999).
+[8] N. Aghanim et al. (Planck Collaboration), Planck 2018 results. VI. Cosmological pa-
+rameters, Astron. Astrophys. 641, A6 (2020).
+[9] S. Weinberg, The Cosmological Constant Problem, Rev. Mod. Phys. 61, 1 (1989).
+[10] I. Zlatev, L. Wang, P. J. Steinhardt, Quintessence, Cosmic Coincidence, and the Cos-
+mological Constant, Phys. Rev. Lett. 82, 896 (1999).
+
+
+29
+[11] J. S. Bullock and M. Boylan-Kolchin, Small-Scale Challenges to the ΛCDM Paradigm,
+Annu. Rev. Astron. Astrophys. 55, 343 (2017).
+[12] A. G. Riess, The Expansion of the Universe is Faster than Expected, Nature Rev. Phys.
+2, 10 (2019).
+[13] A. G. Riess, S. Casertano, W. Yuan, L. M. Macri, and D. Scolnic, Large magellanic
+cloud cepheid standards provide a 1% foundation for the determination of the hubble
+constant and stronger evidence for physics beyond ΛCDM, The Astrophysical Journal
+876, 85 (2019).
+[14] K. C. Wong et al., H0LiCOW- XIII. A 2.4 per cent measurement of H0 from lensed
+quasars: 5.3σ tension between early and late-Universe probes, Mon. Not. Roy. Astron.
+Soc. 498, 1420 (2020).
+[15] C. Hikage et al., Cosmology from cosmic shear power spectra with Subaru Hyper Suprime-
+Cam first-year data, Publ. Astron. Soc. Jpn. 71, 43 (2019).
+[16] H. Hildebrandt et al., KiDS+VIKING-450: Cosmic shear tomography with optical and
+infrared data, Astron. Astrophys. 633, A69 (2020).
+[17] M. Asgari et al., KiDS-1000 cosmology: Cosmic shear constraints and comparison be-
+tween two point statistics, Astron. Astrophys. 645, A104 (2021).
+[18] A. Amon et al. (DES Collaboration), Dark energy survey year 3 results: Cosmology
+from cosmic shear and robustness to data calibration, Phys. Rev. D 105, 023514 (2022).
+[19] R. Caldwell, A phantom menace? cosmological consequences of a dark energy component
+with super-negative equation of state, Phys. Lett. B 545, 23 (2002).
+[20] A. Kamenshchik, U. Moschella, and V. Pasquier, An alternative to quintessence, Phys.
+Lett. B 511, 265 (2001).
+[21] S. Nojiri and S. D. Odintsov, Modified gravity with negative and positive powers of
+curvature: Unification of inflation and cosmic acceleration, Phys. Rev. D 68, 123512
+(2003).
+[22] G. R. Dvali, G. Gabadadze, and M. Porrati, 4-D gravity on a brane in 5-D Minkowski
+space, Phys. Lett. B 485, 208 (2000).
+[23] E. J. Copeland, M. Sami, S. Tsujikawa, Dynamics of dark energy, Int. J. Mod. Phys. D
+15, 1753 (2006).
+
+
+30
+[24] S. Tsujikawa, Quintessence: A Review, Class. Quant. Grav. 30, 214003 (2013).
+[25] D. Huterer, D. L. Shafer, Dark energy two decades after: Observables, probes, consis-
+tency tests, Rept. Prog. Phys. 81, 016901 (2018).
+[26] C. Eckart, The thermodynamics of irreversible processes. iii. relativistic theory of the
+simple fluid, Phys. Rev. 58, 919 (1940).
+[27] A. Di Prisco, L. Herrera, and J. Ib´a˜nez, Qualitative analysis of dissipative cosmologies,
+Phys. Rev. D 63, 023501 (2000).
+[28] W. Zimdahl, D. J. Schwarz, A. B. Balakin, and D. Pav´on, Cosmic antifriction and
+accelerated expansion, Phys. Rev. D 64, 063501 (2001).
+[29] H. Velten and D. J. Schwarz, Dissipation of dark matter, Phys. Rev. D 86, 083501
+(2012).
+[30] J. Ren and X.-H. Meng, Cosmological model with viscosity media (dark fluid) described
+by an effective equation of state, Phys. Lett. B 633, 1 (2006).
+[31] M. Xin-He and D. Xu, Friedmann cosmology with bulk viscosity: A concrete model for
+dark energy, Commun. Theor. Phys. 52, 377 (2009).
+[32] R. Colistete, J. C. Fabris, J. Tossa, and W. Zimdahl, Bulk viscous cosmology, Phys.
+Rev. D 76, 103516 (2007).
+[33] G. S. Khadekar, S. Ray, and X. H. Meng, FLRW viscous cosmological models, arXiv
+e-prints , arXiv:1611.01023 (2016) [physics.gen-ph].
+[34] B. Wang, E. Abdalla, F. Atrio-Barandela, D. Pav´on, Dark matter and dark energy
+interactions: theoretical challenges and cosmological implications, Rept. Prog. Phys.
+79, 096901 (2016).
+[35] S. Kumar, R. C. Nunes, Probing the interaction between dark matter and dark energy
+in the presence of massive neutrinos, Phys. Rev. D 96, 103511 (2017).
+[36] W. Yang et al., Interacting dark energy with stable neutrinos, JCAP 01, 043 (2021).
+[37] V. Poulin et al., Cosmological tensions and the Hubble constant, Phys. Rev. D 108,
+063527 (2023).
+[38] L. Amendola, Coupled quintessence, Phys. Rev. D 62, 043511 (2000).
+
+
+31
+[39] R. Fardon, A. E. Nelson, N. Weiner, Dark energy from mass-varying neutrinos, JCAP
+10, 005 (2004).
+[40] G. Lyra, ¨Uber eine Modifikation der Riemannschen Geometrie, Math. Z. 54, 52 (1951).
+[41] D. K. Sen, A static cosmological solution, Z. Phys. 149, 311 (1957).
+[42] W. D. Halford, Scalar-tensor theory of gravitation in Lyra geometry, Austr. J. Phys.
+23, 863 (1970).
+[43] A. Pradhan, Cosmological models in Lyra geometry, Int. J. Theor. Phys. 53, 4349 (2014).
+[44] S. K. Biswas, Dark energy models in modified Lyra geometry, Eur. Phys. J. C 80, 175
+(2020).
+[45] J. S. Bhamra, Lyra geometry inspired cosmology, Eur. Phys. J. Plus 135, 930 (2020).
+[46] J. K. Singh, Cosmological implications of Lyra’s geometry, Astrophys. Space Sci. 367,
+33 (2022).
+[47] I. Brevik et al., Viscous cosmology for early- and late-time universe, Int. J. Mod. Phys.
+D 26, 1730024 (2017).
+[48] C. M. S. Barbosa et al., Late-time cosmology in interacting dark energy, Eur. Phys. J.
+C 81, 1036 (2021).
+[49] B. Mostaghel, A novel interacting dark energy model, Eur. Phys. J. C 83, 725 (2023).
+[50] E. J. Copeland, A. R. Liddle, and D. Wands, “Exponential potentials and cosmological
+scaling solutions,” Phys. Rev. D 57 (1998) 4686.
+[51] B. Ratra and P. J. E. Peebles, “Cosmological consequences of a rolling homogeneous
+scalar field,” Phys. Rev. D 37 (1988) 3406.
+[52] C. Wetterich, “Cosmology and the fate of dilatation symmetry,” Nucl. Phys. B 302
+(1988) 668.
+[53] S. Perlmutter et al., “Measurements of Ωand Λ from 42 High-Redshift Supernovae,”
+Astrophys. J. 517 (1999) 565.
+[54] A. G. Riess et al., “Observational evidence from supernovae for an accelerating universe
+and a cosmological constant,” Astron. J. 116 (1998) 1009.
+[55] N. Aghanim et al. [Planck Collaboration], “Planck 2018 results,” Astron. Astrophys.
+641 (2020) A6.
+
+
+32
+[56] D. K. Sen, “A static cosmological model in Lyra’s geometry,” Z. Phys. 149 (1971) 311.
+[57] I. Brevik and O. G. Gorbunova, “Dark energy and viscous cosmology,” Gen. Relativ.
+Gravit. 37 (2005) 2039.
+[58] M. Cataldo et al., “Viscous dark energy and accelerated universe,” Phys. Lett. B 619
+(2005) 5.
+[59] D. Brout et al., The Pantheon+ Analysis: Cosmological Constraints, Astrophys. J. 938,
+110 (2022).
+[60] D. J. Eisenstein et al., Detection of the Baryon Acoustic Peak in the Large-Scale Cor-
+relation Function of SDSS Luminous Red Galaxies, Astrophys. J. 633, 560 (2005).
+[61] S. Alam et al., The clustering of galaxies in the completed SDSS-III Baryon Oscillation
+Spectroscopic Survey, Mon. Not. R. Astron. Soc. 470, 2617 (2017).
+[62] W. J. Percival et al., Baryon acoustic oscillations in the Sloan Digital Sky Survey Data
+Release 7 galaxy sample, Mon. Not. R. Astron. Soc. 401, 2148 (2010).
+[63] L. Anderson et al., Baryon Acoustic Oscillations in the BOSS DR10 and DR11 Galaxy
+Samples, Mon. Not. R. Astron. Soc. 441, 24 (2014).
+[64] A. G. Riess et al., A Comprehensive Measurement of the Local Value of the Hubble
+Constant, Astrophys. J. Lett. 934, L7 (2022).

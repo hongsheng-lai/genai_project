@@ -1,0 +1,1508 @@
+Scriboora: Rethinking Human Pose Forecasting
+Daniel Bermuth
+University of Augsburg, Germany
+daniel.bermuth@uni-a.de
+Alexander Poeppel
+University of Augsburg
+poeppel@isse.de
+Wolfgang Reif
+University of Augsburg
+reif@isse.de
+Abstract
+Human pose forecasting predicts future poses based on
+past observations, and has many significant applications
+in areas such as action recognition, autonomous driving
+or human-robot interaction. This paper evaluates a wide
+range of pose forecasting algorithms in the task of absolute
+pose forecasting, revealing many reproducibility issues, and
+provides a unified training and evaluation pipeline. After
+drawing a high-level analogy to the task of speech under-
+standing, it is shown that recent speech models can be effi-
+ciently adapted to the task of pose forecasting, and improve
+current state-of-the-art performance. At last the robustness
+of the models is evaluated, using noisy joint coordinates ob-
+tained from a pose estimator model, to reflect a realistic
+type of noise, which is more close to real-world applica-
+tions. For this a new dataset variation is introduced, and it
+is shown that estimated poses result in a substantial perfor-
+mance degradation, and how much of it can be recovered
+again by unsupervised finetuning.
+1. Introduction
+When human positions and movements are used in com-
+puter programs, those poses and movements are often sim-
+plified to a format of joints that may be connected through
+lines.
+Depending on the application requirements those
+joints are usually very basic and limited to hips, shoul-
+ders, knees or hands. In addition to observing past positions
+and movements, it might be useful to predict future human
+movements. For this, a sequence of observed joint motions
+in the past is used to predict a sequence of future motions
+(see Figure 1). The forecasts can then be used in various
+applications, for example to predict future movements of
+pedestrians in front of autonomous cars, or to improve or
+replan robot movements in collaborative applications.
+Since human pose forecasting has many applications,
+there are already a lot of research papers that propose differ-
+ent solutions for this task, of which some will be described
+more closely in the next section. Although rapid progress is
+reported, the state of the field remains difficult to assess. Re-
+Figure 1. Example of an absolute pose forecast of a walking per-
+son. The green skeletons visualize the input sequence of the pre-
+diction model, the red ones the predicted future poses, and the blue
+ones the ground-truth labels.
+sults are often produced with heterogeneous preprocessing
+and metric implementations, partially released code, and
+sometimes contain evaluation errors. Comparisons across
+papers therefore become unreliable, and claimed improve-
+ments can vanish once consistent protocols are applied. Pre-
+vious works also only compare against a limited set of spe-
+cialized baselines, but miss the question, whether mature
+models from neighboring domains already provide strong
+baselines. At the same time, the evaluations rarely reflect
+deployment conditions. In practical systems, input poses
+often need to be obtained from marker-less estimators, be-
+cause outfitting pedestrians or workers in a factory with
+tracking suits is neither an option nor feasible. Prediction
+errors of such estimators differs from synthetic noise used
+in some prior studies, and have not been investigated yet.
+This paper addresses these points with a practice-
+oriented study of absolute pose forecasting, and makes the
+following contributions: a) A broad reproducibility audit
+under a unified protocol with corrected implementations.
+b) A new cross-domain baseline built from a recent speech-
+1
+arXiv:2511.15565v1  [cs.CV]  19 Nov 2025
+
+
+to-text model, which achieves state-of-the-art results with
+real-time throughput. c) The first realistic noise evaluation
+for pose forecasting, together with a simple method to re-
+cover most of the there lost performance.
+To support future research in those directions, the code,
+preprocessed datasets and trained models are open-sourced
+at: https://gitlab.com/Percipiote/
+2. Related Work
+Most recent pose forecasting approaches have special-
+ized into two categories:
+(1) Predicting a relative fu-
+ture pose, where the center of the person, normally
+its hip joints, stays at the same position over all the
+time [4, 10, 27, 31, 38, 41]. (2) Prediction of an absolute
+future pose that also contains global human motion or
+movement trajectories [1, 29, 34, 36].
+The mean per joint position error (MPJPE, Equation 1)
+is the most commonly used metric to compare different ap-
+proaches. It calculates the distance between each predicted
+joint position and the ground-truth position where it really
+is. Afterward, those distances are averaged across all joints
+and persons to obtain a single score. When considering a
+forecast with multiple timesteps, the MPJPE score is only
+calculated for the prediction of a specific timestep. MPJPE
+is usually measured in meters or millimeters, here millime-
+ters are used.
+MPJPEt =
+1
+joints
+joints
+X
+i=1
+v
+u
+u
+t
+3
+X
+k=1
+(gtt,i,k −predt,i,k)2
+(1)
+2.1. Relative Forecasting Approaches
+Most relative approaches build upon the source codes
+from [23, 24] and reuse their preprocessed datasets and
+evaluation metrics. The default dataset is Human3.6m [13],
+where 7 actors are performing 15 different actions. The
+actors are represented as skeletons with 32 joints in total,
+which in the case of the preprocessed dataset, are repre-
+sented as exponential maps, from which the 3D coordinates
+are computed. The dataset was captured at a frame rate of
+50Hz, but usually every second frame is skipped, and only
+25 future frames are predicted for the next second.
+Out of the 32 joints 22 joints are selected for training
+(see Figure 2), the others either contain the static hip joints
+or are duplicated joints. To calculate the resulting mean per
+joint position error (MPJPE), the 32 target joints are copied
+and the values of the 22 training joints are replaced with the
+model predictions. Then the mean error over all 32 joints
+is calculated. For each action 256 randomly sampled se-
+quences are used.
+The relative approaches investigated in this paper mostly
+use different network architectures. HisRepItself [38] is us-
+ing a motion-attention concept to attend to historical motion
+Figure 2. Example of a relative pose forecast of a walking person.
+The green skeletons visualize the input sequence of the prediction
+model, and the red ones the predicted future poses. Only the pre-
+dicted joints are visualized, therefore this person does not have a
+hip (it is fixed to the same spot).
+sub-sequences, which are then used by a graph convolution
+network to predict future poses. STSGCN [31] only uses a
+graph convolution network, which can separate between the
+space and time axis of the motions. SPGSN [19] splits the
+skeleton into separate parts and analyses both, parts and the
+complete skeleton model to extract features and predict fu-
+ture poses. PGBIG [20] uses a multi-stage graph network in
+which initial guesses are progressively improved until the fi-
+nal output. MotionMixer [4] relies solely on multi-layer per-
+ceptrons, which alternate between using spatial and tempo-
+ral channels as inputs. siMLPe [10] uses a similar, but much
+simpler architecture, which in its core has only alternating
+fully-connected and layer-norm layers. EqMotion [41] dis-
+tinguishes between geometric and pattern features and ad-
+ditionally creates an interaction graph for the inputs. The
+model is based on fully-connected layers and has multi-
+ple connections between the geometric and pattern layers.
+DePOSit [27] uses a diffusion model to simultaneously pre-
+dict future poses and de-noise them. In some of their exper-
+iments, the prediction was done in two steps with two mod-
+els, one for the short-term future as an intermediate step,
+and the second that uses the predictions from the first as in-
+put for the complete prediction. Its architecture was directly
+designed to handle noisy inputs as well. AuxFormer [40]
+uses a transformer-based architecture, which includes aux-
+iliary tasks in its training, to improve the forecasting perfor-
+mance. Instead of just forecasting future poses it also has
+network branches that shall repair artificially added noise
+and dropout errors. GMFNet [30] developed a two stage
+model with the idea to improve the focus of attention lay-
+2
+
+
+ers for better feature extraction. GCNext [37] improves the
+design of graph convolution layers to allow them to calcu-
+late features across space, time and channels (joints) simul-
+taneously. DeformMLP [12] uses a multi-layer perceptron
+architecture that splits inputs into non-overlapping blocks
+which are also mixed across space, time and channel di-
+mensions.
+2.2. Absolute Forecasting Approaches
+Later on, there have been attempts to calculate absolute pose
+motions instead of relative poses. For applications requir-
+ing the full human movement, this has the benefit, that the
+model outputs can be used directly and do not need to be
+combined with models that focus on forecasting only the
+general motion trajectory, like [8, 16]. An earlier approach
+for this is TRiPOD [1], which also has created a new bench-
+mark. For 3D joint predictions they use the 3D Poses in
+the wild (3DPW) dataset [35], which consists of 60 action
+sequences in a real world setting. Another dataset used for
+absolute pose forecasting is CMU-MoCap [11]. The actors
+have been captured by twelve cameras in a 3m x 8m room
+with a frame-rate of 120Hz. Usually this rate is reduced
+to 15 frames per second. In most scenes there is only one
+actor, but in some there is a second actor as well.
+SoMoFormer [34] was one of the earlier leading algo-
+rithms on both datasets and is also available open-source.
+The algorithm uses a transformer-based method, which
+uses a learned joint and person embedding to allow move-
+ment predictions for multiple persons at the same time.
+TBiFormer [26] splits the persons into sequences of body
+parts and then learns self- and inter-person relations us-
+ing those part features. JRTransformer [42] distinguishes
+between joint and relation features and has specialized
+layers for both with are regularly fused with each other.
+IAFormer [39] focuses on the interaction between persons
+and tries to learn person independent interaction features to
+improve especially multi-person forecasts. T2P [14] fol-
+lows a coarse-to-fine approach, by first forecasting global
+trajectories, followed by conditioned local pose forecasts.
+EMPMP [43] proposes a lightweight dual branch architec-
+ture to learn local and global motions together with cross-
+level interaction module to share information between the
+two branches.
+2.3. Artificial Noise
+Most of those approaches have focused on using ground-
+truth pose labels from the dataset, and only a few ap-
+proaches [5, 27] also added artificial errors. For several rea-
+sons, which are explained in more detail in section 9, such
+artificial errors differ from the pose estimation errors. No
+paper was found that evaluated the influence of noisy joint
+coordinates obtained from pose detectors, which therefore
+will be investigated later on.
+3. Reproducing Results
+Before comparing all models on the same dataset, the first
+question was: Can the results of the approaches described
+in their respective papers be reproduced? This should have
+been a short section with the answer yes, but in about every
+second approach some severe problems were encountered.
+Since the length of the paper is restricted, but the results are
+considered as too important to just leave them out, they can
+be found in the appendix.
+4. Converting relative to absolute Forecasters
+Forecasting absolute human poses can be important for a
+variety of applications such as motion planning, virtual re-
+ality or human-robot interaction. If a person moves around,
+their absolute position in the world can contain important
+information that is not captured by relative pose forecasts,
+and would require an additional trajectory prediction model.
+Instead of building a more complex two-model system
+that stacks trajectory and relative forecasting models, and
+then also their prediction errors, the idea here was to eval-
+uate if the already existing relative forecasting algorithms
+can be adapted to directly predict absolute poses as well.
+To use the relative algorithms with absolute poses, the
+input pipeline was exchanged. Instead of reusing the pre-
+processed data without global motion, which all approaches
+took from [23], the absolute poses were extracted directly
+from the Human3.6m dataset. To improve the training gen-
+eralization, the input and target pose sequences were moved
+to a central location by subtracting the mid-hip joint of the
+last input pose from all joint coordinates, which can easily
+be reverted back to global coordinates. The subtraction en-
+sures that the predictions are learned location independent,
+even though it might be interesting in some usecases to keep
+this information, for example, if movements only happen at
+certain locations.
+To improve the comparability, all models will be trained
+with the same number of input timesteps of two times
+the output timesteps (so 50 frames for Human3.6m), even
+though some models normally use a lower number of
+timesteps (10-16). All other parameters are kept at their
+default values as far as possible. For DePOSit the single-
+stage architecture without intermediate timesteps is used,
+similar to its original experiments with larger datasets, to
+significantly speed up training and inference (about 2×).
+GMFNet and DeformMLP had the 22 joints of the old
+dataset deeply integrated into their architecture, so to match
+their joint number, the 13 main joints are padded to 22. For
+the MPJPE calculation those padded joints were removed
+again from the prediction. DeformMLP uses 10 input steps
+by default, testing it with 50 input steps greatly increased
+the model size and the training diverged on every try, so the
+original input size is kept here.
+3
+
+
+5. Additional real-time Metrics
+Forecasting is a real-time only task, therefore the runtime
+speed of the algorithm is of high importance. For exam-
+ple, it does not make sense to use a very large model that
+takes more than a second to predict the next second of hu-
+man motion, because in this case one could just use the real
+measurements instead. To take this into account, two new
+metrics are introduced.
+The forecast after delay error (FADE, Equation 2) fo-
+cuses on the average performance and has the general idea,
+that if the prediction takes some amount of time, the forecast
+needs to be longer by the same amount of time. Because it
+would be too complicated to always change the output se-
+quence length of each model accordingly, it will be approx-
+imated by a simpler approach that assumes a linear increase
+of the error with the time.
+FADEt = MPJPEt + MPJPEt · 1000 ms
+t
+·
+1
+FPS
+(2)
+The fast change error (FCE, Equation 3) targets move-
+ment/direction changes, which are especially important for
+future motion planning. For example, if a person is standing
+still for the whole model-input-time, the forecast will likely
+predict it will continue to stand still. But if the person sud-
+denly starts to walk, the current forecast will be completely
+wrong, therefore the system needs to make a new forecast
+as soon as possible. The FCE estimates the movement a
+person can do until a new forecast is available, using the
+human limb movement speed defined in ISO 13855.
+FCE = 2000 mm ·
+1
+FPS
+(3)
+Note that in real applications, the image-to-pose predic-
+tion model will also take a notable amount of time, which is
+not included in those metrics here, because it is independent
+of the pose forecasting model itself.
+6. Experiments I
+For the first comparison the Human3.6m [13] dataset is
+used, with 50 input and 25 output timesteps, resulting
+in 1s of motion forecast. The models are trained on only
+13 joints (2 hips, 2 shoulders, 1 nose, 2 knees, 2 ankles,
+2 elbows, 2 wrists) to simplify usage with other datasets that
+have fewer ground-truth joint labels. The MPJPE is calcu-
+lated action-agnostic by averaging over all dataset samples.
+As can be seen in Table 1, most models can predict ab-
+solute motion forecasts fairly well. A new static approach
+was added for comparison as well, last delta average re-
+peats the average of the last input pose delta, so all joints
+keep moving in the direction of the last general movement
+(the average delta was used to ensure that the human shape
+is kept over the time). And as classic method baseline a
+simple Ridge Regressor was trained.
+Method
+Size
+MPJPE
+FPS
+FCE
+FADE
+Repeat last frame
+-
+301
+-
+-
+301
+Last delta average
+-
+264
+-
+-
+264
+Ridge Regression
+-
+216
+-
+-
+185
+TBiFormer
+’2023
+5.64M
+301
+293
+7
+302
+PGBIG
+’2022
+2.65M
+279
+35
+57
+287
+GMFnet
+’2024
+11.3M
+279
+51
+39
+284
+SPGSN
+’2022
+5.21M
+262
+19
+105
+276
+STSGCN
+’2021
+202K
+275
+1405
+1
+275
+HisRepItself
+’2020
+2.93M
+233
+142
+14
+235
+DePOSit
+’2023
+1.17M
+197
+6
+333
+230
+GCNext
+’2024
+4.95M
+175
+38
+53
+180
+siMLPe
+’2022
+129K
+178
+158
+13
+179
+SoMoFormer ’2022
+4.88M
+179
+586
+3
+179
+MotionMixer ’2022
+37.2K
+168
+632
+3
+168
+IAFormer
+’2024
+2.53M
+158
+28
+71
+164
+AuxFormer
+’2023
+1.27M
+164
+403
+5
+164
+JRTransformer’2023
+3.74M
+162
+595
+3
+162
+DeformMLP
+’2024
+1.29M
+159
+512
+4
+159
+EMPMP
+’2025
+314K
+150
+215
+9
+151
+EqMotion
+’2023
+3.36M
+148
+45
+44
+151
+Table 1. Comparison of absolute pose forecasting on Human3.6m.
+MPJPE and FADE are measured at timestep 1000 ms. FPS is
+tested on a computer with AMD-9900X and a single Nvidia-
+RTX4080. A batch-size of 1 was used for testing. Note that the
+size and speed of some models depends on the number of input
+and output timesteps (here: 50 in, 25 out).
+An interesting finding that can be seen here is that most
+models using graph neural networks (HisRepItself, STS-
+GCN, SPGSN, PGBIG, GMFnet) show lower performance
+in this setting than the others using a different network
+structure. It seems their task optimized architectures do not
+handle the task switching too well. The results also show
+though, that the general idea of switching the task of the
+relative models was successful, because some of those mod-
+els could outperform the absolute pose algorithms of SoMo-
+Former, JRTransformer and EMPMP.
+7. Scriboora
+The results in Table 1 showed that models with rather di-
+verse architectures can achieve rather similar results, and
+also that task switching is not a problem for some models.
+The idea behind Scriboora is the question: Can speech-to-
+text models be retasked as well? From a high level per-
+spective, both tasks are similar, a sequence of input num-
+bers is transformed into a sequence of output numbers, just
+that the input and output are characters or words, not joint
+coordinates. And for a good data transformation, the model
+should be able to learn the general idea of the observed data,
+either the meaning of sentences, or the movement concept
+(like walking of waiving) of a motion sequence. For the
+experiments with different speech-to-text models (Deep-
+Speech [25], QuartzNet [17], Conformer [9], Squeeze-
+former [15]), the implementations from Scribosermo [2]
+were used, and its data pipeline was adapted to load mo-
+tions instead of audio sequences.
+4
+
+
+7.1. Network changes
+The main changes needed were to adapt the input pipeline,
+that motion instead of audio data could be loaded.
+The
+models itself only required minor changes. The hidden di-
+mensions and filter shapes were adjusted to keep the layer
+and model sizes in balance. All BatchNorm layers were re-
+moved, because they resulted in poor training results. For
+Conformer and Squeezeformer the initial subsampling lay-
+ers were updated to only do a 2× time downsampling (in-
+stead of 4×) to match the required output sequence length.
+7.2. Performance results
+Method
+Size
+MPJPE
+FPS
+FCE
+FADE
+DeepSpeech
+’2014
+2.35M
+198
+653
+3
+198
+QuartzNet
+’2020
+3.17M
+168
+1300
+2
+168
+Squeezeformer’2022
+3.31M
+149
+960
+2
+149
+Conformer
+’2020
+3.22M
+147
+1049
+2
+147
+Table 2. Results of converted speech models on Human3.6m.
+As can be seen in Table 2, the results of the converted
+speech models (except for the LSTM-based DeepSpeech)
+are surprisingly good and can compete with the best fore-
+casting models. Due to their relatively generalistic architec-
+ture, with a mixture of convolution, linear and attention lay-
+ers (except for the convolution-only QuartzNet), the models
+seem to be able to adapt well to different tasks.
+7.3. Improvements & Ablations
+As can be seen in Table 2 as well, most models are very
+fast, so this leaves room to increase the size of future mod-
+els further. With that in mind, the Conformer model was
+further improved by increasing the layer dimensions. As
+another change, because the motion sequence length is no-
+tably shorter than the audio sequence length, the time re-
+duction at the start of the model is moved to the end of the
+model, so that information is kept longer in the model. The
+resulting model is called MotionConformer in the follow-
+ing. And even though it is the second-largest model of all,
+the training time of only 1h on the Nvidia-RTX4080 is on
+the lower end of the compared architectures. As can be seen
+in Table 3, it achieves the best results of all tested models,
+with a very high inference speed as well.
+Method
+Size
+MPJPE
+FPS
+FCE
+FADE
+Conformer
+3.22M
+147
+1049
+2
+147
+moved time reduction
+3.59M
+146
+965
+2
+146
+increased model size
+9.23M
+143
+929
+2
+143
+MotionConformer
+9.23M
+143
+929
+2
+143
+no spec augmentation
+144
+Table 3. Implemented improvements and ablations of MotionCon-
+former, tested on Human3.6m.
+Besides the finding that the speech models also general-
+ize well to motion forecasting, some of their augmentation
+strategies also can be useful for the forecasting task. Nor-
+mally only rotation and scaling of poses are implemented,
+but the SpecAugs from the speech models slightly improve
+the results as well. Their idea is to randomly mask larger
+continuous parts of the input sequence, either on the time or
+channel axis. So the model has to learn to handle input data
+with missing timesteps or missing joints, which slightly im-
+proves the robustness of the model.
+8. Experiments II
+Because there is a large performance gap between the mod-
+els, and training all would be too time-consuming, only
+some of the best architectures are selected in the following
+experiments.
+8.1. Single-person forecasts
+To evaluate the performance on a different dataset as well,
+the CMU-MoCap [11] dataset was selected. The labels were
+extracted from the original dataset again, and are different
+to the ones used in MRT, SoMoFormer, JRTransformer and
+EMPMP. The processing script of MRT adds a randomly
+chosen global position offset, and also combines single ac-
+tor sequences with other sequences to get sequences con-
+taining three actors, which are then cut to fixed sized 4s
+sub-sequences. Since for this experiment only single-actor
+sequences are evaluated, sequences with two actors are split
+into two. The performance of the models trained and tested
+on CMU-MoCap can be found in Table 4. The relative per-
+formance between the models is similar to the one on Hu-
+man3.6m, with MotionConformer in lead again.
+Method
+Size
+MPJPE
+400 / 1000
+FPS
+FADE
+400 / 1000
+Repeat last frame
+-
+201 / 408
+-
+201 / 408
+Last delta average
+-
+167 / 398
+-
+167 / 398
+Ridge Regression
+-
+130 / 296
+-
+130 / 296
+JRTransformer
+3.79M
+99.0 / 245
+610
+99.4 / 245
+DeformMLP
+1.29M
+98.3 / 242
+462
+98.8 / 243
+EqMotion
+3.37M
+90.6 / 217
+41
+96.1 / 222
+EMPMP
+447K
+93.1 / 216
+213
+94.2 / 217
+MotionConformer
+9.23M
+88.6 / 201
+909
+88.8 / 201
+Table 4. Comparison of single person forecasting on CMU-MoCap
+dataset. The models were trained to predict a maximum time-
+range of 1000ms.
+The second experiment in Table 5 evaluates the models
+on a longer time-range of 3000 ms. Especially for systems
+with longer reaction times, like robots or cars, longer fore-
+casts can help to plan their actions better. Here a larger gap
+between the models can be observed. Specifically at the
+longer time-range, DeformMLP also seems to suffer from
+the too short 10 possible input timesteps, whereas the other
+models could predict the motion from 180 input frames.
+5
+
+
+Method
+Size
+MPJPE
+1000/2000/3000
+FPS
+FADE
+1000/2000/3000
+Repeat last frame
+-
+356 / 562 / 706
+-
+356 / 562 / 706
+Last delta average
+-
+373 / 773 / 1198
+-
+373 / 773 / 1198
+Ridge Regression
+-
+276 / 507 / 692
+-
+276 / 507 / 692
+DeformMLP
+1.29M
+241 / 454 / 656
+226
+242 / 455 / 657
+JRTransformer
+4.38M
+255 / 446 / 602
+562
+255 / 446 / 602
+EMPMP
+3.91M
+233 / 385 / 489
+201
+234 / 386 / 490
+EqMotion
+3.42M
+218 / 354 / 469
+13
+235 / 368 / 481
+MotionConformer
+9.23M
+211 / 351 / 462
+777
+211 / 351 / 462
+Table 5. Comparison of single person forecasting on CMU-MoCap
+dataset. The models were trained to predict a maximum time-
+range of 3000ms. Again, twice the output duration was used as
+input duration. The reason for the difference of repeat last frame
+method at timestep 1000ms to the table before is the windowing
+of the dataset. Here, the window is much larger, resulting in fewer
+samples, because the windows start later and end earlier.
+8.2. Multi-person forecasts
+The main focus of this work is forecasting the movements
+of single persons. In many applications, like human robot
+interactions, there is only one main actor, or the persons are
+unrelated to others. In such cases, the forecasts can be run
+independently per person. But in some cases the persons
+can interact closely and influence each other’s movements.
+Therefore, the following small experiment is intended to
+show the support for multi-person inputs.
+In the previous works of JRTransformer [42], and
+EMPMP [43] the multi-person dataset CMU-MoCap fol-
+lowed the preprocessing of MRT [36], including the scale
+problems, and partially missing preprocessing source-codes
+already explained in more detail in the section about the re-
+sult reproductions. Besides that, the multi-person interac-
+tions are partially synthetic, because the dataset combines
+different sequences to three person sequences, as mentioned
+earlier as well. Therefore, the CHi3D [6] is used instead for
+the experiment. It shows two persons interacting closely
+with each other, and has a recording setup very similar to
+the one of the Human3.6m dataset, using four cameras in
+the room edges.
+The results in the upper part of Table 6 show that the
+single-person models of EqMotion and MotionConformer
+can successfully be extended to multi-person forecasts.
+Technically the model inputs just need to be extended to
+26 instead of the original 13 joints. The general idea behind
+this simple approach is, that if the model can learn some
+connection between arm and leg movements of one person
+from input coordinates, it should be able to learn some con-
+nection between two hands of different persons as well. In
+the paper of IAFormer [39] this dataset was already used
+as well, and a MPJPE of 218 mm, and 233 mm for TBi-
+Former were reported. The results could not be replicated
+though, for unknown reasons there was no notably learn-
+ing progress, but the MotionConformer model outperforms
+their original results anyway.
+Method
+Size
+MPJPE
+FPS
+FCE
+FADE
+Repeat last frame
+-
+272
+-
+-
+272
+Last delta average
+-
+318
+-
+-
+318
+Ridge Regression
+-
+277
+-
+-
+277
+EqMotion
+3.37M
+234
+16
+125
+249
+EMPMP
+314K
+227
+209
+10
+228
+MotionConformer
+10.2M
+207
+853
+2
+207
+MC (chi3d+h36m)
+10.2M
+191
+853
+2
+191
+Table 6.
+Forecasting close interactions on CHi3D, errors at
+timestep 1000 ms.
+Since the dataset is very small (the trainset only has
+around 0:13h of movements), especially the larger models
+suffer a bit from the data sparsity. Besides the iterative fine-
+tuning on live data, which will be explored in more detail in
+the next section, one also could enhance the training dataset
+with synthetically created pair motions, or by adding simi-
+lar single person motions to it. In a short experiment, which
+added the Human3.6m dataset to the training sequences, the
+results of the MotionConformer in the lower part of Table 6
+notably improved. This also shows transfer capabilities of
+the model from single to multi-person motions.
+8.3. Further suggestions
+As a last note in this section, as a suggestion for future work,
+it should be beneficial to also add positions of objects and
+obstacles into the model inputs. The current forecasting
+dataset are normally object and obstacle free, but in real-
+istic environments that seldom is the case. Often humans
+interact with objects as well, like in a soccer game in which
+the ball will notably guide the future movement direction,
+or try to avoid obstacles, like in buildings with doors, be-
+cause normally walls are only seen as a good passage by
+certain English magicians.
+But this is out of scope for this work, and will be left
+for future research. Instead, the next section will focus on
+another problematic aspect that will occur in most real use-
+cases.
+9. Noisy Coordinates
+While recent advances in deep learning have led to signif-
+icant improvements in future pose estimation accuracy, the
+use of noisy joint coordinates obtained from pose detectors
+can introduce additional uncertainty in the estimation pro-
+cess, which was not evaluated before.
+9.1. Previous Approaches
+With [5] and [27] there already were two works that inves-
+tigated the impact of artificially generated noise. Both of
+them randomly dropped some of the joints and also added
+Gaussian noise to the joint positions. Only DePOSit [27]
+open-sourced their code for further usage. Dropping ran-
+dom joints is a type of noise that normally does not oc-
+cur in marker-less settings, because most pose estimators
+6
+
+
+always attempt to estimate joints that are not visible, with-
+out explicitly marking those estimated joints (which would
+allow dropping them afterward). Regarding the Gaussian
+noise, across multiple frames (as in the model inputs) ran-
+dom noise averages around the real location, while pose
+estimators rather have more structural errors (like forearm
+too short in all frames) in which the noise doesn’t follow a
+Gaussian distribution. Therefore, this work will investigate
+a more realistic type of error, namely the one caused by a
+preceding pose estimation network.
+9.2. New Dataset
+To simplify the comparison between the performance with
+and without such noisy joint labels, a dataset is needed
+which also contains ground-truth labels. The authors of [28]
+already have created a pose forecasting dataset with pre-
+dicted joint labels (using VoxelPose [33]), but it has no
+ground-truth labels and more importantly contains almost
+no global movements of the persons, since it was created for
+the use with a relative forecaster. The human workers are
+normally standing at a fixed position in front of a robot and
+mostly only move their arms. Therefore a new variant of the
+Human3.6m dataset is generated. The joints are predicted
+by a state-of-the-art multi-view multi-person model, namely
+RapidPoseTriangulation [3]. It achieves a fairly well zero-
+shot performance on the unknown Human3.6m dataset of
+52mm MPJPE. In the very rare case that the person was not
+detected, or only with a score below a threshold (of 0.1 in a
+range from 0-1), the joints of this frame were replaced with
+the joints of a valid frame before. In case multiple persons
+were detected, the one with the best score was kept. The
+pose prediction was very fast, with an average of 160 FPS
+on a single Nvidia-RTX4080 GPU. For comparability with
+the initial experiments, the input of the forecasting model
+will be 25 frames for 1000ms again.
+9.3. Noise Experiments
+To keep the evaluation as close to real usecases as possible,
+the models are pre-trained with a collection of some other
+datasets first (here CMU-MoCap [11] and BMLmovi [7],
+BMLrub [32], KIT [22] from the AMASS [21] collection,
+which together relate to around 11:30h of motions). The 13
+joints from before are used again, but in the case of CMU-
+MoCap the nose is replaced with the upper-head joint po-
+sition since no nose joint exists in this dataset. The origi-
+nal frame-rates of those datasets are 120fps or 30fps, but
+to match the target dataset, forecast is done with 25 steps.
+Even though the motions are slightly slower this way, the
+model should still be able to learn the general motions.
+One very important requirement for machine learning
+models is their generalization performance. In Table 7 can
+be seen, that the performance on the unknown Human3.6m
+dataset is quite close to the result from the last section (Ta-
+bles 1, 3) where this dataset was used for training too. In
+conclusion, the model shows a good generalization capabil-
+ity to the new dataset.
+Method
+MPJPE
+40 / 400 / 1000
+EMPMP
+4.3 / 59.7 / 165
+EqMotion
+4.0 / 52.0 / 156
+MotionConformer
+4.0 / 51.6 / 149
+Table 7. Zero-shot transfer capabilities from a large mixture of
+datasets to Human3.6m, at the given timesteps in milliseconds.
+Table 8 shows a strong negative influence of skeleton
+joints generated by the 3D-pose-estimation network on the
+model performance. While the left half of the table inves-
+tigates the drop in performance just by the noisy joints, the
+right half has an even worse performance because it eval-
+uates the error regarding the ground-truth targets, and now
+also includes the error caused by the prior pose estimator
+(here on average 52 mm at time zero). This would be the
+real error of the prediction, while the left one would be the
+only one that can be measured in a system that uses pre-
+dicted poses as inputs.
+Method
+400 / 1000
+400 / 1000
+EqMotion
+513 / 842
+532 / 856
+EMPMP
+100 / 215
+123 / 229
+MotionConformer
+94.2 / 214
+118 / 228
+Table 8.
+Influence of skeleton joints generated by a 3D-pose-
+estimation network on model performance, measured as MPJPE in
+millimeters at the given timesteps in milliseconds. The left section
+uses the network predictions as inputs and targets (which would
+be the measurable error in live systems), and the right one the pre-
+dictions for input and ground-truth labels as targets (which would
+be the real error).
+Even though adding artificial Gaussian noise to the joint
+coordinates does not match the errors from a pose estima-
+tion system, it still can be used to prepare the forecasting
+network for such type of input. Finetuning the networks
+with random noise (std: 25mm, clip at 125mm) notably
+improves the zero-shot performance for longer (1000ms)
+predictions, as can be seen in Table 9.
+The training of
+EqMotion always diverged mid-training, so no results are
+available for this model here. As a side note, further experi-
+ments with the other two models showed, that in both cases,
+the performance on the clean groundtruth dataset slightly
+dropped after adding noise, but this is expectable because
+of the then lower train-test similarity.
+7
+
+
+Method
+400 / 1000
+400 / 1000
+EMPMP
+82.5 / 188
+108 / 204
+MotionConformer
+82.4 / 185
+106 / 199
+Table 9. Improvements through artificial noise pre-training. The
+left/right columns are separated into prediction/groundtruth tar-
+gets, as in Table 8, showing the measurable/real error.
+In the upper part of Table 10, the model is finetuned on
+the new dataset variant. This simulates that the system is al-
+ready running and collected some movement observations
+(the trainset has around 1:55h), and can now be optimized
+with those observations to the current environment. Since
+the system shall only use a camera-based pose estimation
+approach, the network is finetuned on the noisy pose predic-
+tions instead of using the ground-truth labels. As expected,
+the performance greatly improved in the left part of the ta-
+ble, which only uses predicted poses. The performance re-
+garding the ground-truth positions also improved, but not
+as much as with the predicted poses. An example motion
+that shows the improvements through finetuning on the new
+noisy labels can be seen in Figure 3.
+Method
+400 / 1000
+400 / 1000
+MotionConformer
+66.9 / 159
+94.8 / 177
+EMPMP
+76.4 / 179
+104 / 195
+EqMotion
+68.5 / 168
+96.1 / 185
+MotionConformer
+69.1 / 165
+98.3 / 183
+Table 10. Improvements through unsupervised learning. Finetun-
+ing the pre-trained model from Table 9 on noisy predictions in the
+upper part, training all models from scratch in the lower part. The
+left/right columns are separated the same as in Table 8
+Because in the other two approaches no finetuning im-
+plementation was provided, and the pre-training of EqMo-
+tion diverged anyway, another experiment in which all mod-
+els were trained from scratch on the noisy dataset variant
+was conducted (lower part of Table 10). The comparison
+between the two MotionConformer results shows, that pre-
+training on a large dataset is beneficial, but the performance
+increase is not huge. The finetuning converged much faster
+though, and from a practical point of view, a pre-trained
+model is required for the initial system setup anyway. In
+terms of MPJPE the results of EqMotion and MotionCon-
+former are very similar, but taking the runtime-speed into
+account as well (as in Table 1 and 3) increases the perfor-
+mance advantage of MotionConformer again.
+(a) Zero-Shot
+(b) Finetuned
+Figure 3. Example of improvements through finetuning on Hu-
+man3.6m dataset. In blue the ground-truth, in orange the predic-
+tion. The walking movement was already well continued in (a),
+but especially the stride distances improved after finetuning. For
+better visualization some intermediate timesteps are not displayed.
+10. Conclusion
+Human pose forecasting was re-examined with a focus on
+reliable evaluation and deployment realism. The replica-
+tion attempts of recent model trainings uncovered several
+issues in prior evaluation code and preprocessing. By re-
+evaluation them on a unified dataset and task, a more accu-
+rate comparison of their performance was achieved, which
+can serve as a stable reference for future work.
+By viewing forecasting from a high-level viewpoint as
+sequence-to-sequence modeling, similar targeted speech
+recognition architectures were transferred to solve a new
+task.
+The adapted Conformer and the further optimized
+MotionConformer achieved new state-of-the-art accuracy
+while maintaining real-time throughput.
+To assess the deployment performance, first, two new
+metrics FADE and FCE were introduced, which also take
+the real-time nature of forecasting task into account. And
+second, the robustness of the models against realistic in-
+put noise was evaluated. Those experiments revealed that
+a significant performance drop will occur in real-world ap-
+plications if the models are trained and tested only on clean
+motion capture data. However, it was also shown, that this
+performance drop can be mitigated by unsupervised finetun-
+ing on the noisy input data, which can be easily collected in
+a running system.
+Overall, the results suggest, that rethinking the approach
+to human pose forecasting proved effective. Following a
+more holistic view of the task, from model architecture to
+evaluation and deployment, can lead to more robust and
+practical solutions. Improving the reproducibility, and eval-
+uating models under more realistic conditions, should be-
+come a standard practice for future research in this area. To
+support this, all code and datasets created in this work will
+be made publicly available.
+8
+
+
+References
+[1] Vida Adeli,
+Mahsa Ehsanpour,
+Ian Reid,
+Juan Car-
+los Niebles, Silvio Savarese, Ehsan Adeli, and Hamid
+Rezatofighi. Tripod: Human trajectory and pose dynamics
+forecasting in the wild. In Proceedings of the IEEE/CVF In-
+ternational Conference on Computer Vision, pages 13390–
+13400, 2021. 2, 3, 11
+[2] Daniel Bermuth, Alexander Poeppel, and Wolfgang Reif.
+Scribosermo: Fast Speech-to-Text models for German and
+other Languages. arXiv preprint arXiv:2110.07982, 2021. 4
+[3] Daniel Bermuth, Alexander Poeppel, and Wolfgang Reif.
+RapidPoseTriangulation: Multi-view Multi-person Whole-
+body Human Pose Triangulation in a Millisecond.
+arXiv
+preprint arXiv:2503.21692, 2025. 7
+[4] Arij Bouazizi, Adrian Holzbock, Ulrich Kressel, Klaus Di-
+etmayer, and Vasileios Belagiannis.
+MotionMixer: MLP-
+based 3D Human Body Pose Forecasting. In Proceedings of
+the Thirty-First International Joint Conference on Artificial
+Intelligence, IJCAI-22, pages 791–798. International Joint
+Conferences on Artificial Intelligence Organization, 2022. 2,
+11
+[5] Qiongjie Cui and Huaijiang Sun. Towards accurate 3d hu-
+man motion prediction from incomplete observations.
+In
+Proceedings of the IEEE/CVF Conference on Computer Vi-
+sion and Pattern Recognition, pages 4801–4810, 2021. 3,
+6
+[6] Mihai Fieraru, Mihai Zanfir, Elisabeta Oneata, Alin-Ionut
+Popa, Vlad Olaru, and Cristian Sminchisescu.
+Three-
+dimensional reconstruction of human interactions. In Pro-
+ceedings of the IEEE/CVF Conference on Computer Vision
+and Pattern Recognition, pages 7214–7223, 2020. 6
+[7] Saeed Ghorbani, Kimia Mahdaviani, Anne Thaler, Konrad
+Kording, Douglas James Cook, Gunnar Blohm, and Niko-
+laus F Troje. MoVi: A large multi-purpose human motion
+and video dataset. Plos one, 16(6):e0253157, 2021. 7
+[8] Francesco Giuliari, Irtiza Hasan, Marco Cristani, and Fabio
+Galasso. Transformer networks for trajectory forecasting. In
+2020 25th international conference on pattern recognition
+(ICPR), pages 10335–10342. IEEE, 2021. 3
+[9] Anmol Gulati, James Qin, Chung-Cheng Chiu, Niki Par-
+mar, Yu Zhang, Jiahui Yu, Wei Han, Shibo Wang, Zheng-
+dong Zhang, Yonghui Wu, et al. Conformer: Convolution-
+augmented transformer for speech recognition.
+arXiv
+preprint arXiv:2005.08100, 2020. 4
+[10] Wen Guo, Yuming Du, Xi Shen, Vincent Lepetit, Alameda-
+Pineda Xavier, and Moreno-Noguer Francesc. Back to MLP:
+A Simple Baseline for Human Motion Prediction.
+arXiv
+preprint arXiv:2207.01567, 2022. 2, 11
+[11] Carnegie Mellon University:
+http://mocap.cs.cmu.edu/.
+CMU Graphics Lab Motion Capture Database. 3, 5, 7
+[12] Haitao Huang, Chi-Man Pun, Haolun Li, Mengqi Liu, Jian
+Xiong, and Hao Gao. DeformMLP: dynamic large-scale re-
+ceptive field MLP networks for human motion prediction.
+In ICASSP 2024-2024 IEEE International Conference on
+Acoustics, Speech and Signal Processing (ICASSP), pages
+5200–5204. IEEE, 2024. 3, 11
+[13] Catalin Ionescu, Dragos Papava, Vlad Olaru, and Cristian
+Sminchisescu. Human3.6M: Large Scale Datasets and Pre-
+dictive Methods for 3D Human Sensing in Natural Environ-
+ments. IEEE Transactions on Pattern Analysis and Machine
+Intelligence, 36(7):1325–1339, 2014. 2, 4
+[14] Jaewoo Jeong, Daehee Park, and Kuk-Jin Yoon. Multi-agent
+long-term 3d human pose forecasting via interaction-aware
+trajectory conditioning.
+In Proceedings of the IEEE/CVF
+Conference on Computer Vision and Pattern Recognition,
+pages 1617–1628, 2024. 3, 11
+[15] Sehoon Kim, Amir Gholami, Albert Shaw, Nicholas Lee,
+Karttikeya Mangalam, Jitendra Malik, Michael W Mahoney,
+and Kurt Keutzer. Squeezeformer: An efficient transformer
+for automatic speech recognition. Advances in Neural Infor-
+mation Processing Systems, 35:9361–9373, 2022. 4
+[16] Parth Kothari, Sven Kreiss, and Alexandre Alahi. Human
+trajectory forecasting in crowds: A deep learning perspec-
+tive. IEEE Transactions on Intelligent Transportation Sys-
+tems, 23(7):7386–7400, 2021. 3
+[17] Samuel Kriman, Stanislav Beliaev, Boris Ginsburg, Joce-
+lyn Huang, Oleksii Kuchaiev, Vitaly Lavrukhin, Ryan Leary,
+Jason Li, and Yang Zhang.
+Quartznet: Deep automatic
+speech recognition with 1d time-channel separable convolu-
+tions. In ICASSP 2020-2020 IEEE International Conference
+on Acoustics, Speech and Signal Processing (ICASSP), pages
+6124–6128. IEEE, 2020. 4
+[18] Jinkai Li, Jinghua Wang, Xin Wang, Liang Yan, and Yong
+Xu.
+Component-wise self-correction network for human
+motion prediction.
+In ICASSP 2025-2025 IEEE Interna-
+tional Conference on Acoustics, Speech and Signal Process-
+ing (ICASSP), pages 1–5. IEEE, 2025. 11
+[19] Maosen Li, Siheng Chen, Zijing Zhang, Lingxi Xie, Qi Tian,
+and Ya Zhang. Skeleton-parted graph scattering networks
+for 3d human motion prediction. In European Conference
+on Computer Vision, pages 18–36. Springer, 2022. 2, 11
+[20] Tiezheng Ma, Yongwei Nie, Chengjiang Long, Qing Zhang,
+and Guiqing Li.
+Progressively generating better initial
+guesses towards next stages for high-quality human motion
+prediction.
+In Proceedings of the IEEE/CVF Conference
+on Computer Vision and Pattern Recognition, pages 6437–
+6446, 2022. 2, 11
+[21] Naureen Mahmood, Nima Ghorbani, Nikolaus F. Troje, Ger-
+ard Pons-Moll, and Michael J. Black. AMASS: Archive of
+Motion Capture as Surface Shapes. In The IEEE Interna-
+tional Conference on Computer Vision (ICCV), 2019. 7
+[22] C. Mandery, ¨O. Terlemez, M. Do, N. Vahrenkamp, and
+T. Asfour. The KIT whole-body human motion database.
+In 2015 International Conference on Advanced Robotics
+(ICAR), pages 329–336, 2015. 7
+[23] Julieta Martinez, Michael J Black, and Javier Romero. On
+human motion prediction using recurrent neural networks. In
+Proceedings of the IEEE conference on computer vision and
+pattern recognition, pages 2891–2900, 2017. 2, 3, 11
+[24] Julieta Martinez, Rayat Hossain, Javier Romero, and James J
+Little. A simple yet effective baseline for 3d human pose esti-
+mation. In Proceedings of the IEEE international conference
+on computer vision, pages 2640–2649, 2017. 2
+9
+
+
+[25] Mozilla. Project DeepSpeech, 2021. [accessed 26-February-
+2021]. 4
+[26] Xiaogang Peng, Siyuan Mao, and Zizhao Wu. Trajectory-
+aware body interaction transformer for multi-person pose
+forecasting.
+In Proceedings of the IEEE/CVF conference
+on computer vision and pattern recognition, pages 17121–
+17130, 2023. 3, 11
+[27] Saeed Saadatnejad, Ali Rasekh, Mohammadreza Mofayezi,
+Yasamin Medghalchi, Sara Rajabzadeh, Taylor Mordan, and
+Alexandre Alahi.
+A generic diffusion-based approach for
+3D human pose prediction in the wild. In 2023 IEEE In-
+ternational Conference on Robotics and Automation (ICRA),
+pages 8246–8253. IEEE, 2023. 2, 3, 6, 11
+[28] Alessio Sampieri, Guido Maria D’Amely di Melendugno,
+Andrea Avogaro, Federico Cunico, Francesco Setti, Geri Sk-
+enderi, Marco Cristani, and Fabio Galasso. Pose forecasting
+in industrial human-robot collaboration. In European Con-
+ference on Computer Vision, pages 51–69. Springer, 2022.
+7
+[29] Yonatan Shafir, Guy Tevet, Roy Kapon, and Amit H
+Bermano.
+Human motion diffusion as a generative prior.
+arXiv preprint arXiv:2303.01418, 2023. 2
+[30] Junyu Shi, Jianqi Zhong, Zhiquan He, and Wenming Cao.
+Gradient multi-foci networks for 3D skeleton-based human
+motion prediction. Neural Computing and Applications, 36
+(24):14627–14642, 2024. 2, 11
+[31] Theodoros Sofianos, Alessio Sampieri, Luca Franco, and
+Fabio Galasso. Space-Time-Separable Graph Convolutional
+Network for Pose Forecasting, 2021. 2, 11
+[32] Nikolaus F. Troje.
+Decomposing Biological Motion: A
+Framework for Analysis and Synthesis of Human Gait Pat-
+terns. Journal of Vision, 2(5):2–2, 2002. 7
+[33] Hanyue Tu, Chunyu Wang, and Wenjun Zeng. Voxelpose:
+Towards multi-camera 3d human pose estimation in wild en-
+vironment.
+In Computer Vision–ECCV 2020: 16th Euro-
+pean Conference, Glasgow, UK, August 23–28, 2020, Pro-
+ceedings, Part I 16, pages 197–212. Springer, 2020. 7
+[34] Edward Vendrow, Satyajit Kumar, Ehsan Adeli, and Hamid
+Rezatofighi. SoMoFormer: Multi-Person Pose Forecasting
+with Transformers. arXiv preprint arXiv:2208.14023, 2022.
+2, 3
+[35] Timo Von Marcard, Roberto Henschel, Michael J Black,
+Bodo Rosenhahn, and Gerard Pons-Moll.
+Recovering ac-
+curate 3d human pose in the wild using imus and a moving
+camera. In Proceedings of the European conference on com-
+puter vision (ECCV), pages 601–617, 2018. 3
+[36] Jiashun Wang, Huazhe Xu, Medhini Narasimhan, and Xiao-
+long Wang. Multi-person 3D motion prediction with multi-
+range transformers. Advances in Neural Information Pro-
+cessing Systems, 34:6036–6049, 2021. 2, 6, 11
+[37] Xinshun Wang, Qiongjie Cui, Chen Chen, and Mengyuan
+Liu. Gcnext: Towards the unity of graph convolutions for
+human motion prediction. In Proceedings of the AAAI Con-
+ference on Artificial Intelligence, pages 5642–5650, 2024. 3,
+11
+[38] Mao Wei, Liu Miaomiao, and Salzemann Mathieu. History
+Repeats Itself: Human Motion Prediction via Motion Atten-
+tion. In ECCV, 2020. 2, 11
+[39] Peng Xiao, Yi Xie, Xuemiao Xu, Weihong Chen, and
+Huaidong Zhang. Multi-person Pose Forecasting with In-
+dividual Interaction Perceptron and Prior Learning. In Eu-
+ropean Conference on Computer Vision, pages 402–419.
+Springer, 2024. 3, 6, 11
+[40] Chenxin Xu, Robby T Tan, Yuhong Tan, Siheng Chen, Xin-
+chao Wang, and Yanfeng Wang. Auxiliary tasks benefit 3d
+skeleton-based human motion prediction. In Proceedings of
+the IEEE/CVF international conference on computer vision,
+pages 9509–9520, 2023. 2, 11
+[41] Chenxin Xu, Robby T Tan, Yuhong Tan, Siheng Chen,
+Yu Guang Wang, Xinchao Wang, and Yanfeng Wang. EqMo-
+tion: Equivariant Multi-agent Motion Prediction with Invari-
+ant Interaction Reasoning. In Proceedings of the IEEE/CVF
+Conference on Computer Vision and Pattern Recognition,
+pages 1410–1420, 2023. 2, 11
+[42] Qingyao Xu, Weibo Mao, Jingze Gong, Chenxin Xu, Si-
+heng Chen, Weidi Xie, Ya Zhang, and Yanfeng Wang. Joint-
+relation transformer for multi-person motion prediction. In
+Proceedings of the IEEE/CVF International Conference on
+Computer Vision, pages 9816–9826, 2023. 3, 6, 11
+[43] Yuanhong Zheng, Ruixuan Yu, and Jian Sun. Efficient Multi-
+Person Motion Prediction by Lightweight Spatial and Tem-
+poral Interactions. arXiv preprint arXiv:2507.09446, 2025.
+3, 6, 11
+10
+
+
+A. Reproducing Results
+A.1. Relative Forecasting Approaches
+Regarding the relative approaches, STSGCN [31] had an
+error in their MPJPE calculation, which the authors men-
+tioned on their linked repository.
+The corrected results
+could be reproduced here. MotionMixer [4] calculated both
+metrics, but also had an error in the old metric (at counting
+items for the average calculation), which could be corrected
+because they open-sourced the code, but it resulted in sig-
+nificantly lower performance. The reason why SPGSN [19]
+and EqMotion [41] had a lower performance is unclear,
+GitHub users had similar problems but their issues were
+not solved. With DePOSit [27] and GMFnet [30] the rea-
+son is unclear as well.
+The results of EqMotion, Aux-
+Former, GMFnet (400 ms) and DePOSit could be repro-
+duced with their published checkpoints though. The repos-
+itory of IAFormer [39] did not contain the code for the hu-
+man3.6m dataset, but their results on CMU-MoCap could
+be replicated. CSCNet [18] has no published source code.
+A comparison of all relative approaches, including the cor-
+rected results, can be found in Table 11.
+Res. Sup. [23]
+served as the basis on which the other works build upon.
+Method
+MPJPE (400/1000ms)
+Replicated
+Repeat last frame
+88.2 / 136.6
+-
+Ridge Regression
+76.5 / 128.2
+-
+Res. Sup. [23, 38]
+’2017
+88.3 / 136.6
+-
+IAFormer [39]
+’2024
+50.8 / 130.4
+-
+MotionMixer [4] † ’2022
+59.3 / 111.0
+65.4 / 117.9
+STSGCN [31] †
+’2021
+38.3 / 75.6
+67.5 / 117.0
+GMFnet [30]
+’2024
+- / 102.3
+64.1 / 114.1
+SPGSN [19]
+’2022
+58.3 / 109.6
+62.0 / 112.3
+HisRepItself [38]
+’2020
+58.3 / 112.1
+58.3 / 112.0
+AuxFormer [40]
+’2023
+- / 107.0
+61.7 / 111.6
+PGBIG [20]
+’2022
+58.5 / 110.3
+58.8 / 110.4
+EqMotion [41]
+’2023
+55.0 / 106.9
+57.8 / 109.8
+GCNext [37]
+’2024
+56.4 / 108.7
+57.5 / 109.8
+CSCNet [18]
+’2025
+57.4 / 109.4
+-
+siMLPe [10]
+’2022
+57.3 / 109.4
+57.6 / 109.6
+DePOSit [27]
+’2023
+- / 103.3
+59.0 / 106.2
+DeformMLP [12]
+’2024
+57.9 / 105.5
+57.5 / 105.3
+Table 11. Comparing recent approaches for relative pose forecast-
+ing on Human3.6m dataset, averaged over all actions. The mean
+per joint position error (MPJPE) is measured in millimeters at two
+frames 400 ms and 1000 ms in the future (using the same model for
+both timesteps). Approaches marked with a † had errors in their
+evaluation code which were fixed in the replicated column.
+A.2. Absolute Forecasting Approaches
+In the absolute pose forecasting benchmark of TRiPOD [1]
+a new metric called Visibility-Ignored Metric (VIM) was de-
+veloped, which in the case of no invisible joints, should be-
+have like MPJPE for each timestep (” This metric is the
+simple MPJPE metric except that the invisible joints (if ex-
+ist) are not penalized and are simply discarded by consid-
+ering truth”), but it has an error in its formula (see Equa-
+tions (4) and (1)). Instead of calculating the distance in
+3D-space and averaging over the joints, the distance is cal-
+culated in 3*N-dimensional joint space. It is measured in
+centimeters. To calculate VIM the train/test splits of 3DPW
+also need to be switched.
+V IMt =
+v
+u
+u
+t
+joints
+X
+i=1
+ 
+3
+X
+k=1
+(gtt,i,k −predt,i,k)2
+!
+(4)
+For comparison on the CMU-MoCap dataset, it was
+stated in SoMoFormer that the same training receipt and
+evaluation metric was used as in MRT [36]. In the MRT-
+paper it was described that the error unit is 0.1 meters,
+which already includes a dataset scaling factor of 0.6, but
+following the source code of MRT, a different unit has
+to be used.
+The error has to be multiplied by ((10 ∗
+3/1.8 ∗si2m)/1.8) ≈0.5226 to get a unit of 1 meter,
+with si2m = ((1.0/0.45) ∗2.54/100.0) ≈0.0564, which
+following the dataset description, converts the scaled inches
+unit to meters.
+Following the large difference between
+the results reported in the MRT-paper, and the ones for
+the MRT-model in the SoMoFormer-paper, the later likely
+used a different metric or scale, but this could not be vali-
+dated, because the source code was not completely open-
+sourced.
+The same also applies to TBiFormer [26], JR-
+Transformer [42], and EMPMP [43]. Besides that, all pa-
+pers reported different results for the same benchmark in
+their own replications, sometimes resulting in older models
+being better than the newer ones, or with large numeric er-
+ror differences, which shows general replicability problems
+with those models. One reason could be that often only
+parts of the code are published, so some steps might have
+been reimplemented differently. And for T2P [14] the en-
+vironment could not be set up completely, therefore it was
+not evaluated in the main sections.
+The authors of TBiFormer stated to use the preprocess-
+ing from MRT as well, but if that is correct, at least one
+of their results uses wrong timestamps. In the published
+source-code they used 50 input and 25 output frames for
+their 2s/1s experiment on CMU-MoCap. The base dataset
+has an original frame-rate of 120Hz, which is reduced to
+30Hz by MRT. If they did not interpolate the frames (the
+preprocessing code was not published), the predicted time
+range is too short. The same problem could be found in
+the source-code of IAFormer and T2P, and the paper of
+GMFNet.
+A.3. Summary
+In conclusion, about half of the papers had errors in their
+evaluations. Such problems can only be found if the source-
+code is published, which highlights the relevance of this
+voluntary step, that is not always taken.
+11

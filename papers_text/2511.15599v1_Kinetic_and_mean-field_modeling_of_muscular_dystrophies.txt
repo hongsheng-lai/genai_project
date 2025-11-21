@@ -1,0 +1,2843 @@
+Kinetic and mean-ﬁeld modeling of muscular dystrophies
+Tommaso Lorenzi
+Department of Mathematical Sciences “G. L. Lagrange”
+Politecnico di Torino, Italy
+tommaso.lorenzi@polito.it
+Horacio Tettamanti
+Department of Mathematics “F. Casorati”
+University of Pavia, Italy
+horacio.tettamanti01@universitadipavia.it
+Mattia Zanella
+Department of Mathematics “F. Casorati”
+University of Pavia, Italy
+mattia.zanella@unipv.it
+Abstract
+We present a new class of models for assessing the cell dynamics characterising muscu-
+lar dystrophies. The proposed approach comprises a system of integro-diﬀerential equations
+for the statistical distributions, over a large patient cohort, of the densities of muscle ﬁbers
+and immune cells implicated in muscle inﬂammation, degeneration, and regeneration, which
+underpin disease development. Considering an appropriately scaled version of this model,
+we formally derive, as the corresponding mean-ﬁeld limit, a system of Fokker-Planck equa-
+tions, from which we subsequently derive, as a macroscopic model counterpart, a system of
+diﬀerential equations for the mean densities of muscle and immune cells in the cohort of pa-
+tients and the related variances. Then, we study long-time asymptotics for the mean-ﬁeld
+model by determining the quasi-equilibrium cell distribution functions, which are in the form
+of probability density functions of inverse Gamma distributions, and proving the long-time
+convergence to such quasi-equilibrium distributions. The analytical results obtained are il-
+lustrated by means of a sample of results of numerical simulations. The modeling approach
+presented here has the potential to oﬀer new insights into the balance between degeneration
+and regeneration mechanisms in the progression of muscular dystrophies, and provides a basis
+for future extensions, including the modeling of therapeutic interventions.
+1
+Introduction
+Muscular dystrophies (MD) are commonly deﬁned as congenital myogenic disorders charaterized
+by a progressive damage of the muscular tissue with variable distribution and severity, see e.g. [13]
+and references therein. Among the most common groups of dystrophies, the Duchenne and Becker
+MDs are the most common and serious forms of this disease. In Duchenne muscular dystrophy
+(DMD), onset typically occurs in early childhood with generalized weakness of the limbs. This
+leads to a progressive loss of ambulation from early adolescence onward, accompanied by a decline
+in respiratory capacity and progressive cardiac involvement, ultimately resulting in death [12].
+At the cellular level, in healthy muscle regeneration, macrophages clear cellular debris, resolve
+inﬂammation, and secrete factors that promote tissue repair. In dystrophic conditions, such as
+DMD, repeated muscle ﬁber damage triggers the inﬁltration of immune cells, including cytotoxic
+T lymphocytes, neutrophils, and macrophages [32]. These cells release pro-inﬂammatory mediat-
+ors that disrupt the normal regenerative process, promote chronic inﬂammation, and exacerbate
+1
+arXiv:2511.15599v1  [math.AP]  19 Nov 2025
+
+
+muscle degeneration, fat replacement, reactive myoﬁbrosis, and chronic inﬂammation [10]. Over
+time, persistent immune activation contributes to ﬁbrosis and can extend to cardiac muscle, leading
+to cardiomyopathy and cardiac dysfunction.
+In fact, while mechanical injury and membrane defects are recognized as key contributors to
+the pathology of dystrophic diseases, they do not fully account for the onset and progression of
+MDs. Increasing evidence points to inﬂammation-driven mechanisms as early triggers of lesion
+formation in dystrophin-deﬁcient muscle – see e.g.
+[32] and references therein.
+The immune
+response is believed to play a signiﬁcant role in driving muscle damage. Supporting this view,
+histological analyses of dystrophic muscle frequently reveal extensive inﬁltration by cytotoxic T
+lymphocytes, macrophages, and other immune cells. In this respect, the pathology progresses
+through a cascade of events that can be broadly outlined as follows: macrophages are the ﬁrst
+to inﬁltrate the damaged muscle tissue, where they begin clearing cellular debris. During this
+process, they attract cytotoxic T lymphocytes, which begin attacking not only compromised cells
+but also healthy muscle cells, thereby exacerbating the damage.
+Only few mathematical models are currently available to describe cell dynamics in MD pro-
+gression and to capture the interplay between inﬂammation, degeneration, and regeneration – see
+[16] for a review on this topic. Among them we mention the compartmental models formulated as
+ordinary diﬀerential equations employed in [8, 17, 18]. Developing mathematical models capable of
+integrating the roles of diﬀerent immune cell populations and their mediators among large cohorts
+of MD patients remains an open challenge. Addressing this challenge could provide insight into
+disease progression and could support the design of targeted therapeutic strategies.
+An increasing number of real world phenomena have been fruitfully described by kinetic and
+mean-ﬁeld models. Particular attention has been paid in the past decade to self-organizing systems
+in life sciences. Without intending to review the vast literature on the subject, we refer the reader
+to [5, 19, 20, 22, 25, 27] ad the references therein for an introduction. Within this framework,
+in the present paper we develop a kinetic model for the dynamics of the statistical distributions
+of the densities of muscle cells and immune cells in a large cohort of MD patients.
+Building
+upon [8], we focus on a simpliﬁed scenario wherein normal muscle cell degeneration is driven by
+cytotoxic T lymphocytes, the recruitment and activity of which are mediated by macrophages.
+Next, considering an appropriately scaled version of this kinetic model, we formally derive, as the
+corresponding mean-ﬁeld limit, a system of Fokker-Planck equations, from which we subsequently
+derive, as a macroscopic model counterpart, a system of diﬀerential equations for the mean densit-
+ies of muscle and immune cells in the cohort of patients and the related variances. Then, building
+on the approach introduced in [31], and later extended in [4, 21], we study long-time asymptotics
+for the mean-ﬁeld model by determining the quasi-equilibrium cell distribution functions, which
+are in the form of probability density functions of inverse Gamma distributions, and proving the
+long-time convergence to such quasi-equilibrium distributions, in an appropriate Sobolev norm.
+Finally, the analytical results obtained are illustrated by means of a sample of results of numerical
+simulations.
+In contrast to compartmental models formulated as ordinary diﬀerential equations, the kinetic
+and mean-ﬁeld models presented here makes it possible to capture emergent macroscopic dy-
+namics resulting from microscopic processes taking place at the cellular level. Moreover, beyond
+theoretical studies, the proposed modeling approach oﬀers a natural setting to integrate medical
+information retrieved from heterogeneous cohorts of MD patients, for example extracted from
+magnetic resonance imaging data, see e.g. [1, 6, 7]. In fact, by aggregating data from across a co-
+hort of patients, one may reconstruct statistical descriptors of the underlying cell dynamics, which
+can in turn be used to forecast disease progression at the patient cohort level. In this respect,
+the kinetic model presented here and its mean-ﬁeld limit represent the ﬁrst modeling approach
+oﬀering the potential of combining a mathematical model of cell dynamics with heterogeneous
+patient data, so as to provide predictive insights into MD progression.
+The remainder of the paper is organized as follows. In Section 2, we present the kinetic model,
+along with the underlying microscopic rules modeling cell dynamics, and we then derive the mean-
+ﬁeld and macroscopic counterparts of this model. In Section 3, we study the long-time behaviour
+of the mean-ﬁeld model. In Section 4, we present a sample of results of numerical simulations
+2
+
+
+through which we illustrate the theoretical results obtained in the previous sections. In Section 5,
+we conclude with a summary of key ﬁndings and a brief discussion of future directions for the
+modeling approach proposed here.
+2
+Kinetic and mean-ﬁeld models
+Building upon [8], for simplicity we group the muscle ﬁbers into normal and damaged cells and,
+among immune cells, we take into account the action of macrophages and cytotoxic T lympho-
+cytes only. We thus consider four populations of cells, which are key players in the dystrophic
+progression: normal cells, N, damaged cells, D, macrophages, M, and cytotoxic T lymphocytes,
+C. Note that, to distil the essence of the problem, compared to [8] we do not model explicitly the
+dynamics of helper T cells and regenerating muscle cells.
+For a given large cohort of patients under consideration, we denote by fJ(x, t) the statistical
+distribution of the (number) density of cells of type J ∈{N, D, M, C} over the patients – i.e.
+fJ(x, t) dx is the fraction of cohort patients whose density of cells of type J falls within the
+interval [x, x + dx) ⊂R+ at time t ≥0. Naturally, the distribution function fJ is such that
+Z
+R+
+fJ(x, t)dx = 1
+∀t ≥0,
+J ∈{N, D, M, C}.
+(1)
+We then deﬁne the moment of order k ≥0 of the distribution function fJ as
+m(k)
+J (t) =
+Z
+R+
+xkfJ(x, t)dx,
+and, for ease of notation, we denote the moment of order k = 1, i.e. the mean, as
+mJ(t) = m(1)
+J (t) =
+Z
+R+
+xkfJ(x, t)dx,
+(2)
+and the variance as
+VJ(t) = m(2)
+J
+−(mJ)2 =
+Z
+R+
+(x −mJ)2fJ(x, t)dx.
+(3)
+We refer the interested reader to [9] for a related modeling approach employed in a diﬀerent
+biological context.
+2.1
+Microscopic rules underlying the kinetic model
+We now summarise the microscopic rules which underpin the system of integro-diﬀerential equa-
+tions governing the evolution of the distribution functions fJ(x, t), J ∈{N, D, M, C}, that is, the
+kinetic model (9) presented in Section 2.2.
+Microscopic rules underlying the dynamics of normal and damaged cells.
+Building
+upon [8], we assume normal cells to become damaged as a result of interactions with cytotoxic T
+lymphocytes, while interactions between damaged cells and macrophages result in damaged cells
+being cleared out and normal cells being replenished through muscle regeneration. Therefore,
+denoting the values of the densities of normal and damaged cells by xN ∈R+ and xD ∈R+,
+respectively, and the values of the densities of macrophages and cytotoxic T lymphocytes by
+xM ∈R+ and xC ∈R+, respectively, we deﬁne the value of the density of normal cells upon
+interactions between normal cells and cytotoxic T lymphocytes, x′
+N ∈R+, and the value of the
+density of damaged cells upon interactions between damaged cells and macrophages, x′
+D ∈R+, as
+x′
+N = xN −βNΦN(xC)xN + ηN(xC)xN,
+x′
+D = xD −βDΦD(xM)xD + ηD(xM)xD.
+(4)
+3
+
+
+In the deﬁnitions (4), the terms βNΦN(xC)xN and ηN(xC)xN model, respectively, deterministic
+and random variations in the value of the density of normal cells due to interactions with cytotoxic
+T lymphocytes. Similarly, the terms βDΦD(xM)xD and ηD(xM)xD model deterministic and ran-
+dom variations in the value of the density of damaged cells due to interactions with macrophages.
+Here ΦN(xC) and ΦD(xM) are non-negative saturating functions such that ΦN(0) = ΦD(0) = 0.
+To retain simplicity and maintain generality, throughout the paper we set
+ΦN(x) = ΦD(x) =
+x
+1 + x,
+x ∈R+.
+(5)
+The parameter βN > 0 thus provides a possible measure of the maximum relative change in
+normal cell density due to interactions with T lymphocytes, while the parameter βD > 0 provides
+a possible measure of the maximum relative change in damaged cell density due to interactions
+with macrophages. Moreover, ηN and ηC are independent random variables such that, denoting
+the expectation of a random variable with respect to the corresponding probability density function
+by ⟨·⟩,
+⟨ηN⟩= ⟨ηD⟩= 0,
+
+η2
+N
+
+= σ2
+NΦN(xC),
+
+η2
+D
+
+= σ2
+DΦD(xM).
+Hence, the parameters σN and σD are linked to the standard deviations of the zero-mean random
+variables that model ﬂuctuations in the densities of normal and damaged cells.
+Coherently with the microscopic rules deﬁned via (4), we deﬁne the value of the density of
+normal cells upon interactions between damaged cells and macrophages, x′′
+N ∈R+, and the value of
+the density of damaged cells upon interactions between normal cells and cytotoxic T lymphocytes,
+x′′
+D ∈R+, as
+x′′
+N = xN + βDΦD(xM)xD,
+x′′
+D = xD + βNΦN(xC)xN.
+(6)
+Note that the deﬁnitions (4) and (6) complemented with the deﬁnitions (5) are such that if
+xN, xD, xM, xC ≥0 then both x′
+N, x′
+D ≥0 and x′′
+N, x′′
+D ≥0 for any βN, βD > 0.
+Microscopic rules underlying the dynamics of cytotoxic T lymphocytes and mac-
+rophages.
+We let the densities of macrophages and cytotoxic T lymphocytes, xM ∈R+ and
+xC ∈R+, undergo natural decay at constant rates βM > 0 and βC > 0, respectively, along with
+small random ﬂuctuations due to homeostatic regulation mechanisms. Moreover, building again
+upon [8], we let the density of macrophages increase at a rate proportional to the density of dam-
+aged cells, xD ∈R+, with a constant of proportionality γM > 0, while the density of cytotoxic T
+lymphocytes increases at a rate proportional to the the density of macrophages with a constant of
+proportionality γC > 0. Hence, we deﬁne the value of the density of macrophages (resp. cytotoxic
+T lymphocytes) upon natural decay with small random ﬂuctuations, x′
+M ∈R+ (resp. x′
+C ∈R+),
+and the value of the density of macrophages (resp. cytotoxic T lymphocytes) upon growth caused
+by the presence of damaged cells (resp. macrophages), x′′
+M (resp. x′′
+C), as
+x′
+M = xM −βMxM + ηMxM,
+x′′
+M = xM + γMxD,
+(7)
+and
+x′
+C = xC −βCxC + ηCxC,
+x′′
+C = xC + γCxM.
+(8)
+Here ηM and ηC are independent random variables such that
+⟨ηM⟩= ⟨ηC⟩= 0,
+
+η2
+M
+
+= σ2
+M,
+
+η2
+C
+
+= σ2
+C.
+Therefore, the parameters σM and σC are the standard deviations of the zero-mean random
+variables that model ﬂuctuations in the densities of macrophages and cytotoxic T lymphocytes.
+Note again that the deﬁnitions (7) and (8) are such that if xN, xD, xM, xC ≥0 then both
+x′
+M, x′
+C ≥0 and x′′
+M, x′′
+C ≥0 for any βM, βC > 0.
+4
+
+
+2.2
+The kinetic model
+The evolution of the distribution functions fJ(x, t), J ∈{N, D, C, M}, is governed by the kinetic
+model deﬁned by the following system of integro-diﬀerential equations
+∂
+∂tfN = QN(fN, fC) + FβD(fN, fD, fM),
+∂
+∂tfD = QD(fD, fM) + FβN (fD, fN, fC),
+∂
+∂tfM = L(fM) + RγM (fM, fD),
+∂
+∂tfC = L(fC) + RγC(fC, fM),
+(x, t) ∈R2
++,
+(9)
+where the microscopic rules formulated in Section 2.1 are mirrored into the deﬁnitions of the
+operators Q, F, L, and R, as it is common in kinetic theory – see e.g. [25] and references therein.
+In the system (9):
+• the operator QH(fH, fK) is deﬁned as
+QH(fH, fK)(x, t) =
+*Z
+R+
+κ(x∗)
+
+1
+′JHK
+fH(′x, t)fK(′x∗, t) −fH(x, t)fK(x∗, t)
+
+dx∗
++
+,
+where κ is an interaction kernel that, along the lines of [4], is deﬁned as
+κ(x) = 1 + x,
+x ∈R+,
+(10)
+while ′JHK is the determinant of the Jacobian associated with the transformation ′x →x
+deﬁned via the ﬁrst line of (4) for (H, K) = (N, C) and the second line of (4) for (H, K) =
+(D, M);
+• the operator FβK(fH, fK, fL) is deﬁned as
+FβK(fH, fK, fL)(x, t) =
+Z
+R2
++
+κ(x∗)
+
+1
+′′JHKL
+fH(′′x, t)fK(x∗, t)fL(x∗, t)
+−fH(x, t)fK(x∗, t)fL(x∗, t)
+
+dx∗dx∗,
+where ′′JHKL is the determinant of the Jacobian associated with the transformation ′′x →x
+deﬁned via the ﬁrst line of (6) for (H, K, L) = (N, D, M) and the second line of (6) for
+(H, K, L) = (D, N, C);
+• the operator L(fH) is deﬁned as
+L(fH)(x, t) =
+ 1
+′JH
+fH(′x, t)
+
+−fH(x, t),
+where ′JH is the Jacobian associated with the transformation ′x →x deﬁned via the ﬁrst
+line of (7) for H = M and the ﬁrst line of (8) for H = C;
+• the operator RγH(fH, fK) is deﬁned as
+RγH(fH, fK)(x, t) =
+Z
+R+
+
+1
+′′JHK
+fH(′′x, t)fK(′′x∗, t) −fH(x, t)fK(x∗, t)
+
+dx∗,
+where ′′JHK is the determinant of the Jacobian associated with the transformation ′′x →
+x deﬁned via the second line of (7) for (H, K) = (M, D) and the second line of (8) for
+(H, K) = (C, M).
+5
+
+
+Note that, as expected, when subject to initial conditions with non-negative components of
+unit mass, i.e. initial conditions such that
+Z
+R+
+fJ(x, 0)dx = 1,
+J ∈{N, D, M, C},
+(11)
+the components of the solution to the kinetic model (9) are also non-negative and with unit mass
+for all t > 0, that is, conditions (1) hold.
+2.2.1
+Evolution of key observable macroscopic quantities for the kinetic model
+To investigate the dynamics of the cell populations in the cohort of patients under consideration
+at the level of observable macroscopic quantities, such as the mean, mJ(t), deﬁned via (2) (i.e. the
+expected value of the density of cells in population J at time t) and the variance, VJ(t), deﬁned
+via (3), it is convenient to rewrite the kinetic model (9) in the following weak form
+d
+dt
+Z
+R+
+ϕN(x)fN(x, t)dx =
+Z
+R2
++
+κ(c) ⟨ϕN(x′) −ϕN(x)⟩fN(x, t)fC(c, t)dc dx +
+Z
+R3
++
+κ(z)(ϕN(x′′) −ϕN(x))fN(x, t)fM(z, t)fD(y, t)dy dz dx,
+d
+dt
+Z
+R+
+ϕD(x)fD(x, t)dx =
+Z
+R2
++
+κ(z) ⟨ϕD(x′) −ϕD(x)⟩fD(x, t)fM(z, t)dz dx +
+Z
+R3
++
+κ(c)(ϕD(x′′) −ϕD(x))fD(x, t)fC(c, t)fN(n, t)dn dc dx,
+d
+dt
+Z
+R+
+ϕM(x)fM(x, t)dx =
+Z
+R+
+⟨ϕM(x′) −ϕM(x)⟩fM(x, t)dx +
+Z
+R2
++
+(ϕM(x′′) −ϕM(x))fD(y, t)fM(x, t)dy dx,
+d
+dt
+Z
+R+
+ϕC(x)fC(x, t)dx =
+Z
+R+
+⟨ϕC(x′) −ϕC(x)⟩fC(x, t)dx +
+Z
+R2
++
+(ϕC(x′′) −ϕC(x))fC(x, t)fM(z, t)dz dx,
+(12)
+where ϕJ(x), J ∈{N, D, M, C}, are smooth test functions and the interaction kernel κ is deﬁned
+via (10).
+Evolution equations for mJ(t), J ∈{N, D, M, C}.
+Choosing ϕJ(x) = x in the weak form (12)
+of the kinetic model (9), we obtain the following system of diﬀerential equations for the means
+d
+dtmN(t) = −βNmN(t)mC(t) + βDmM(t)mD(t),
+d
+dtmD(t) = −βDmD(t)mM(t) + βNmN(t)mC(t),
+d
+dtmM(t) = −βMmM(t) + γMmD(t),
+d
+dtmC(t) = −βCmC(t) + γCmM(t).
+(13)
+Note that the system (13) is consistent with the compartmental model considered in [8] within
+the framework of the simplifying assumptions that underlie the kinetic model considered here.
+6
+
+
+From the system (13) we see that when the kinetic model (9) is subject to non-negative initial
+conditions that, in addition to (11), satisfy
+0 < mJ(0) =
+Z
+R+
+xfJ(x, 0)dx < ∞,
+J ∈{N, D, M, C},
+(14)
+then
+0 < mJ(t) =
+Z
+R+
+xfJ(x, 0)dx < ∞
+∀t > 0,
+J ∈{N, D, M, C}.
+(15)
+From the system (13) we also see that
+mN(t) + mD(t) = mN(0) + mD(0)
+∀t > 0,
+and, therefore, under an initial condition that satisﬁes the additional condition
+mN(0) + mD(0) = m0 > 0
+(16)
+we have
+mN(t) + mD(t) = m0
+∀t ≥0.
+(17)
+Finally, under assumptions (14) and (16) on the initial condition, as t →∞the solution of the
+system (13) converges to the equilibrium of components
+m∞
+N =
+βDβCm0
+βDβC + βNγC
+,
+m∞
+D =
+βNγCm0
+βDβC + βNγC
+,
+m∞
+M = γM
+βM
+m∞
+D ,
+m∞
+C = γCγM
+βCβM
+m∞
+D .
+(18)
+This is also shown by the numerical solutions displayed in the top, left panel and the center panels
+of Figure 1.
+Evolution equations for VJ(t), J ∈{N, D, M, C}.
+Choosing ϕJ(x) = (x −mJ)2 in the weak
+form (12) of the system (9), we ﬁnd the following system of diﬀerential equations for the variances
+d
+dtVN(t) =β2
+N
+Z
+R2
++
+n2c2
+1 + cfN(x, t)fC(c, t)dc dx + β2
+D
+
+VM(t) + m2
+M(t)
+ 
+VD(t) + m2
+D(t)
+
++
+−(2βN −σ2
+N)mC(t)
+
+VN(t) −σ2
+Nm2
+N(t)
+2βN −σ2
+N
+
+,
+d
+dtVD(t) =β2
+D
+Z
+R2
++
+z2x2
+1 + z fD(x, t)fM(z, t)dz dx + β2
+N
+
+VN(t) + m2
+N(t)
+ 
+VC(t) + m2
+C(t)
+
++
+−(2βD −σ2
+D)mM(t)
+
+VD(t) −σ2
+Dm2
+D(t)
+2βD −σ2
+D
+
+,
+d
+dtVM(t) =β2
+M
+
+VM(t) + m2
+M
+
+−(2βM −σ2
+M)
+
+VM(t) −σ2
+M(t)m2
+M(t)
+2βM −σ2
+M
+
++ γ2
+M[VD(t) + m2
+D(t)],
+d
+dtVC(t) =β2
+C[VC(t) + m2
+C(t)] −(2βC −σ2
+C)
+
+VC(t) −σ2
+Cm2
+C(t)
+2βC −σ2
+C
+
++ γ2
+C[VM(t) + m2
+M(t)].
+(19)
+Note that, in contrast to the system (13), the system (19) is not closed as it still requires the
+knowledge of the distribution functions fJ(x, t), J ∈{N, D, M, C}. This hinders obtaining a self-
+consistent representation of the dynamics of the cell populations in the patient cohort in terms
+of observable macroscopic quantities. To circumvent this diﬃculty, in the next section we will
+derive a mean-ﬁeld counterpart of the kinetic model (9) – cf. the mean-ﬁeld model (23)-(26) – for
+which the corresponding system of diﬀerential equations for the means is the same as (13), while
+the system of diﬀerential equations for the variances is closed. In addition, for the mean-ﬁeld
+model one can also obtain a detailed characterisation of the long-term limits of the distribution
+functions, and not only of the corresponding means and variances, as demonstrated in Section 3,
+which supports a more detailed statistical representation of the cell populations in the patient
+cohort.
+7
+
+
+2.3
+Corresponding mean-ﬁeld model
+Building upon the method employed, for instance, in [4, 9, 15], we introduce a small scaling
+parameter 0 < ǫ ≪1 and scale the time variable as
+t →t/ǫ
+(20)
+and the model parameters as
+βJ →ǫβJ and σ2
+J →ǫσ2
+J for J ∈{N, D, M, C},
+γC →ǫγC,
+γM →ǫγM.
+(21)
+Under this parameter scaling, the dynamics governed by the microscopic rules deﬁned via (4), (6),
+(7), and (8) become quasi-invariant, which allows us to resort to the following Taylor expansions
+ϕJ(x′) −ϕJ(x) ≈(x′ −x)ϕ′
+J(x) + 1
+2(x′ −x)2ϕ′′
+J(x) + 1
+6(x′ −x)3ϕ′′′
+J (¯x),
+ϕJ(x′′) −ϕJ(x) ≈ϕ′
+J(x) + 1
+2ϕ′′
+J(˜x)(x′′ −x)2,
+for J ∈{N, D, M, C}, where
+¯x ∈(min{x, x′}, max{x, x′}),
+˜x ∈(min{x, x′′}, max{x, x′′}).
+Then, introducing the scaled distribution functions
+f ǫ
+J(x, t) = fJ(x, t/ǫ),
+J ∈{N, D, M, C},
+substituting the time scaling (20) along with the above Taylor expansions into the weak form (12)
+of the integro-diﬀerential equation for the distribution function fN(x, t), we formally obtain the
+following weak form of the integro-diﬀerential equation for the scaled distribution function f ǫ
+N(x, t)
+d
+dt
+Z
+R+
+ϕN(x)f ǫ
+N(x, t)dx = −βN
+Z
+R2
++
+x c ϕ′
+N(x)f ǫ
+N(x, t)f ǫ
+C(c, t)dc dx+
+σ2
+N
+2
+Z
+R2
++
+x2 c ϕ′′
+N(x)f ǫ
+N(x, t)f ǫ
+C(c, t)dc dx+
+βD
+Z
+R+
+z y ϕ′
+N(x)f ǫ
+N(x, t)f ǫ
+D(y, t)f ǫ
+M(z, t)dz dy dx + Rǫ
+N
+ǫ ,
+(22)
+where
+Rǫ
+N =1
+6
+Z
+R2
++
+κ(c)
+*
+−ǫβN
+xc
+1 + c + xηN(c)
+3+
+ϕ′′′
+N(x)f ǫ
+N(x, t)f ǫ
+C(c, t)dc dx
++ ǫ2β2
+D
+2
+Z
+R+
+z y ϕ′′
+N(x)f ǫ
+N(x, t)f ǫ
+M(z, t)f ǫ
+D(y, t)dy dz dx.
+Provided that the third order moment of the probability density function of the random variable
+ηN is bounded, we can rewrite ηN =
+r
+ǫσ2
+Nc
+1 + c ˆη, with ⟨ˆη⟩= 0 and
+
+ˆη2
+= 1, from which it follows
+that Rǫ
+N ≈ǫ3 + ǫ2 + ǫ√ǫ. Moreover, under the time scaling (20) and the parameter scaling (21),
+the means mǫ
+J(t) = mJ(x, t/ǫ), J ∈{N, D, M, C}, deﬁned via (2) coincide with the components
+of the solution to the system (13) (i.e. if mǫ
+J(0) = mJ(0) then mǫ
+J(t) = mJ(t) for all t > 0), which
+are bounded (cf. (15)). Hence, we have that |Rǫ
+N|/ǫ →0 for ǫ →0+. As a result, denoting by
+fN(x, t) the weak limit of f ǫ
+N(x, t) as ǫ →0+, from (22) we formally obtain, in the asymptotic
+regime ǫ →0+, the following weak formulation of the governing equation for fN(x, t)
+d
+dt
+Z
+R+
+ϕN(x)fN(x, t)dx = −βN
+Z
+R+
+xmC(τ)ϕ′
+N (x)fN(x, t)dx + σ2
+NmC(t)
+2
+Z
+R+
+x2ϕ′′
+N(x)fN(x, t)dx
++ βDmD(t)mM(t)
+Z
+R+
+ϕ′
+N(x)fN(x, t)dx,
+8
+
+
+from which, integrating back by parts, we ﬁnd
+d
+dt
+Z
+R+
+ϕN(x)fN(x, t)dx =
+Z
+R+
+∂
+∂x [(βNmC(t)x −βDmM(t)mD(t))fN(x, t)] ϕN(x)dx+
+σ2
+NmC(t)
+2
+Z
+R+
+∂2
+∂x2 (x2fN(x, t))ϕN(x)dx.
+This is a weak formulation of the following Fokker-Planck equation
+∂
+∂tfN(x, t) = ∂
+∂x [(βNmC(t)x −βDmM(t)mD(t))fN(x, t)] + σ2
+NmC(t)
+2
+∂2
+∂x2 (x2fN(x, t))
+(23)
+posed on R+ and subject to the no-ﬂux boundary condition below
+[(βNmC(t)x −βDmM(t)mD(t))fN(x, t)] + σ2
+NmC(t)
+2
+∂
+∂x(x2fN(x, t))
+
+x=0 = 0.
+(24)
+Proceeding in a similar way, we formally obtain the following Fokker-Planck equations for the
+weak limits, fJ(x, t), of the the scaled distribution functions, f ǫ
+J(x, t), for J ∈{D, M, C}
+∂
+∂tfD(x, t) = ∂
+∂x [(βDmM(t)x −βNmN(t)mC(t))fD(x, t)] + σ2
+D
+2 mM(t) ∂2
+∂x2 (x2fD(x, t)),
+∂
+∂tfM(x, t) = ∂
+∂x [(βMx −γMmD(t))fM(x, t)] + σ2
+M
+2
+∂2
+∂x2 (x2fM(x, t)),
+∂
+∂tfC(x, t) = ∂
+∂x [(βCx −γCmM(t))fC(x, t)] + σ2
+C
+2
+∂2
+∂x2 (x2fC(x, t)),
+(25)
+which are posed on R+ and are subject, respectively, to the following no-ﬂux boundary conditions
+[(βDmM(t)x −βNmN(t)mC(t))fD] + σ2
+D
+2 mM(t) ∂
+∂x(x2fD)
+
+x=0 = 0,
+[(βMx −γMmD(t))fM(x, t)] + σ2
+M
+2
+∂
+∂x(x2fM)
+
+x=0 = 0,
+[(βCx −γCmM(t))fC(x, t)] + σ2
+C
+2
+∂
+∂x(x2fC)
+
+x=0 = 0.
+(26)
+The system (23), (25), complemented with the deﬁnitions (2), posed on R+ and subject to the
+boundary conditions (24), (26) is a mean-ﬁeld limit of the kinetic model (9).
+Note that, as it is for the kinetic model (9), when subject to initial conditions with non-negative
+components of unit mass, the components of the solution to the mean-ﬁeld model (23)-(26) are
+also non-negative with unit mass for all t > 0 – i.e. conditions (1) are met.
+2.3.1
+Evolution of key observable macroscopic quantities for the mean-ﬁeld model
+Through direct calculations, one can easily verify that: as expected, the evolution of the means,
+mJ(t), deﬁned via (2), for the mean-ﬁeld model (23)-(26) is governed by the system (13) as it is
+for the kinetic model (9); on the other hand, the evolution of the variances, VJ(t), deﬁned via (3)
+is governed by the following system which, in contrast to the system (19) obtained for the kinetic
+model (9), is a closed system:
+d
+dtVN(t) = −(2βN −σ2
+N)mC(t)
+
+VN(t) −σ2
+Nm2
+N(t)
+2βN −σ2
+N
+
+,
+d
+dtVD(t) = −(2βD −σ2
+D)mM(t)
+
+VD(t) −σ2
+Dm2
+D(t)
+2βD −σ2
+D
+
+,
+d
+dtVM(t) = −(2βM −σ2
+M)
+
+VM(t) −σ2
+Mm2
+M(t)
+2βM −σ2
+M
+
+,
+d
+dtVC(t) = −(2βC −σ2
+C)
+
+VC(t) −σ2
+Cm2
+C(t)
+2βC −σ2
+C
+
+.
+(27)
+9
+
+
+When the mean-ﬁeld model (23)-(26) is subject to non-negative initial conditions that, in addition
+to (11), (14), and (16), satisfy
+0 < VJ(0) =
+Z
+R+
+(x −mJ(0))2fJ(x, 0)dx < ∞,
+J ∈{N, D, M, C},
+(28)
+under the following additional assumptions on the model parameters
+σ2
+J < 2βJ
+J ∈{N, D, M, C},
+(29)
+as t →∞the solution of the system (27) converges to the equilibrium of components
+V ∞
+N =
+σ2
+N
+2βN −σ2
+N
+(m∞
+N )2,
+V ∞
+D =
+σ2
+D
+2βD −σ2
+D
+(m∞
+D )2,
+V ∞
+M =
+σ2
+M
+2βM −σ2
+M
+(m∞
+M)2,
+V ∞
+C =
+σ2
+C
+2βC −σ2
+C
+(m∞
+C )2.
+(30)
+This is also shown by the numerical solutions displayed in the top, right panel and the bottom
+panels of Figure 1.
+3
+Long-time asymptotics for the mean-ﬁeld model
+In this section, we study long-time asymptotics for the mean-ﬁeld model (23)-(26). In more detail,
+we ﬁrst characterise the components of the quasi-equilibrium solution and show that they converge
+to equilibrium as t →∞(see Section 3.1). Then we prove the convergence, with respect to an
+appropriate norm, of the solution to the quasi-equilibrium solution as t →∞, which implies, in the
+light of the convergence to equilibrium of the quasi-equilibrium solution as t →∞, the long-time
+convergence of the solution of the mean-ﬁeld model to equilibrium (see Section 3.2).
+3.1
+Characterisation of the quasi-equilibrium distribution
+The components of the quasi-equilibrium distribution, f q
+J(x, t) for J ∈{N, D, M, C}, of the mean-
+ﬁeld model (23)-(26) are the components of the solution to the following system of diﬀerential
+equations
+(βNmC(t)x −βDmM(t)mD(t))f q
+N(x, t) + σ2
+NmC(t)
+2
+∂
+∂x(x2f q
+N(x, t)) = 0,
+(βDmM(t)x −βNmN(t)mC(t))f q
+D(x, t) + σ2
+DmM(t)
+2
+∂
+∂x(x2f q
+D(x, t)) = 0,
+(βMx −γMmD(t))f q
+M(x, t) + σ2
+M
+2
+∂
+∂x(x2f q
+M(x, t)) = 0,
+(βCx −γCmM(t))f q
+C(x, t) + σ2
+C
+2
+∂
+∂x(x2f q
+C(x, t)) = 0,
+x ∈R+
+(31)
+subject to the boundary conditions (24) and (26).
+Solving the system of diﬀerential equations (31) subject to the boundary conditions (24)
+and (26), we ﬁnd that the non-negative components, with unit mass, of the quasi-equilibrium
+distribution are probability density functions of inverse Gamma distributions with constant shape
+parameters, νJ, and time-dependent scale parameters, ωJ(t). Speciﬁcally, for the N and D com-
+ponents we have
+f q
+N(x, t) = ωνN
+N (t)
+Γ(νN)
+ 1
+x
+νN +1
+e−ωN(t)/x,
+f q
+D(x, t) = ωνD
+D (t)
+Γ(νD)
+ 1
+x
+νD+1
+e−ωD(t)/x,
+(32)
+10
+
+
+Figure 1: Evolution of key observable macroscopic quantities for the mean-ﬁeld model.
+Top row. Plots of the components of the numerical solution of the system (13) (left panel) and the
+system (27) (right panel) for t ∈[0, 100]. Center and bottom rows. Corresponding trajectories
+of the numerical solutions in the phase planes (mN, mD) (center, left panel), (mM, mC) (center,
+right panel), (VN, VD) (bottom, left panel), and (VM, VC) (bottom, right panel). The red dots
+highlight the points corresponding to the components of the equilibria (18) and (30). Numerical
+simulations were carried out under initial conditions of components mN(0) = 9, mD(0) = 1,
+mM(0) = 0.1, mC(0) = 0.5, and VJ(0) = 0.1 for all J ∈{N, D, M, C}, and the parameter values
+βN = 0.2, βD = 0.1, βM = 0.2, βC = 0.1, γM = γC = 0.05, and σ2
+J = 0.01 for all J ∈{N, D, M, C},
+which were chosen with exploratory aim and are to be intended as being dimensionless.
+where Γ is the Gamma function and
+νN = 1 + 2βN
+σ2
+N
+,
+ωN(t) = 2βDmM(t)mD(t)
+σ2
+NmC(t)
+,
+νD = 1 + 2βD
+σ2
+D
+,
+ωD(t) = 2βNmN(t)mC(t)
+σ2
+DmM(t)
+,
+(33)
+while for the M and C components we have
+f q
+M(x, t) = ωνM
+M (t)
+Γ(νM)
+ 1
+x
+νM+1
+e−ωM(t)/x,
+f q
+C(x, t) = ωνC
+C (t)
+Γ(νC)
+ 1
+x
+νC+1
+e−ωC(t)/x,
+(34)
+11
+
+
+with
+νM = 1 + 2βM
+σ2
+M
+,
+ωM(t) = 2γM
+σ2
+M
+mD(t),
+νC = 1 + 2βC
+σ2
+C
+,
+ωC(t) = 2γC
+σ2
+C
+mM(t).
+(35)
+Since the shape parameters deﬁned via (33) and (35) are such that νJ > 1 for all J ∈{N, D, M, C},
+through the formula for the mean of the inverse Gamma distribution we ﬁnd
+mq
+N(t) = ωN(t)
+νN −1 = βDmM(t)mD(t)
+βNmC(t)
+mq
+D(t) = ωD(t)
+νD −1 = βNmC(t)mN(t)
+βDmM(t)
+and
+mq
+M(t) = ωM(t)
+νM −1 = γMmD(t)
+βM
+,
+mq
+C(t) = ωC(t)
+νC −1 = γCmM(t)
+βC
+.
+Considering non-negative initial data that satisfy conditions (14) along with condition (16),
+which gives the constraint corresponding to (17), the above expressions for ωJ(t), J ∈{N, D, M, C},
+along with the bounds (15) on mJ(t), J ∈{N, D, M, C}, imply that there exists some constants
+0 < cJ < CJ < ∞such that
+cJ ≤ωJ(t) ≤CJ
+∀t ≥0,
+J ∈{N, D, M, C},
+(36)
+while the above expressions for mq
+J(t) imply that
+mq
+J(t) →m∞
+J
+as t →∞,
+J ∈{N, D, M, C},
+(37)
+with m∞
+J given by (18). Furthermore, the expressions of ωJ(t), J ∈{N, D, M, C}, ensure that
+there exist some constants 0 ≤Cp
+J < ∞such that, denoting the derivative of ωJ(t) by ω′
+J(t),
+ω′
+J(t) ≤Cp
+J,
+∀t ≥0,
+J ∈{N, D, M, C},
+(38)
+since mC(t) > 0 and mM(t) > 0 for all t ≥0 (cf. (15)).
+Moreover, under the additional assumptions (29) on the model parameters, which ensure that
+the shape parameters deﬁned via (33) and (35) are also such that νJ > 2 for all J ∈{N, D, M, C},
+the variances of the inverse Gamma quasi-equilibrium distributions are given by
+V q
+N(t) = β2
+D(mM(t))2(mD(t))2σ2
+N
+β2
+N(mC(t))2(2βN −σ2
+N) ,
+V q
+D(t) = β2
+N(mN(t))2(mC(t))2σ2
+D
+β2
+D(mM(t))2(2βD −σ2
+D)
+and
+V q
+M(t) =
+γ2
+Mσ2
+M
+β2
+M(2βM −σ2
+M)(mD(t))2,
+V q
+C(t) = γ2
+C(mM(t))2σ2
+C
+β2
+C(2βC −σ2
+C) .
+The above expressions for V q
+J (t) along with the asymptotic results (37) allow us to conclude that
+V q
+J (t) →V ∞
+J
+as t →∞,
+J ∈{N, D, M, C},
+(39)
+with V ∞
+J
+given by (30).
+Finally, combining the results (37) with the expressions (32) and (34) for f q
+J(x, t), J ∈{N, D, M, C},
+yields
+∥f q
+J(t) −f ∞
+J ∥L∞(R+) →0
+as t →∞,
+J ∈{N, D, M, C},
+(40)
+with
+f ∞
+J (x) = (ω∞
+J )νJ
+Γ(νJ)
+ 1
+x
+νJ +1
+e−ω∞
+J /x,
+(41)
+where νJ = 1 + 2βJ
+σ2
+J
+and
+ω∞
+N = 2βDβC
+σ2
+NγC
+m∞
+D ,
+ω∞
+D = 2βNγC
+σ2
+DβC
+m∞
+N ,
+ω∞
+M = 2γM
+σ2
+M
+m∞
+D ,
+ω∞
+C = 2γCγM
+σ2
+CβM
+m∞
+D .
+(42)
+12
+
+
+3.2
+Long-time convergence to the equilibrium distribution
+The convergence of the components, fJ(x, t) for J ∈{N, D, M, C}, of the solution of the mean-
+ﬁeld model (23)-(26) to the corresponding quasi-equilibrium distribution functions, f q
+J(x, t) for
+J ∈{N, D, M, C}, deﬁned via (32) and (34), can be obtained in the ˙H−p norm1 deﬁned as
+∥f∥2
+˙H−p =
+Z
+R
+|ξ|−2p| ˆf(ξ)|2dξ,
+p > 1
+2,
+(43)
+where ˆf is the Fourier transform of the probability density function f(x), that is, ˆf(ξ) =
+R
+R+ f(x)e−iξxdx.
+This is shown by Theorem 3.1.
+Theorem 3.1. Let fJ(0, x), J ∈{N, D, M, C}, be probability density functions on R+ such that
+conditions (11), (14), (16), and (28) hold and such that ∥fJ(0, x)−f ∞
+J (x)∥˙H−p < ∞for 1
+2 < p < 1,
+with f ∞
+J (x) given by (41). Then, the solution to the mean-ﬁeld model (23)-(26) is such that
+X
+J∈{N,D,M,C}
+∥fJ −f ∞
+J ∥˙H−p →0
+as t →∞,
+1
+2 < p < 1.
+Proof.
+Step 1: fN →f q
+N in ˙H−p, with 1
+2 < p < 1, as t →∞. Since the right-hand side of the Fokker-
+Planck equation (23) for fN(x, t) vanishes when fN = f q
+N, with f q
+N being the quasi-equilibrium
+distribution given by (32), we have
+∂
+∂t(fN −f q
+N) =
+−∂f q
+N
+∂t + σ2
+NmC(t)
+2
+∂2
+∂x2 [x2(fN −f q
+N)] + ∂
+∂x [(βNmCx −βDmMmD)(fN −f q
+N)] ,
+which, taking the Fourier transforms, gives
+∂
+∂t( ˆfN −c
+f q
+N) =
+−∂c
+f q
+N
+∂t + σ2
+NmC
+2
+ξ2 ∂2
+∂ξ2 ( ˆfN −c
+f q
+N) −βNmCξ ∂
+∂ξ ( ˆfN −c
+f q
+N) −iβDmMmDξ( ˆfN −c
+f q
+N).
+(44)
+Through a method analogous to the one employed in [21, 30], from (44) we ﬁnd
+d
+dt
+Z
+R
+|ξ|−2p| ˆfN −c
+f q
+N|2dξ ≤
+Z
+R
+|ξ|−2p
+
+∂c
+f q
+N
+∂t
+ | ˆfN −c
+f q
+N|dξ
+−(2p −1)mC
+
+σ2
+N
+3 −2p
+4
++ βN
+ Z
+R
+|ξ|−2p| ˆfN −c
+f q
+N|2dξ.
+(45)
+Being f q
+N an inverse Gamma distribution, the following estimate holds
+Z
+R+
+
+∂f q
+N
+∂t
+ dx ≤|ω′
+N(t)|B(t),
+B(t) = 2νN
+ωN(t),
+where ω′
+N(t) is the derivative of ωN(t). Moreover, since ωN(t) is bounded (cf. (36)), there exists
+a constant DN > 0 such that B(t) ≤DN for all t > 0. Hence,
+
+∂c
+f q
+N
+∂t (ξ, t)
+ =
+
+Z
+R+
+∂f q
+N(x, t)
+∂t
+e−iξxdx
+ ≤
+Z
+R+
+
+∂f q
+N(x, t)
+∂t
+ dx ≤|ω′
+N(t)|DN
+∀t > 0.
+1The metric induced by this norm, introduced in [3], is closely related to the Fourier-based metrics introduced
+in [14] to study the trends to equilibrium for homogeneous kinetic equations; see also [30] for further applications
+of such metrics.
+13
+
+
+Since both fN and f q
+N are probability density functions on R+ we have that ˆfN(0, t) = c
+f q
+N(0, t) = 1.
+Thus, expanding in Taylor series about ξ = 0 we obtain
+| ˆfN −c
+f q
+N| =
+
+∂ˆfN
+∂ξ (ξ∗, t) −∂c
+f q
+N
+∂ξ (ξ∗, t)
+ |ξ| ≤|mN(t) + mq
+N(t)||ξ| ≤MN|ξ|,
+with MN = max
+t>0 {mN(t) + mq
+N(t)} < ∞. In fact, being fN a probability density function of ﬁnite
+mean value, we have
+
+∂ˆfN
+∂ξ
+ =
+
+Z
+R+
+∂fN
+∂x e−iξxdx
+ =
+i
+Z
+R+
+xfN(x, t)e−iξxdx
+ ≤
+
+Z
+R+
+xfN(x, t)dx
+ .
+Therefore, for any ξ ∈R we have
+|ξ|−2p
+
+∂c
+f q
+N
+∂t
+ | ˆfN −c
+f q
+N| ≤MNDN|ω′
+N||ξ|1−2p
+and, for any R > 0, the following estimate on the ﬁrst term on the right-hand side of (45) holds
+Z
+R
+|ξ|−2p
+
+∂c
+f q
+N
+∂t
+ | ˆfN −c
+f q
+N|dξ ≤
+Z
+|ξ|≤R
+MN|ω′
+N|B(t)|ξ|1−2pdξ +
+Z
+|ξ|>R
+|ξ|−2p
+
+∂c
+f q
+N
+∂t
+ | ˆfN −c
+f q
+N|dξ =
+MN|ω′
+N|B(t)R2−2p
+1 −p +
+Z
+|ξ|>R
+|ξ|−2p
+
+∂c
+f q
+N
+∂t
+ | ˆfN −c
+f q
+N|dξ.
+Furthermore, for any p > 1/2, the last term in the above estimate can be further estimated as
+Z
+|ξ|>R
+|ξ|−2p
+
+∂c
+f q
+N
+∂t (ξ, t)
+ | ˆfN −c
+f q
+N|dξ ≤
+
+
+Z
+|ξ|>R
+|ξ|−2p
+
+∂c
+f q
+N
+∂t
+
+2
+dξ
+
+
+1/2  Z
+|ξ|>R
+|ξ|−2p| ˆfN −c
+f q
+N|2dξ
+!1/2
+≤
+MNDN|ω′
+N|
+ Z
+|ξ|>R
+|ξ|−2pdξ
+!1/2 Z
+R
+|ξ|−2p| ˆfN −c
+f q
+N|2dξ
+1/2
+=
+MNDN|ω′
+N|R1/2−p
+
+2
+2p −1
+Z
+R
+|ξ|−2p| ˆfN −c
+f q
+N|2dξ
+1/2
+,
+and then, for any 1/2 < p < 1, we have the following estimate on the ﬁrst term on the right-hand
+side of (45)
+Z
+R
+|ξ|−2p
+
+∂c
+f q
+N
+∂t (ξ, t)
+ | ˆfN −c
+f q
+N|dξ ≤
+MNDN|ω′
+N|R2−2p
+1 −p + MNDN|ω′
+N|R1/2−p
+
+2
+2p −1
+Z
+R
+|ξ|−2p| ˆfN −c
+f q
+N|2dξ
+1/2
+.
+As for the optimal value of R > 0, we ﬁnd
+R∗= (1 −p)
+
+2
+2p −1
+Z
+R
+|ξ|−2p| ˆfN −c
+f q
+N|2dξ
+1/2
+> 0
+14
+
+
+for any 1/2 < p < 1. Therefore, the inequality can be optimised for R = R∗as follows
+Z
+R
+|ξ|−2p
+
+∂c
+f q
+N
+∂t (ξ, t)
+ | ˆfN −c
+f q
+N|dξ ≤CpMNDN|ω′
+N|
+Z
+R
+|ξ|−2p| ˆfN −c
+f q
+N|2dξ
+ 2−2p
+3−2p
+,
+with
+Cp =
+
+2
+2p −1
+ (2−2p)
+3−2p 
+1
+1 −p
+ −1+2p
+3−2p
+
+
+ p −1
+2
+2 −2p
+ 2(2−2p)
+3−2p
++
+ p −1
+2
+2 −2p
+ 1−2p
+3−2p
+
+> 0.
+Setting
+zN(t) =
+Z
+R
+|ξ|−2p| ˆfN −c
+f q
+N|2dξ,
+from (45) we then obtain
+dzN(t)
+dt
+≤−(2p −1)mC
+
+σ2
+N
+3 −2p
+4
++ βN
+
+zN(t) + CpMNDN|ω′
+N|zN(t)
+2−2p
+3−2p ,
+from which the change of variable yN = z1/(3−2p)
+N
+yields
+dyN(t)
+dt
+≤−2p −1
+3 −2pmC
+
+σ2
+N
+3 −2p
+4
++ βN
+
+yN(t) + CpMNDN|ω′
+N|
+3 −2p
+,
+that is,
+yN(t) ≤
+
+yN(0) +
+Z t
+0
+bN(s) exp
+Z s
+0
+aN(τ)dτ)
+
+ds
+
+exp
+
+−
+Z t
+0
+aN(s)ds
+
+,
+with
+aN(t) = 2p −1
+3 −2p
+
+σ2
+N
+3 −2p
+4
++ βN
+
+mC(t),
+bN(t) = CpMNDN|ω′
+N(t)|
+3 −2p
+.
+Since ω′
+N(t) is bounded (cf. (38)) then bN(t) is bounded as well. Moreover, since mC(t) is non-
+negative and converges to a positive value as t →∞(cf. (15) and (18)), the same holds for aN(t),
+and thus yN(t) →0 as t →∞, which in turn ensures that zN(t) →0 as t →∞as well. As a
+result,
+∥fN −f q
+N∥˙H−p =
+Z
+R
+|ξ|−2p| ˆfN −c
+f q
+N|2dξ →0
+as t →∞,
+1
+2 < p < 1.
+(46)
+Step 2: fD →f q
+D in
+˙H−p, with
+1
+2 < p < 1, as t →∞.
+Since the right-hand side of
+the Fokker-Planck equation (25) for fD(x, t) vanishes when fD = f q
+D, with f q
+D being the quasi-
+equilibrium distribution given by (32), we have
+∂
+∂t(fD −f q
+D) =
+−∂f q
+D
+∂t + σ2
+DmM
+2
+∂2
+∂x2 [x2(fD −f q
+D)] + ∂
+∂x [(βDmMx −βNmNmC)(fD −f q
+D)] .
+Taking the Fourier transforms gives
+∂
+∂t( ˆfD −c
+f q
+D) =
+−∂c
+f q
+D
+∂t + σ2
+DmM
+2
+ξ2 ∂2
+∂ξ2 ( ˆfD −c
+f q
+D) −βDmMξ ∂
+∂ξ ( ˆfD −c
+f q
+D) −iβNmNmCξ( ˆfD −c
+f q
+D),
+(47)
+15
+
+
+and then, proceeding similarly to Step 1, exploiting the fact that ωD(t) is bounded (cf. (36))
+and thus there exists a constant DD > 0 such that
+2νD
+ωD(t) ≤DD for all t > 0, and considering
+1
+2 < p < 1, we ﬁnd
+d
+dt
+Z
+R
+|ξ|−2p| ˆfD −c
+f q
+D|2dξ
+≤−(2p −1)mM
+
+σ2
+D
+3 −2p
+4
++ βD
+ Z
+R
+|ξ|−2p| ˆfD −c
+f q
+D|2dξ+
+CpMDDD|ω′
+D|
+Z
+R
+|ξ|−2p| ˆfD −c
+f q
+D|2dξ
+ 2−2p
+3−2p
+,
+where ω′
+D(t) is the derivative of ωD(t) and MD = max
+t>0 {mD(t) + mq
+D(t)}. Hence, as similarly done
+in Step 1, setting ﬁrst
+zD(t) =
+Z
+R
+|ξ|−2p| ˆfD −c
+f q
+D|2dξ
+and then yD = z
+1
+3−2p
+D
+, we ﬁnd
+yD(t) ≤
+
+yD(0) +
+Z t
+0
+bD(s) exp
+Z s
+0
+aD(τ)dτ)
+
+ds
+
+exp
+
+−
+Z t
+0
+aD(s)ds
+
+,
+where
+aD(t) = 2p −1
+3 −2p
+
+σ2
+D
+3 −2p
+4
++ βD
+
+mM(t),
+bD(t) = CpMDDD|ω′
+D(t)|
+3 −2p
+.
+Since ω′
+D(t) is bounded (cf. (38)) then bD(t) is bounded as well. Moreover, since mM(t) is non-
+negative and converges to a positive value as t →∞(cf. (15) and (18)), the same holds for aD(t),
+and thus yD(t) →0 as t →∞, which in turn ensures that zD(t) →0 as t →∞as well. As a
+result,
+∥fD −f q
+D∥˙H−p =
+Z
+R
+|ξ|−2p| ˆfD −c
+f q
+D|2dξ →0
+as t →∞,
+1
+2 < p < 1.
+(48)
+Step 3: fM →f q
+M and fC →f q
+C in ˙H−p , with 1
+2 < p < 1, as t →∞. Since the right-hand
+side of the Fokker-Planck equation (25) for fM(x, t) vanishes when fM = f q
+M, with f q
+M being the
+quasi-equilibrium distribution given by (34), we have
+∂
+∂t(fM −f q
+M) = ∂
+∂x [(βMx −γMmD(t))(fM −f q
+M)] + σ2
+M
+2
+∂2
+∂x2 [x2(fM −f q
+M)].
+Then, through a method analogous to the ones employed in Steps 1 and 2, setting
+zM(t) =
+Z
+R
+|ξ|−2p| ˆfM −c
+f q
+M|2dξ,
+we ﬁnd
+d
+dtzM(t) ≤
+Z
+R
+|ξ|−2p
+
+∂c
+f q
+M
+∂t
+ | ˆfM −c
+f q
+M|dξ −(2p −1)
+σ2
+M(3 −2p)
+4
++ βM
+
+zM.
+Using the fact that, since ωM(t) is bounded (cf. (36)) and thus there exists a constant DM > 0
+such that
+2νM
+ωM(t) ≤DM for all t > 0, and considering 1
+2 < p < 1, the following estimate holds
+Z
+R
+|ξ|−2p
+
+∂c
+f q
+M
+∂t
+ | ˆfM −c
+f q
+M|dξ ≤CpMMDMz
+2−2p
+3−2p
+M
+,
+16
+
+
+where MM = max
+t>0 {mM(t) + mq
+M(t)}, from the above diﬀerential inequality we ﬁnd
+d
+dtzM(t) ≤−(2p −1)
+σ2
+M(3 −2p)
+4
++ βM
+
+zM + CpMMDM|ω′
+M|z
+2−2p
+3−2p
+M
+,
+where ω′
+M(t) is the derivative of ωM(t). Setting yM = z
+2−2p
+3−2p
+M
+, the latter diﬀerential inequality
+yields
+d
+dtyM ≤−(2p −1)
+σ2
+M(3 −2p)
+4
++ βM
+
+yM + CpMMDM|ω′
+M|
+3 −2p
+,
+from which, noting that ω′
+M(t) is bounded (cf. (38)), we conclude that yM(t) →0 as t →∞, which
+in turn ensures that zM(t) →0 as t →∞as well. As a result,
+∥fM −f q
+M∥˙H−p =
+Z
+R
+|ξ|−2p| ˆfM −c
+f q
+M|2dξ →0
+as t →∞,
+1
+2 < p < 1.
+(49)
+In a similar way, introducing the notation
+zC =
+Z
+R
+|ξ|−2p| ˆfC −c
+f q
+C|2dξ
+and setting yC = z
+2−2p
+3−2p
+C
+, we ﬁnd
+d
+dtyC ≤−(2p −1)
+σ2
+C(3 −2p)
+4
++ βC
+
+yC + CpMCDC|ω′
+C|
+3 −2p
+,
+(50)
+where ω′
+C(t) is the derivative of ωC(t) and MC = max
+t>0 {mC(t) + mq
+C(t)}. From (50), noting that
+ω′
+C(t) is bounded (cf. (38)), we conclude that yC(t) →0 as t →∞, which in turn ensures that
+zC(t) →0 as t →∞as well. As a result,
+∥fC −f q
+C∥˙H−p =
+Z
+R
+|ξ|−2p| ˆfC −c
+f q
+C|2dξ →0
+as t →∞,
+1
+2 < p < 1.
+(51)
+Step 4: fJ →f ∞
+J
+in ˙H−p, with 1
+2 < p < 1, as t →∞for J ∈{N, D, M, C}. We start by
+noting that
+X
+J∈{N,D,M,C}
+∥fJ −f ∞
+J ∥˙H−p ≤
+X
+J∈{N,D,M,C}
+∥fJ −f q
+J∥˙H−p +
+X
+J∈{N,D,M,C}
+∥f q
+J −f ∞
+J ∥˙H−p.
+Then, using the fact that the results (46), (48), (49), and (51) ensure that the ﬁrst term on the
+right-hand side vanishes as t →∞for 1
+2 < p < 1 and the result (40) ensures that also the second
+term on the right-hand side vanishes as t →∞, we conclude that
+X
+J∈{N,D,M,C}
+∥fJ −f ∞
+J ∥˙H−p →0
+as t →∞,
+1
+2 < p < 1.
+4
+Numerical tests
+We now illustrate, by means of a sample of results of numerical simulations, the theoretical results
+obtained in the previous sections. In more detail, in Section 4.2 we numerically show that, under
+the time scaling (20) and the parameter scaling (21), when the scaling parameter ǫ is suﬃciently
+small, the solution of the kinetic model (9) converges to the solution of the mean-ﬁeld model (23)-
+(26). Then, in Section 4.3 we numerically show that the components of the solution of the mean-
+ﬁeld model converge, in the norm deﬁned via (43), to the equilibrium distributions deﬁned via (41)
+as t →∞. A summary of the set-up of numerical simulations is provided in Section 4.1.
+17
+
+
+Table 1: Parameter values used in numerical simulations.
+Parameter
+Value
+Description
+βN
+0.2
+Maximum relative change in normal cell density due to interactions with T lymphocytes
+βD
+0.1
+Maximum relative change in damaged cell density due to interactions with macrophages
+βM
+0.2
+Rate of natural decay of macrophage density
+βC
+0.1
+Rate of natural decay of T lymphocyte density
+σN
+0.01
+Standard deviation of zero-mean random variable modeling ﬂuctuations in normal cell density
+σD
+0.01
+Standard deviation of zero-mean random variable modeling ﬂuctuations in damaged cell density
+σM
+0.01
+Standard deviation of zero-mean random variable modeling ﬂuctuations in macrophage density
+σC
+0.01
+Standard deviation of zero-mean random variable modeling ﬂuctuations in T-lymphocyte density
+γM
+0.05
+Rate of macrophage density growth induced by damaged cells
+γC
+0.05
+Rate of T-lymphocyte density growth induced by macrophages
+4.1
+Set-up of numerical simulations
+Numerical simulations of the kinetic model are carried out through direct Monte Carlo (DSMC)
+methods [24, 25], employing a system of N = 105 particles. Distribution functions are reconstruc-
+ted through standard histograms and the corresponding moments are estimated through classical
+Monte Carlo estimators from the particles’ system. Moreover, the system of Fokker-Planck equa-
+tions of the mean-ﬁeld model is solved numerically through structure-preserving methods [26].
+These methods are capable of reproducing long-time statistical properties of exact steady-state
+solutions with arbitrary accuracy, while ensuring preservation of positivity of the solution along
+with consistent entropy dissipation. For the structure preserving scheme, we employ a uniform
+grid over the interval [0, L] with L = 12, which is discretised with Nx = 801 grid points. We use
+a 6th order discretization in space, with step ∆x, and a 2nd order semi-implicit discretization in
+time with step ∆t = 0.5∆x.
+The parameter values used to carry out numerical simulations are provided in Table 1. Such
+parameter values were chosen with exploratory aim (i.e. to observe the eﬀects of all the mechanisms
+incorporated into the model over a reasonable computational time scale) and they are to be
+intended as being dimensionless. Furthermore, we deﬁne the initial cell distribution functions as
+the following uniform distributions
+fJ(x, 0) =
+
+
+
+
+
+1
+2mJ(0)
+x ∈
+"
+mJ(0) −1
+2
+r
+6
+5, mJ(0) + 1
+2
+r
+6
+5
+#
+,
+0
+elsewhere,
+(52)
+with mN(0) = 9, mD(0) = 1, mM(0) = 0.6, mC(0) = 0.6. The distributions deﬁned via (52) are
+such that VJ(0) = 0.1 for all J ∈{N, D, M, C}. The initial distributions of particles for Monte
+Carlo simulations are sampled from (52).
+4.2
+Consistency between the kinetic model and its mean-ﬁeld limit
+The plots in Figures 2 and 3 display the evolution of the means, mJ(t) deﬁned via (2), and the
+variances, VJ(t) deﬁned via (3), of the distribution functions, fJ(x, t) with J ∈{N, D, M, C}, of
+the kinetic model, under the time scaling (20) and the parameter scaling (21), for diﬀerent values
+of the scaling parameter ǫ, i.e. ǫ ∈{10−3, 10−2, 10−1, 5 × 10−1}, as well as the means and the
+variances of the distribution functions of the corresponding mean-ﬁeld model. As expected, based
+on the systems of diﬀerential equations for the means and the variances of the kinetic model and
+the corresponding systems for the mean-ﬁeld model derived in Sections 2.2.1 and 2.3.1, changing
+the value of ǫ does not lead to appreciable changes in the dynamics of the means, while it does lead
+to more signiﬁcant changes in the dynamics of the variances. Moreover, for ǫ suﬃciently small,
+there is an excellent quantitative agreement between the dynamics not only of the means but also
+18
+
+
+0
+20
+40
+60
+80
+100
+120
+140
+time
+5.0
+5.5
+6.0
+6.5
+7.0
+7.5
+8.0
+8.5
+9.0
+mN
+mN
+ǫ = 5 × 10−1
+ǫ = 10−1
+ǫ = 10−2
+ǫ = 10−3
+0
+20
+40
+60
+80
+100
+120
+140
+time
+1.0
+1.5
+2.0
+2.5
+3.0
+3.5
+4.0
+4.5
+5.0
+mD
+mD
+ǫ = 5 × 10−1
+ǫ = 10−1
+ǫ = 10−2
+ǫ = 10−3
+0
+20
+40
+60
+80
+100
+120
+140
+time
+0.5
+0.6
+0.7
+0.8
+0.9
+1.0
+1.1
+1.2
+mM
+mM
+ǫ = 5 × 10−1
+ǫ = 10−1
+ǫ = 10−2
+ǫ = 10−3
+0
+20
+40
+60
+80
+100
+120
+140
+time
+0.450
+0.475
+0.500
+0.525
+0.550
+0.575
+0.600
+0.625
+mC
+mC
+ǫ = 5 × 10−1
+ǫ = 10−1
+ǫ = 10−2
+ǫ = 10−3
+Figure 2: Consistency between the kinetic model and its mean-ﬁeld limit. Solid, coloured
+lines highlight the dynamics of the means, mJ(t) deﬁned via (2), of the distribution functions,
+fJ(x, t), with J ∈{N, D, M, C}, of the kinetic model (9), under the time scaling (20) and the
+parameter scaling (21), for the values of the scaling parameter ǫ provided in the legends. Dashed,
+black lines highlight the dynamics of the means of the distribution functions of the mean-ﬁeld
+model (23)-(26). Numerical simulations were carried out under initial conditions of components
+deﬁned via (52) and the parameter values listed in Table 1.
+of the variances of the kinetic model and those of the mean-ﬁeld model. This validates the formal
+limiting procedure employed to obtain the system of Fokker-Planck equations of the mean-ﬁeld
+model from the kinetic model, under the time scaling (20) and the parameter scaling (21), in the
+limit ǫ →0+.
+19
+
+
+0
+20
+40
+60
+80
+100
+120
+140
+time
+0.2
+0.4
+0.6
+0.8
+1.0
+VN
+VN
+ǫ = 5 × 10−1
+ǫ = 10−1
+ǫ = 10−2
+ǫ = 10−3
+0
+20
+40
+60
+80
+100
+120
+140
+time
+0.2
+0.4
+0.6
+0.8
+1.0
+1.2
+1.4
+VD
+VD
+ǫ = 5 × 10−1
+ǫ = 10−1
+ǫ = 10−2
+ǫ = 10−3
+0
+20
+40
+60
+80
+100
+120
+140
+time
+0.02
+0.04
+0.06
+0.08
+0.10
+VM
+VM
+ǫ = 5 × 10−1
+ǫ = 10−1
+ǫ = 10−2
+ǫ = 10−3
+0
+20
+40
+60
+80
+100
+120
+140
+time
+0.02
+0.04
+0.06
+0.08
+0.10
+VC
+VC
+ǫ = 5 × 10−1
+ǫ = 10−1
+ǫ = 10−2
+ǫ = 10−3
+Figure 3: Consistency between the kinetic model and its mean-ﬁeld limit. Solid, coloured
+lines highlight the dynamics of the variances, VJ(t) deﬁned via (3), of the distribution functions,
+fJ(x, t), with J ∈{N, D, M, C}, of the kinetic model (9), under the time scaling (20) and the
+parameter scaling (21), for the values of the scaling parameter ǫ provided in the legends. Dashed,
+black lines highlight the dynamics of the variances of the distribution functions of the mean-ﬁeld
+model (23)-(26). Numerical simulations were carried out under initial conditions of components
+deﬁned via (52) and the parameter values listed in Table 1.
+4.3
+Convergence to equilibrium of the mean-ﬁeld model
+The plots in Figure 4 summarise the time evolution of the components, fJ(x, t) with J ∈{N, D, M, C},
+of the solution of the system of Fokker-Planck equations of the mean-ﬁeld model and show that
+they converge to the equilibrium distributions, f ∞
+J (x) with J ∈{N, D, M, C}, deﬁned via (41) as
+t →∞.
+To demonstrate numerically that, as per Theorem 3.1,
+∥fJ −f ∞
+J ∥˙H−p →0
+as t →∞,
+1
+2 < p < 1,
+J ∈{N, D, M, C},
+we exploit the fact that, as discussed in [2, 21],
+∥f −g∥˙H−p =
+√
+2
+2p −1
+Γ( 3
+2 −p)
+22p−1Γ(p)Ep(f, g),
+(53)
+where
+Ep(f, g) =2
+Z
+R2
++
+|x −y|2p−1f(x)g(y)dx dy −
+Z
+R2
++
+|x −y|2p−1f(x)f(y)dx dy −
+Z
+R2
++
+|x −y|2p−1g(x)g(y)dx dy
+(54)
+20
+
+
+0
+2
+4
+6
+8
+10
+12
+x
+0.0
+0.2
+0.4
+0.6
+0.8
+fN(x, t)
+t = 0.0
+t = 1.0
+t = 8.0
+t = 75.0
+f∞
+N (x)
+0
+2
+4
+6
+8
+10
+12
+x
+0.0
+0.2
+0.4
+0.6
+0.8
+1.0
+fD(x, t)
+t = 0.0
+t = 1.0
+t = 8.0
+t = 75.0
+f∞
+D (x)
+0.0
+0.5
+1.0
+1.5
+2.0
+2.5
+3.0
+x
+0.0
+0.5
+1.0
+1.5
+2.0
+2.5
+3.0
+fM(x, t)
+t = 0.0
+t = 1.0
+t = 8.0
+t = 75.0
+f∞
+M (x)
+0.0
+0.5
+1.0
+1.5
+2.0
+2.5
+3.0
+x
+0.0
+0.5
+1.0
+1.5
+2.0
+2.5
+3.0
+fC(x, t)
+t = 0.0
+t = 1.0
+t = 8.0
+t = 75.0
+f∞
+C (x)
+Figure 4: Convergence to equilibrium of the mean-ﬁeld model. Plots of the distribution
+functions, fJ(x, t), with J ∈{N, D, M, C}, of the mean-ﬁeld model (23)-(26) for t ∈{0, 1, 8, 75}
+(lines without markers) and the corresponding equilibrium distributions deﬁned via (41) (lines with
+circle markers). Numerical simulations were carried out under initial conditions of components
+deﬁned via (52) and the parameter values listed in Table 1.
+21
+
+
+0
+20
+40
+60
+80
+time
+10−5
+10−4
+10−3
+10−2
+10−1
+100
+101
+Ep(fN, f q
+N )
+p = 5
+8
+p = 3
+4
+p = 7
+8
+0
+20
+40
+60
+80
+time
+10−6
+10−5
+10−4
+10−3
+10−2
+10−1
+100
+101
+Ep(fD, f q
+D )
+p = 5
+8
+p = 3
+4
+p = 7
+8
+0
+20
+40
+60
+80
+time
+10−6
+10−5
+10−4
+10−3
+10−2
+10−1
+100
+Ep(fM, f q
+M)
+p = 5
+8
+p = 3
+4
+p = 7
+8
+0
+20
+40
+60
+80
+time
+10−5
+10−4
+10−3
+10−2
+10−1
+100
+Ep(fC, f q
+C )
+p = 5
+8
+p = 3
+4
+p = 7
+8
+Figure 5: Convergence to equilibrium of the mean-ﬁeld model. Plots of Ep(fJ, f q
+J) deﬁned
+via (54), for p ∈( 1
+2, 1), i.e. p ∈{ 5
+8, 3
+4, 7
+8}, with J ∈{N, D, M, C}. Numerical simulations were
+carried out under initial conditions of components deﬁned via (52) and the parameter values listed
+in Table 1.
+is the so-called Energy Distance, see also [29]. The plots in Figure 5 display the evolution of
+Ep(fJ, f q
+J) for diﬀerent values of p ∈( 1
+2, 1), i.e. p ∈{ 5
+8, 3
+4, 7
+8}, with fJ(x, t) being the components
+of the numerical solution to the mean-ﬁeld model (23)-(26) and f q
+J(x, t) being computed by sub-
+stituting into (32) and (34) the numerical values of ωJ(t), J ∈{N, D, M, C}. These plots show
+that, consistently with Theorem 3.1, Ep(fJ, f q
+J), and thus ∥fJ −f q
+J∥˙H−p, converges to zero for all
+J ∈{N, D, M, C} as t →∞, for all the values of p ∈( 1
+2, 1) considered.
+Note that the plots in Figure 5 indicate that Ep(fJ, f q
+J) does not decay monotonically to zero.
+Yet, the plots in Figure 6 demonstrate that, consistently with the estimates derived in the proof
+of Theorem 3.1,
+Ep(fJ, f q
+J) ≤yJ(t),
+as t →∞,
+J ∈{N, D, M, C},
+where
+yJ(t) = φJ(t) −1,
+φJ(t) = exp
+
+−(3 −2p)
+Z t
+0
+aJ(s)ds
+
+,
+(55)
+with aJ being computed numerically through the formulas provided in the proof of Theorem 3.1.
+22
+
+
+0
+20
+40
+60
+80
+time
+10−5
+10−4
+10−3
+10−2
+10−1
+100
+101
+E3/4(fN, f q
+N )
+p = 3
+4
+φN(t) −1
+0
+20
+40
+60
+80
+time
+10−6
+10−5
+10−4
+10−3
+10−2
+10−1
+100
+101
+E3/4(fD, f q
+D )
+p = 3
+4
+φD(t) −1
+0
+20
+40
+60
+80
+time
+10−6
+10−5
+10−4
+10−3
+10−2
+10−1
+100
+E3/4(fM, f q
+M)
+p = 3
+4
+φM(t) −1
+0
+20
+40
+60
+80
+time
+10−4
+10−3
+10−2
+10−1
+100
+E3/4(fC, f q
+C )
+p = 3
+4
+φC(t) −1
+Figure 6: Convergence to equilibrium of the mean-ﬁeld model. Plots of Ep(fJ, f q
+J) (solid
+lines) deﬁned via (54), for p = 3
+4, and yJ(t) = φJ(t) −1 (dashed lines) deﬁned via (55), with
+J ∈{N, D, M, C}. Numerical simulations were carried out under initial conditions of components
+deﬁned via (52) and the parameter values listed in Table 1.
+23
+
+
+5
+Conclusions and perspectives
+In this paper, we have presented a novel kinetic model for MDs. The model comprises a system
+of integro-diﬀerential equations for the statistical distributions, over a large patient cohort, of the
+densities of muscle ﬁbers and immune cells implicated in muscle inﬂammation, degeneration, and
+regeneration, which underpin disease development. Through an appropriate scaling procedure, we
+have formally derived the corresponding mean-ﬁeld and macroscopic limits, thereby establishing
+a hierarchy of models that consistently describe the dynamics of muscle and immune cells playing
+a key role in the development of MDs across scales.
+Exploiting its analytical tractability, we have studied the long-time behaviour of the mean-ﬁeld
+model. The analytical results obtained, which have been illustrated through numerical simula-
+tions, provide a full characterisation of the equilibrium cell distribution functions and establish
+convergence to equilibrium. These results oﬀer a detailed mathematical depiction of how diﬀerent
+parameters underlying cell dynamics shape the statistical distributions of muscle and immune cells
+over the patient cohort. As such, they also exemplify how, although the focus of this paper has
+been on mathematical aspects, the proposed modeling approach has the potential to serve as a
+quantitative tool to gain new insights into the role that diﬀerent cellular processes underlying the
+interaction dynamics between muscle and immune cells may play in the progression of MDs.
+The present work provides a basis for future extensions, including modeling the action of
+therapeutic interventions. In this regard, an avenue for future research could be to investigate the
+eﬀect of therapeutic approaches that keep under control the growth of the density of cytotoxic
+T lymphocytes induced by macrophages, in the vein of the recent experimental results on DMD
+presented in [33]. This could be done, for instance, by modifying the deﬁnition (8) of x′′
+C as follows
+x′′
+C = xC + γCxM −νxC,
+where the parameter ν ≥0 would be linked to the eﬃcacy of therapy. In the mean-ﬁeld limit,
+this would then result in the Fokker-Planck equation (25) for fC being replaced by the following
+equation for ¯fC, i.e. the controlled density of cytotoxic T lymphocytes,
+∂
+∂t
+¯fC(x, t) = σ2
+C
+2
+∂2
+∂x2 (x2 ¯fC(x, t) + ∂
+∂x
+
+[(βC + ν) x −γC ¯mM] ¯fC(x, t)
+	
+.
+The mean density of cytotoxic T lymphocytes for ν > 0, i.e. the controlled mean ¯mC, would then
+satisfy the following diﬀerential equation
+d
+dt ¯mC = −(βC + ν) ¯mC + γC ¯mM,
+and the equilibrium value of the mean density of normal cells, i.e. the controlled mean ¯m∞
+N , and
+the corresponding variance, ¯V ∞
+N , would thus be
+¯m∞
+N =
+βD(βC + ν)m0
+βD(βC + ν) + βNγC
+,
+¯V ∞
+N =
+σ2
+N
+2βN −σ2
+N
+( ¯m∞
+N )2.
+Recalling the expression of the equilibrium value of the mean density of normal cells for ν = 0,
+i.e. the mean m∞
+N deﬁned via (18), and the corresponding variance, V ∞
+N deﬁned via (30), one sees
+that
+¯m∞
+N > m∞
+N ,
+¯V ∞
+N > V ∞
+N .
+Hence, compared to the case without treatment, the therapy would have the beneﬁcial eﬀect of
+allowing for a larger number of normal cells to be preserved, but it would also have the detrimental
+eﬀect of increasing the corresponding variance. This would imply a higher level of intra-patient
+heterogeneity, which might undermine therapeutic eﬃcacy by making the design of targeted thera-
+peutic strategies more challenging. This suggests the need for combination therapy to thwart such
+a detrimental eﬀect, which points the way toward novel compelling research directions for the
+mathematical modeling of MDs.
+24
+
+
+Acknowledgements
+The research underlying this paper has been undertaken within the activities of the GNFM group
+of INdAM (National Institute of High Mathematics). All the authors acknowledge partial sup-
+port from the PRIN2022PNRR project No.P2022Z7ZAJ, European Union - NextGenerationEU.
+M.Z. acknowledges partial support by ICSC - Centro Nazionale di Ricerca in High Performance
+Computing, Big Data and Quantum Computing, funded by European Union - NextGenerationEU.
+References
+[1] A. Agosti, E. Shaqiri, M. Paoletti, et al. Deep learning for automatic segmentation of thigh
+and leg muscles. Magn. Reson. Mater. Phy., 35: 467–483, 2022.
+[2] G. Auricchio, G. Brigati, P. Giudici, G. Toscani, From kinetic theory to AI: a rediscovery of
+high-dimensional divergences and their properties. Preprint arXiv:2507.11387
+[3] L. Baringhaus, and R. Gr¨ubel. On a class of characterization problems for random convex
+combinations. Ann. Inst. Statist. Math., 49: 555–567, 1997.
+[4] A. Bondesan, M. Menale, G. Toscani, M. Zanella. Lotka–Volterra-type kinetic equations for
+interacting species. Nonlinearity, 38: 075026, 2025.
+[5] M. Burger, B. D¨uring, L. M. Kreusser, P. Markowich, C.-B. Sch¨onlieb. Pattern formation of
+a nonlocal, anisotropic interaction model. Math. Models Methods Appl. Sci., 28(3):409–451,
+2018.
+[6] R. F. Cabini, A. Pichiecchio, A. Lascialfari, S. Figini, M. Zanella. A kinetic approach to
+consensus-based segmentation of biomedical images. Kinet. Relat. Mod., 18(2):286-311,2025.
+[7] R. F. Cabini, H. Tettamanti, M. Zanella. Understanding the impact of evaluation metrics in
+kinetic models for consensus-based segmentation. Entropy, 27(2), 149, 2025.
+[8] G. Dall’Acqua, F. Castiglione. Stability and phase transitions in a mathematical model of
+Duchenne muscular dystrophy. J. Theoret. Biol., 260(2):283-289, 2009.
+[9] G. Dimarco, B. Perthame, G. Toscani, M. Zanella. Kinetic models for epidemic dynamics
+with social heterogeneity. J. Math. Biol., 83:32, 2021.
+[10] P. Dowling, D. Swandulla, K. Ohlendieck. Cellular pathogenesis of Duchenne muscular dys-
+trophy: progressive myoﬁbre degeneration, chronic inﬂammation, reactive myoﬁbrosis and
+satellite dysfunction. Eur J. Transl. Myol., 11856, 2023.
+[11] D. Duan, N. Goemans, S. Takeda, E. Mercuri, A. Aartsma-Rus. Duchenne Muscular Dys-
+trophy. Nat. Rev. Dis. Primers, 7: 13, 2021.
+[12] A. E. H. Emery. The Muscular Dystrophies. The Lancet, 359:687–695, 2002.
+[13] A. E. H. Emery, F. Muntoni, R. Quinlivan. Duchenne Muscular Dystrophy, Oxford University
+Press.
+[14] G. Gabetta, G. Toscani, B. Wennberg. Metrics for probability distributions and the trend to
+equilibrium for solutions of the Boltzmann equation. J. Stat. Phys., 81: 901–934, 1995.
+[15] G. Furioli, A. Pulvirenti, E. Terraneo, G. Toscani. Fokker–Planck equations in the modeling
+of socio-economic phenomena. Math. Models Methods Appl. Sci., 27:115–58, 2017.
+[16] M. T. Houston, A. N. Cameron, J. B. Gutierrez. A review of mathematical models for mus-
+cular dystrophy: A systems biology approach. PLOS Currents: MD, 2018.
+25
+
+
+[17] M. T. Houston, J. B. Gutierrez. The FRiND model: A mathematical model for representing
+macrophage plasticity in muscular dystrophy pathogenesis. Bull. Math. Biol., 81:3976–3997,
+2019.
+[18] A. S. Jarrah, F. Castiglione, N. P. Evans, R. W. Grange, R. Laubenbacher. A mathematical
+model of skeletal muscle disease and immune response in the mdx mouse. BioMed Res. Intern.,
+Vol. 2014, Article ID 87810, 2014.
+[19] A. Klar, Interacting ﬁber structures: mathematical aspects and applications, Riv. Math. Univ.
+Parma, 10(2):199–268, 2019.
+[20] M. P. Machado Ramos, C. Ribeiro, A. J. Soares. A kinetic model of T cell autoreactivity in
+autoimmune diseases. J. Math. Biol., 79:2005–2031, 2019.
+[21] G. Martal`o, G. Toscani, M. Zanella. Individual-based foundation of SIR-type epidemic models:
+mean-ﬁeld limit and large time behaviour. Preprint arXiv:2507.13947, 2025.
+[22] A. Medaglia, G. Colelli, L. Farina, A. Bacila, P. Bini, E. Marchioni, S. Figini, A. Pichiecchio,
+M. Zanella. Uncertainty quantiﬁcation and control of kinetic models of tumour growth under
+clinical uncertainties. Int. J. Non.Lin. Mech., 141:103933, 2022.
+[23] E. Mercuri, F. Muntoni. Muscular Dystrophies. The Lancet, 381:845–860, 2013.
+[24] L. Pareschi, G. Russo. An introduction to Monte Carlo methods for the Boltzmann equation.
+ESAIM: Proc., 10: 35-75, 2001.
+[25] L. Pareschi, G. Toscani. Interacting Multiagent Systems: Kinetic Equations and Monte Carlo
+Methods, Oxford University Press, 2013.
+[26] L. Pareschi, M. Zanella. Structure preserving schemes for nonlinear Fokker–Planck equations
+and applications. J. Sci. Comput., 74(3), 1575–1600, 2018.
+[27] B. Perthame. Models of cell motion and tissue growth, in The Mathematics of Mechanobiology,
+43–80, Lecture Notes in Math. Fond. CIME/CIME Found. Subser., 2260 , Springer, Cham,
+2020.
+[28] M. Stefanati, C. Villa, Y. Torrente, J. F. Rodriguez Matas. A mathematical model of healthy
+and dystrophic skeletal muscle biomechanics. J. Mech. Phys. Solids, 134:103747, 2020.
+[29] G. J. Sz´ekely, M. L. Rizzo. The Energy of Data and Distance Correlation. Chapman &
+Hall/CRC Monographs on Statistics and Applied Probability, 2023.
+[30] M. Torregrossa, G.Toscani, Wealth distribution in presence of debts. A Fokker-Planck de-
+scription. Commun. Math. Sci., 16(2):537–560, 2018.
+[31] G. Toscani, M. Zanella. On a kinetic description of Lotka-Volterra dynamics. Riv. Mat. Univ.
+Parma, 15:61-77, 2024.
+[32] L. Tripodi, C. Villa, D. Molinaro, Y. Torrente, A. Farini. The immune system in Duchenne
+muscular dystrophy pathogenesis. Biomedicines, 9: 1447, 2021.
+[33] M. Wehling-Henricks, S.Y. Kok, H. Gamboa, P. Kannan, C. Thomas, I. Flores, S.S. Welc,
+J.G. Tidball. Cytotoxic T-lymphocyte-associated protein 4 fused to a modiﬁed fragment of
+IgG1 reduces muscle ﬁber damage in a model of Duchenne Muscular Dystrophy by attenuating
+proinﬂammatory gene expression in myeloid lineage cells. Am J Pathol., 195(4):717–740, 2025.
+26

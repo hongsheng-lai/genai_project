@@ -1,0 +1,844 @@
+1
+Pinching-Antenna System-Assisted Localization:
+A Stochastic Geometry Perspective
+Jiajun He, Member, IEEE, Xidong Mu, Member, IEEE, Hien Quoc Ngo, Fellow, IEEE,
+and Michail Matthaiou, Fellow, IEEE
+Abstract—This paper proposes a novel localization framework
+underpinned by a pinching-antenna (PA) system, in which the
+target location is estimated using received signal strength (RSS)
+measurements obtained from downlink signals transmitted by the
+PAs. To develop a comprehensive analytical framework, we em-
+ploy stochastic geometry to model the spatial distribution of the
+PAs, enabling tractable and insightful network-level performance
+analysis. Closed-form expressions for target localizability and the
+Cram´er–Rao lower bound (CRLB) distribution are analytically
+derived, enabling the evaluation of the fundamental limits of
+PA-assisted localization systems without extensive simulations.
+Furthermore, the proposed framework provides practical guid-
+ance for selecting the optimal waveguide number to maximize
+localization performance. Numerical results also highlight the
+superiority of the PA-assisted approach over conventional fixed-
+antenna systems in terms of the CRLB.
+Index Terms—Cram´er-Rao lower bound, localization, pinching
+antenna, received signal strength.
+I. INTRODUCTION
+P
+INCHING-antenna (PA) systems have garnered signifi-
+cant attention in recent years due to their reconfigurability
+and practical deployment potential [1]. Compared to traditional
+multiple-antenna systems, a PA system comprises multiple
+discrete dielectric particles, referred to as PAs, that are pinched
+on dielectric waveguides to facilitate signal transmission.
+Equally importantly, DOCOMO demonstrated in [2] that a
+PA system can be implemented in a cost-effective manner.
+Motivated by these promising characteristics, PA systems have
+been extensively studied in the literature to enhance com-
+munication functionality. The fundamental performance limits
+of PA systems under various network configurations were
+thoroughly examined in [3], demonstrating that a PA system
+can achieve significant performance gains over conventional
+antenna systems. In addition, a distinguishing feature of PA
+systems is the reconfigurability of the PAs. By adjusting their
+positions along the waveguide, the system can simultaneously
+serve multiple mobile users and enhance communication per-
+formance by minimizing the distance between each user and
+its associated PA.
+Due to the advantages of PA systems, recent studies have in-
+vestigated their potential to improve localization performance.
+For instance, Ding [4] analyzed the fundamental limits of a
+PA-assisted time-of-arrival (ToA) localization system in terms
+of the Cram´er–Rao lower bound (CRLB), demonstrating that
+the use of PAs can significantly reduce localization error.
+Khalili et al. [5] investigated the large-scale deployment of
+waveguides to improve target diversity and sensing perfor-
+mance. Qin et al. [6] investigated how a PA system can be
+used to enhance the performance of integrated sensing and
+communication (ISAC) systems in terms of communication
+and sensing rates, whereas the inner and outer bounds of
+the achievable communication–sensing rate region were de-
+rived in [7] to gain insights into the information-theoretic
+limits of PA-assisted ISAC systems. Although PA systems
+have demonstrated strong potential in enhancing sensing and
+localization performance, a significant challenge cannot be
+overlooked when applying them to target localization. The
+sparse deployment of PAs along dielectric waveguides may
+limit their ability to capture a wide range of signals transmitted
+by mobile users. The signal reception on a single waveguide
+equipped with multiple PAs can lead to significant inter-
+antenna coupling, which lowers the localization accuracy. To
+address this issue, prior works, such as [8] and [9], have
+proposed the usage of additional antenna arrays or leaky
+coaxial cables (LCCs) to capture echo signals reflected by the
+target for channel estimation and target localization.
+From a practical implementation perspective, this work con-
+siders received signal strength (RSS)-based localization within
+a PA system, where multiple PAs transmit downlink signals
+to the target for localization.1 In addition, to the best of our
+knowledge, existing studies on PA system-assisted localization
+primarily focus on system-level or link-level designs and fail
+to provide insights into how different system configurations
+affect the overall localization performance. Motivated by this
+limitation, we aim to develop a stochastic geometric frame-
+work that studies the impact of the spatial distribution of PAs
+on the localization performance, thereby enabling network-
+level performance analysis and system optimization. The main
+contributions of this paper are listed as follows:
+1) Stochastic Modeling of the PA System: A unified evalu-
+ation framework is developed using stochastic geometry,
+providing valuable insights into the design of PA-assisted
+localization systems from a network-level perspective.
+To our knowledge, this is the first work to leverage the
+Poisson line process (PLP) for analyzing the localization
+performance of PA systems.
+2) Localizability and CRLB: To assess whether the mobile
+user (target) can be localized with a sufficient signal-
+to-interference-plus-noise ratio (SINR), the target local-
+izability is investigated. Tractable expressions for the
+1Different from ToA- and angle-of-arrival (AoA)-based localization, which
+typically require wideband signals or antenna arrays to obtain range and angle
+measurements, RSS-based localization offers a lower-complexity alternative
+by eliminating the need for such hardware and reducing the burden of
+acquiring location-dependent features [10].
+arXiv:2511.15444v1  [eess.SP]  19 Nov 2025
+
+
+2
+CRLB and its distribution are then derived, offering valu-
+able insights into how network configurations and channel
+characteristics influence the localization performance.
+3) Guideline for System Design: A comprehensive evalua-
+tion is conducted to gain insights into the fundamen-
+tal limits of PA-assisted localization. Numerical results
+show that the PA-assisted system achieves significantly
+improved localization accuracy compared to that of us-
+ing uniform linear arrays (ULAs). In addition, the pro-
+posed stochastic geometric framework offers practical
+guidelines for optimizing the number of waveguides
+and configuring network parameters to meet the desired
+localization requirements.
+II. SYSTEM MODEL
+We consider a localization problem (see 1) in a two-
+dimensional (2D) space, where multiple PAs on waveguides
+transmit downlink signals to a target user for localization.
+A. Network Model
+According to Slivnyak’s theorem [11], we assume that
+the target pt = [xt yt]T is located at the origin O, while
+the waveguides are randomly distributed within a 2D disk
+with center point at the origin and radius Ra according to
+a PLP with line density λl. Specifically, the k-th waveguide is
+modeled by an undirected line Lk, which is: Lk(ρk, θk) =
+
+(x, y) ∈R2 : x cos θk + y sin θk = ρk
+	
+, where ρk denotes
+the perpendicular distance from the origin O to the k-th waveg-
+uide, while θk is its inclination angle. During localization,
+the m-th PA on waveguide k is activated from the predefined
+locations (pk,m = [xk,m yk,m]T , where k = 1, 2, . . . and m =
+0, 1, . . .), while the predefined locations on the waveguide are
+modeled by a one-dimensional (1-D) homogeneous Poisson
+point process (HPPP) with node density λs. By indexing the
+waveguides in ascending order of their perpendicular distance
+ρk from the target, the probability density function (PDF) and
+cumulative distribution function (CDF) of the distance ρk to
+the k-th nearest waveguide are [12]
+fρk(x) = e−2πλlx(2πλlx)k
+x(k −1)!
+,
+Fρk(x) = 1 −e−2πλlx
+k−1
+X
+n=0
+(2πλlx)n
+n!
+.
+(1)
+Let dk,1 = ∥pk,1 −pt∥, where ∥· ∥denotes the Euclidean
+norm, be the distance between the target and the nearest PA
+(m = 1) on the k-th waveguide. Then, conditioned on ρk, the
+PDF and CDF of dk,1 are, respectively, given by
+fdk,1|ρk(r) =
+2λsr
+p
+r2 −ρk
+e−2λs√
+r2−ρk,
+Fdk,1|ρk(r) = 1 −e−2λs√
+r2−ρk.
+(2)
+B. Signal Model
+Each waveguide activates its nearest PA to the target user,
+denoted as pk,1, during the localization process. Although all
+PAs serve the same target user for localization, the RSS sample
+has to be extracted from a specific PA to obtain distance
+p!
+𝑘-th waveguide
+p",$
+Nearest antenna
+𝜃"
+p",%
+p!,!
+1-st waveguide
+𝜌"
+Predefined 
+location
+Fig. 1. Illustration of the PLP-based PA-assisted localization system.
+information [10], [13]. Consequently, each PA on a differ-
+ent waveguide transmits different symbols, which introduces
+interference and compromises the localization performance.
+For example, in cellular networks, the base station (BS)
+transmits signals containing various types of information, such
+as the cell-ID, that enable mobile users to extract location
+information from the corresponding BS [13]. Thus, the signal
+received at the target user is
+y =
+X
+k=1
+p
+Pthk,1sk + wn,
+(3)
+where Pt is the transmit power at each PA, while sk,
+where E{|sk|2} = 1, is the symbol transmitted by the k-th
+waveguide, and E{·} is the expectation operation; hk,1 is the
+channel gain between the target and its nearest PA on the k-th
+waveguide, which is given by [3]
+hk,1 =
+√ηe
+−2πj
+
+1
+λ ∥pt−pk,1∥+ 1
+λg ∥pk,0−pk,1∥
+
+∥pt −pk,1∥α/2
+,
+(4)
+where η = c2/16π2f 2
+c , c is the speed of light, fc is the carrier
+frequency, while λ and λg are the carrier and waveguide wave-
+length, respectively. Also, wn is the additive white Gaussian
+noise (AWGN) with variance σ2, while α is the path-loss
+exponent. From (3) and (4), the SINR at the target associated
+with its nearest PA on the k-th waveguide is
+SINRPA
+k =
+Pt|hk,1|2
+P
+i=1,i̸=k Pt|hi,1|2
+=
+ηPtd−α
+k,1
+X
+i=1,i̸=k
+ηPtd−α
+i,1
+|
+{z
+}
+interference from remaining PAs
++σ2
+=
+d−α
+k,1
+I + σ2n
+,
+where I = P
+i=1,i̸=k d−α
+i,1 , while σ2
+n =
+σ2
+Ptη is the normalized
+noise power. Since a line-of-sight (LoS) path between the
+target and the PA can be achieved by adjusting the PA location,
+the path-loss exponent typically ranges from 2 to 2.8 [13].
+C. RSS Measurements
+Considering a practical implementation of the PA-assisted
+localization system, the RSS-based scheme is considered. By
+assuming that the nearest predefined location on each waveg-
+uide has been determined, the RSS measured by the target
+user associated with the activated PA on the k-th waveguide
+is [10], [13]
+rRSS,k,1 = ln Pr,k,1 −ln η −ln Pt = −α ln dk,1 + np,
+(5)
+
+
+3
+where Pr,k,1 is the received signal power at the target user
+transmitted by the activated PA on the waveguide k, while np
+is Gaussian distributed with variance σ2
+p =
+ln 10
+10αE{SINRPA
+k }. Note
+that the value of α is normally obtained through field testing
+and calibration campaigns [10]. By collecting sufficient RSS
+measurements, the location estimate can be obtained using
+maximum likelihood estimation (MLE) as described in [10].
+III. PERFORMANCE ANALYSIS
+A. Target Localizability
+To determine the target localizability, we evaluate the prob-
+ability of detecting at least K waveguides during localization.
+Since the successful reception from the activated PA on the
+K-th nearest waveguide implies that all nearer waveguides are
+within the detection range, we investigate the probability that
+the SINR between the target and the selected PA on the K-th
+nearest waveguide exceeds a given threshold τ, given by
+P(SINRPA
+K > τ) = P
+ 
+ηPtd−α
+K,1
+P
+i=1,i̸=K ηPtd−α
+i,1 + σ2 > τ
+!
+. (6)
+To derive a closed-form expression of (6), the dominant
+interference analysis is adopted [14, Assumption 1]. Specif-
+ically, all interferers, except for the PA located on the nearest
+waveguide to the target, are approximated by their mean
+values. Then, we have the following proposition.
+Proposition 1. Considering a PA system with multiple waveg-
+uides, where the nearest predefined location to the target is
+activated to transmit downlink signals for localization, the
+probability of detecting at least K waveguides is
+P(SINRPA
+K > τ|d1,1, dK,1, ρK)
+≈
+Z Ra
+0
+Z dK
+0
+FdK,1|ρK
+
+τ
+ E{I} + σ2
+n
+−1
+α 
+× fd1,1(r)fdK,1|ρK(x)fρk(y)drdxdy,
+(7)
+where fd1,1(·), fdK,1|ρK(·), FdK,1|ρK(·), and fρk(·) are pro-
+vided in (1) and (2). Conditioned on the distances d1,1, dK,1,
+ρK, the interference I can be approximated by
+E{IK|d1,1, dK,1, ρ1, ρK}
+≈
+
+
+
+d−α
+1,1 + 2(K−2)
+2−α
+ρ2−α
+K
+−ρ2−α
+1
+ρ2
+K−ρ2
+1
++ 2πλl
+α−2 ρ2−α
+K
+, α > 2,
+d−2
+1,1 + 2(K−2)
+ρ2
+K−ρ2
+1 ln ρk
+ρ1 + 2πλl ln Ra
+ρk ,
+α = 2.
+(8)
+Proof. See Appendix I.
+For RSS-based localization, at least three waveguides are
+required to localize the target position without ambiguity
+[10]. Proposition 1 characterizes the probability of success-
+fully conducting the localization procedure and illustrates
+how this metric is influenced by various network parameters.
+Based on Proposition 1, the expected SINR is computed by:
+E{SINRPA
+k } =
+R ∞
+0
+P(SINRPA
+k > τ)dτ. Based on the expected
+SINR, the RSS disturbance σ2
+p is obtained.
+B. CRLB Analysis
+Based on the RSS signal model given by (5), the Fisher
+information matrix (FIM) is given by
+FIMRSS(pt) =
+1
+σ2
+RSS
+A
+C
+C
+B
+
+,
+(9)
+A =
+K
+X
+k=1
+(xk,1 −xt)2
+d4
+k,1
+, B =
+K
+X
+k=1
+(yk,1 −yt)2
+d4
+k,1
+,
+C =
+ K
+X
+k=1
+(xk,1 −xt)(yk,1 −yt)
+d4
+k,1
+!2
+,
+(10)
+where σRSS = σp
+α , and xt = yt = 0. Note that the following
+analysis remains valid even when the target is not located at
+the origin. The CRLB for RSS-based localization is then:
+CRLBRSS(pt) = tr
+ FIM−1
+RSS(pt)
+
+= σ2
+RSS
+A + B
+AB −C2 .
+(11)
+where tr(·) is the trace operation. In addition to deriving the
+CRLB using only the RSS samples detected from the nearest
+PA on each waveguide, the PA can be activated at different
+timestamps at all predefined locations on the waveguide for
+localization. In this case, the variables A, B, and C, can then
+be updated as follows:
+¯A =
+K
+X
+k=1
+M−1
+X
+m=0
+(xk,m −xt)2
+d4
+k,m
+, ¯B =
+K
+X
+k=1
+M−1
+X
+m=0
+(yk,m −yt)2
+d4
+k,m
+,
+¯C =
+ K
+X
+k=1
+M−1
+X
+m=0
+(xk,m −xt)(yk,m −yt)
+d4
+k,m
+!2
+,
+(12)
+where M is the number of predefined locations on each
+waveguide. By substituting (12) into (11), the RSS-based
+CRLB, considering all predefined locations for PA activation,
+can be obtained. However, (11) involves the random variables
+xk,m, yk,m, and dk,m, which makes it challenging to derive
+the distribution of the CRLB. Motivated by this challenge, we
+employ the concept of mutual information to derive a tractable
+approximation of the CRLB, as presented in the following.
+Proposition 2. By assuming that K waveguides are selected
+for localization, while each waveguide has M predefined PA
+positions. Given the RSS disturbance σ2
+p, the RSS CRLB can
+be approximated by
+CRLBRSS(pt) ≈σ2
+RSS
+4
+M(K −1)d2
+∗,
+(13)
+where d∗∈{dk,m}K,M−1
+k=1,m=0 is the selected distance between
+the target user and the PA activated at the m-th predefined
+location on the k-th waveguide. Considering a practical sce-
+nario in which only a single PA on the waveguides is activated
+for localization, we can set M = 1.
+Proof. See Appendix II.
+Compared to the lengthy and complex expression in (11),
+the approximate CRLB presented in Proposition 2 provides
+a concise and analytically tractable expression that effectively
+captures the localization performance. This simplified form
+serves as a valuable tool for performance evaluation without
+relying on computationally intensive simulations. It shows that
+(13) is a function of distance d∗, while the CDF of d∗is given
+in (2). The conditional RSS-based CRLB distribution is
+P (CRLBRSS(pt) ≤s| M, K, σ2
+p)
+= P(d∗≤
+p
+sM(K −1)/2σp|M, K, σ2
+p).
+(14)
+
+
+4
+-10
+-5
+0
+5
+10
+SINR threshold (dB)
+0
+0.2
+0.4
+0.6
+0.8
+1
+Localiability
+Fig. 2. Accuracy of Proposition 1 versus different SINR thresholds.
+3
+4
+5
+6
+7
+8
+1.2
+1.3
+1.4
+10log(MSE)
+Fig. 3. The localization performance versus different numbers of waveguides.
+By substituting the CDF of d∗into (14), the CRLB distribution
+for the PA system is obtained. Compared to conventional
+analytical methods that assume a fixed network geometry,
+the stochastic geometric framework accommodates random
+network deployments. By leveraging the inherent randomness
+of the considered PA system, the CRLB distribution provides
+insights into how the number of waveguides and channel
+parameters affect the overall localization performance across
+all possible geometric configurations.
+Although this study considers RSS for localization, it was
+suggested in [4] that ToA measurements can be utilized for
+target localization. However, the time synchronization among
+the deployed waveguides cannot be overlooked during the
+localization process. To mitigate this impact, time-difference-
+of-arrival (TDoA) localization can be applied. In our previous
+work [15], the approximate CRLB for the TDoA-based local-
+ization is: CRLBTDoA(pt) ≈
+σ2
+τ 2(K−1)
+PK
+k=2(1+cos2 θk−2 cos θk), where
+θk is the angle from the nearest PA to the target on the k-
+th waveguide, while the range variance σ2
+τ is computed by
+following [13]. The performance of the RSS-based method
+will be compared with that of using TDoA. For angle-based
+localization, estimating the AoA typically requires the use of
+antenna arrays [8], while a single PA or a target equipped with
+only a single antenna cannot extract angle information.
+IV. NUMERICAL RESULTS
+A. Simulation Setups
+For the simulation setup, waveguides are modeled using a
+PLP with line density λl = 0.1/π m−1 in the 2-D disk with
+center point at the origin and radius Ra = 30 m, while the pre-
+defined locations on each waveguide are randomly distributed
+according to a 1-D HPPP with density λs = 0.1 m−1. Each
+PA transmits signals with a constant power of Pt = 1 W, and
+the path-loss exponent is set to α = 2.1 [9]. All simulation
+results are averaged over 105 independent runs.
+B. Tradeoff between Localizability and CRLB
+Figure 2 illustrates the localizability performance of PA
+systems versus different SINR values. It is observed that
+-10
+0
+10
+20
+30
+SINR (dB)
+-20
+0
+20
+40
+10log(MSE)
+Fig. 4. Accuracy of Proposition 2 versus different SINR values.
+0
+1
+2
+3
+4
+5
+6
+0
+0.2
+0.4
+0.6
+0.8
+1
+Exact RSS CRLB
+Proposition 2
+Exact TDoA CRLB
+TDoA CRLB [15]
+Fig. 5. Accuracy of CRLB distribution versus localization requirements.
+localizability decreases as the required SINR increases. Al-
+though a higher SINR value guarantees better RSS quality, it
+is crucial to optimize network design to mitigate the impact
+of interference on localization performance. As the number
+of available waveguides increases, the overall localizability
+deteriorates. It is understandable that when different PAs
+transmit distinct pilots to the target for extracting RSS samples,
+an increase in the number of PAs results in greater interference.
+Figure 3 provides insights into how the number of available
+waveguides K affects the overall localization performance. It
+is evident that increasing the number of waveguides does not
+always guarantee improved localization accuracy. When the
+number of available waveguides is limited (e.g., K = 3 to 5),
+the localization performance improves with K since the benefit
+of additional measurements outweighs the effect of interfer-
+ence. Notably, when K = 5, the RSS-based scheme achieves
+the lowest mean-square error (MSE), indicating the best local-
+ization performance. However, further increasing the number
+of waveguides results in worse localization performance, as
+interference becomes the dominant factor. Therefore, it is
+essential to determine the optimal number of waveguides for
+localization to balance the trade-off between interference and
+localization accuracy.
+C. Overall Localization Performance
+Figure 4 examines the performance of the RSS-based local-
+ization across different SINR values. The theoretical results
+generated by Proposition 2 are consistent with the exact RSS-
+based CRLB obtained from (11). Furthermore, we compare
+PA system-assisted localization with conventional ULA-based
+localization. By adjusting the PA locations, the LoS distance
+between the PA and the target user is shortened, resulting in
+the acquisition of higher-quality RSS samples. The PA system
+also provides greater spatial diversity, whereas the ULA offers
+location-related measurement observations from only a single
+standpoint. Thus, the PA system systematically achieves better
+localization performance than the ULA.
+Figure 5 shows that the theoretical results generated by
+(14) closely match the simulation results, verifying the the-
+
+
+5
+oretical development of the CRLB distribution. Compared
+to the exact CRLB (11), the CRLB distribution provides
+insights into the overall localization performance. For in-
+stance, Fig. 5 shows that the RSS-based scheme achieves 3-
+meter localization accuracy with a probability of 40%. We
+also compare the RSS-based scheme with the TDoA-based
+method [15]. Since RSS measurements are less stable in signal
+propagation environments, while high-resolution TDoAs can
+be leveraged for localization, the TDoA-based scheme in PA
+systems outperforms that of using RSS. However, in practice,
+obtaining accurate time measurements in a PA system without
+the assistance of additional receivers, such as a ULA or LCC,
+remains an open challenge. Thus, the RSS-based localization
+scheme remains a favorable solution for PA systems.
+V. CONCLUSION
+This paper presented a unified analytical framework for
+PA-assisted localization using stochastic geometry, modeling
+waveguides via a PLP. Our framework enables network-level
+performance analysis without intensive simulations and pro-
+vides insights into selecting the optimal number of waveguides
+to achieve the optimal localization performance in terms of
+target localizability and CRLB. Numerical results showed that
+the PA-assisted system outperforms fixed-antenna systems, un-
+derscoring the benefits of using PAs for accurate positioning.
+APPENDIX I
+When α > 2, given distances d1,1, dK,1, and ρk, the
+probability of detecting K waveguides is computed by
+P(SINRPA
+K > τ|d1,1, dK,1, ρK)
+≈FdK,1|ρK
+
+τ
+ E{I} + σ2
+n
+−1
+α 
+,
+(15)
+while the interference from the remaining K −2 PAs (exclud-
+ing the PA on the nearest waveguide to the target) is
+E
+ K−1
+X
+i=2
+d−α
+i,1
+ d1,1, dK,1, ρ1, ρK
+
+=
+K−1
+X
+i=2
+Z di+1,1
+d1,1
+r−αfdi,1|ρi(r)fρi(x)drdx
+(a)
+≈
+Z ρK
+ρ1
+2(K −2)r1−α
+ρ2
+K −ρ2
+1
+dr = 2(K −2)
+2 −α
+ρ2−α
+K
+−ρ2−α
+1
+ρ2
+K −ρ2
+1
+,
+(16)
+where (a) simplifies the interference computation from K −2
+PAs by considering that the nearest path between the target and
+the activated PA on the waveguide is the perpendicular distance
+ρk instead of dk,1. Since the location on the waveguide
+associated with ρk follows a 2-D HPPP, the PDF of ρk is:
+fρk(r) =
+2r
+ρ2
+K−ρ2
+1 . By substituting fρk(x) into (16), the final
+expression is obtained. Based on a similar idea, the interfer-
+ence outside the circular b(O, ρK) is: E{P∞
+i=K+1 d−α
+i,1 } =
+2πλl
+R ∞
+ρK r−α+1dr = 2πλρ
+α−2 ρ2−α
+K
+. For the case of α = 2, the
+result can be derived in a similar manner.
+APPENDIX II
+Let the denominator of the RSS-based CRLB in (11) be
+D = ¯A ¯B −¯C2. We aim to select a distance d∗= dp,q ∈
+{dk,m}K,M−1
+k=1,m=0 that provides the highest amount of infor-
+mation to D by maximizing the mutual information, which
+is: I (D; dk,m|M, K) = h (D|M, K) −h (D|dk,m, M, K),
+whereas the differential entropies are given by
+h (D|M, K) = −
+Z
+¯ID
+fD(D|M, K)
+× log2 fD(D|M, K)dD,
+h (D|dk,m, M, K) = −
+Z
+¯ID
+Z
+¯D
+fD;dk,m(D, dk,m|M, K)
+× log2 fD(D|dk,m, M, K)dDddk,m,
+(17)
+where fD(·) and fD;dk,m(·) are the PDFs of D and the joint
+PDF of D and dk,m, respectively, while ¯ID and ¯D denote the
+supports of D and dk,m. These PDFs can be obtained through
+Monte-Carlo simulations. Based on the selected q-th PA on
+the waveguides, we have
+¯A ≈M
+K
+X
+k=1
+(xk,q −xt)2
+d4
+k,q
+, ¯B ≈M
+K
+X
+k=1
+(yk,q −yt)2
+d4
+k,q
+,
+¯C
+(a)
+≈M 2
+K
+X
+k=1
+(xk,q −xt)2(yk,q −yt)2
+d8
+k,q
+,
+(18)
+where (a) follows Sedrakyan’s inequality. By selecting the p-th
+waveguide based on mutual information, it yields
+b ≈M
+K
+X
+k=1
+1
+d2
+k,q
+≈MK
+d2p,q
+, D
+(b)
+≈M 2K(K −1)/4d4
+p,q, (19)
+where (b) applies [14, Proposition 1]. By substituting (19) into
+(11), the proof is completed.
+REFERENCES
+[1] Z. Ding et al., “Flexible-antenna systems: A pinching-antenna perspec-
+tive,” IEEE Trans. Commun., 2025, early access.
+[2] A. Fukuda et al., “Pinching antenna - using a dielectric waveguide as
+an antenna,” NTT DOCOMO Technical J., vol. 23, no. 3, pp. 5–12, Jan.
+2022.
+[3] Z. Ding and H. V. Poor, “LoS blockage in pinching-antenna systems:
+Curse or blessing?,” IEEE Wireless Commun. Lett., vol. 14, no. 9,
+pp. 2798–2802, Sept. 2025.
+[4] Z. Ding, “Pinching-antenna assisted ISAC: A CRLB perspective,” 2025,
+arXiv: https://arxiv.org/abs/2504.05792.
+[5] A. Khalili et al., “Pinching antenna-enabled ISAC systems: Exploit-
+ing look-angle dependence of RCS for target diversity,” 2025, arXiv:
+https://arxiv.org/abs/2505.01777.
+[6] Y. Qin et al., “Joint antenna position and transmit power optimization
+for pinching antenna-assisted ISAC systems,” IEEE Wireless Commun.
+Lett., 2025, early access.
+[7] C. Ouyang et al., “ISAC rate region of pinching-antenna systems,” in
+Proc. IEEE ICC, Sep. 2025.
+[8] G. Zhou et al., “Channel estimation for mmWave pinching-antenna
+systems,” in Proc. IEEE SPAWC, pp. 1–5, Jul. 2025.
+[9] Z. Wang et al., “Wireless sensing via pinching-antenna systems,” IEEE
+Wireless Commun. Lett., 2025, early access.
+[10] H. C. So and L. Lin, “Linear least squares approach for accurate
+received signal strength based source localization,” IEEE Trans. Signal
+Processing, vol. 59, no. 8, pp. 4035–4040, May 2011.
+[11] D. Stoyan et al., Stochastic Geometry and its Applications. John Wiley
+& Sons, 2013.
+[12] Y. Sun et al., “Performance of downlink NOMA in vehicular communi-
+cation networks: An analysis based on Poisson Line Cox point process,”
+IEEE Trans. Veh. Technol., vol. 69, no. 11, pp. 14001–14006, Sep. 2020.
+[13] H. C. So, Source Localization: Algorithms and Analysis.
+Ch. 3, pp.
+59-106, John Wiley & Sons, Ltd, 2019.
+[14] J. He, Y. J. Chun, and H. C. So, “A unified analytical framework for
+RSS-based localization systems,” IEEE Internet Things J., vol. 9, no. 9,
+pp. 6506–6519, May 2022.
+[15] J. He et al., “Modeling and performance analysis of blockchain-aided
+secure TDOA localization under random internet-of-vehicle networks,”
+Signal Processing, vol. 206, p. 108904, Dec. 2022.

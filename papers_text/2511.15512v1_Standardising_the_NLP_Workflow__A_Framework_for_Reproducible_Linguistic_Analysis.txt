@@ -1,0 +1,1063 @@
+Standardising the NLP Workflow: A Framework
+for Reproducible Linguistic Analysis
+Yves Pauli1, Jan-Bernard Marsman2, Finn Rabe1, Victoria Edkins1,
+Roya H¨uppi1, Silvia Ciampelli2, Akhil Ratan Misra1, Nils Lang1,
+Wolfram Hinzen3, Iris Sommer2, Philipp Homan1,4*
+1*Department of Adult Psychiatry and Psychotherapy, Psychiatric Hospital,
+University of Zurich, Lenggstrasse 31, Zurich, 8008, Switzerland.
+2Center for Clinical Neuroscience and Cognition, University of Groningen,
+Broerstraat 5, Groningen, 9712, Netherlands.
+3Department of Translation & Language Sciences, University Pompeu Fabra,
+Carrer de la Merc`e, 12, Ciutat Vella, Barcelona, 08002, Spain.
+4Neuroscience Center Zurich, University of Zurich and ETH Zurich,
+Winterthurerstrasse 190, Zurich, 8057, Switzerland.
+*Corresponding author(s). E-mail(s): philipp.homan@bli.uzh.ch;
+Contributing authors: yves.pauli@bli.uzh.ch; j.b.c.marsman@umcg.nl;
+finn.rabe@bli.uzh.ch; victoria.edkins@bli.uzh.ch; roya.hueppi@bli.uzh.ch;
+s.ciampelli@umcg.nl; akhilratan.misra@bli.uzh.ch; nils.lang@bli.uzh.ch;
+wolfram.hinzen@upf.edu; i.e.c.sommer@umcg.nl;
+Abstract
+The introduction of large language models and other influential developments in AI-based
+language processing have led to an evolution in the methods available to quantitatively
+analyse language data. With the resultant growth of attention on language processing,
+significant challenges have emerged, including the lack of standardisation in organising
+and sharing linguistic data and the absence of standardised and reproducible process-
+ing methodologies. Striving for future standardisation, we first propose the Language
+Processing Data Structure (LPDS), a data structure inspired by the Brain Imaging Data
+Structure (BIDS), a widely adopted standard for handling neuroscience data. It provides
+a folder structure and file naming conventions for linguistic research. Second, we intro-
+duce pelican nlp, a modular and extensible Python package designed to enable streamlined
+language processing, from initial data cleaning and task-specific preprocessing to the
+extraction of sophisticated linguistic and acoustic features, such as semantic embeddings
+and prosodic metrics. The entire processing workflow can be specified within a single,
+shareable configuration file, which pelican nlp then executes on LPDS-formatted data.
+Depending on the specifications, the reproducible output can consist of preprocessed
+language data or standardised extraction of both linguistic and acoustic features and cor-
+responding result aggregations. LPDS and pelican nlp collectively offer an end-to-end
+processing pipeline for linguistic data, designed to ensure methodological transparency
+and enhance reproducibility.
+Keywords: NLP, Reproducibility, Pipeline, Preprocessing, Linguistic Metric Extraction, Data
+Structure, Python package
+1
+arXiv:2511.15512v1  [cs.CL]  19 Nov 2025
+
+
+1 Introduction
+The analysis of linguistic data is central to research in numerous disciplines, including psychi-
+atry, psychology, neuroscience[1] and behavioural sciences[2]. Advances in natural language
+processing (NLP) following the introduction of transformer-based language models[3] have
+revolutionised the field of language research, providing numerous exciting new opportunities.
+Researchers employ a variety of tools and techniques to process language data[4–11], includ-
+ing both traditional linguistic methods and various AI-driven models. Essential preprocessing,
+including data cleaning, normalisation, and tokenisation, prepares the data for subsequent
+quantitative analysis. This often involves extracting informative features from both the tex-
+tual content (e.g., word embeddings[12]) and the speech signal itself (e.g., acoustic features,
+to make linguistic phenomena computationally tractable. However, a lack of standardisa-
+tion in language processing pipelines, including data storage, data preprocessing and metric
+extraction, has led to a lack of reproducibility and comparability between studies[13–17].
+This lack of standardised formats for storing and sharing linguistic data frequently results
+in the need to reformat datasets to accommodate different tools and methodologies. This
+redundancy persists even when processing steps are similar, resulting in inefficiency and
+hampering collaborations[18, 19]. Additionally, language processing, involves numerous
+researcher degrees of freedom, for example, relating to choices in implementation and appli-
+cation of various preprocessing steps, including lemmatisation, speaker diarisation, handling
+missing data, or including special character tokens. Researcher degrees of freedom under-
+mine reproducibility[20–25] and have been shown to significantly affect research outcomes
+both in NLP research[13, 16, 26–33], as well as other areas[34–38], to the point where
+contrary results have been reported based on the analysis of the same dataset[39, 40]. To
+enable reproducibility of language research, tools and methodologies are needed that allow
+for homogeneous data processing and consistent extraction of linguistic features.
+To address these challenges, we introduce the Language Processing Data Structure
+(LPDS), a standard for organising language data, and pelican nlp (Preprocessing and Extrac-
+tion of Linguistic Information for Computational Analysis – Natural Language Processing),
+a language processing Python package. By establishing LPDS and pelican nlp as comple-
+mentary solutions, we provide a comprehensive framework for linguistic data processing
+and sharing. These tools aim to promote reproducibility in the field, facilitating trans-
+parency, homogenisation, and quantitative comparisons across linguistic studies by enabling
+the creation of standardised language processing pipelines.
+1.1 Development of LPDS and pelican nlp
+The design of LPDS was inspired by the Brain Imaging Data Structure (BIDS)[41], a stan-
+dard that has successfully fostered collaboration and enabled robust tool development within
+neuroimaging[42]. Key principles adopted for this project include a predefined hierarchical
+directory structure reflecting experimental design and descriptive file naming using controlled
+key-value pairs (entities). This approach renders data organisation both human-readable and
+machine-actionable, critically enabling automated discovery and processing while ensuring
+rich metadata description crucial for linguistic data (e.g., task type, acquisition parameters).
+The development of LPDS and pelican nlp was iterative and directly driven by research
+requirements encountered in the field of computational psychiatry. Initial specifications for
+2
+
+
+LPDS and core pelican nlp modules for word embedding extraction from clinical inter-
+views were developed and validated during uncertainty modelling in multimodal speech
+analysis[43]. Subsequent work connected to the TRUSTING project funded by the European
+Union’s Horizon Europe research and innovation programme[44, 45] on analysing verbal
+fluency tasks and artificially created language data spurred several key developments. To sup-
+port these new analyses, the use of an additional language model was integrated into the
+pipeline[46], modules for semantic similarity were implemented, and the LPDS standard was
+generalised to accommodate the respective data formats. To address the requirements of a fur-
+ther project, connected to TRUSTING, on speech-based prediction in psychosis, modules for
+acoustic feature extraction using the openSMILE[47] and prosogram[48] toolkits were added
+to the framework. This practice-driven development informed the specific design choices
+detailed below.
+Complementing the data standard, pelican nlp was developed as a modular Python pack-
+age to standardise common language processing steps. Similar to already established, robust
+pipelines like fMRIprep in neuroimaging[49], pelican nlp aims to encapsulate complex or
+variable procedures into a single, reproducible workflow[50, 51]. The core functionali-
+ties implemented in pelican nlp span three primary categories: configurable preprocessing,
+standardised semantic feature extraction and standardised acoustic feature extraction. Prepro-
+cessing modules address common sources of variability, currently including routines for data
+cleaning (handling timestamps, special characters, whitespaces, case conversion, punctuation
+removal), speaker identification for discourse analysis, and specialised processing for tasks
+like verbal fluency. Concurrently, the package provides standardised extraction capabilities
+for key linguistic features such as semantic embeddings, semantic similarity measures, and
+model logits, as well as established acoustic feature sets. A summarising framework of the
+pelican nlp package is shown in Figure 1.
+Several key design decisions were made to maximise the accessibility of pelican nlp and
+encourage its widespread adoption within the research community. The choice of Python as
+the core implementation language ensures broad accessibility due to its widespread adop-
+tion and extensive libraries. Furthermore, the use of a detailed YAML configuration file
+allows researchers to precisely specify and share their entire processing pipeline without
+requiring extensive programming expertise. This detailed pipeline specification explicitly
+documents analytical choices and therefore directly facilitates replication efforts[52]. Con-
+sequently, the application of complex, standardised analyses becomes easily achievable. The
+primary user interaction involves adapting parameters within the well-documented configura-
+tion file to define the desired processing pipeline. This is followed by execution of the pipeline
+with a simple command-line call (‘pelican-run’), minimising the need for extensive custom
+programming or scripting.
+1.2 Applications of LPDS and pelican nlp
+LPDS is a proposed standardised structure for storing any type of linguistic data. This includes
+both audio and text files containing diverse linguistic content, such as interview record-
+ings and their transcripts, speech corpora, or data derived from various experimental speech
+tasks like verbal fluency assessments or image descriptions. While our goal for LPDS is to
+eventually provide guidelines for all types and structures of linguistic data, we recognise
+3
+
+
+Fig. 1: Framework of the pelican nlp package. The framework shows processing details from
+command line interface to linguistic feature output. Green boxes represent core processing
+files. Blue boxes correspond to the main components of the package. Yellow boxes correspond
+to files related to data preprocessing. Red boxes correspond to files related to linguistic feature
+extraction. Grey boxes correspond to package utility files.
+that achieving universal coverage immediately is challenging. For this reason, LPDS will be
+iteratively adapted to accommodate incompatible edge cases when possible.
+This protocol, combining the LPDS data structure and the pelican nlp processing pipeline,
+is designed to empower researchers across various disciplines (including clinical neuro-
+science, psychology, behavioural sciences, and linguistics) to conduct standardised and
+reproducible quantitative analyses of language data. It lowers the technical barrier for imple-
+menting complex analysis pipelines, making sophisticated multimodal feature extraction
+accessible. This includes semantic analysis (e.g., embedding analysis, similarity computa-
+tions) as well as acoustic feature processing (e.g., extracting prosody, vocal jitter, or shimmer
+from toolkits like openSMILE), without requiring users to manually integrate numerous
+disparate tools or possess extensive programming expertise for every step. Crucially, this
+framework directly addresses the issue of analytical variability, where different research
+teams have reported contrary findings from the same dataset[39, 40]. By capturing the entire
+processing pipeline, from preprocessing choices to feature extraction parameters, within a
+4
+
+
+single, version-controlled configuration file, our protocol provides an explicit and share-
+able blueprint for an analysis, thereby eliminating the undocumented researcher degrees of
+freedom that lead to divergent results. Consequently, the framework is particularly well-
+suited for a range of research applications, including comparative group studies (e.g., clinical
+vs. control), longitudinal research tracking linguistic change over time or in response to
+interventions, multi-site investigations requiring harmonised processing across different data
+acquisition locations, biomarker identification from speech or text, and computational studies
+focused on replicating or extending previous findings.
+By using LPDS and versioning the pelican nlp package, the framework ensures that anal-
+yses can be faithfully reproduced even years after their original execution. Researchers who
+specify the package version used in a given study can rerun the exact same workflow on the
+same data, guaranteeing compatibility and preserving reproducibility in line with FAIR (find-
+able, interoperable, accessible, and reusable) principles[19]. This backward compatibility not
+only supports immediate applications such as multi-site harmonisation and longitudinal track-
+ing, but also safeguards future efforts to replicate or extend prior findings without the risk of
+broken dependencies or changing outputs over time.
+A key aspect of the framework’s versatility is its support for multiple languages. The
+language-agnostic design of pelican nlp means its text processing capabilities are primarily
+determined by the underlying language models specified in the configuration file. The use-
+cases in this protocol leverage models such as RoBERTa[53], Llama3[54], and fastText[55],
+thus guaranteeing robust support for the wide range of languages covered by these architec-
+tures. Similarly, the acoustic feature extraction is designed to be broadly applicable. While the
+acoustic analysis modules, which integrate functionalities from toolkits like Praat[56], were
+validated using Dutch language data for this work, the extracted features themselves (e.g.,
+pitch, intensity, jitter, shimmer) are fundamental properties of the speech signal. As such, the
+acoustic analysis pipeline is not limited to a specific language and can be applied to audio
+data from any spoken language.
+1.3 Comparison with other methods
+The field of NLP benefits from a rich ecosystem of powerful toolkits and libraries, each with
+distinct strengths. However, they are often specialised components rather than end-to-end
+solutions for reproducible linguistic research. Broadly, they can be grouped as follows:
+General-purpose educational toolkits
+The Natural Language Toolkit (NLTK) provides hundreds of algorithms and data structures
+for tokenisation, part-of-speech tagging, syntactic parsing, and basic semantic analysis[4].
+Its strength lies in its modularity and educational value, making it ideal for teaching core
+concepts and prototyping. However, this modularity comes at the cost of integration, as
+users must manually connect individual components into a cohesive workflow. Critically,
+the toolkit neither enforces a standardised data structure for interoperability nor provides
+optimisation for high-throughput, reproducible analysis. Addressing these specific gaps is
+the primary motivation for the LPDS and pelican nlp framework.
+High-performance text-annotation libraries
+Libraries like spaCy[6] and Stanza[8] offer production-grade, optimised pipelines for core
+5
+
+
+text-annotation tasks such as named-entity recognition and dependency parsing. They excel
+at processing large volumes of clean, written text with high speed and accuracy. The key dis-
+tinction lies in the scope of the workflow: spaCy and Stanza are specialised text-annotation
+engines that assume pre-processed text as input, whereas pelican nlp manages a broader, end-
+to-end pipeline that includes initial data ingestion (from both audio and text), LPDS-based
+organisation, standardised preprocessing, and both semantic and acoustic feature extraction.
+Deep linguistic analysis libraries
+A number of frameworks offer deep, linguistically-informed analyses. A prominent example
+is Stanford CoreNLP[5], a comprehensive, Java-based framework with a rich set of annota-
+tors for advanced tasks like coreference resolution and sentiment analysis. While its analyses
+are linguistically deep, it presents two gaps that our protocol addresses: its Java-centric
+design creates integration challenges in Python-dominant research environments, and more
+importantly, it lacks native support for an end-to-end workflow that includes raw audio pro-
+cessing or a standardised data schema like LPDS for ensuring interoperability.
+Scalable topic modelling and semantic analysis libraries
+A distinct class of libraries focuses on unsupervised topic modelling and semantic analysis
+at scale. A prominent example is Gensim, an open-source Python library specialised in
+unsupervised topic modelling (e.g., Latent Dirichlet allocation (LDA)) and efficient training
+of word embeddings from large corpora. The core advantage of such tools is scalability,
+allowing it to process datasets that exceed available memory. The purpose of pelican nlp is
+complementary: rather than being a specialised tool for a specific analysis like topic mod-
+elling, it is a higher-level framework for standardising the entire preprocessing and feature
+extraction workflow, within which models for generating embeddings (similar to those Gen-
+sim can train) are applied.
+Contextual embedding toolkits
+Several libraries are exceptional at their specific function: providing access to state-of-the-art
+models and inference capabilities. For example, Flair[7] simplifies the application of contex-
+tual embeddings to sequence-labeling tasks, while Hugging Face Transformers[9] provides a
+unified API to thousands of pre-trained models (e.g., BERT[57], RoBERTa[53], Llama[54]).
+However, they are designed to be components within a larger pipeline, not an entire pipeline
+itself; they operate on the assumption that input text has already been cleaned and prepared,
+and they do not address standardised data organisation, preprocessing, or the structured
+output of final linguistic features.
+Research-oriented modelling toolkits
+Frameworks like AllenNLP[10] (in maintenance since 2022) and PyTorch Lightning[11]
+provide high-level abstractions to streamline the process of designing, training, and evaluat-
+ing novel neural architectures. They make experimentation easier compared to writing raw
+PyTorch or TensorFlow code. Their focus, however, is on facilitating flexibility for model
+development, whereas pelican nlp is designed for the standardised and reproducible applica-
+tion of existing models within a fixed research protocol.
+6
+
+
+Taken together, these toolkits provide powerful building blocks. However, a researcher
+aiming to construct a complete, reproducible end-to-end pipeline, from unprocessed source
+files, such as raw audio recordings and their initial transcripts, to final analysis, still faces
+several systemic challenges that these tools do not individually solve. The most significant of
+these gaps, which motivated the development of our protocol, are:
+1. Absence of a unified data schema: No single community-adopted standard exists for
+representing transcripts, time-aligned annotations, speaker labels, and audio-derived
+prosodic features, which hinders data sharing and pipeline reuse.
+2. Fragmented component chaining: Critical steps like speech-to-text, tokenisation,
+embedding, and feature calculation exist in separate packages. Chaining them requires
+significant effort to overcome compatibility issues and data conversions, making precise
+replication difficult.
+3. Reproducibility and deployment gaps: Without standardised configurations and ver-
+sion control for the entire workflow, small differences in parameters or underlying tool
+versions can lead to divergent outcomes.
+4. Privacy and compliance hurdles: Processing sensitive data from healthcare or legal con-
+texts requires secure, on-premises workflows that existing cloud-based solutions may
+not satisfy.
+In conjunction with LPDS, pelican nlp is designed to specifically address these chal-
+lenges. It distinguishes itself not by attempting to outperform specialised libraries at every
+individual task, but by integrating the necessary components into a cohesive, standard-
+ised, and reproducible workflow tailored for linguistic research. This workflow provides the
+following features:
+• Standardised input/output: Data consumed by pelican nlp is structured according to
+LPDS, and its outputs (preprocessed data, extracted features) adhere to LPDS nam-
+ing conventions within a dedicated derivatives directory. The BIDS-inspired structure
+of LPDS provides a natural mechanism for tracking provenance by allowing for the
+creation of files containing additional information, such as the version of pelican nlp,
+the specific parameters from the configuration file or parameters of contributing pack-
+ages, alongside the output. This capability for detailed record-keeping is fundamental to
+facilitating transparent replication, data management, sharing and interoperability.
+• Integrated pipeline: pelican nlp offers a configurable pipeline that handles steps often
+requiring separate tools, including loading text/audio, text preprocessing (handling
+timestamps, special characters, whitespace, case, punctuation, speaker tags), specialised
+cleaning routines (e.g., for fluency tasks), and extraction of various linguistic and acous-
+tic features (e.g., semantic embeddings, similarity scores, logits, and feature sets from
+openSMILE and Prosogram).
+• Explicit configuration: The entire processing pipeline—including preprocessing
+choices, model selection (where applicable), and feature extraction parameters—is
+defined within a single, shareable YAML configuration file. This explicit documentation
+of methodology reduces ambiguity and enhances reproducibility.
+7
+
+
+• Focus on linguistic research needs: Modules and features are chosen based on common
+requirements in quantitative linguistic analysis, particularly in fields like computational
+psychiatry and behavioural sciences.
+Therefore, pelican nlp provides a higher-level framework that standardises the entire
+workflow from structured data input through configurable processing to structured feature
+output. By harmonising these steps and leveraging the LPDS standard, pelican nlp fills
+a critical niche, facilitating more transparent, comparable, and reproducible computational
+linguistic research.
+1.4 Limitations
+LPDS and pelican nlp simplify reproducible language processing by enforcing a single data
+format and end-to-end pipeline. However, several limitations remain, reflecting both the
+complexity of the field and opportunities for future extensions. These limitations can be
+summarised as follows:
+1. LPDS scope and extensibility: Although designed for extensibility, the current LPDS
+specification primarily targets common linguistic data types like audio recordings
+and text transcripts. Accommodating highly complex or multimodal data structures
+or integrating highly specialised annotation formats, may require further specification
+development and community consensus. Furthermore, retrofitting large existing datasets
+to the LPDS standard can demand significant initial effort.
+2. Feature completeness: While pelican nlp integrates numerous common preprocessing
+and feature extraction steps, it does not encompass every possible NLP technique or
+cutting-edge linguistic metric. Researchers with highly specialised needs might still
+need to implement custom modules or combine pelican nlp outputs with other spe-
+cialised tools. However, as pelican nlp is still under active development, incorporation
+of new features is ongoing. Furthermore, the framework is designed to be extensible,
+and we welcome community contributions of new modules via pull requests, allowing
+the tool to evolve and adapt to a wider range of research applications.
+3. Dependency on underlying models: The performance and outputs of pelican nlp (e.g.,
+embeddings, logits) inherently depend on the underlying language models utilised (e.g.,
+specific transformer models accessed via libraries like Hugging Face). Users should
+be aware that potential biases present in these pre-trained models may be inherited
+in the extracted features. Furthermore, as the field of NLP evolves rapidly, ensuring
+compatibility with the latest models requires ongoing package maintenance and updates.
+4. Configuration flexibility and validation: pelican nlp offers a high degree of config-
+urability via the YAML file, allowing pipelines to be tailored to diverse research
+questions. While this flexibility is a strength, users employing novel parameter combina-
+tions should exercise standard scientific diligence in validating the appropriateness and
+correctness of the outputs for their specific research context and data.
+5. Performance and scalability: While optimised for Linux environments with GPU accel-
+eration, processing extremely large datasets or using highly complex configurations may
+8
+
+
+still pose computational challenges. Performance on other operating systems or hard-
+ware configurations (e.g., CPU-only, non-NVIDIA GPUs) might be limited for certain
+computationally intensive tasks.
+2 Materials
+2.1 Equipment setup
+2.1.1 Hardware
+A standard modern processor is suitable for running the protocol. This protocol was developed
+and tested on a 13th Gen Intel® Core™i9-13900H × 20 processor and an NVIDIA GeForce
+RTX™4090 Laptop GPU. A minimum of 16 GB of RAM is recommended, although pro-
+cessing very large files or utilising large language models may require additional memory. For
+computationally intensive tasks, such as those involving large transformer models, access to
+an NVIDIA GPU with CUDA support and at least 16 GB of virtual RAM (VRAM) is highly
+recommended. While some tasks may run on lower-specification GPUs or on a CPU alone,
+this is at the user’s discretion and may come with potential performance limitations.
+2.1.2 Software
+The execution of this protocol primarily relies on the Python programming language, with
+version 3.10 or later being recommended for optimal compatibility. Central to the protocol
+is the pelican nlp Python package, which can be installed via pip within a dedicated envi-
+ronment manager, such as Conda, as detailed in the Procedure section 3.2. Users are advised
+to employ the latest stable version available from the Python Package Index (PyPI) (https:
+//pypi.org/project/pelican-nlp/). This protocol was developed and tested using pelican nlp
+version 0.3.4. While pelican nlp is developed and optimised for Linux-based operating sys-
+tems like Ubuntu, its core features are also available on Windows and MacOS. However, using
+Windows or MacOS will limit GPU acceleration and optimal performance and may result
+in unanticipated issues. Key dependencies for pelican nlp include standard scientific Python
+libraries (e.g., NumPy, Pandas) and core NLP/ML libraries (e.g., PyTorch, Transformers),
+which are typically handled automatically during the pip installation process.
+2.1.3 Data
+The protocol assumes that all input data, encompassing audio and/or text files along with
+associated metadata, is organised according to the LPDS format. The specifics of this format
+are detailed in the Procedure section. Strict adherence to the LPDS folder structure and nam-
+ing conventions is crucial, as this enables pelican nlp to automatically discover and correctly
+process the data.
+2.1.4 Code Availability
+The pelican nlp package is readily available for installation from PyPI at https://pypi.org/
+project/pelican-nlp/. Its source code, comprehensive documentation, issue tracker, and sam-
+ple configuration files are publicly hosted on GitHub at https://github.com/ypauli/pelican nlp.
+As an open-source project, we encourage community engagement, including bug reports
+9
+
+
+via the issue tracker and feature contributions through pull requests. Similarly, the detailed
+specification for the LPDS, which includes examples, can be found in the specified repository.
+3 Procedure
+3.1 Part 1: LPDS
+LPDS introduces guidelines for folder structures and naming conventions of linguistic data.
+When possible, the user should adhere to the following guidelines regarding linguistic data
+storage.
+3.1.1 Folder Structure
+The following steps describe the procedure to organise linguistic data according to the LPDS
+format.
+1. Establish the main project directory
+First, decide on a location for the main project directory. A common practice for data
+processing is to use the home directory.
+For example, the main project directory path might be defined as:
+1
+/home/username/my_project
+2. Create core project subdirectories
+Within the main project directory create a subdirectory named participants:
+1
+/home/username/my_project/ participants
+Optionally, in the main project directory supplementary information about the project
+can be provided. This can include files such as dataset description.json, participants.tsv,
+README and CHANGES.
+3. Organise data by participant
+Within the participants subdirectory create a separate folder for each participant in the
+study.
+Each participant-specific folder should be named part-X, where X is the unique
+identification label for that participant (e.g., part-01, part-02, etc.).
+For example, the directory for participant 01 would be:
+1
+/home/username/my_project/ participants/part -01
+Within each participant’s folder include, if desired, a participant metadata.json file
+containing information specific to that individual.
+4. Organise data by session (for longitudinal studies)
+If the study is longitudinal (involving multiple data collection points for each partic-
+ipant), create a separate folder within each participant’s directory for each individual
+participant session. If the study is not longitudinal, skip directly to step 5, placing the
+task-specific subdirectories (see below).
+10
+
+
+The session folders should be named ses-X, where X specifies the session identifier
+(e.g., ses-01, ses-02, etc.).
+For example, the directory for session 01 of participant 01 would be:
+1
+/home/username/my_project/participants/part -01/ses -01
+5. Organise data by task/context
+Within the appropriate subdirectory (either the session folder for longitudinal studies
+or the participant folder for non-longitudinal studies), create subfolders corresponding
+to the specific context or task of data collection.
+Examples of task/context subdirectory names include interview, fluency, image-
+description, etc. At least one such subdirectory must exist. The naming of this
+subdirectory follows no specific guideline and is left to the user.
+A sample directory containing interview data for session 01 of participant 01 in a
+longitudinal study would therefore look like this:
+1
+/home/username/my_project/participants/part -01/ses -01/
+interview
+Or for an equivalent non-longitudinal study:
+1
+/home/username/my_project/participants/part -01/ interview
+6. Store data files
+Place all data files (e.g., audio files, text files of various formats) related to a specific
+participant, session (if applicable), and task directly within the final task/context sub-
+folder. The naming conventions for such data files are described in the following steps
+7-13.
+3.1.2 Naming conventions
+LPDS filenames are built from ‘entities’, which are key-value pairs separated by a hyphen (-).
+Entity keys define what kind of metadata is described, while entity values describe the specific
+metadata instance. To follow LPDS filename guidelines separate multiple entities from each
+other by an underscore ( ). Do not use underscores within an entity’s key or value, as they are
+reserved for separating distinct entities.
+A comprehensive list of core LPDS entities, their formats, and definitions is provided in
+Table 1.
+7. Include mandatory entities in filenames
+Start each filename with the part entity (e.g., part-<label>) to identify the
+participant.
+Include the task entity (e.g., task-<label>) to denote the corresponding task or
+context of data collection.
+8. Optional: Include additional entities as needed
+Include optional entities if they are necessary to distinguish between multiple files
+that would otherwise have the same name or if they add relevant supplementary infor-
+mation. Refer to Table 1 for the format and definition of possible entities. Note: The list
+11
+
+
+is non-exhaustive and other entities may be added if necessary.
+9. Assemble entity string
+Combine all mandatory and chosen optional entities, separating each key-value pair
+with an underscore. For the order of the entities in the filename follow the order of
+entities in Table 1 (entities higher up in the table will come first in the filename).
+Example (entities only):
+1
+part -01_ses -01 _task -interview_cat -motivational_acq -placebo
+Table 1: Core entities of the Language Processing Data Structure (LPDS) are listed in column 1.
+Each entity consists of a key-value pair as shown in column 2. Entity descriptions are provided
+in column 3.
+Entity
+Format
+Description
+part
+part-<label>
+Participant identifier
+ses
+ses-<label>
+Session identifier
+task
+task-<label>
+Task identifier, denoting experimental task performed
+cat
+cat-<label>
+Category identifier, denoting part-category of performed task
+acq
+acq-<label>
+Acquisition label, specifying variant of same data type
+run
+run-<index>
+Run index, indicating repeated measurements of same acquisition
+proc
+proc-<label>
+Processing label, describing processing applied to the data
+metric
+metric-<label>
+Metric identifier, indicating extracted linguistic metric
+model
+model-<label>
+Model label, identifying model used in data processing
+group
+group-<label>
+Group label, used in group-level analysis
+param
+param-<label>
+Parameter label, denoting specific parameters in processed data
+10. Optional: Add a suffix
+After all entities, include a suffix to further specify the content of the file. Separate
+the suffix from the entities with an underscore. Examples of common suffixes and their
+descriptions are provided in Table 2. Note: The list is non-exhaustive and other suffixes
+may be used to describe the content of the respective file.
+11. Add the mandatory file extension
+Conclude the filename with a file extension, which defines the file type (e.g., .txt,
+.csv, .wav). Precede the file extension with a dot (.).
+12. Construct the full filename
+Combine the assembled entity string (step 9), the optional suffix (step 10, if used) and
+the mandatory file extension (step 12).
+The general structure for LPDS naming conventions. (Note: Square brackets ([])
+denote optional parts of the filename):
+12
+
+
+Table 2: Example suffixes for naming conventions of the Language Processing Data Structure
+(LPDS). The suffix is always located immediately before the file extension.
+Suffix
+Description
+transcript
+Written transcript of any type of linguistic output
+text
+Raw or processed text files, typically plain text or pre-tokenised content
+recording
+Any type of audio recording
+audio
+Audio files in standard formats (e.g., WAV, MP3), often aligned with tran-
+scripts
+table
+Tabular content such as CSV, TSV, or structured annotation tables
+embeddings
+Semantic embeddings data, typically vector representations of words or utter-
+ances
+logits
+Model output scores (pre-softmax), often used for classification or uncertainty
+analysis
+features
+General-purpose extracted linguistic features (e.g., lexical, syntactic)
+annotations
+Manual or automatic annotations (e.g., POS tags, discourse markers, errors)
+1
+part -<label >[_ses -<label >]_task -<label >[_<key >-<value >][_<
+suffix >].< extension >
+Example filenames adhering to LPDS naming conventions:
+1
+part -01_ses -01 _task -interview_cat -motivational_acq -
+placebo_recording .wav
+2
+3
+part -12 _task -fluency_cat -semantic_acq - animals_transcript .txt
+A sample LPDS structure for a linguistic fluency study is shown in Figure 2.
+3.2 Part 2: Pelican nlp
+After organising the data in the LPDS format, follow these steps to install and run the pel-
+ican nlp package. A general workflow diagram is shown in Figure 3. A list of all possible
+parameters, a description and a usage guide are provided in Table S1 in the supplementary
+information. This table should be consulted when adapting a configuration file. Note: This
+guide is optimised for Linux-based operating systems (e.g., Ubuntu). Details might differ for
+other operating systems like Windows or MacOS.
+1. Prepare configuration file
+Prepare a single .yml configuration file to define the entire processing pipeline. Either
+choose a pre-defined configuration file provided in the projects GitHub repository
+(https://github.com/ypauli/pelican nlp) (option A), replicate a study by using a specifi-
+cally to the study adapted configuration file (option B), or create a custom configuration
+file from scratch (option C).
+13
+
+
+ 
+ 
+myproject/
+<metric>/
+derivatives/
+participants/
+preprocessing/
+aggregations/
+part-01/
+part-02/
+ses-01/
+ses-02/
+interview/
+fluency/
+part-01_ses-01_task-interview_audio.wav
+part-01_ses-01_task-interview_transcript.txt
+part-01_ses-01_task-fluency_cat-semantic_acq-animals_transcript.docx
+part-01_ses-01_task-fluency_cat-phonetic_acq-k_transcript.docx
+part-01/
+ses-01/
+ses-02/
+fluency/
+part-01_ses-01_task-fluency_cat-semantic_acq-animals_<metric>.docx
+part-01_ses-01_task-fluency_cat-phonetic_acq-k_<metric>.docx
+< Dataset_description.json
+Participants.tsv
+README
+CHANGES
+doc-info/
+<metric>/
+task-fluency_cat-semantic_acq-animals_<metric>-aggregation_results.docx
+task-fluency_cat-semantic_acq-animals_doc-info_results.docx
+part-01/
+ses-01/
+fluency/
+part-01_ses-01_task-fluency_cat-semantic_acq-animals_preprocessed.docx
+< part-01_metadata.json
+Fig. 2: Example folder structure including introduced naming conventions following the
+guidelines of the Language Processing Data Structure (LPDS). This example demonstrates
+storage of language data of a fluency study including participant interviews after linguistic
+metric extraction.
+14
+
+
+Option A: Choose pre-defined configuration file
+i. Choose a sample configuration file
+We provide sample configuration files for the sample use-cases described
+in section 1.1 (uncertainty modelling in multimodal speech[43], a semantic
+fluency analysis, the analysis of artificially generated language and speech-
+based prediction in psychosis). These sample configuration files can be found
+in the sample configuration files folder of the pelican nlp GitHub repository
+(https://github.com/ypauli/pelican nlp).
+ii. Adapt the configuration
+Change necessary parameters to adapt the configuration file. Consult Table S1 in
+supplementary information for adaptation options.
+Option B: Use a specifically adapted configuration file
+i. Choose a configuration file set up by a colleague
+If the goal is to precisely replicate a colleagues’s results or those from a previous
+publication, obtain the exact config.yml file used to define the processing pipeline.
+ii. Adapt the configuration
+Change necessary parameters to adapt the configuration file to the data to be
+used. Consult Table S1 in the supplementary information for adaptation options.
+However, a configuration file that has specifically been adapted for a specific study
+is normally chosen to replicate the results, and therefore changes that alter the core
+processing pipeline should be made with caution to ensure replication validity.
+Option C: Create custom configuration file from scratch
+i. Download the general configuration file
+Retrieve the general configurations.yml file from the pelican nlp GitHub
+repository (https://github.com/ypauli/pelican nlp). This file contains all possible
+parameters the pelican nlp package can utilise.
+ii. Adapt the configuration
+Modify the parameters based on the pipeline requirements. Consult Table S1
+in supplementary information for adaptation options. Remove unused parameters,
+provided they are not marked as required within the supplementary Table S1.
+2. Place the configuration file
+Save the chosen and adapted configuration file from step 1 to your main project
+directory (directory according to step 1 of Part 1: LPDS).
+3. Navigate to the main project directory in the command line
+15
+
+
+To open a terminal in the project directory, right-click the project directory and select
+”Open in Terminal”. All following commands will be executed from the command line
+of this terminal.
+4. Set up project environment
+To avoid conflicts with other packages, it is strongly recommended to create a ded-
+icated Conda environment. In case Conda is not installed on your device execute the
+following commands to install Conda. If Conda is already installed skip this step.
+1
+wget
+https :// repo.anaconda.com/archive/Anaconda3 -2022.05 -
+Linux -x86_64.sh
+2
+bash
+Anaconda3 -2022.05 - Linux -x86_64.sh
+When Conda is installed on your device execute the following two commands in
+the command line to create and activate a Conda environment named pelican-nlp with
+Python version 3.10:
+1
+conda
+create
+--name pelican -nlp --channel
+defaults
+python
+=3.10
+2
+conda
+activate
+pelican -nlp
+5. Install pelican nlp package
+Install the pelican nlp package to the activated Conda environment by executing the
+following commands in your command line:
+1
+python -m pip --version
+2
+conda
+install
+pip
+3
+pip
+install
+pelican -nlp
+6. Execute the pelican nlp pipeline
+Run the pelican nlp pipeline with the chosen configuration file by executing the
+following command in your command line:
+1
+pelican -run
+This command will automatically find the specified configuration file and your data
+folder, execute all specified steps, and create a new folder called derivatives in your main
+project directory containing all the computed results. This is shown in Figure 2.
+4 Timing
+Below are estimated time requirements for each stage of the protocol. Durations may vary
+depending on the system configurations, dataset size, and selected processing options.
+Part 1: LPDS structure setup — ∼1 h
+Step 1, establish main project directory — ∼5 min
+16
+
+
+Fig. 3: Workflow diagram illustrating how to use the pelican nlp package. Orange boxes
+highlight the steps in which user input is required. The original dataset (a) is transformed into
+Language Processing Data Structure (LPDS) format (b). The transformed dataset (c) and the
+created/chosen configuration file (d) represent the pipeline input (e). Executing the terminal
+command pelican-run package on the pipeline input (f) executes the pelican nlp package (g).
+The pelican nlp package will then calculate and output linguistic metrics (h) and store them
+in csv format.
+17
+
+
+Step 2, create core project subdirectories — ∼5 min
+Steps 3–5, organise data — ∼20 min
+Step 6, store data files — ∼15 min
+Steps 7–13, apply LPDS naming conventions — ∼15 min
+Part 2: Pelican NLP setup and execution — 1–4 h (depending on data volume, pro-
+cessing pipeline and hardware setup)
+Step 1, prepare configuration file:
+Option A or B — 10–30 min;
+Option C (custom config) — 1–2 h
+Step 2, place configuration file in project directory — ∼1 min
+Step 3, navigate to project directory in terminal — ∼1 min
+Step 4, set up Conda environment — ∼5 min
+Step 5, install pelican-nlp package — ∼5 min
+Step 6, execute pipeline by running pelican-run: 1-15 min per file
+text-only cleaning — < 1 min per file;
+embedding extraction — ∼2 min per file;
+logits extraction - ∼5 min per file;
+audio feature extraction - ∼1 min per recording minute;
+5 Troubleshooting
+Occasional system crashes or freezes may occur while running pelican nlp, particularly dur-
+ing computationally intensive tasks. These issues are caused by GPU memory limitations.
+To resolve this, users are advised to run pelican nlp on a system with sufficient available
+VRAM (ideally at least 16 GB) for stable performance when using larger models or complex
+configurations.
+6 Anticipated results
+Upon successful execution of the pelican nlp package via the pelican-run command within
+the main project directory, a new subdirectory named ‘derivatives’ will be created (if one does
+not already exist). This derivatives directory serves as the central repository for all outputs
+generated by the specified processing pipeline. The exact content and structure within the
+derivatives folder are directly determined by the parameters set in the config.yml file, ensuring
+18
+
+
+that the outputs precisely reflect the chosen analytical protocol. For an example derivatives
+folder see Fig. 2.
+6.1 Key characteristics of the output
+• LPDS compliance: Crucially, the organisation of files and subdirectories within the
+derivatives folder adheres to LPDS naming conventions and structural principles. This
+means that output filenames will include relevant entities (e.g., part-, ses-, task-,
+proc-, metric-, model-) mirroring the input data, facilitating clear linkage between
+raw data, processed data, and extracted features.
+• Modularity: Outputs are typically organised into distinct subdirectories based on the
+type of processing or feature extraction performed.
+6.2 Common subdirectories and their contents
+The derivatives directory may contain any of the following subdirectories, depending on the
+user-specified settings in the config.yml file:
+1. preprocessing/:
+This subdirectory will contain data files that have undergone one or more preprocess-
+ing steps but are not yet final feature extractions.
+Examples: Cleaned text files (e.g., [...]_proc-cleaned_text.txt) with times-
+tamps removed, punctuation standardised, or speaker tags harmonised.
+The specific proc-<label> in the filename will indicate the type of preprocessing
+applied.
+2. Metric-Specific
+Subdirectories
+(e.g.,
+embeddings/,
+similarity/,
+logits/,
+distance_from_randomness/):
+For each linguistic metric extracted, pelican nlp will create a dedicated subdirectory
+named after that metric.
+These folders will contain the actual feature data, typically saved in common
+machine-readable formats.
+Examples:
+1
+embeddings/part -01 _task -interview_metric -embeddings_model -
+bert_description -mean.csv
+This example file contains would word or sentence embeddings.
+1
+similarity/part -01 _task -fluency_metric -similarity_model -
+bert_description -window.json
+This example file would contain semantic similarity scores.
+1
+logits/part -01 _task -interview_metric -logits_model -RoBERTa.pt
+This example file would contain raw model logits.
+The adaptable filenames will clearly indicate the source data and the parameters of
+the extraction (e.g., participant, task, model used, any aggregation method or specific
+19
+
+
+descriptor for the metric).
+3. aggregations/:
+This subdirectory will contain files that aggregate results across multiple partici-
+pants, sessions, or files, often for user convenience or as input for group-level statistical
+analyses.
+Example: A single CSV file compiling a specific derived metric for all participants in
+a study:
+1
+acq -animals_metric -similarity_results - aggregated_table .csv
+The nature and format of these aggregations are defined by the configuration.
+4. Logs and Reports:
+Depending on the configuration, pelican nlp may also output processing logs or sum-
+mary reports in a subfolder ‘logs’ within the derivatives directory. These can be valuable
+for troubleshooting and documenting the execution details.
+Examples for logs and summary files:
+1
+pelican_log.txt
+2
+processing_summary .html
+6.3 Facilitating downstream analysis and reproducibility
+The standardised, LPDS-compliant structure of the derivatives directory, coupled with
+descriptive filenames, ensures that the outputs are not only interpretable but also readily
+usable for subsequent statistical analysis, machine learning model training, visualisation,
+and, critically, for replication by other researchers using the same pelican nlp version and
+configuration file.
+Sample derivatives directory structures and example output files for common use cases
+(e.g., fluency analysis, discourse analysis) are provided in the project’s GitHub repository
+(https://github.com/ypauli/pelican nlp) to further illustrate the anticipated results.
+References
+[1] Crema, C., Attardi, G., Sartiano, D., Redolfi, A.: Natural language processing in clinical
+neuroscience and psychiatry: A review. Front. Psychiatry 13 (2022)
+[2] Feuerriegel, S., Maarouf, A., B¨ar, D., et al.: Using natural language processing to
+analyse text data in behavioural science. Nat Rev Psychol 4, 96–111 (2025)
+[3] Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A.N., Kaiser, Ł.,
+Polosukhin, I.: Attention is all you need. In: Proceedings of the 31st International Con-
+ference on Neural Information Processing Systems, pp. 5998–6008. Curran Associates,
+Inc., Red Hook, NY, USA (2017). https://arxiv.org/abs/1706.03762
+[4] Bird, S., Klein, E., Loper, E.: Natural Language Processing with Python. O’Reilly
+Media, Sebastopol, CA, USA (2009)
+20
+
+
+[5] Manning, C.D., et al.: The stanford corenlp natural language processing toolkit. In: Pro-
+ceedings of the 52nd Annual Meeting of the Association for Computational Linguistics
+(ACL): System Demonstrations, pp. 55–60 (2014)
+[6] Honnibal, M., Montani, I., Van Landeghem, S., Boyd, A.: spaCy: Industrial-strength
+Natural Language Processing in Python. Zenodo (2020). https://doi.org/10.5281/
+zenodo.1212303
+[7] Akbik, A., Bergmann, T., Blythe, D., Rasul, K., Schweter, S., Vollgraf, R.: Flair: An
+easy-to-use framework for state-of-the-art nlp. In: Proceedings of the 2019 Confer-
+ence of the North American Chapter of the Association for Computational Linguistics
+(Demonstrations), pp. 54–59. Association for Computational Linguistics, Minneapolis,
+Minnesota (2019)
+[8] Qi, P., Zhang, Y., Zhang, Y., Bolton, J., Manning, C.D.: Stanza: A python natural lan-
+guage processing toolkit for many human languages. In: Association for Computational
+Linguistics (ACL) System Demonstrations (2020)
+[9] Wolf, T., et al.: Transformers: State-of-the-art natural language processing. In: Proceed-
+ings of the 2020 Conference on Empirical Methods in Natural Language Processing
+(EMNLP): System Demonstrations, pp. 38–45 (2020)
+[10] Gardner, M., Grus, J., Neumann, M., Tafjord, O., Dasigi, P., Liu, N.F., Peters, M.,
+Schmitz, M., Zettlemoyer, L.: Allennlp: A deep semantic natural language processing
+platform. In: Proceedings of Workshop for NLP Open Source Software (NLP-OSS), pp.
+1–6. Association for Computational Linguistics, Melbourne, Australia (2018)
+[11] Falcon, W., Team, P.L.: PyTorch Lightning (2019). https://github.com/Lightning-AI/
+pytorch-lightning
+[12] Mikolov, T., Chen, K., Corrado, G., Dean, J.: Efficient Estimation of Word Representa-
+tions in Vector Space (2013). https://arxiv.org/abs/1301.3781
+[13] Fokkens, A., Erp, M., Postma, M., Pedersen, T., Vossen, P., Freire, N.: Offspring
+from reproduction problems: What replication failure teaches us. Association for
+Computational Linguistics (2013)
+[14] Belz, A.: A metrological perspective on reproducibility in nlp*. Computational Linguis-
+tics 48(4), 1125–1135 (2022) https://doi.org/10.1162/coli a 00448
+[15] Mieskes, M., Fort, K., N´ev´eol, A., Grouin, C., Cohen, K.: Community perspective on
+replicability in natural language processing. In: Proceedings of the International Confer-
+ence on Recent Advances in Natural Language Processing (RANLP 2019), pp. 768–775.
+INCOMA Ltd., Varna, Bulgaria (2019)
+[16] Belz, A., Thomson, C.: The 2024 repronlp shared task on reproducibility of evaluations
+21
+
+
+in nlp: Overview and results. In: Proceedings of the Fourth Workshop on Human Eval-
+uation of NLP Systems (HumEval) @ LREC-COLING 2024, pp. 91–105. ELRA and
+ICCL, Torino, Italia (2024)
+[17] Howcroft, D.M., Belz, A., Clinciu, M.-A., Gkatzia, D., Hasan, S.A., Mahamood, S.,
+Mille, S., Miltenburg, E., Santhanam, S., Rieser, V.: Twenty years of confusion in human
+evaluation: Nlg needs evaluation sheets and standardised definitions. In: Proceedings
+of the 13th International Conference on Natural Language Generation, pp. 169–182.
+Association for Computational Linguistics, Dublin, Ireland (2020)
+[18] Forkel, R., List, J.-M., Greenhill, S., Rzymski, C., Bank, S., Cysouw, M., Hammarstr¨om,
+H., Haspelmath, M., Kaiping, G., Gray, R.: Cross-linguistic data formats, advancing
+data sharing and re-use in comparative linguistics. Scientific Data 5, 180205 (2018)
+https://doi.org/10.1038/sdata.2018.205
+[19] Wilkinson, M.D., Dumontier, M., Aalbersberg, I.J., Appleton, G., Axton, M., Baak,
+A., Blomberg, N., Boiten, J.-W., Silva Santos, L.B., Bourne, P.E., Brookes, J., Clark,
+T., Crosas, M., Dillo, I., Dumon, O., Edmunds, S., Evelo, C.T., Finkers, R., Gonzalez-
+Beltran, A., Gray, A.J.G., Groth, P., Goble, C., Grethe, J.S., Heringa, J., Hoen, P.A.C.,
+Hooft, R., Kuhn, T., Kok, R., Kok, J., Lusher, S.J., Martone, M.E., Mons, A., Packer,
+A.L., Persson, B., Rocca-Serra, P., Roos, M., Schaik, R., Sansone, S.-A., Schultes, E.,
+Sengstag, T., Slater, T., Strawn, G., Swertz, M.A., Thompson, M., Lei, J., Mulligen, E.,
+Velterop, J., Wittenburg, P., Wolstencroft, K., Zhao, J., Mons, B.: The FAIR guiding
+principles for scientific data management and stewardship. Scientific Data 3, 160018
+(2016) https://doi.org/10.1038/sdata.2016.18
+[20] Munaf`o, M.R., et al.: A manifesto for reproducible science. Nat Hum Behav 1, 0021
+(2017)
+[21] Baker, M.: 1,500 scientists lift the lid on reproducibility. Nature 533, 452–454 (2016)
+[22] Ioannidis, J.P.A.: Why most published research findings are false. PLoS Med 2, 124
+(2005)
+[23] Wieling, M., Rawee, J., Noord, G.: Reproducibility in computational linguistics: Are
+we willing to share? Computational Linguistics 44(4), 641–649 (2018) https://doi.org/
+10.1162/coli a 00330
+[24] Mieskes, M.: A quantitative study of data in the nlp community. In: Proceedings of the
+First ACL Workshop on Ethics in Natural Language Processing, pp. 23–29. Association
+for Computational Linguistics, Valencia, Spain (2017)
+[25] Belz, A., Thomson, C., Reiter, E., Abercrombie, G., Alonso-Moral, J.M., Arvan, M.,
+Braggaar, A., Cieliebak, M., Clark, E., Deemter, K., Dinkar, T., Duˇsek, O., Eger, S.,
+Fang, Q., Gao, M., Gatt, A., Gkatzia, D., Gonz´alez-Corbelle, J., Hovy, D., H¨urlimann,
+M., Ito, T., Kelleher, J.D., Klubicka, F., Krahmer, E., Lai, H., Lee, C., Li, Y., Mahamood,
+S., Mieskes, M., Miltenburg, E., Mosteiro, P., Nissim, M., Parde, N., Pl´atek, O., Rieser,
+22
+
+
+V., Ruan, J., Tetreault, J., Toral, A., Wan, X., Wanner, L., Watson, L., Yang, D.: Missing
+information, unresponsive authors, experimental flaws: The impossibility of assessing
+the reproducibility of previous human evaluations in nlp. In: Proceedings of the Fourth
+Workshop on Insights from Negative Results in NLP, Dubrovnik, Croatia, pp. 1–10
+(2023)
+[26] Denny, M.J., Spirling, A.: Text preprocessing for unsupervised learning: Why it matters,
+when it misleads, and what to do about it. Political Analysis 26(2), 168–189 (2018)
+https://doi.org/10.1017/pan.2017.44
+[27] Schofield, A., Mimno, D.: Comparing apples to apple: The effects of stemmers on
+topic models. Transactions of the Association for Computational Linguistics 4, 287–300
+(2016) https://doi.org/10.1162/tacl a 00099
+[28] Crane, M.: Questionable answers in question answering research: Reproducibility and
+variability of published results. Transactions of the Association for Computational
+Linguistics 6, 241–252 (2018) https://doi.org/10.1162/tacl a 00018
+[29] Belz, A., Shimorina, A., Agarwal, S., Reiter, E.: The reprogen shared task on repro-
+ducibility of human evaluations in nlg: Overview and results. In: Proceedings of the 14th
+International Conference on Natural Language Generation, pp. 249–258. Association
+for Computational Linguistics, Aberdeen, Scotland, UK (2021)
+[30] Branco, A., Calzolari, N., Vossen, P., Van Noord, G., Uytvanck, D., Silva, J., Gomes, L.,
+Moreira, A., Elbers, W.: A shared task of a new, collaborative type to foster reproducibil-
+ity: A first exercise in the area of language science and technology with reprolang2020.
+In: Proceedings of the Twelfth Language Resources and Evaluation Conference, pp.
+5539–5545. European Language Resources Association, Marseille, France (2020)
+[31] Belz, A., Shimorina, A., Agarwal, S., Reiter, E.: A systematic review of reproducibil-
+ity research in natural language processing. In: Proceedings of the 16th Conference of
+the European Chapter of the Association for Computational Linguistics, pp. 381–393.
+Association for Computational Linguistics, Online (2021)
+[32] Belz, A., Shimorina, A., Popovic, M., Reiter, E.: The 2022 reprogen shared task on
+reproducibility of evaluations in nlg: Overview and results. In: INLG 2022, p. 43 (2022)
+[33] Belz, A., Thomson, C.: The 2023 repronlp shared task on reproducibility of evaluations
+in nlp: Overview and results. In: Proceedings of the 3rd Workshop on Human Evaluation
+of NLP Systems, pp. 35–48. INCOMA Ltd., Varna, Bulgaria (2023)
+[34] Botvinik-Nezer, R., Holzmeister, F., Camerer, C.F., et al.: Variability in the analysis of
+a single neuroimaging dataset by many teams. Nature 582, 84–88 (2020)
+[35] Silberzahn, R., Uhlmann, E.L., Martin, D.P., et al.: Many analysts, one data set: Mak-
+ing transparent how variations in analytic choices affect results. Advances in Methods
+and Practices in Psychological Science 1(3), 337–356 (2018) https://doi.org/10.1177/
+23
+
+
+2515245917747646
+[36] Carp, J.: On the plurality of (methodological) worlds: Estimating the analytic flexibility
+of fmri experiments. Front. Neurosci. 6 (2012)
+[37] Wicherts, J.M., et al.: Degrees of freedom in planning, running, analyzing, and reporting
+psychological studies: A checklist to avoid p-hacking. Front. Psychol. 7 (2016)
+[38] Simmons, J.P., Nelson, L.D., Simonsohn, U.: False-positive psychology: Undis-
+closed flexibility in data collection and analysis allows presenting anything as sig-
+nificant. Psychological Science 22(11), 1359–1366 (2011) https://doi.org/10.1177/
+0956797611417632
+[39] Schweinsberg, M., et al.: Same data, different conclusions: Radical dispersion in empir-
+ical results when independent analysts operationalize and test the same hypothesis.
+Organizational Behavior and Human Decision Processes 165, 228–249 (2021)
+[40] Breznau, N., Rinke, E.M., Wuttke, A., Nguyen, H.H.V., Adem, M., Adriaans, J.,
+Alvarez-Benjumea, A., Andersen, H.K., Auer, D., Azevedo, F., Bahnsen, O., Balzer,
+D., Bauer, G., Bauer, P.C., Baumann, M., Baute, S., Benoit, V., Bernauer, J., Berning,
+C., Berthold, A., Bethke, F.S., Biegert, T., Blinzler, K., Blumenberg, J.N., Bobzien, L.,
+Bohman, A., Bol, T., Bostic, A., Brzozowska, Z., Burgdorf, K., Burger, K., Busch, K.B.,
+Carlos-Castillo, J., Chan, N., Christmann, P., Connelly, R., Czymara, C.S., Damian, E.,
+Ecker, A., Edelmann, A., Eger, M.A., Ellerbrock, S., Forke, A., Forster, A., Gaasendam,
+C., Gavras, K., Gayle, V., Gessler, T., Gnambs, T., Godefroidt, A., Gr¨omping, M.,
+Groß, M., Gruber, S., Gummer, T., Hadjar, A., Heisig, J.P., Hellmeier, S., Heyne, S.,
+Hirsch, M., Hjerm, M., Hochman, O., H¨overmann, A., Hunger, S., Hunkler, C., Huth,
+N., Ign´acz, Z.S., Jacobs, L., Jacobsen, J., Jaeger, B., Jungkunz, S., Jungmann, N., Kauff,
+M., Kleinert, M., Klinger, J., Kolb, J.-P., Kołczy´nska, M., Kuk, J., Kunißen, K., Sina-
+tra, D.K., Langenkamp, A., Lersch, P.M., L¨obel, L.-M., Lutscher, P., Mader, M., Madia,
+J.E., Malancu, N., Maldonado, L., Marahrens, H., Martin, N., Martinez, P., Mayerl, J.,
+Mayorga, O.J., McManus, P., McWagner, K., Meeusen, C., Meierrieks, D., Mellon, J.,
+Merhout, F., Merk, S., Meyer, D., Micheli, L., Mijs, J., Moya, C., Neunhoeffer, M.,
+N¨ust, D., Nyg˚ard, O., Ochsenfeld, F., Otte, G., Pechenkina, A.O., Prosser, C., Raes,
+L., Ralston, K., Ramos, M.R., Roets, A., Rogers, J., Ropers, G., Samuel, R., Sand, G.,
+Schachter, A., Schaeffer, M., Schieferdecker, D., Schlueter, E., Schmidt, R., Schmidt,
+K.M., Schmidt-Catran, A., Schmiedeberg, C., Schneider, J., Schoonvelde, M., Schulte-
+Cloos, J., Schumann, S., Schunck, R., Schupp, J., Seuring, J., Silber, H., Sleegers, W.,
+Sonntag, N., Staudt, A., Steiber, N., Steiner, N., Sternberg, S., Stiers, D., Stojmen-
+ovska, D., Storz, N., Striessnig, E., Stroppe, A.-K., Teltemann, J., Tibajev, A., Tung, B.,
+Vagni, G., Assche, J.V., Linden, M., Noll, J., Hootegem, A.V., Vogtenhuber, S., Voicu,
+B., Wagemans, F., Wehl, N., Werner, H., Wiernik, B.M., Winter, F., Wolf, C., Yamada,
+Y., Zhang, N., Ziller, C., Zins, S., ˙Z´ołtak, T.: Observing many researchers using the
+same data and hypothesis reveals a hidden universe of uncertainty. Proceedings of the
+National Academy of Sciences 119(44), 2203150119 (2022) https://doi.org/10.1073/
+pnas.2203150119 https://www.pnas.org/doi/pdf/10.1073/pnas.2203150119
+24
+
+
+[41] Gorgolewski, K., Auer, T., Calhoun, V., et al.: The brain imaging data structure, a format
+for organizing and describing outputs of neuroimaging experiments. Sci Data 3, 160044
+(2016)
+[42] Poldrack, R.A., et al.: Scanning the horizon: towards transparent and reproducible
+neuroimaging research. Nat Rev Neurosci 18, 115–126 (2017)
+[43] Rohanian, M., H¨uppi, R.M., Nooralahzadeh, F., Dannecker, N., Pauli, Y., Surbeck, W.,
+Sommer, I., Hinzen, W., Langer, N., Krauthammer, M., Homan, P.: Uncertainty Mod-
+eling in Multimodal Speech Analysis Across the Psychosis Spectrum (2025). https:
+//arxiv.org/abs/2502.18285
+[44] TRUSTING Project: About Us. https://trusting-project.eu/about-us/. Accessed: 2025-
+10-24 (n.d.)
+[45] H¨uppi, R.M., Bautista, L., Cecere, G., Just, S.A., Koops, S., Hussain, M., Tedeschi,
+E., Bora, E., Lyne, J., Kaiser, S., Spr¨ungli-Toffel, E., Kirschner, M., Mikalsen, K.Ø.,
+Bongo, L.A., Eycken, E., Spaniel, F., Elvev˚ag, B., Sommer, I.E., Hinzen, W., Homan,
+P.: Trusting: An international multicenter observational study of speech-based relapse
+prediction in psychosis using explainable ai. medRxiv preprint (2025) https://doi.org/
+10.1101/2025.11.14.25339774
+[46] Bojanowski, P., Grave, E., Joulin, A., Mikolov, T.: Enriching word vectors with subword
+information. TACL 5, 135–146 (2017)
+[47] Eyben, F., W¨ollmer, M., Schuller, B.: opensmile: The munich versatile and fast
+open-source audio feature extractor. In: Proceedings of the 18th ACM International
+Conference on Multimedia (MM), pp. 1459–1462. ACM, Florence, Italy (2010)
+[48] Mertens, P.: The prosogram: Semi-automatic transcription of prosody based on a tonal
+perception model. In: Proceedings of Speech Prosody 2004, Nara, Japan, pp. 549–552
+(2004)
+[49] Esteban, O., Markiewicz, C.J., Blair, R.W., et al.: fmriprep: a robust preprocessing
+pipeline for functional mri. Nat Methods 16, 111–116 (2019)
+[50] Peng, R.D.: Reproducible research in computational science. Science 334, 1226–1227
+(2011)
+[51] Sandve, G.K., et al.: Ten simple rules for reproducible computational research. PLoS
+Comput Biol 9, 1003285 (2013)
+[52] Barnes, N.: Publish your computer code: it is good enough. Nature 467, 753 (2010)
+https://doi.org/10.1038/467753a
+[53] Liu, Y., et al.: RoBERTa: A Robustly Optimized BERT Pretraining Approach (2019).
+https://arxiv.org/abs/1907.11692
+25
+
+
+[54] Touvron, H., et al.: LLaMA: Open and Efficient Foundation Language Models (2023).
+https://arxiv.org/abs/2302.13971
+[55] Joulin, A., Grave, E., Bojanowski, P., Mikolov, T.: Bag of tricks for efficient text clas-
+sification. In: Proceedings of the 15th Conference of the European Chapter of the
+Association for Computational Linguistics (EACL), pp. 427–431 (2017)
+[56] Boersma, P., Weenink, D.: Praat: Doing Phonetics by Computer [Computer program].
+http://www.praat.org/ (2025)
+[57] Devlin, J., Chang, M.-W., Lee, K., Toutanova, K.: Bert: Pre-training of deep bidirec-
+tional transformers for language understanding. In: Proceedings of the 2019 Conference
+of the North American Chapter of the Association for Computational Linguistics
+(NAACL-HLT), pp. 4171–4186 (2019)
+Author Contributions
+YP, FR, NL and PH conceptualized the project. YP wrote the codebase available on the
+GitHub repository. JBM reviewed the codebase. YP drafted the initial manuscript. YP, JBM,
+FR, VE, RH, SC, ARM, WH, IS, and PH critically revised and approved the final manuscript.
+26

@@ -1,0 +1,6541 @@
+ASYMPTOTIC STABILITY OF PLANAR ENTROPY WAVE FOR 3-D NAVIER-STOKES
+EQUATIONS IN EULERIAN COORDINATES
+RENJUN DUAN, FEIMIN HUANG, RUI LI, AND LINGDA XU
+Abstract. We investigate the large-time asymptotic behavior toward the planar entropy wave for the three-dimensional
+Navier-Stokes equations in Eulerian coordinates, considering two types of initial perturbations—with and without the
+assumption that the integral of the initial perturbation is zero.
+Generic perturbations generate diffusion waves, and
+structural conditions fail for multi-dimensional Navier-Stokes equations in Eulerian coordinates. These two aspects have
+posed significant challenges and left the problem unresolved for years. On one hand, since [21], the study of the entropy
+wave has been based on the left-right structural conditions. Without these structural conditions, the decay rates of lower-
+order terms become too slow to close the a priori assumption. On the other hand, the presence of diffusion waves yields
+problematic error terms in the perturbation system. In this work, we introduce a new transformation to ensure that both
+left-right structural conditions hold for the perturbation system. Additionally, using the fact that the derivative of the
+entropy wave maintains a fixed sign, we employ well-designed weighted energy estimates to control the slowly decaying
+terms. This enables us to establish asymptotic stability and derive the optimal decay rate. Furthermore, we address the
+case of initial perturbations with the zero mass condition and obtain the optimal decay rate by additionally developing
+a Poincar´e type inequality and a key cancellation.
+Contents
+1.
+Introduction
+1
+1.1.
+The models and problem
+1
+1.2.
+Literature review
+3
+1.3.
+Difficulties and strategy
+4
+2.
+Construction of ansatz and main theorems
+5
+2.1.
+Planar viscous entropy wave for 3-d Navier-Stokes equations
+5
+2.2.
+The extra initial mass and the diffusion waves
+6
+2.3.
+Main results
+8
+2.4.
+The decomposition for zero and non-zero modes
+9
+3.
+Proof of Theorem 2.1: the non-zero initial mass
+9
+3.1.
+Systems for perturbations
+9
+3.2.
+Proof of Theorem 2.1
+10
+3.3.
+Estimates on zero modes
+11
+3.4.
+Estimates on non-zero mode of perturbations
+21
+3.5.
+Higher order estimates
+24
+4.
+Proof of Theorem 2.4: the zero initial mass
+26
+References
+31
+1. Introduction
+1.1. The models and problem. We study the three-dimensional (3-d) full Navier-Stokes (N-S) equations in Eulerian
+coordinates, which read as
+
+
+
+
+
+
+
+
+
+ρt + div(ρu) = 0,
+(ρu)t + div(ρu ⊗u) + ∇p = div S,
+(ρE)t + div(ρEu + pu) = κ∆θ + div(uS),
+(ρ, u, θ)(x, 0) = (ρ0, u0, θ0),
+(x, t) ∈R3 × R+.
+(1.1)
+Here, the unknown functions ρ, u = (u1, u2, u3)t and θ, depending on the spatial variable x = (x1, x2, x3) ∈R3 and
+the time variable t ≥0, stand for the density, velocity, and absolute temperature of the fluid, respectively. Moreover,
+2020 Mathematics Subject Classification. Primary: 35Q30, 35B40; Secondary: 76N06, 76N30.
+Key words and phrases. Navier-Stokes equations, Eulerian coordinates, planar entropy wave, stability, optimal decay rates.
+arXiv:2511.15498v1  [math.AP]  19 Nov 2025
+
+
+2
+R.-J. DUAN, F. HUANG, R. LI, AND L. XU
+p denotes the pressure, E := e + 1
+2|u|2 denotes the specific total energy with e being the internal energy, and κ > 0
+denotes the heat-conductivity coefficient for the fluid. The viscous stress tensor S is given as
+S = 2µD(u) + λdiv u I,
+where D(u) := ∇u+(∇u)t
+2
+∈R3×3 represents the deformation tensor, and I is the identity matrix. The shear and bulk
+viscosity coefficients µ and λ of the fluid satisfy the physical constraints
+µ > 0,
+2µ + 3λ ≥0.
+Actually, we only need the weaker constraints µ > 0 and λ + µ ≥0 throughout the paper.
+In the present work, we consider the ideal polytropic gas, that is, the pressure p and the inner energy e can be
+determined by the following state equations
+p = Rρθ = Aργ exp(γ −1
+R
+S),
+e =
+R
+γ −1θ,
+where S denotes the entropy, A > 0, R > 0 are fluid constants, and γ > 1 is the adiabatic exponent. Without loss of
+generality, we assume R = γ −1.
+When the viscous effect vanishes, Navier-Stokes equations in (1.1) are reduced to the Euler system
+
+
+
+
+
+ρt + div(ρu) = 0,
+(ρu)t + div(ρu ⊗u) + ∇p = 0,
+(x, t) ∈R3 × R+,
+(ρE)t + div(ρEu + pu) = 0,
+(1.2)
+which is a classical system of hyperbolic conservation laws.
+One of the main features of the Euler system is the
+formulation of singularities. That is, no matter how smooth the initial data is, the discontinuity of the solution may
+form. To see the discontinuity structure of solutions, we study the Riemann problem for which the solution usually
+consists of three important basic waves: rarefaction wave, shock wave, and contact discontinuity. Depending on the
+type of discontinuity, contact discontinuities can be classified into entropy waves and vortex sheets. In entropy waves,
+the entropy is discontinuous, whereas in vortex sheets, the discontinuity lies in the shear velocity. It is known that
+shock waves and rarefaction waves are generated in the generally nonlinear characteristic fields and the entropy wave
+is generated in the linear degenerate field.
+In the present paper, we are interested in studying stability of planar wave patterns. For the purpose, the domain
+under consideration is the infinite long flat torus Ω:= R × T2 in space of three dimensions, where T := R/Z. We would
+emphasize that even in such simple multi-dimensional setting, there are several essential difficulties compared to the
+1-d case, and the study of the whole space R3 will be left for the future. Moreover, we focus on the planar entropy
+waves given as the weak solutions of the 1-d Euler equations as follows:
+
+
+
+
+
+
+
+∂tρ + ∂1m1 = 0,
+∂tm1 + ∂1
+
+(γ −1)E + 3−γ
+2
+m2
+1
+ρ
+
+= 0,
+∂tE + ∂1
+
+γm1E
+ρ
+−(γ−1)m3
+1
+2ρ2
+
+= 0,
+(1.3)
+in terms of the unknowns (ρ, m1 = ρu1, E). Studies for entropy waves are somehow more subtle than those for other
+wave patterns because of the linear degeneracy of entropy waves. Accordingly, there are some structural conditions
+that need to be considered when studying entropy waves. The Jacobi matrix of the flux for (1.3) is
+A (ρ, m1, E) =
+
+
+
+0
+1
+0
+−3−γ
+2
+m2
+1
+ρ2
+(3 −γ) m1
+ρ
+γ −1
+−γm1E
+ρ2
++ (γ−1)m3
+1
+ρ3
+γE
+ρ −3(γ−1)m2
+1
+2ρ2
+γm1
+ρ
+
+
+.
+Regarding the second eigenvalue λ2 = m1
+ρ of A (ρ, m1, E), the corresponding left and right eigenvectors are
+r2 =
+
+1, m1
+ρ , m2
+1
+2ρ2
+t
+,
+l2 =
+γE
+ρ −3(γ −1)m2
+1
+2ρ2
+, (γ −1)m1
+ρ , −1
+
+.
+(1.4)
+From direct computations, (1.4) further gives that
+∇l2 · r2 ̸= 0,
+∇r2 · r2 = 0.
+(1.5)
+However, the classical left and right structural conditions as in [21] are given as follows:
+∇l2 · r2 = 0,
+and
+∇r2 · r2 = 0,
+respectively.
+(1.6)
+Therefore, from (1.5) the left structural condition is violated for the Navier-Stokes equations (1.3) in Eulerian coordi-
+nates.
+
+
+STABILITY OF PLANAR ENTROPY WAVE FOR 3-D NAVIER-STOKES IN EULERIAN COORDINATES
+3
+The two structural conditions in (1.6) were originally proposed by Liu-Xin [21] for establishing the meta-stability of
+contact discontinuities for general conservation laws with artificial viscosity via the Green’s function method. Subse-
+quently, Xin-Zeng [30] demonstrated that the same result holds even without the left structural condition. A critical
+distinction, however, arises when considering conservation laws with physical viscosity instead of artificial viscosity. In
+the artificial viscosity case, the contact wave constitutes an exact solution, whereas for physical viscosity—as in the
+Navier-Stokes equations—it serves only as an approximate solution. This is intrinsic to the nature of contact waves
+as diffusion waves, which are generally not exact solutions of hyperbolic-parabolic coupled systems. For the Navier-
+Stokes equations in Lagrangian coordinates, this challenge was overcome by Huang et al. [7, 9] through an ingenious
+construction of the contact wave and several key observations. Their approach, however, relies on the left structural
+condition and does not extend to the Eulerian coordinate framework. Consequently, the stability of contact disconti-
+nuities for the Navier-Stokes equations in Eulerian coordinates remains a major open problem, as previously noted for
+the one-dimensional case in [30]; the multi-dimensional case presents even greater difficulties. It is also noteworthy that
+Huang-Matsumura-Xin [7] conjectured the optimal decay rate for the contact wave. The question recently has been
+resolved by Liu-Wang-Xu [17] under both structural conditions for the 1-d Navier-Stokes equations in Lagrangian coor-
+dinates. This success underscores the significant and ongoing challenge of deriving the optimal decay rate of solutions
+to (1.3) in the absence of the left structural condition as in (1.5).
+1.2. Literature review. For the 1-d case, there have been numerous results on the stability of waves. In 1960, Oleˇınik
+et al. [13] studied the stability of shock and rarefaction waves for a single conservation law. In 1985, Matsumura-
+Nishihara [25] and Goodman [3] independently used the anti-derivative method to prove the stability of shock waves for
+systems, under the zero-mass condition. In 1986, Matsumura-Nishihara [26] proved the stability of rarefaction waves
+for the Navier-Stokes equations. In 2005, Huang-Matsumura-Xin [7] established the stability of entropy waves for the
+Navier-Stokes equations. This result was further extended to the Boltzmann equation without requiring the zero-mass
+condition by Huang-Xin-Yang [9] in 2008.
+For solutions involving multiple wave patterns, Huang-Matsumura [6] in 2009 constructed diffusion waves and proved
+the stability of composite waves containing two shock waves for the non-isentropic Navier-Stokes equations without
+imposing the zero-mass condition. In 2010, Huang-Li-Matsumura [5] proved the stability of composite waves consisting
+of two rarefaction waves and entropy waves via a new inequality. In 2021, Kang-Vasseur-Wang [14] studied the large-
+time behavior of composite waves consisting of a shock and a rarefaction wave in the isentropic Navier-Stokes equations
+by introducing a time-dependent shift.
+The above results are obtained via the energy method. On the other hand, the Green’s function method, initiated
+in [18, 19], has proven powerful in studying the pointwise behavior of waves. Using a novel construction of approximate
+Green’s functions, Liu-Zeng [23] obtained pointwise estimates of shock waves in 2009. Their method applies to physical
+viscosity cases, such as the Navier-Stokes and MHD equations [24]. In 2017, Liu-Wang [20] obtained pointwise estimates
+of rarefaction waves for scalar conservation laws. For the derivation of nonlinear stability from linear and spectral
+stability, we refer to [34]. Since this paper focuses on entropy waves, relevant results will be introduced in more detail
+later. We also note that many interesting results are not included here; see [27].
+Regarding entropy waves, for the Navier-Stokes equations in Lagrangian coordinates, both structural conditions
+hold. However, viscous terms introduce errors, which complicates the analysis. These errors cause the energy of anti-
+derivatives to grow in time. Huang et al. [7, 9] found that this growth can be compensated by the decay of the energy of
+derivatives. They obtained a decay rate of (1+t)−1/4 and conjectured an optimal rate of (1+t)−1/2, based on the results
+of Liu-Xin and Xin-Zeng [21, 30]. This conjecture has been studied by several groups, including Huang-Wang-Wang [8]
+and Yang [31], where the best known decay rate is (1 + t)−1/3. More recently, [17] revisited this conjecture for the
+Navier-Stokes equations in Lagrangian coordinates. The studies of entropy waves in the setting that both structural
+conditions hold are now quite complete.
+However, in the Eulerian coordinates for Navier-Stokes equations, the left structural condition fails, and consequently,
+very few results are available. In fact, to the best of our knowledge, there are no known results, especially without
+the zero-mass condition, proving the stability of entropy waves for the Navier-Stokes equations in Eulerian coordinates,
+even in the 1-d case. In this paper, we consider the multi-dimensional case and obtain the optimal decay rate (1+t)−1/2
+for the Eulerian coordinates. The presence of the diffusion wave plays a crucial role in achieving this optimal rate.
+For multi-dimensional planar waves, in 1990, Xin [29] studied planar rarefaction waves for a single conservation law.
+In 2018, Li-Wang-Wang [15, 16] proved the stability of planar rarefaction waves with physical viscosity in R × T and
+R × T2. Due to the fact that approximate rarefaction waves are not exact solutions for viscous conservation laws,
+the multi-dimensional perturbations cannot be localized. Instead, Huang-Xu-Yuan [10] proved stability under periodic
+(non-local) perturbations. Recently, Huang-Xin-Xu-Yuan [11] and Yuan-Zhao [33] proved the stability of the viscous
+vortex sheet in the 3-D isentropic Navier-Stokes equation under periodic (non-local) perturbations.
+There are also many notable results on planar shock waves.
+Notably, Humpherys-Lyng-Zumbrun [12] provided
+numerically well-conditioned and analytically justified computations verifying the nonlinear stability of planar viscous
+
+
+4
+R.-J. DUAN, F. HUANG, R. LI, AND L. XU
+shocks for the Navier-Stokes equations. Freist¨uhler-Szmolyan [1, 2] proved spectral stability for small-amplitude viscous
+shocks in systems with artificial viscosity. More recently, Yuan [32] and Wang-Wang [28] made significant progress on
+the rigorous proof of nonlinear stability for Navier-Stokes shock waves: [28] applied the a-contraction method with a
+time-dependent shift, while [32] introduced a framework involving multi-dimensional anti-derivatives. We also refer to
+Liu-Yu [22], where the propagation of planar shock waves is studied in a quantitative, pointwise manner, and more
+complex wave patterns, including Rayleigh-type waves, are observed.
+1.3. Difficulties and strategy. To the best of our knowledge, there are no such stability results concerning the m-d
+viscous entropy wave. It should be pointed out that in the present understanding, the structural conditions are crucial
+for viscous entropy waves by the energy method and Green’s function approach. Thus, the stability of the viscous
+entropy wave is interesting and completely different from the other two wave patterns.
+The stability of planar contact waves in multi-dimensional compressible Navier-Stokes equations involves several
+essential differences from the previous results as far as we know. In what follows, we introduce the difficulties and
+novelties with more details.
+Difficulties:
+• The limitation of structural conditions (1.6).
+Although the derivative of the contact discontinuity maintains a fixed sign, ∂1¯ρ and ∂1¯θ cannot share the
+same sign; see (2.1), (2.2) and (2.4). That is one of the main differences between entropy wave and other basic
+wave patterns such as rarefaction wave and shock wave. Fortunately, previous research works [21, 7, 9] showed,
+with the help of two sides of structural conditions, that the lower order terms of perturbation (ϕ, φ, ζ) :=
+(ρ −¯ρ, u −¯u, θ −¯θ) are
+Z
+Ω
+(1 + t)−1e−cx2
+1+t
+
+ϕ2 + φ2 + ζ2
+dx.
+In the 1-d case, [9] found that although the energy of anti-derivatives increases with the rate (1 + t)
+1
+2 , the
+L∞-norm can be bounded since the energy of perturbation decays at the rate of (1 + t)−1
+2 . Thus, both of the
+two structural conditions are crucial. If the left structural condition fails, the lower order terms become
+Z
+Ω
+(1 + t)−1
+2 e−cx2
+1+t
+
+ϕ2 + φ2 + ζ2
+dx.
+Then, arguments similar to those in [7, 9] can only yield uniform bounds for the first-order energy of anti-
+derivatives within the anti-derivative framework, which is not enough to close the a priori assumptions. Without
+the approaches of anti-derivatives, it is also hard to control such terms. Note that one can construct the entropy
+wave as an exact solution for conservation laws with artificial viscosity; thus there will not be growth of energy
+for anti-derivatives and this problem is somewhat simpler in this case.
+In sum, the stability of entropy wave for systems with physical viscosity and without left structural condition
+is very difficult and essentially different from other cases introduced previously.
+• The optimal decay rate.
+Note that the structural conditions in (1.6) are at the level of the first order of anti-derivatives, which helps
+one to obtain a good estimate for zero-order energy. In the higher-order estimates, it fails and terms with low
+decay rates arise. In [7], the authors conjectured that the optimal rate should be (1 + t)−1
+2 due to the presence
+of diffusion wave. Recently, [17] solved this problem in Lagrange coordinates, but not for Eulerian coordinates.
+As explained previously, the structural conditions are crucial in computing the decay rates. Thus, our cases are
+more subtle.
+Based on these difficulties, we solve the problems by the following strategies.
+Strategies:
+• The decomposition of zero and non-zero mode in Fourier space.
+The perturbations can be decomposed into
+(˚ϕ, ˚
+ψ, ˚
+w) =
+Z
+T2(ρ −˜ρ, m −˜m, E −˜E)(x, t)dx2dx3,
+(ϕ̸=, ψ̸=, w̸=) = (ϕ, ψ, w) −(˚ϕ, ˚
+ψ, ˚
+w),
+where (˜ρ, ˜m, ˜E) is defined as the coupling of entropy waves and diffusion waves in (2.7); more details can be
+found in Section 2. By this spirit, we can decompose the perturbation system into two coupled parts. The key
+observation is that the non-zero mode of perturbations decays exponentially.
+• The integrated system and a new transformation.
+We study the perturbation in an integrated system with
+(Φ, Ψ, W) =
+Z x1
+−∞
+Z
+T2(ρ −˜ρ, m −˜m, E −˜E)(y, t)dy′dy1.
+
+
+STABILITY OF PLANAR ENTROPY WAVE FOR 3-D NAVIER-STOKES IN EULERIAN COORDINATES
+5
+Next, we will apply the following transformation
+˜Φ = ˜θΦ,
+˜Ψ = Ψ −˜uΦ,
+˜W = W −˜u · ˜Ψ −
+
+˜θ + |˜u|2
+2
+
+Φ,
+where ˜u and ˜θ are the non-conserved quantities of velocity and temperature under the new ansatz (2.8),
+respectively. Through this transformation, the new system is simplified a lot and satisfies both the two structural
+conditions, see (3.15).
+• Estimates on the non-zero mode.
+We observe that the Poincar´e inequality holds for non-zero modes. Thus the exponential decay rate for them
+is expected.
+• The optimal decay rate.
+Note that although the constructed entropy wave (2.2) is monotonic, the sign of derivatives of ¯θ and ¯ρ are
+opposite, see (2.4). Thus, one cannot use arguments similar to those for shock waves or rarefaction waves that
+essentially rely on the sign of derivatives of profiles. In the current case, we perform energy estimates using the
+diagonalized system to fully capture the intrinsic feature and determine the dissipation structure as specified
+in (3.26) and (3.28). In particular, we obtain the dissipation term
+Gk := Cδ−1
+2
+Z
+R
+∂1¯ρ
+∂k
+1b1
+2 + ∂1¯ρ
+∂k
+1b3
+2 dx1,
+see (3.26). It is also worth noting that, since ∂k+1¯ρ cannot be directly controlled by (1 + t)−k
+2 ∂1¯ρ in terms of
+(2.3), we further develop weighted estimates of the form
+R
+R ˜ω−1
+2 |f|2dx1 as in (3.44) and (3.45) based on the
+obtained dissipation term Gk, where ˜ω−1
+2 is given in (2.12) with ˜c0 < c0 and c0 given in (2.3). Then the terms
+with lower decay rate can be controlled.
+• On the case of zero initial mass.
+There are several key cancellations we need to achieve in this case. For instance, (4.4) shows that the slow
+decay terms will not appear in the 2-characteristic field. And we need a Poincar´e type inequality Theorem 4.5
+to deal with the critical terms.
+We believe that the transformation and the weighted energy method proposed here, rooted in the structural properties
+of entropy waves, have the potential of applications to a variety of important systems, including the Navier-Stokes-
+Poisson and magnetohydrodynamics equations.
+The rest of this paper is organized as follows. In Section 2, we will construct the ansatz and then introduce the main
+results. Then we will introduce the perturbation system, the key transformations, energy estimate for zero mode and
+energy estimate for non-zero mode for the case without initial zero mass in Section 3. Finally, in Section 4, we obtain
+the optimal decay rate for the case with initial zero mass.
+2. Construction of ansatz and main theorems
+2.1. Planar viscous entropy wave for 3-d Navier-Stokes equations. In this subsection, we give the explicit
+expression of planar entropy wave to the Navier-Stokes equations (1.1). We start from the 1-d Euler system (1.1) along
+the x1-direction:
+
+
+
+
+
+∂tρ + ∂1 (ρu1) = 0,
+∂t (ρu1) + ∂1
+ ρu2
+1 + p
+
+= 0,
+x1 ∈R, t > 0,
+∂t(ρE) + ∂1 (ρEu1 + pu1) = 0,
+with the initial data:
+(ρ, u1, u2, u3, θ) (x1, 0) =
+(
+(ρ−, 0, 0, 0, θ−) ,
+x1 < 0,
+(ρ+, 0, 0, 0, θ+) ,
+x1 > 0.
+In this paper, we study the weak entropy wave, that is, the strength of wave δ := |ρ+ −ρ−| + |θ+ −θ−| is small. It is
+known that entropy wave is generated in the linear degenerate characteristic field
+Rρ+θ+ = p+ = p−= Rρ−θ−.
+(2.1)
+In the case of Navier-Stokes equations, we will modify the entropy wave as a smooth profile, called the viscous entropy
+wave.
+
+
+6
+R.-J. DUAN, F. HUANG, R. LI, AND L. XU
+We start from the construction of diffusion waves:
+
+
+
+∂t¯ρ = ∂1
+
+a ∂1 ¯ρ
+¯ρ
+
+,
+a := κ
+γ ,
+¯ρ(−∞, t) = ρ−,
+¯ρ(+∞, t) = ρ+.
+(2.2)
+From [4, 21], we know that (2.2) admits a unique self-similar solution ¯ρ(
+x1
+√t+1), satisfying
+(1 + t)
+1
+2 ∂1¯ρ = Cδe−
+c0x2
+1
+1+t .
+(2.3)
+In terms of ¯ρ, we can construct an approximation solution for 3-d Navier-Stokes equations. Indeed, setting
+¯ρ = ¯ρ,
+¯u = (−a∂1¯ρ
+|¯ρ|2 , 0, 0),
+¯θ = p+
+R¯ρ −¯u2
+1
+2 ,
+R¯ρ¯θ = ¯p = p+ −(γ −1)
+2
+¯ρ|¯u1|2,
+(2.4)
+it holds that
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+∂t¯ρ + ∂1(¯ρ¯u1) = 0,
+∂t(¯ρ¯u1) + ∂1
+ ¯ρ|¯u1|2 + ¯p
+
+= (2µ + λ)∂2
+1 ¯u1 + ∂1Q1,
+∂t
+
+¯ρ
+
+¯θ + |¯u|2
+2
+
++ ∂1
+
+¯ρ¯u1
+
+¯θ + |¯u|2
+2
+
++ ¯p¯u1
+
+= κ∂2
+1 ¯θ + (2µ + λ)∂1 (¯u1∂1¯u1) + ∂1Q2,
+(2.5)
+where
+
+
+
+
+
+
+
+Q1 = −a∂t¯ρ
+¯ρ + (3 −γ)
+2
+¯ρ(¯u1)2 −(2µ + λ)∂1¯u1 ≤Cδ(1 + t)−1e−
+cx2
+1
+1+t ,
+Q2 = −(γ −1)
+2
+¯ρ(¯u1)3 + ∂1(|¯u1|2)
+2
+−(λ + 2µ)(¯u1∂1¯u1) ≤Cδ(1 + t)−3
+2 e−
+cx2
+1
+1+t ,
+with some constant c > 0. For convenience, we denote the conserved quantities by
+U = (ρ, m1, m2, m3, E)t,
+¯U = (¯ρ, ¯m1, ¯m2, ¯m3, ¯E)t,
+U # = (ρ, m1, E)t,
+¯U # = (¯ρ, ¯m1, ¯E)t.
+2.2. The extra initial mass and the diffusion waves. We will construct diffusion waves to carry the extra initial
+mass, which is inspired by [18, 27, 9], to solve this problem. Note that the extra initial mass is distributed along the x1-
+direction. The Jacobi matrices for the flux of 1-d Navier-Stokes equations in Eulerian coordinates (1.3) at (ρ+, m1+, E+)
+and (ρ−, m1−, E−) are given, respectively, as
+A± =
+
+
+0
+1
+0
+0
+0
+γ −1
+0
+γ E±
+ρ±
+0
+
+.
+Then it is direct to compute that λ−
+1
+= −
+q
+γ(γ −1) E−
+ρ−is the first eigenvalue of A−corresponding with r−
+1
+=
+(1, λ−
+1 , (λ−
+1 )2
+γ−1 )t and λ+
+3 =
+q
+γ(γ −1) E+
+ρ+ is the third eigenvalue of A+ corresponding with r+
+3 = (1, λ+
+3 , (λ+
+3 )2
+γ−1 )t. Since the
+following three vectors, r−
+1 , (ρ−−ρ+, m1−−m1+, E−−E+) and r+
+3 are linearly independent, we have
+Z
+Ω
+U # −¯U #dx = ¯Θ1r−
+1 + ¯Θ2(ρ−−ρ+, m1−−m1+, E−−E+)t + ¯Θ3r+
+3 .
+(2.6)
+We will couple two diffusion waves with (¯ρ, ¯u, ¯θ), which are defined by
+Θ1(x1, t) =
+1
+p
+4π(1 + t)
+e−
+(x1−λ−
+1 (1+t))2
+4(1+t)
+,
+Θ3(x1, t) =
+1
+p
+4π(1 + t)
+e−
+(x1−λ+
+3 (1+t))2
+4(1+t)
+.
+It is direct to verity that they satisfy
+
+
+
+
+
+∂tΘ1 + λ−
+1 ∂1Θ1 = ∂2
+1Θ1,
+Z +∞
+−∞
+Θ1(x1, t)dx = 1,
+
+
+
+
+
+∂tΘ3 + λ+
+3 ∂1Θ3 = ∂2
+1Θ3,
+Z +∞
+−∞
+Θ3(x1, t)dx = 1.
+Let
+¯Θi+2 :=
+Z
+Ω
+mi(x, 0)dx,
+i = 2, 3.
+
+
+STABILITY OF PLANAR ENTROPY WAVE FOR 3-D NAVIER-STOKES IN EULERIAN COORDINATES
+7
+Then we define the new ansatz (˜ρ, ˜m, ˜E) by
+˜ρ(x1, t) = ¯ρ
+ x1 + ¯Θ2, t
+
++ ¯Θ1Θ1 + ¯Θ3Θ3,
+˜m1(x1, t) = ¯m1
+ x1 + ¯Θ2, t
+
++ λ−
+1 ¯Θ1Θ1 + λ+
+3 ¯Θ3Θ3,
+˜mi =
+¯Θi+2
+p
+4π(1 + t)
+e−
+x2
+1
+4(1+t) ,
+i = 2, 3,
+˜E(x1, t) = ¯E
+ x1 + ¯Θ2, t
+
++
+(λ−
+1 )2
+γ −1
+¯Θ1Θ1 + (λ+
+3 )2
+γ −1
+¯Θ3Θ3
+
+.
+(2.7)
+Without loss of generality, we assume ¯Θ2 = 0. Then the initial extra mass for new ansatz (2.7) is
+Z
+Ω
+h
+U(x, 0) −˜U(x1, 0)
+i
+dx =
+Z
+Ω
+
+U #(x, 0) −¯U #(x1, 0)
+
+dx +
+3
+X
+i=2
+¯Θi+2 +
+Z
+R
+
+¯U −˜U
+
+(x1, 0)dx1 = 0,
+where ˜U = (˜ρ, ˜m1, ˜m2, ˜m3, ˜E). For i = 1, 2, 3, we also define non-conserved quantities: velocity ˜ui, temperature ˜θ and
+pressure ˜p as follows
+˜ui := ˜mi
+˜ρ ,
+˜θ :=
+˜E
+˜ρ −| ˜m|2
+2˜ρ2 ,
+˜p := (γ −1) ˜E −(γ −1) | ˜m|2
+2˜ρ
+.
+(2.8)
+By a direct calculation, we find that the new ansatz (2.7) satisfies the following approximate Navier-Stokes equations
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+∂t˜ρ + div ˜m = ∂1 ˜H1,
+∂t ˜m1 + div( ˜m1 ˜
+m
+˜ρ
+) + ∂1˜p = µ△˜u1 + (µ + λ)∂1(div˜u) + div ˜H21,
+∂t ˜m2 + div( ˜m2 ˜
+m
+˜ρ
+) + ∂2˜p = µ△˜u2 + (µ + λ)∂2(div˜u) + div ˜H22,
+∂t ˜m3 + div( ˜m3 ˜
+m
+˜ρ
+) + ∂3˜p = µ△˜u3 + (µ + λ)∂3(div˜u) + div ˜H23,
+∂t ˜E + div(˜u( ˜E + ˜p)) = div(˜u ˜S + κ∇˜θ) + div ˜H3,
+(2.9)
+where
+˜H1 = ¯Θ1∂1Θ1 + ¯Θ3∂1Θ3,
+˜H21 := λ−
+1 ¯Θ1∂1Θ1I1 + λ+
+3 ¯Θ3∂1Θ3I1 −(λ + µ)div
+ ˜m
+˜ρ −¯m
+¯ρ
+
+I1 + Q1I1
++ div
+ ˜m1 ˜m
+˜ρ
+−(γ −1)| ˜m|2
+2˜ρ
+−¯m1 ¯m
+¯ρ
++ (γ −1)| ¯m|2
+2¯ρ
+
+I1 −µ∂1
+ ˜m1
+˜ρ −¯m1
+¯ρ
+
+I1,
+˜H2i := ¯Θi+2∂1Θi+2I1 −(λ + µ)div
+ ˜m
+˜ρ −¯m
+¯ρ
+
+I1
++ ∂1
+ ˜mi ˜m1
+˜ρ
+−(γ −1)| ˜m|2
+2˜ρ
+−¯mi ¯m1
+¯ρ
++ (γ −1)| ¯m|2
+2¯ρ
+
+I1 −µ∂1
+ ˜mi
+˜ρ −¯mi
+¯ρ
+
+I1,
+i = 2, 3,
+˜H3 := (λ−
+1 )2
+γ −1
+¯Θ1∂1Θ1I1 + (λ+
+3 )2
+γ −1
+¯Θ3∂1Θ3I1 −(˜u ˜S −¯u ¯S) + Q2I1
++ (γ −1)
+| ˜m|2 ˜m
+2˜ρ2
+−| ¯m|2 ¯m
+2¯ρ2
+
+−κ∇
+ ˜E
+˜ρ −1
+2
+
+˜m
+˜ρ
+
+2
+−
+¯E
+¯ρ + 1
+2
+
+¯m
+¯ρ
+
+2!
++ γ
+ 
+˜m1 ˜E
+˜ρ
+−¯m1 ¯E
+¯ρ
+−λ−
+1
+E−
+ρ−
+¯Θ3Θ1 −λ+
+3
+E+
+ρ+
+¯Θ3Θ3
+!
+I1,
+and I1 := (1, 0, 0)t. For i = 1, 2, 3, simple calculations yield
+ ˜Hi
+ +
+ ˜H2i
+ +
+ ˜H3
+ ≤C
+
+δ +
+5
+X
+j=1
+¯Θj
+
+
+
+1
+1 + t
+ 
+e−
+cx2
+1
+1+t + e−
+c(x1−λ−
+1 (1+t))
+2
+1+t
++ e−
+c(x1−λ+
+3 (1+t))
+2
+1+t
+!
+,
+(2.10)
+where c > 0 is a constant independent of any small parameters in this paper.
+Recalling the definition of c0 in (2.3), we use the following notation for convenience
+D−α(x1, t) :=
+1
+(1 + t)α
+ 
+e−
+cx2
+1
+1+t + e−
+c(x1−λ−
+1 (1+t))
+2
+1+t
++ e−
+c(x1−λ+
+3 (1+t))
+2
+1+t
+!
+,
+ω−α(x1, t) := (1 + t)−αe−
+cx2
+1
+1+t ,
+(2.11)
+
+
+8
+R.-J. DUAN, F. HUANG, R. LI, AND L. XU
+˜ω−1
+2 (x1, t) := (1 + t)−1
+2 e−
+˜c0x2
+1
+1+t ,
+for
+˜c0 < c0.
+(2.12)
+2.3. Main results. We define the perturbation as
+(ϕ, φ, ζ, ψ, w)(x, t) := (ρ −˜ρ, u −˜u, θ −˜θ, m −˜m, E −˜E),
+(ϕ0, φ0, ζ0, ψ0, w0) := (ϕ, φ, ζ, ψ, w)(x, 0),
+and further the anti-derivatives for conserved quantities as
+(Φ, Ψ, W) :=
+Z x1
+−∞
+Z
+T2(ρ −˜ρ, m −˜m, E −˜E)(y, t)dy′dy1,
+(Φ0, Ψ0, W0) := (Φ, Ψ, W)(x1, 0).
+Then we state the main results of this paper as follows.
+Theorem 2.1 (Non-zero initial mass). Let Ω= R × T2. Assume that (ρ+, u+, θ+) and (ρ−, u−, θ−) are the constant
+states of entropy wave satisfying (2.1), and (¯ρ, ¯u, ¯θ) (x1, t) is the planar viscous entropy wave connecting these two states
+as defined in (2.2) and (2.4). Then there exist positive small constants ε0, δ such that if
+δ := |ρ+ −ρ−| + |θ+ −θ−| ,
+∥(Φ0, Ψ0, W0)∥2
+H3(R) + ∥(ϕ0, φ0, ζ0)∥2
+H3(Ω) + ∥(ϕ0, ψ0, w0)∥2
+L1(Ω) := ε2 ≤ε2
+0,
+then the Cauchy problem (1.1) admits a unique global smooth solution (ρ, u, θ) satisfying
+(ρ −¯ρ, u −¯u, θ −¯θ) ∈C
+ 0, +∞; H3(Ω)
+
+, ∇(u −¯u, θ −¯θ) ∈L2  0, +∞; H3(Ω)
+
+, ∇(ρ −¯ρ) ∈L2  0, +∞; H2(Ω)
+
+,
+and further
+sup
+x∈Ω
+(ρ, u, θ)(x, t) −(¯ρ, ¯u, ¯θ) (x1, t)
+ ≤C(ε
+1
+2
+0 + δ
+1
+2 )(1 + t)−1
+2 .
+(2.13)
+Moreover, the non-zero modes of the unique solution have an exponential decay rate
+sup
+x∈Ω
+D̸=
+
+(ρ, u, θ)(x, t) −(¯ρ, ¯u, ¯θ)(x1, t)
+ ≤Cε0e−ct,
+where C, c are positive constants independent of ε0 and δ, and D̸= is defined in (2.15).
+Remark 2.2. We emphasize that according to the results of [21, 30] where they used the method of approximate
+Green’s functions to obtain pointwise estimates, the decay rate obtained in (2.13) is optimal. Moreover, we also obtain
+the exponential decay rate for the non-zero mode.
+Remark 2.3. To the best of our knowledge, Theorem 2.1 can be regarded as the first result for the nonlinear asymp-
+totic stability of the multi-dimensional entropy wave and also for systems with physical viscosity but without the left
+structural condition as in (1.5).
+Theorem 2.4 (Zero initial mass). Under the same assumptions as Theorem 2.1 and further assuming that the initial
+mass is zero, that is
+Z
+Ω
+[(ρ0, m0, E0)(x) −(¯ρ, ¯m, ¯E)(x1, 0)]dx = 0,
+the Cauchy problem (1.1) admits a unique global smooth solution (ρ, u, θ) satisfying
+(ρ −¯ρ, u −¯u, θ −¯θ) ∈C
+ 0, +∞; H3(Ω)
+
+, ∇(u −¯u, θ −¯θ) ∈L2  0, +∞; H3(Ω)
+
+, ∇(ρ −¯ρ) ∈L2  0, +∞; H2(Ω)
+
+,
+and further
+sup
+x∈Ω
+(ρ, u, θ)(x, t) −(¯ρ, ¯u, ¯θ) (x1, t)
+ ≤C(ε0 + δ
+1
+2 )(1 + t)−3
+4 ln
+1
+2 (2 + t).
+(2.14)
+Moreover, the non-zero modes of the unique solution have an exponential decay rate
+sup
+x∈Ω
+D̸=
+
+(ρ, u, θ)(x, t) −(¯ρ, ¯u, ¯θ)(x1, t)
+ ≤Cε0e−ct,
+where C, c are positive constants independent of ε0 and δ, and D̸= is defined in (2.15).
+Remark 2.5. We point out that the time decay rate in (2.14) is optimal in terms of the result obtained by using
+pointwise estimate for conservation laws with artificial viscosity in [30].
+Remark 2.6. It should be noted that the optimal decay rate (2.14) cannot be achieved simply by applying the
+conclusions and methods of deriving (2.13) in case of non-zero initial mass. For zero initial mass, there are several
+key cancellations we need to make use of. For instance, (4.4) shows that the slow decay terms do not appear in the
+2-characteristic field. And we need a Poincar´e type inequality as in Theorem 4.5 to deal with the critical terms.
+
+
+STABILITY OF PLANAR ENTROPY WAVE FOR 3-D NAVIER-STOKES IN EULERIAN COORDINATES
+9
+2.4. The decomposition for zero and non-zero modes. We decompose the solution into the principal and transver-
+sal parts corresponding to the zero and non-zero modes in Fourier space, respectively. For the purpose, we define D0
+and D̸= by
+D0f := ˚
+f :=
+Z
+T2 fdx2dx3,
+D̸=f := f̸= := f −˚
+f,
+(2.15)
+for any function f integrable on T2. We also introduce the following two notations for the sake of simplicity:
+N2(U) := m ⊗m
+ρ
+−(γ −1)|m|2
+2ρ I,
+N3(U) := mE
+ρ
++ pm
+ρ −m
+ρ S,
+where I denotes the identity matrix. With these, the Navier-Stokes equations can be rewritten as
+
+
+
+
+
+∂tρ + div m = 0,
+∂tm + (γ −1)∇E + div N2(U) = divS,
+∂tE + div N3(U) = κ(γ−1)
+R
+∆( E
+ρ −|u|2
+2 ).
+(2.16)
+3. Proof of Theorem 2.1: the non-zero initial mass
+In this section, we are devoted to proving Theorem 2.1 in case of non-zero initial mass. We first derive the perturbation
+equations, and then introduce a decomposition of zero and non-zero modes for the conserved quantities. The key part
+is to obtain the a priori estimates under suitable a priori assumptions for the zero and non-zero modes, respectively.
+Note that the zero and non-zero modes are not completely decoupled.
+3.1. Systems for perturbations. We start to derive the systems of perturbations. Recall
+(ϕ, ψ, w, φ, ζ) := (ρ −˜ρ, m −˜m, E −˜E, u −˜u, θ −˜θ).
+(3.1)
+By (1.1) and (2.9), the system of perturbations can be written as
+
+
+
+
+
+
+
+∂tϕ + u · ∇ϕ + ρdivφ = ˆR1,
+ρ∂tφ + ρu · ∇φ + (γ −1)(θ∇ϕ + ρ∇ζ) = µ△φ + (µ + λ)∇divφ + ˆR2,
+ρ∂tζ + ρu · ∇ζ + (γ −1)ρθdivφ = κ△ζ + ˆR3,
+(3.2)
+where
+ˆR1 := −∂1 ˜H1 −φ · ∇˜ρ −div˜uϕ,
+ˆR2 := −ρφ · ∇˜u + R∇˜ρ(
+˜θ
+˜ρϕ −ζ) −ϕ
+˜ρ (µ△˜u + (µ + λ)∇div˜u) −ρ
+˜ρ
+ ∂1 ˜H2 −˜u(∂1 ˜H1)
+
+,
+ˆR3 :=µ
+2
+∇u + (∇u)t2 + λ(divu)2 −µ
+2
+∇˜u + (∇˜u)t2 −λ(div˜u)2
+−ρφ · ∇˜θ −(γ −1)ρdiv˜uζ −ϕ
+˜ρ
+"
+κ∆˜θ + µ|∇˜u + (∇˜u)t|2
+2
++ λ |div˜u|2
+#
+−ρ
+˜ρ
+
+div ˜H3 −˜u · div ˜H2 −
+ |˜u|2
+2
++ ˜θ
+
+∂1 ˜H1
+
+.
+(3.3)
+We further study the perturbations for the zero mode of (ρ, m, E). The anti-derivatives for the zero mode is crucial
+in our analysis, and thus we denote
+Φ :=
+Z x1
+−∞
+˚ϕdy1,
+Ψ :=
+Z x1
+−∞
+˚
+ψdy1,
+W :=
+Z x1
+−∞
+˚
+wdy1.
+(3.4)
+Then, combining D0(2.16) and (2.9), we have
+
+
+
+
+
+
+
+∂tΦ + ∂1Ψ1 = Q1,
+∂tΨ1 + (γ −1)∂1W = (2µ + λ) ∂1 (˚u1 −˜u1) + Q21,
+∂tΨi = µ∂1 (˚ui −˜ui) + Q2i,
+i = 2, 3,
+∂tW + γ˜θ∂1Ψ1 = κ∂1˚ζ + Q3,
+(3.5)
+
+
+10
+R.-J. DUAN, F. HUANG, R. LI, AND L. XU
+where
+P(U) :=m2
+1
+ρ −(γ −1)|m|2
+2ρ
+Q1 := −˜H1,
+Q21 :=
+
+−˚
+P(U) + ˚
+P( ˜U)
+
+−˜H21 := Q(1)
+21 + Q(2)
+21 ,
+Q2i :=
+
+−D0(m1mi
+ρ
+) + D0( ˜m1 ˜mi
+˜ρ
+)
+
+−˜H2i := Q(1)
+2i + Q(2)
+2i ,
+i = 2, 3,
+Q3 :=
+
+γ˜θ∂1Ψ1 −˚
+N31(U) + ˚
+N31( ˜U)
+
+−˜H3 := Q(1)
+3
++ Q(2)
+3 .
+(3.6)
+3.2. Proof of Theorem 2.1.
+(i) Local existence theorem.
+Let us start from studying the local existence. We first define the solution space as
+Xm,M(T) := sup
+0≤t≤T
+
+(ϕ, φ, ζ, Φ, Ψ, W)
+(ϕ, φ, ζ) ∈C
+ 0, +∞; H3(Ω)
+
+, (ϕ, ∇φ, ∇ζ) ∈L2  0, +∞; H3(Ω)
+
+,
+(Φ, Ψ, W) ∈C
+ 0, +∞; H2(R)
+
+,
+(∂1Φ, ∂1Ψ, ∂1W) ∈L2  0, +∞; H2(R)
+
+,
+∥(Φ, Ψ, W)∥H2(R) + ∥(ϕ, φ, ζ)∥H3(Ω) ≤M, inf
+x,t(ϕ + ¯ρ) ≥m > 0
+
+.
+Proposition 3.1 (Local existence). There exist constants b, M, m > 0 such that if
+∥(Φ0, Ψ0, W0)∥H3 + ∥(ϕ0, φ0, ζ0)∥H3 + ∥(ϕ0, ψ0, w0)∥L1 ≤M and inf
+x (ϕ0 + ¯ρ(x1, 0)) ≥m > 0,
+then there exists a positive time T0 = T0(m, M) > 0 such that (1.1) admits a unique solution (ρ, u, θ) satisfying
+(ϕ, φ, ζ, Φ, Ψ, W) ∈X 1
+2 m,bM(T0),
+as well as
+∥(Φ, Ψ, W)∥L∞≤bM.
+(ii) The a priori assumptions.
+Recall that we have decomposed the solution (ρ, u, θ) into the principal and transversal parts. In what follows we
+impose the a priori assumptions on the principal and transversal parts separately. That is, for a positive c > 0,
+
+
+
+
+
+sup
+0≤t≤T
+n
+∥(Φ, Ψ, W)∥2
+L∞+ (1 + t)
+1
+2 ∥(ϕ, φ, ζ)∥2
+L2 + (1 + t)
+3
+2 ∥(∇ϕ, ∇φ, ∇ζ)∥2
+L2 + ∥(ϕ, φ, ζ)∥2
+H3
+o
+≤χ2,
+sup
+0≤t≤T
+ect ∥ϕ̸=, φ̸=, ζ̸=∥2
+H1 ≤ε2 + δ.
+(3.7)
+Note that we need to close the above a priori assumptions. Indeed, we are able to prove the following a priori estimates.
+Proposition 3.2 (a priori estimates). Assume that (ϕ, φ, ζ) is the unique solution given in Theorem 3.1 and satisfies
+the a priori assumptions (3.7). Then the following estimates hold
+∥(Φ, Ψ, W)∥2
+L∞+ (1 + t)
+1
+2 ∥(ϕ, φ, ζ)∥2
+L2 + (1 + t)
+3
+2 ∥∂1(ϕ, φ, ζ)∥2
+L2 +
+3
+X
+i=2
+∂i
+1(ϕ, φ, ζ)
+2
+L2 ≤C(δ + ε),
+∥(ϕ̸=, φ̸=, ζ̸=)∥2
+H1 ≤ε2e−c(1+t),
+where C, c > 0 are the universal constants independent of any small parameters throughout the paper.
+By Theorem 3.2 and Theorem 3.1, using the standard continuity argument, we obtain Theorem 2.1. For simplicity,
+we omit the proof of Theorem 3.1. In what follows, we focus only on the proof of Theorem 3.2.
+(iii) The decay rate.
+By the definition of zero mode and non-zero mode decomposition, one has
+∥(ϕ, φ, ζ)∥L∞≤C∥(ϕ̸=, φ̸=, ζ̸=)∥L∞+ C∥(˚ϕ, ˚φ,˚ζ)∥L∞.
+Furthermore, we have
+∥(˚ϕ, ˚φ,˚ζ)∥L∞≤C∥(˚ϕ, ˚φ,˚ζ)∥
+1
+2
+L2∥∂1(˚ϕ, ˚φ,˚ζ)∥
+1
+2
+L2 ≤C(δ
+1
+2 + ε
+1
+2
+0 )(1 + t)−1
+2 ,
+and
+∥(ϕ̸=, φ̸=, ζ̸=)∥L∞≤C∥(ϕ̸=, φ̸=, ζ̸=)∥
+1
+4
+L2∥∇2(ϕ̸=, φ̸=, ζ̸=)∥
+3
+4
+L2 ≤Cε0e−ct,
+
+
+STABILITY OF PLANAR ENTROPY WAVE FOR 3-D NAVIER-STOKES IN EULERIAN COORDINATES
+11
+where C and c are positive constants. Thus
+∥(ϕ, φ, ζ)∥L∞(Ω) ≤C(δ
+1
+2 + ε
+1
+2
+0 )(1 + t)−1
+2 .
+We still need to study the differences between the ansatz (˜ρ, ˜u, ˜θ) and the entropy wave (¯ρ, ¯u, ¯θ). By (2.7), we have
+∥( ˜m −¯m, ˜E −¯E)∥L∞(Ω) ≤C(δ + ε0)(1 + t)−1
+2 .
+Direct calculation shows
+(˜θ −¯θ)
+ =
+
+˜E
+˜ρ −| ˜m|2
+|˜ρ|2 −
+¯E
+¯ρ + | ¯m|2
+|¯ρ|2
+ ≤C(δ + ε0)D−1
+2 .
+Similarly
+|˜u −¯u| + |˜ρ −¯ρ| ≤C(δ + ε0)D−1
+2 .
+Then (2.13) has been proved.
+In the next section, we are going to give the proof of Theorem 3.2.
+3.3. Estimates on zero modes. One of the key points in our proof is to introduce the following transformation
+˜Φ = ˜θΦ,
+˜Ψ = Ψ −˜uΦ,
+˜W = W −˜u · ˜Ψ −
+
+˜θ + |˜u|2
+2
+
+Φ.
+(3.8)
+In what follows, we present the relationship between different variables more clearly. For the first-order derivatives,
+we have
+∂1Ψi = ∂1 ˜Ψi + ˜ui∂1Φ + ∂1˜uiΦ := ∂1 ˜Ψi + Bir,
+i = 1, 2, 3,
+∂1W = ∂1 ˜W + ∂1
+
+˜θΦ
+
++ ∂1
+
+˜u · ˜Ψ + |˜u|2
+2 Φ
+
+:= ∂1 ˜W + ∂1 ˜Φ + Bwr.
+(3.9)
+By direct calculations, one has
+∂tΨi =∂t ˜Ψi −˜ui∂1Ψ1 + ˜uiQ1 + ∂t˜uiΦ := ∂t ˜Ψi + Bid,
+∂tW =∂t ˜W −
+
+˜θ + |˜u|2
+2
+ 
+∂1Ψ1 −Q1
+
++ ˜u · ∂t ˜Ψ + ∂t˜u · ˜Ψ + ∂t
+
+˜θ + |˜u|2
+2
+
+Φ
+:=∂t ˜W −˜θ∂1 ˜Ψ1 + Bwd.
+(3.10)
+Then, by (3.5) and (3.8)-(3.10), we have the following system for (˜Φ, ˜Ψ, ˜W):
+
+
+
+
+
+
+
+
+
+
+
+∂t ˜Φ + ˜θ∂1 ˜Ψ1 = J1 + ˜θQ1,
+∂t ˜Ψ1 + (γ −1)∂1
+
+˜W + ˜Φ
+
+= (2µ+λ)
+˜ρ
+∂2
+1 ˜Ψ1 + Q21 + J21,
+∂t ˜Ψi = µ
+˜ρ ∂2
+1 ˜Ψi + J2i + Q2i, i = 2, 3,
+∂t ˜W + (γ −1)˜θ∂1 ˜Ψ1 = κ
+˜ρ∂2
+1 ˜W + J3 + Q3,
+(3.11)
+where
+J1 := ∂t˜θΦ −˜θB1r,
+J2i := −Bid +
+
+µ∂1(˚ui −˜ui) −µ
+˜ρ ∂2
+1 ˜Ψi
+
+:= J(1)
+2i + J(2)
+2i ,
+i = 2, 3,
+J21 := [−B1d −(γ −1)Bwr] +
+
+(2µ + λ)∂1(˚u1 −˜u1) −(2µ + λ)
+˜ρ
+∂2
+1 ˜Ψ1
+
+:= J(1)
+21 + J(2)
+21 ,
+J3 :=
+h
+−Bwd −γ˜θB1r
+i
++
+
+κ∂1˚ζ −κ
+˜ρ∂2
+1 ˜W
+
+:= J(1)
+3
++ J(2)
+3 .
+Before deducing the a priori estimates, we should study the source terms in (3.11). We use the following notations for
+the sake of convenience:
+V := (˜Φ, ˜Ψ, ˜W)t,
+v := (ϕ, φ, ζ)t,
+˜V := (˜Φ, ˜Ψ1, ˜W)t,
+D(k) := (δ + ε)
+k+2
+X
+j=1
+D−j
+2
+∂k−j+2
+1
+V
+ ,
+T (0) := |∂1V |2 + (δ + ε)D−1
+2 |∂1V | ,
+T (1) :=
+∂2
+1V
+ |∂1V | + (δ + ε)
+
+D−1
+2 |∂1V |2 + D−1 |∂1V | + D−1
+2
+∂2
+1V
+
+
+,
+T (2) :=
+∂3
+1V
+ |∂1V | +
+∂2
+1V
+2 + (δ + ε)D−3
+2 |∂1V |
+(3.12)
+
+
+12
+R.-J. DUAN, F. HUANG, R. LI, AND L. XU
++ (δ + ε)D−1
+2
+ |∂1V |
+∂2
+1V
+ +
+∂3
+1V
+ 
++ (δ + ε)D−1
+  ∂2
+1V
+ + |∂1V |2 
+,
+Z(0) := |v̸=|2 ,
+Z(1) := |v̸=| |∇v̸=| ,
+Z(2) := |∇v̸=|2 +
+∇2v̸=
+ |v̸=| ,
+Z(3) := |∇v̸=|
+∇2v̸=
+ +
+∇3v̸=
+ |v̸=| .
+Then we have the following result.
+Lemma 3.3. Under the same assumptions as Theorem 3.2, one has
+Z(i)
+L2 ≤C(ε2 + δ)e−c
+4 t,
+for
+i = 1, 2, 3.
+Proof. By the a priori assumption (3.7) and Gagliardo-Nirenberg inequality, one has
+Z(3)
+L2 ≲
+ ∥∇v̸=∥L∞+ ∥v̸=∥L∞
+ ∇3v̸=
+
+L2 ≲∥∇v̸=∥
+1
+4
+L2
+∇3v̸=
+
+7
+4
+L2 ≤C(ε2 + δ)e−c
+4 t.
+Moreover,
+Z(1)
+L2 and
+Z(2)
+L2 can be treated in the same way. Then we have completed the proof of Theorem 3.3.
+□
+Lemma 3.4. Under the same assumptions as Theorem 3.2, one has
+∂k
+1Q(1)
+2i
+ ≤C
+
+T (k) + Z(k)
+,
+k = 0, 1, 2,
+i = 1, 2, 3,
+∂k
+1Q(1)
+3
+ ≤C
+ T (k) + T (k+1) + Z(k) + Z(k+1)
+,
+k = 0, 1,
+∂k
+1Q(2)
+2i
+ +
+∂k
+1Q(2)
+3
+ ≤C(δ + ε)D−2+k
+2
+k = 0, 1, 2,
+i = 1, 2, 3,
+where Q2,3 is defined in (3.6).
+Proof. We first study Q(1)
+21 . Note
+−˚
+P(U) + ˚
+P( ˜U) = −
+
+P(˚U) −P( ˜U)
+
++
+
+P(˚U) −˚
+P(U)
+
+.
+Direct calculations yield
+P(˚U) −P( ˜U) −∇P( ˜U)
+
+˚U −˜U
+
+≤C
+h
+|∂1Ψ|2 + |∂1Φ|2i
+,
+where
+∇P( ˜U)
+
+˚U −˜U
+
+= (3 −γ)
+ ˜m1
+˜ρ ∂1Ψ1 −˜m2
+1
+2˜ρ2 ∂1Φ
+
+−(γ −1)
+X
+i=2,3
+ ˜mi
+˜ρ ∂1Ψi −˜m2
+i
+2˜ρ2 ∂1Φ
+
+.
+Next
+P(˚U) −˚
+P(U) = D0
+"
+˚
+m2
+1
+˚ρ −(γ −1)|˚
+m|2
+2˚ρ
+−m2
+1
+ρ + (γ −1)|m|2
+2ρ
+#
+≤C |v̸=|2 .
+Thus
+˚
+P(U) −P( ˜U)
+ ≤C |∂1V |2 + C(δ + ε)D−1
+2 |∂1V | + C |v̸=|2 .
+Similarly, for Q(1)
+22 , Q(1)
+23 and Q(1)
+3 , one has
+−D0(m1mi
+ρ
+) + D0( ˜m1 ˜mi
+˜ρ
+)
+ ≤C |∂1V |2 + C(δ + ε)D−1
+2 |∂1V | + C |v̸=|2 ,
+γ˜θ∂1Ψ1 −˚
+N31(U) + ˚
+N31( ˜U)
+ ≤C(|∂1V |2 +
+∂2
+1V
+ |∂1V |) + C(δ + ε)D−1
+2 |∂1V |
++ C(δ + ε)
+
+D−1
+2 |∂1V |2 + D−1 |∂1V | + D−1
+2
+∂2
+1V
+
+
++ C |v̸=| |∇v̸=| ,
+where we have usedD0
+mi
+ρ ∂1(mi
+ρ )
+
+−˜mi
+ρ ∂1( ˜mi
+ρ )
+
+≤C
+∂2
+1V
+ |∂1V | + C(δ + ε)
+
+D−1
+2 |∂1V |2 + D−1 |∂1V | + D−1
+2
+∂2
+1V
+
+
++ C |v̸=| |∇v̸=| .
+Furthermore, it is direct to have
+∂1
+
+P(˚U) −P( ˜U)
+ +
+∂1
+
+−D0(m1mi
+ρ
+) + D0( ˜m1 ˜mi
+˜ρ
+)
+
+
+
+STABILITY OF PLANAR ENTROPY WAVE FOR 3-D NAVIER-STOKES IN EULERIAN COORDINATES
+13
+≤C
+∂2
+1V
+ |∂1V | + C(δ + ε)
+
+D−1
+2 |∂1V |2 + D−1 |∂1V | + D−1
+2
+∂2
+1V
+
+
++ C |∇v̸=| |v̸=| ,
+∂2
+1
+
+P(˚U) −P( ˜U)
+ +
+∂2
+1
+
+−D0(m1mi
+ρ
+) + D0( ˜m1 ˜mi
+˜ρ
+)
+
+≤C
+∂3
+1V
+ |∂1V | +
+∂2
+1V
+2
++ C(δ + ε)D−3
+2 |∂1V | + C(δ + ε)D−1
+  ∂2
+1V
+ + |∂1V |2 
++ C(δ + ε)D−1
+2
+ |∂1V |
+∂2
+1V
+ +
+∂3
+1V
+ 
++ C
+
+|∇v̸=|2 +
+∇2v̸=
+ |v̸=|
+
+,
+∂1
+
+γ˜θ∂1Ψ1 −˚
+N31(U) + ˚
+N31( ˜U)
+
+≤C
+∂2
+1V
+ |∂1V | +
+∂3
+1V
+ |∂1V | +
+∂2
+1V
+2
++ C(δ + ε)D−1
+2
+ |∂1V |
+∂2
+1V
+ +
+∂2
+1V
+ +
+∂3
+1V
+ 
++ C(δ + ε)D−1
+ |∂1V | +
+∂2
+1V
+ + |∂1V |2 
++ C(δ + ε)D−3
+2 |∂1V | + C
+
+|∇v̸=|2 +
+∇2v̸=
+ |v̸=|
+
+.
+And combining (2.10), we then have completed the proof of Theorem 3.4.
+□
+Lemma 3.5. Under the same assumptions as Theorem 3.2, one has
+∂k
+1J1, ∂k
+1J(1)
+2i
+ ≤CD(k),
+k = 0, 1, 2,
+i = 1, 2, 3,
+∂k
+1J(2)
+2i , ∂k
+1J(2)
+3
+ ≤C
+ D(k+1) + T (k+1) + Z(k+1)
+,
+k = 0, 1,
+i = 1, 2, 3,
+∂k
+1J(1)
+3
+ ≤C(δ + ε)D−k+2
+2
++ C
+ D(k) + D(k+1) + T (k+1) + Z(k+1)
+,
+k = 0, 1.
+Proof. We take J3 as an example to give the detailed computations; J1 and J2 can be treated in the same way. We first
+calculate J(2)
+3
+through which one can see that the transformation (3.8) plays an important role in the viscosity part.
+Indeed, we have
+κ
+ 
+∂1˚ζ −∂2
+1 ˜W
+˜ρ
+!
+= κ∂1D0
+"
+E
+ρ −
+˚E
+˚ρ + |˚
+m|2
+2˚ρ2 −|m|2
+2ρ2
+#
+−κ∂1
+"
+|˚
+m|2
+2˚ρ2 −| ˜m|2
+2˜ρ2 + |˜u|2˚ϕ
+2˚ρ
+#
++ κ
+"
+∂1
+ ˚
+w
+˚ρ
+
+−∂2
+1W
+˜ρ
+−∂1
+ ˚ϕ˜θ
+˚ρ
+!
++ ∂2
+1(˜θΦ)
+˜ρ
++ ∂1Bwr
+˜ρ
+#
+= L1 + L2 + L3,
+(3.13)
+where we have used
+˚ζ = D0
+"
+E
+ρ −
+˜E
+˜ρ −
+|m|2
+2ρ2 −| ˜m|2
+2˜ρ2
+#
+,
+˚E
+˚ρ −
+˜E
+˜ρ = ˚
+w
+˚ρ −
+˚ϕ˜θ
+˚ρ −|˜u|2˚ϕ
+2˚ρ ,
+˚
+m2
+i
+˚ρ2 −˜m2
+i
+˜ρ2 = ˜ρ˚
+mi + ˚ρ ˜mi
+˚ρ2˜ρ
+˚
+ψi −˜mi(˜ρ˚
+mi + ˚ρ ˜mi)
+˚ρ2˜ρ2
+˚ϕ.
+It is direct to have
+|L1| ≤C |v̸=| |∇xv̸=| ,
+|L2| + |L3| ≤C(δ + ε)D−1 |V | + C(δ + ε)D−1
+2
+ |∂1V | +
+∂2
+1V
+
++ C
+∂2
+1V
+ |∂1V | .
+Then we have
+J(2)
+3
+ ≤C
+ D(1) + T (1) + Z(1)
+.
+For
+J(1)
+3
+ , one has the following estimates by (3.10) and Theorem 3.4:
+Bwd =˜θQ1 −|˜u|2
+2
+
+∂1Ψ1 −Q1
+
++ ˜u · ∂t ˜Ψ + ∂t˜u · ˜Ψ + ∂t
+
+˜θ + |˜u|2
+2
+
+Φ
+≤CQ1 + CD(0) + CD−1
+2
+
+∂1 ˜W + ∂1 ˜Φ + ∂2
+1 ˜Ψ1 + Q21 + J21
+
+≤C
+
+D(0) + D(1) + (δ + ε)D−1 + T (1) + Z(1)
+.
+The remaining terms can be estimated in a similar way. Then we have proved Theorem 3.5.
+□
+Recall the definition ˜V = (˜Φ, ˜Ψ1, ˜W)t in (3.12). By the equation (3.11), ˜V can be expressed as
+∂t ˜V + A1∂1 ˜V = A2∂2
+1 ˜V + A3,
+(3.14)
+
+
+14
+R.-J. DUAN, F. HUANG, R. LI, AND L. XU
+where
+A1 :=
+
+
+0
+˜θ
+0
+γ −1
+0
+γ −1
+0
+(γ −1)˜θ
+0
+
+,
+A2 :=
+
+
+0
+0
+0
+0
+λ+2µ
+¯ρ
+0
+0
+0
+κ
+˜ρ
+
+.
+and
+A3 :=(A31, A32, A33)t = (J1 + ˜θQ1, J21 + Q21, J3 + Q3)t.
+Direct computation yields that the eigenvalues of A1 are given by
+˜λ1 = −
+q
+γ(γ −1)˜θ,
+λ2 = 0,
+˜λ3 =
+q
+γ(γ −1)˜θ,
+Λ := diag{˜λ1, 0, ˜λ3},
+and the corresponding eigenvectors are
+˜L :=
+
+
+
+
+1
+√2γ
+1
+√2γ
+˜λ1
+γ−1
+1
+√2γ
+q
+γ−1
+γ
+0
+−
+1
+√
+γ(γ−1)
+1
+√2γ
+−
+1
+√2γ
+˜λ1
+γ−1
+1
+√2γ
+
+
+
+,
+˜R :=
+
+
+
+
+1
+√2γ
+q
+γ−1
+γ
+1
+√2γ
+1
+√2γ
+˜λ1
+˜θ
+0
+−
+1
+√2γ
+˜λ1
+˜θ
+γ−1
+√2γ
+−
+q
+γ−1
+γ
+γ−1
+√2γ
+
+
+
+.
+(3.15)
+Remark 3.6. Direct calculations imply that the two structural conditions in (1.6) hold.
+Set B = ˜L ˜V = (b1, b2, b3)t, then ˜V = ˜RB. By (3.14), we have the diagonalized equations:
+∂tB + Λ∂1B = ˜LA2 ˜R∂2
+1B + 2˜LA2∂1 ˜R∂1B +
+h
+∂t ˜L + Λ∂1 ˜L
+
+˜R + ˜LA2∂2
+1 ˜R
+i
+B + ˜LA3.
+(3.16)
+Denote
+Ki :=
+Z
+R
+∂i+1
+1
+˜Φ
+
+2
++
+∂i+1
+1
+˜Ψ
+
+2
++
+∂i+1
+1
+˜W
+
+2
+dx1,
+(3.17)
+Ei := ˜Ei +
+Z
+R
+∂i
+1 ˜Ψ2
+
+2
++
+∂i
+1 ˜Ψ3
+
+2
+dx1 + ˜c
+Z
+R
+
+
+∂i+1
+1
+˜Φ∂i
+1 ˜Ψ1 + λ + 2µ
+2˜ρ˜θ
+∂i+1
+1
+˜Φ
+
+2
+−(λ + 2µ)
+∂1Φ
+∂i+1
+1
+˜Φ
+
+2
+2˚ρ˜ρ
+
+
+dx1,
+(3.18)
+where ˜Ei is defined in (3.25) and ˜c is a sufficiently small constant used to ensure that Ei is positive. Before proving
+Theorem 3.2, we should go back to see the a priori assumptions. To be convenient, we use the following notations. For
+any functions a and b, we write a ≈b when
+∥a −b∥L2(Ω) ≤C¯δe−ct,
+¯δ := ε + δ,
+where c is a positive constant independent of any small constants throughout the paper including δ, ε and so on. By
+(3.1), (3.7) and (3.9), one has
+˚ϕ =∂1Φ =
+˜θ∂1 ˜Φ −∂1˜θΦ
+˜θ2
+⇒
+∂1 ˜Φ
+
+2
+L2 ≤Cχ2(1 + t)−1
+2 ,
+˚φi ≈1
+˚ρ∂1 ˜Ψi + 1
+˚ρBir −˜mi
+˜ρ˚ρ ∂1Φ ⇒
+∂1 ˜Ψi
+
+2
+L2 ≤Cχ2(1 + t)−1
+2 ,
+˚ζ ≈1
+˚ρ∂1 ˜W + 1
+˚ρ∂1 ˜Φ + 1
+˚ρBwr −
+˜E
+˚ρ˜ρ∂1Φ −
+ 
+|˚
+m|2
+˚ρ2
+−| ˜m|2
+˜ρ2
+!
+⇒
+∂1 ˜W
+ ≤Cχ2(1 + t)−1
+2 .
+(3.19)
+Similarly, recalling the definition V = (˜Φ, ˜Ψ, ˜W) in (3.12), one has
+∂1(˚ϕ, ˚φi,˚ζ)
+
+2
+L2 ≤Cχ2(1 + t)−3
+2 ⇒
+∂2
+1V
+2
+L2 ≤Cχ2(1 + t)−3
+2 .
+Then, the following result is obtained.
+Lemma 3.7. Under the same assumptions as Theorem 3.2, one has
+d
+dt
+ 2
+X
+i=0
+Ei
+
++
+2
+X
+i=0
+(Ki + Gi) ≤C¯η(1 + t)−1 2
+X
+i=0
+Ei
+
++ C¯δ(1 + t)−1
+2 ,
+(3.20)
+d
+dt
+ 2
+X
+i=1
+Ei
+
++
+2
+X
+i=1
+(Ki + Gi) ≤C¯η(1 + t)−1 2
+X
+i=1
+Ei + G0
+
++ C¯η(1 + t)−2E0 + C¯δ(1 + t)−3
+2 ,
+(3.21)
+d
+dtE2 + K2 + G2 ≤C¯η
+2
+X
+i=0
+(1 + t)−(3−i)Ei + C¯η
+
+(1 + t)−2G0 + (1 + t)−1G1
+
++ C¯δ(1 + t)−5
+2 ,
+(3.22)
+
+
+STABILITY OF PLANAR ENTROPY WAVE FOR 3-D NAVIER-STOKES IN EULERIAN COORDINATES
+15
+where Gi (i = 1, 2, 3) are defined in (3.26) and ¯η := χ + ¯δ
+1
+2 .
+Proof. Applying ∂k
+1 (k = 0, 1, 2) to (3.16), one has
+∂k
+1Bt + Λ∂k+1
+1
+B = ˜LA2 ˜R∂k+2
+1
+B + Mk,
+(3.23)
+where
+Mk :=
+k
+X
+j=1
+
+−∂j
+1Λ∂k−j+1
+1
+B + ∂j
+1(˜LA2 ˜R)∂k−j+2
+1
+B
+
++ 2
+k
+X
+i=0
+∂i
+1
+ ˜LA2∂1 ˜R
+
+∂k−i+1
+1
+B
++
+k
+X
+i=0
+
+∂i
+1
+ 
+˜Lt + Λ∂1 ˜L
+
+˜R + ˜LA2 ˜Rx1x1
+
+∂k−i
+1
+B
+
++ ∂k
+1
+
+˜LA3
+
+≤C
+k+1
+X
+j=1
+∂j
+1 ¯ρ
+
+∂k−j+1
+1
+b1
+ , 0,
+∂j
+1 ¯ρ
+
+∂k−j+1
+1
+b3
+
+t
++ C¯δ
+k+2
+X
+j=1
+D−j
+2 ∂k−j+2
+1
+B
+ + ∂k
+1
+
+˜LA3
+
+:=
+3
+X
+i=1
+M(i)
+k .
+Step 1. The diagonalized system.
+We shall use the weighted energy method to derive the intrinsic dissipation. Without loss of generality, we assume
+that ∂1¯ρ > 0 since the case that ∂1¯ρ < 0 is similar.
+Setting v1 =
+¯ρ
+ρ+ , one has |v1 −1| ≤Cδ. Applying ∂k
+1 to (3.16) and then multiplying the resulted equations by
+¯B(k) =
+ vn
+1 ∂k
+1b1, ∂k
+1b2, v−n
+1
+∂k
+1b3
+
+, where n = 4[δ−1
+2 ] + 1 is a large positive integer, one has
+Z
+R
+vn
+1
+2
+∂k
+1b1
+2 + 1
+2
+∂k
+1b2
+2 + v−n
+1
+2
+∂k
+1b3
+2
+t
++ ¯B(k)
+x1 A4∂k+1
+1
+Bdx1 +
+Z
+R
+a1
+∂k
+1b1
+2 + a2
+∂k
+1b3
+2 dx1
+=
+Z
+R
+¯B(k)∂1A4∂k
+1∂1B +
+ vn
+1
+2
+
+t
+∂k
+1b1
+2 +
+v−n
+1
+2
+
+t
+∂k
+1b3
+2 
++ ¯B(k)Mkdx1 := I1 + I2 + I3,
+(3.24)
+where A4 = ˜LA2 ˜R and
+a1 := −vn−1
+1
+2
+
+n˜λ1∂1v1 + v1∂1˜λ1
+
+≥Cδ−1
+2 ∂1¯ρ −C¯δD−1,
+a2 := v−n−1
+1
+2
+
+n˜λ3∂1v1 −v1∂1˜λ3
+
+≥Cδ−1
+2 ∂1¯ρ −C¯δD−1.
+For convenience, we denote
+˜Ek :=
+Z
+R
+vn
+1
+2
+∂k
+1b1
+2 + 1
+2
+∂k
+1b2
+2 + v−n
+1
+2
+∂k
+1b3
+2 dx1,
+(3.25)
+˜Kk :=
+Z
+R
+∂k+1
+1
+BtA4∂k+1
+1
+Bdx1,
+Gk := Cδ−1
+2
+Z
+R
+∂1¯ρ
+∂k
+1b1
+2 + ∂1¯ρ
+∂k
+1b3
+2 dx1.
+(3.26)
+For k = 0, ˜E0 = C
+ ˜V
+
+2
+L2, and for k ≥1
+C
+
+
+∂k
+1 ˜V
+
+2
+L2 −¯δ
+k−1
+X
+j=0
+(1 + t)−(k−j) ∂j
+1 ˜V
+
+2
+L2
+
+≤˜Ek ≤C
+
+
+∂k
+1 ˜V
+
+2
+L2 + ¯δ
+k−1
+X
+j=0
+(1 + t)−(k−j) ∂j
+1 ˜V
+
+2
+L2
+
+.
+(3.27)
+We first verify the dissipation term. A direct computation shows that the matrix A4 is nonnegative definite. In fact,
+one has
+A4 =
+
+
+
+˜µ
+2 + γ−1
+2γ ˜κ
+a3
+−˜µ
+2 + γ−1
+2γ ˜κ
+a3
+˜κ
+2γ
+a3
+−˜µ
+2 + γ−1
+2γ ˜κ
+a3
+˜µ
+2 + γ−1
+2γ ˜κ
+
+
+,
+where
+˜µ = λ + 2µ
+˜ρ
+,
+˜κ = κ
+˜ρ,
+a3 = −
+r
+γ −1
+2
+˜κ
+γ .
+Furthermore,
+∂k+1
+1
+BtA4∂k+1
+1
+B
+=˜κ
+rγ −1
+2γ (∂k+1
+1
+b1 + ∂k+1
+1
+b3) −1
+√γ ∂k+1
+1
+b2
+2
++ ˜µ
+ 1
+√
+2(∂k+1
+1
+b3 −∂k+1
+1
+b1)
+2
+≥C
+ |∂k+1
+1
+˜Ψ1|2 + |∂k+1
+1
+˜W|2
+−C¯δ
+k+1
+X
+j=1
+D−j
+∂k+1−j
+1
+˜Ψ1
+
+2
+.
+(3.28)
+
+
+16
+R.-J. DUAN, F. HUANG, R. LI, AND L. XU
+And we also have
+Z
+R
+∂x1
+
+¯B(k) −∂k
+1Bt
+A4∂k+1
+1
+Bdx1 ≤C(χ + ¯δ
+1
+2 )(1 + t)−1Ek + C(χ + ¯δ
+1
+2 )Kk.
+By (3.18) and (3.27) and a priori assumptions (3.7), one has
+I1 + I2 ≤C(χ + ¯δ
+1
+2 )(1 + t)−1Ek + C(χ + ¯δ
+1
+2 )Kk.
+(3.29)
+The estimate of I3 is relatively subtle. We first estimate
+R
+R ¯B(k)M(2)
+k dx1. It holds that
+Z
+R
+¯B(k)M(2)
+k dx1 ≤C¯δ
+k+1
+X
+i=0
+(1 + t)−i ∂k−i+1
+1
+B
+2
+L2 ,
+for
+k ≥0.
+(3.30)
+Next, we consider the estimate of
+R
+R ¯B(k)M(1)
+k dx1. For the case of k = 0, it is easy to see
+Z
+R
+¯B(0)M(1)
+0 dx1 ≤C
+Z
+R
+∂1¯ρ |b1|2 + ∂1¯ρ |b3|2 dx1.
+(3.31)
+For the case of 1 ≤k ≤2, noticing
+∂2
+1 ¯ρ
+ ≲|x1|
+1 + t∂1¯ρ,
+∂3
+1 ¯ρ
+ ≲
+|x1|2
+(1 + t)2 ∂1¯ρ + (1 + t)−1∂1¯ρ,
+we have
+Z
+R
+¯B(1)M(1)
+1 dx1 ≲
+X
+i=1,3
+Z
+R
+|x1|
+1 + t∂1¯ρ |bi| |∂1bi| dx1 +
+X
+i=1,3
+Z
+R
+∂1¯ρ |∂1bi|2 dx1
+≲¯δ
+X
+i=1,3
+Z
+R
+˜ω−1
+2 |∂1bi|2 dx1 +
+1
+X
+j=0
+X
+i=1,3
+(1 + t)−j
+Z
+R
+∂1¯ρ
+∂1−j
+1
+bi
+
+2
+dx1,
+(3.32)
+Z
+R
+¯B(2)M(1)
+2 dx1 ≲
+X
+i=1,3
+Z
+R
+x2
+1
+(1 + t)2 ∂1¯ρ |bi|
+∂2
+1bi
+ dx1 +
+X
+i=1,3
+Z
+R
+|x1|
+1 + t∂1¯ρ |∂1bi|
+∂2
+1bi
+ dx1
++ (1 + t)−1 X
+i=1,3
+Z
+R
+∂1¯ρ |bi|
+∂2
+1bi
+ dx1 +
+X
+i=1,3
+Z
+R
+∂1¯ρ
+∂2
+1bi
+2 dx1
+≲¯δ
+X
+i=1,3
+Z
+R
+˜ω−1
+2
+∂2
+1bi
+2 dx1 +
+2
+X
+j=0
+X
+i=1,3
+(1 + t)−j
+Z
+R
+∂1¯ρ
+∂2−j
+1
+bi
+
+2
+dx1,
+(3.33)
+where by (2.12), we have used
+Z
+R
+|x1|
+1 + t∂1¯ρ |bi| |∂1bi| dx1 ≲
+Z
+R
+x2
+1
+1 + t∂1¯ρ |∂1bi|2 dx1 + (1 + t)−1
+Z
+R
+∂1¯ρ |bi|2 dx1
+≲¯δ
+Z
+R
+˜ω−1
+2 |∂1bi|2 dx1 + (1 + t)−1
+Z
+R
+∂1¯ρ |bi|2 dx1,
+Z
+R
+x2
+1
+(1 + t)2 ∂1¯ρ |bi|
+∂2
+1bi
+ dx1 ≲
+Z
+R
+x4
+1
+(1 + t)2 ∂1¯ρ
+∂2
+1bi
+2 dx1 + (1 + t)−2
+Z
+R
+∂1¯ρ |bi|2 dx1
+≲¯δ
+Z
+R
+˜ω−1
+2
+∂2
+1bi
+2 dx1 + (1 + t)−2
+Z
+R
+∂1¯ρ |bi|2 dx1.
+Next, we estimate terms involving M(3)
+k . For k = 0, it holds that
+ ¯B(k)M(3)
+k
+
+L1 ≤C
+Z
+R
+1
+X
+l=0
+(¯δD−1 + D(l) + T (l) + Z(l))
+ ¯B(0) dx1 :=
+7
+X
+j=1
+I(j)
+4 .
+Then we estimate I4 term by term as follows:
+I(1)
+4
+≤C¯δ
+Z
+R
+D−1| ¯B|dx1 ≤C¯δ(1 + t)−1
+2 + C¯δ(1 + t)−1 ∥B∥2
+L2 ,
+(3.34)
+I(2)
+4
+≤C¯δ
+Z
+R
+ D−1
+2 |∂1V | + D−1 |V |
+  ¯B
+ dx1 ≤C¯δ(1 + t)−1 ∥V ∥2
+L2 + C¯δ ∥∂1V ∥2
+L2 ,
+(3.35)
+I(3)
+4
+≤C¯δ
+Z
+R
+ D−1 |∂1V | + D−3
+2 |V | + D−1
+2
+∂2
+1V
+   ¯B
+ dx1 ≤C¯δ(1 + t)−1 ∥V ∥2
+L2 + C¯δ ∥∂1V ∥2
+H1 ,
+(3.36)
+
+
+STABILITY OF PLANAR ENTROPY WAVE FOR 3-D NAVIER-STOKES IN EULERIAN COORDINATES
+17
+I(4)
+4
+≤
+Z
+R
+
+C¯δ
+ D−1 |V |2 + D−1 |V | + D−1
+2 |∂1V |
+
++ |∂1V |2
+  ¯B
+ dx1
+(3.37)
+≤C¯δ(1 + t)−1 ∥V ∥2
+L2 + C(¯δ + χ) ∥∂1V ∥2
+L2 ,
+I(5)
+4
+≤C
+Z
+R
+∂2
+1V
+ |∂1V |
+ ¯B
+ + ¯δ
+
+D−1
+2 |∂1V |2 + D−1 |∂1V | + D−1
+2
+∂2
+1V
+
+  ¯B
+ dx1
+(3.38)
+≤C(¯δ + χ)(1 + t)−1 ∥V ∥2
+L2 + C(¯δ + χ) ∥∂1V ∥2
+H1 ,
+I(6)
+4 +I(7)
+4
+≤C(ε2 + δ)(1 + t)−1 ∥V ∥2
+L2 + C(ε2 + δ)(1 + t)e−ct,
+(3.39)
+where we have used the a priori assumptions (3.7). For k = 1, 2, one should take care of order of derivatives so that
+Z
+R
+¯B(1)M(3)
+1 dx1 ≤C
+Z
+R
+1
+X
+l=0
+(¯δD−1 + D(l) + T (l) + Z(l))
+∂2
+1B
+ + ¯δ
+1
+2 D−1
+2 |∂1B|
+
+dx1,
+(3.40)
+Z
+R
+¯B(2)M(3)
+2 dx1 ≤
+Z
+R
+∂3
+1B
+ + C¯δ
+1
+2 D−1
+2
+∂2
+1B
+
+
+(L∂1A3 + ∂1LA3) dx1
+≤C
+Z
+R
+1
+X
+l=0
+(¯δD−1 + D(l) + T (l) + Z(l))
+ ¯δD−1
+2
+∂3
+1B
+ + ¯δ
+3
+2 D−1
+∂2
+1B
+ 
+dx1
++ C
+Z
+R
+2
+X
+l=1
+(¯δD−3
+2 + D(l) + T (l) + Z(l))
+  ∂3
+1B
+ + ¯δ
+1
+2 D−1
+2
+∂2
+1B
+ 
+dx1.
+(3.41)
+We focus on (3.40). For the error terms in (3.40), we have
+Z
+R
+¯δD−1
+∂2
+1B
+ + ¯δ
+3
+2 D−3
+2 |∂1B| dx1 ≤C¯δ(1 + t)−3
+2 + C¯δ
+∂2
+1B
+2
+L2 + C¯δ(1 + t)−1 ∥∂1B∥2
+L2 .
+The calculation of the remaining terms in (3.40) is similar to (3.34) to (3.38). Then we have
+Z
+R
+¯B(1)M(3)
+1 dx1 ≤C(¯δ + χ)
+2
+X
+i=0
+(1 + t)−i ∂2−i
+1
+B
+2
+L2 + C¯δ(1 + t)−3
+2 .
+Next, we calculate (3.41). For the error terms in (3.41), one has
+C
+Z
+R
+¯δD−3
+2
+∂3
+1B
+ + ¯δ
+3
+2 D−2
+∂2
+1B
+ dx1 ≤C¯δ(1 + t)−5
+2 + C¯δ
+∂3
+1B
+2
+L2 + C¯δ(1 + t)−1 ∂2
+1B
+2
+L2 .
+At the moment, by the a priori assumptions (3.7), we focus on the terms involving third-order derivatives:
+Z
+R
+D(1) ∂3
+1B
+ dx1 ≤
+Z
+R
+C¯δ
+3
+X
+j=1
+D−j
+2
+∂3−j
+1
+V
+
+∂3
+1B
+ dx1 ≤C¯δ
+3
+X
+j=0
+(1 + t)−j ∂3−j
+1
+V
+
+2
+L2 ,
+Z
+R
+D(2) ∂3
+1B
+ dx1 ≤
+Z
+R
+C¯δ
+4
+X
+j=1
+D−j
+2
+∂4−j
+1
+V
+
+∂3
+1B
+ dx1 ≤C¯δ
+3
+X
+j=0
+(1 + t)−j ∂3−j
+1
+V
+
+2
+L2 ,
+Z
+R
+T (1) ∂3
+1B
+ dx1 ≤
+Z
+R
+h∂2
+1V
+ |∂1V | + C¯δ
+
+D−1
+2 |∂1V |2 + D−1 |∂1V | + D−1
+2
+∂2
+1V
+
+i ∂3
+1B
+ dx1
+≤C(¯δ + χ)
+3
+X
+j=0
+(1 + t)−j ∂3−j
+1
+V
+
+2
+L2 ,
+Z
+R
+T (2) ∂3
+1B
+ dx1 ≤
+Z
+R
+∂3
+1V
+ |∂1V | +
+∂2
+1V
+2 ∂3
+1B
+ + C¯δD−1
+2
+ |∂1V |
+∂2
+1V
+ +
+∂3
+1V
+  ∂3
+1B
+ dx1
++
+Z
+R
+¯δD−1
+  ∂2
+1V
+ + |∂1V |2  ∂3
+1B
+ + ¯δD−3
+2 |∂1V |
+∂3
+1B
+ dx1
+≤C(¯δ + χ)
+3
+X
+j=0
+(1 + t)−j ∂3−j
+1
+V
+
+2
+L2 + C
+∂2
+1V
+4
+L4 .
+By Gagliardo-Nirenberg inequality and the a priori assumption (3.7), one has
+∂2
+1V
+4
+L4 ≤C
+∂3
+1V
+
+5
+2
+L2 ∥∂1V ∥
+3
+2
+L2 ≤Cχ2 ∂3
+1V
+2
+L2 .
+
+
+18
+R.-J. DUAN, F. HUANG, R. LI, AND L. XU
+It is also the same to treat the terms containing Zl as for treating (3.39). In sum, one has
+Z
+R
+¯B(k)M(3)
+k dx1 ≤C¯δ(1 + t)−1
+2 −k + C(¯δ + χ)
+k+1
+X
+j=0
+(1 + t)−j ∂k+1−j
+1
+V
+
+2
+L2 .
+(3.42)
+Step 2. Estimates on
+R
+R ˜ω−1
+2
+∂k
+1bi
+2 dx1.
+Notice that we still need to control
+R
+R ˜ω−1
+2
+∂k
+1bi
+2 dx1 in (3.32) and (3.33). From (2.12) and (2.3), we have
+¯δ˜ω−1/2 ≈¯δ(1 + t)−1
+2 e−
+˜c0x2
+1
+1+t ,
+∂1¯ρ ≈¯δ(1 + t)−1
+2 e−
+c0x2
+1
+1+t ,
+with ˜c0 < c0. Therefore,
+R
+R ˜ω−1
+2
+∂k
+1bi
+2 dx1 cannot be directly controlled by Gk in (3.26). We need to develop further
+weighted heat kernel inequalities (3.44) and (3.45) to obtain the control of
+R
+R ˜ω−1
+2
+∂k
+1bi
+2 dx1 for 1 ≤k ≤2. To derive
+these estimates, let
+˜h(x1, t) =
+Z x1
+−∞
+˜ω−1
+2 (y, t)dy.
+It follows that
+˜h
+
+L∞≤C and 4˜c0∂t˜h = ∂1˜ω−1
+2 . Multiplying (3.23)1 by ˜h∂k
+1b1, we have
+1
+2
+d
+dt
+
+˜h∂k
+1b1
+2
+−1
+2∂t˜h
+ ∂k
+1h
+2 + 1
+2∂1
+h
+˜h˜λ1
+ ∂k
+1b1
+2i
+−1
+2∂1
+
+˜h˜λ1
+  ∂k
+1b1
+2
+=
+
+M(1)
+k
+
+1
+˜h∂k
+1b1 +
+"
+˜LA2 ˜R∂k+2
+1
+B
+
+1 +
+3
+X
+i=2
+
+M(i)
+k
+
+1
+#
+˜h∂k
+1b1.
+(3.43)
+Using the same method as for deriving (3.32) and (3.33), one has
+Z
+R
+
+M(1)
+k
+
+1
+˜h∂k
+1b1dx1 ≲¯δ
+Z
+R
+˜ω−1
+2
+∂k
+1b1
+2 dx1 +
+k
+X
+i=0
+(1 + t)−i
+Z
+R
+∂1¯ρ
+∂k−i
+1
+b1
+2 dx1.
+Using an argument similar to (3.40)-(3.42), one has
+Z
+R
+h 
+˜LA2 ˜R∂k+2
+1
+B
+
+1 +
+3
+X
+i=2
+
+M(i)
+k
+
+1
+i
+˜h∂k
+1b1dx1 ≲
+k+1
+X
+j=0
+(1 + t)j−k−1 ∂j
+1V
+
+2
+L2 + (1 + t)−1
+2 −k.
+Thus, integrating (3.43) with respect to x1, we obtain
+Z
+R
+˜ω−1
+2
+∂k
+1b1
+2 dx1 + ∂t
+Z
+R
+˜h
+ ∂k
+1b1
+2 dx1 ≲
+k+1
+X
+j=0
+(1 + t)j−k−1 ∂j
+1V
+
+2
+L2 + (1 + t)−1
+2 −k
++
+k
+X
+j=0
+(1 + t)−j
+Z
+R
+∂1¯ρ
+∂k−j
+1
+b1
+
+2
+dx1.
+(3.44)
+Using the same argument as (3.44), one has
+Z
+R
+˜ω−1
+2
+∂k
+1b2
+2 dx1 −∂t
+Z
+R
+˜h
+ ∂k
+1b2
+2 dx1 ≲
+k+1
+X
+j=0
+(1 + t)j−k−1 ∂j
+1V
+
+2
+L2 + (1 + t)−1
+2 −k
++
+k
+X
+j=0
+(1 + t)−j
+Z
+R
+∂1¯ρ
+∂k−j
+1
+b2
+
+2
+dx1.
+(3.45)
+Finally, by collecting (3.24)-(3.42), (3.44) and (3.45), we arrive at
+d
+dt
+ 2
+X
+i=0
+˜Ei
+
++
+2
+X
+i=0
+( ˜Ki + Gi) ≤C¯η
+"
+(1 + t)−1 2
+X
+i=0
+Ei
+
++
+∂1 ˜Φ
+
+2
+H2 +
+∂1 ˜Ψ2
+
+2
+H2 +
+∂1 ˜Ψ3
+
+2
+H2
+#
++ C¯δ(1 + t)−1
+2 ,
+(3.46)
+d
+dt
+ 2
+X
+i=1
+˜Ei
+
++
+2
+X
+i=1
+( ˜Ki + Gi) ≤C¯η(1 + t)−1 2
+X
+i=1
+Ei + G0
+
++ C¯δ(1 + t)−3
+2
++ C¯η(1 + t)−2E0 + C¯η
+∂2
+1 ˜Φ
+
+2
+H1 +
+∂2
+1 ˜Ψ2
+
+2
+H1 +
+∂2
+1 ˜Ψ3
+
+2
+H1
+
+,
+(3.47)
+
+
+STABILITY OF PLANAR ENTROPY WAVE FOR 3-D NAVIER-STOKES IN EULERIAN COORDINATES
+19
+d
+dt
+˜E2 + ˜K2 + G2 ≤C¯η
+2
+X
+i=0
+(1 + t)−(3−i)Ei + C¯δ(1 + t)−5
+2 + C¯η
+∂3
+1 ˜Φ
+
+2
+L2 +
+∂3
+1 ˜Ψ2
+
+2
+L2 +
+∂3
+1 ˜Ψ3
+
+2
+L2
+
++ C¯η
+
+(1 + t)−2G0 + (1 + t)−1G1
+
+.
+(3.48)
+Step 3. Estimates on
+∂k+1
+1
+˜Φ
+
+L2.
+We still need to estimate
+∂k+1
+1
+˜Φ
+
+L2. Applying ∂k
+1 (k = 0, 1, 2) to (3.11)2 and then multiplying the resulting equation
+by ∂k+1
+1
+˜Φ, one has
+∂t
+Z
+R
+∂k+1
+1
+˜Φ∂k
+1 ˜Ψ1dx1 + (γ −1)
+∂k+1
+1
+˜Φ
+
+2
+L2 =
+Z
+R
+λ + 2µ
+˜ρ
+∂k+2
+1
+˜Ψ1∂k+1
+1
+˜Φdx1 + I5 + I6,
+(3.49)
+where
+I5 =
+Z
+R
+∂k+1
+1
+˜Φ∂k
+1J(2)
+21 dx1,
+I6 =
+Z
+R
+∂k+1
+1
+˜Φ
+"
+∂k
+1Q21 −(γ −1) ∂k+1
+1
+˜W −∂k
+1
+
+J1 + ˜θQ1 −J(1)
+21 −˜θ∂1 ˜Ψ1
+
++
+k−1
+X
+i=0
+∂k−i
+1
+λ + 2µ
+˜ρ
+
+∂i+2
+1
+˜Ψ1
+#
+dx1.
+Here we have used
+Z
+R
+∂t∂k
+1 ˜Ψ1∂k+1
+1
+˜Φdx1 = ∂t
+Z
+R
+∂k
+1 ˜Ψ1∂k+1
+1
+˜Φdx1 −
+Z
+R
+∂k+1
+1
+˜Ψ1∂k
+1
+
+˜θ∂1 ˜Ψ1 −J1 −˜θQ1
+
+dx1.
+Next, multiplying
+1
+˜θ˜ρ∂k+1
+1
+(3.11)1 by ∂k+1
+1
+˜Φ, one has
+∂t
+Z
+R
+λ + 2µ
+2˜ρ˜θ
+∂k+1
+1
+˜Φ
+
+2
+dx1 = −
+Z
+R
+λ + 2µ
+˜ρ
+∂k+2
+1
+˜Ψ1∂k+1
+1
+˜Φdx1 + I7 + I8,
+(3.50)
+where
+I7 =
+Z
+R
+∂k+1
+1
+J1
+˜θ˜ρ
+∂k+1
+1
+˜Φdx1,
+I8 =
+Z
+R
+∂t
+λ + 2µ
+2˜ρ˜θ
+ ∂k+1
+1
+˜Φ
+
+2
++ ∂k+1
+1
+˜Φ
+"
+∂k+1
+1
+(˜θQ1)
+˜θ˜ρ
+−
+k+1
+X
+i=0
+∂k+1−i
+1
+˜θ∂i
+1 ˜Ψ1
+˜ρ˜θ
+#
+dx1.
+By Theorem 3.3, Theorem 3.4 and Theorem 3.5 and a priori assumptions (3.7), one has
+|I6| + |I8| ≤γ −1
+160
+∂k+1
+1
+˜Φ
+
+2
+L2 + C
+ 3
+X
+i=1
+∂k+1
+1
+˜Ψi
+
+2
+L2 +
+∂k+1
+1
+˜W
+
+2
+L2
+!
++ C¯η
+k
+X
+j=1
+(1 + t)−j ∂k+1−j
+1
+V
+
+2
+L2 + C¯δ(1 + t)−3
+2 −k.
+(3.51)
+For I5, one should take care of the highest order of derivatives so that
+I5 =
+Z
+R
+(2µ + λ)∂k
+1
+
+∂1(˚u1 −˜u1) −1
+˜ρ∂2
+1 ˜Ψ1
+
+∂k+1
+1
+˜Φdx1
+=(λ + 2µ)
+Z
+R
+∂k
+1
+
+∂1
+1
+˜ρ
+
+∂1Ψ1 −∂1
+∂1Φ∂1Ψ1
+˚ρ˜ρ
+
+−∂1
+ ˜u1∂1Φ
+˚ρ
+
++ 1
+˜ρ∂1B1r + ∂1D0
+m1
+ρ −˚
+m1
+˚ρ
+ 
+∂k+1
+1
+˜Φdx1.
+(3.52)
+The zero mode term in the above formula that may contain the (k + 2)-th order derivative is
+∂k
+1
+
+−∂1
+∂1Φ∂1Ψ1
+˚ρ˜ρ
+
+−∂1
+ ˜u1∂1Φ
+˚ρ
+
++ 1
+˜ρ∂1B1r
+
+.
+Notice that ∂k+2
+1
+Φ = 1
+˜θ∂k+2
+1
+˜Φ + Pk+1
+i=0 ∂k+2−i
+1
+( 1
+˜θ)∂i
+1 ˜Φ and ∂k+2
+1
+˜Φ and ∂k+1
+1
+˜Φ can form a total differential, so the terms
+containing ∂k+2
+1
+Φ can transfer one derivative out through integration by parts. Therefore, next we will only show in
+detail the treatment of −1
+˚
+ρ˜ρ∂1Φ∂k+2
+1
+Ψ1 in the term −∂k+1
+1
+
+∂1Φ∂1Ψ1
+˚
+ρ˜ρ
+
+. By (3.5)1, one has
+−
+Z
+R
+∂1Φ∂k+2
+1
+Ψ1
+˚ρ˜ρ
+∂k+1
+1
+˜Φdx1 =
+Z
+R
+∂1Φ∂t∂k+1
+1
+Φ + ∂1Φ∂k+1
+1
+Q1
+˚ρ˜ρ
+∂k+1
+1
+˜Φdx1
+
+
+20
+R.-J. DUAN, F. HUANG, R. LI, AND L. XU
+=
+Z
+R
+∂1Φ∂t
+h
+∂k+1
+1
+˜Φ + Pk
+i=0 ∂k+1−i
+1
+
+1
+˜θ
+
+∂i
+1 ˜Φ
+i
++ ∂1Φ∂k+1
+1
+Q1
+˚ρ˜ρ
+∂k+1
+1
+˜Φdx1
+=∂t
+Z
+R
+∂1Φ(∂k+1
+1
+˜Φ)2
+2˚ρ˜ρ
+dx1 −
+Z
+R
+∂t
+∂1Φ
+2˚ρ˜ρ
+ ∂k+1
+1
+˜Φ
+
+2
+dx1 +
+Z
+R
+∂1Φ∂k+1
+1
+Q1∂k+1
+1
+˜Φ
+˚ρ˜ρ
+dx1
++
+Z
+R
+∂1Φ
+˚ρ˜ρ ∂t
+" k
+X
+i=0
+∂k+1−i
+1
+1
+˜θ
+
+∂i
+1 ˜Φ
+#
+∂k+1
+1
+˜Φdx1.
+(3.53)
+Combining (3.52) and (3.53) and using Theorem 3.3-Theorem 3.5 and the a priori assumptions (3.7), one has
+I5 −(λ + 2µ)∂t
+Z
+R
+∂1Φ
+∂k+1
+1
+˜Φ
+
+2
+2˚ρ˜ρ
+dx1 ≤C¯η
+k
+X
+j=0
+(1 + t)−j ∂k+1−j
+1
+V
+
+2
+L2 + C
+Z(k+1)
+2
+L2
+≤C¯η
+k
+X
+j=0
+(1 + t)−j ∂k+1−j
+1
+V
+
+2
+L2 + Cε2e−ct.
+(3.54)
+For I7, one should also take care of the highest order of derivatives, so that
+I7 =
+Z
+R
+∂k+1
+1
+
+∂t˜θΦ −˜u1∂1 ˜Φ + ∂1˜θ˜u1 ˜Φ −∂1˜u1 ˜Φ
+
+˜θ˜ρ
+∂k+1
+1
+˜Φdx1
+=
+Z
+R
+∂k+1
+1
+
+∂t˜θΦ + ∂1˜θ˜u1 ˜Φ −∂1˜u1 ˜Φ
+
+−Pk
+i=0 ∂k+1−i
+1
+˜u1∂i+1
+1
+˜Φ
+˜θ˜ρ
+∂k+1
+1
+˜Φdx1 +
+Z
+R
+∂1
+ ˜u1
+2˜θ˜ρ
+ ∂k+1
+1
+˜Φ
+
+2
+dx1
+≤C¯η
+k
+X
+j=0
+(1 + t)−j ∂k+1−j
+1
+V
+
+2
+L2 .
+(3.55)
+Combining (3.49)-(3.55), one has
+d
+dt
+Z
+R
+
+
+∂k+1
+1
+˜Φ∂k
+1 ˜Ψ1 + λ + 2µ
+2˜ρ˜θ
+∂k+1
+1
+˜Φ
+
+2
+−(λ + 2µ)
+∂1Φ
+∂k+1
+1
+˜Φ
+
+2
+2˚ρ˜ρ
+
+
+dx1 + γ −1
+2
+∂k+1
+1
+˜Φ
+
+2
+L2
+≤C¯η
+k
+X
+j=1
+(1 + t)−j ∂k+1−j
+1
+V
+
+2
+L2 + C¯δ(1 + t)−3
+2 −k + C
+ 3
+X
+i=1
+∂k+1
+1
+˜Ψi
+
+2
+L2 +
+∂k+1
+1
+˜W
+
+2
+L2
+!
+.
+(3.56)
+Step 4. Estimates on ˜Ψi, i = 2, 3.
+Applying ∂k
+1, k = 0, 1, 2 to (3.11)3 , then multiplying them by ∂k ˜Ψi, i = 2, 3 and then integrating the resulting
+equation over R with respect to x1, one has
+d
+dt
+∂k
+1 ˜Ψi
+
+2
+L2 +
+Z
+R
+µ
+˜ρ
+∂k+1
+1
+˜Ψi
+
+2
+dx1 ≤C
+Z
+R
+∂2
+1
+µ
+˜ρ
+
+∂k
+1 ˜Ψi
+
+2
+dx1 +
+Z
+R
+∂k
+1
+
+J2i + Q2i
+
+∂k
+1 ˜Ψi
+ dx1 := Ik1
+ψ + Ik2
+ψ .
+Directly,
+Ik1
+ψ ≤C¯η
+k
+X
+j=0
+(1 + t)−j ∂k+1−j
+1
+V
+
+2
+L2 ,
+and the estimate of Ik2
+ψ is similar to (3.34) to (3.38). Finally, we have
+3
+X
+i=2
+ d
+dt
+∂k
+1 ˜Ψi
+
+2
+L2 +
+Z
+R
+µ
+˜ρ
+∂k+1
+1
+˜Ψi
+
+2
+dx1
+
+(3.57)
+≤C¯η
+
+
+∂k+1
+1
+˜Φ
+
+2
+L2 +
+∂k+1
+1
+˜Ψ1
+
+2
+L2 +
+∂k+1
+1
+˜W
+
+2
+L2 +
+k
+X
+j=1
+(1 + t)−j ∂k+1−j
+1
+V
+
+2
+L2
+
++ C¯δ(1 + t)−1
+2 −k.
+Then combining (3.56) and (3.57) and (3.46) to (3.48), we have proved (3.20) to (3.22).
+□
+Decay rate for the zero modes.
+
+
+STABILITY OF PLANAR ENTROPY WAVE FOR 3-D NAVIER-STOKES IN EULERIAN COORDINATES
+21
+Lemma 3.8. Under the same assumptions as Theorem 3.2, one has the following estimates for the zero modes
+∂k
+1(˚ϕ, ˚φ,˚ζ)
+
+2
+L2 ≤C(ε2 + ¯δ)(1 + t)−2k+1
+2 ,
+k = 0, 1.
+(˚ϕ, ˚φ,˚ζ)
+
+L∞≤C(ε + ¯δ
+1
+2 )(1 + t)−1
+2 .
+Proof. In the sequel, we use the following fact which comes from (3.27):
+E1 ≤CK0 + C¯δ(1 + t)−1E0,
+E2 ≤CK1 + C¯δ(1 + t)−1K0 + C¯δ(1 + t)−2E0.
+By Gronwall’s inequality and (3.20), one has
+2
+X
+i=0
+Ei ≤C(ε2 + ¯δ)(1 + t)
+1
+2 ,
+Z t
+0
+2
+X
+i=0
+(Ki + Gi)dτ ≤C(ε2 + ¯δ)(1 + t)
+1
+2 .
+(3.58)
+Multiplying (3.21) by (1 + t) and then integrating on [0, t], one has
+(1 + t)
+2
+X
+i=1
+Ei +
+Z t
+0
+(1 + τ)
+2
+X
+i=0
+(Ki + Gi)dτ ≤C(ε2 + ¯δ)(1 + t)
+1
+2 .
+Then it follows that
+2
+X
+i=1
+Ei ≤C(ε2 + ¯δ)(1 + t)−1
+2 ,
+Z t
+0
+(1 + τ)
+2
+X
+i=1
+(Ki + Gi)dτ ≤C(ε2 + ¯δ)(1 + t)
+1
+2 .
+(3.59)
+Finally, multiplying (3.22) by (1 + t)2, one has
+(1 + t)2E2 +
+Z t
+0
+(1 + τ)2(K2 + G2)dτ ≤C(ε2 + ¯δ)(1 + t)
+1
+2 ,
+ans it holds that
+E2 ≤C(ε2 + ¯δ)(1 + t)−3
+2 .
+(3.60)
+Then, by (3.27) and (3.58) to (3.60), the desired decay rate can be obtained as
+(˚ϕ, ˚
+ψ, ˚
+w)
+
+L∞≤C(ε + ¯δ
+1
+2 )(1 + t)−1
+2 .
+Using the same argument as (3.19), one can prove Theorem 3.8.
+□
+3.4. Estimates on non-zero mode of perturbations. This section describes the energy estimate for the non-zero
+mode. Using the fact
+R
+T2(ϕ̸=, ψ̸=, ζ̸=)dx2dx3 = 0, it can be known that the Poincar´e’s inequality holds for the non-zero
+mode
+∥(ϕ̸=, φ̸=, ζ̸=)∥L2 ≤C∥∇k(ϕ̸=, φ̸=, ζ̸=)∥L2,
+(3.61)
+where k ≥1. Taking D̸= for the perturbation system (3.2), one has
+
+
+
+
+
+
+
+∂tϕ̸= + ˚u · ∇ϕ̸= + ˚ρ div φ̸= = F0̸=,
+∂tφ̸= + ˚u · ∇φ̸= + R
+˜ρ
+
+˚θ∇ϕ̸= + ˚ρ∇ζ̸=
+
+= µ
+˜ρ ∆φ̸= + λ+µ
+˜ρ ∇divφ̸= + F̸=,
+∂tζ̸= + ˚u · ∇ζ̸= + R˚θ div φ̸= = κ
+˜ρ∆ζ̸= + F4̸=,
+(3.62)
+where
+F0̸= = ˚u · ∇ϕ̸= −D̸= (u · ∇ϕ) + ˚ρdivφ̸= −D̸= (ρdivφ) −φ̸= · ∇˜ρ −ϕ̸=div˜u,
+F̸= = ˚u · ∇φ̸= −D̸= (u · ∇φ) + R
+˜ρ
+
+˚θ∇ϕ̸= + ˚ρ∇ζ̸=
+
+−∇p̸=
+˜ρ
+−φ̸= · ∇˜u + 1
+˜ρD̸=
+ϕ∇p
+ρ
+
++ D̸=
+1
+ρ −1
+˜ρ
+
+(µ∆u + (λ + µ)∇divu)
+
+,
+F4̸= = ˚u · ∇ζ̸= −D̸= (u · ∇ζ) + R˚θdivφ̸= −RD̸= (θdivφ) −φ̸= · ∇˜θ −Rζ̸=div˜u + κD̸=
+1
+ρ −1
+˜ρ
+
+∆θ
+
++ D̸=
+1
+ρ
+µ
+2
+∇u + (∇u)t2 + λ(divu)2
+−1
+˜ρ
+µ
+2
+∇˜u + (∇˜u)t2 + λ(div˜u)2
+.
+The source terms F0̸=, F̸= and F4̸= satisfy the following estimates.
+
+
+22
+R.-J. DUAN, F. HUANG, R. LI, AND L. XU
+Lemma 3.9. Under the same assumptions of Theorem 3.2, it holds
+∥∇F0̸=∥2
+L2 +
+4
+X
+i=1
+∥Fi̸=∥2
+L2 ≤C¯η∥(∇ϕ̸=, ∇2φ̸=, ∇2ζ̸=)∥2
+L2.
+Proof. We first make an estimation for F̸=. With respect to F, we first calculate R
+˜ρ
+
+˚θ∇ϕ̸= + ˚ρ∇ζ̸=
+
+−∇p̸=
+˜ρ
+as
+
+R
+˜ρ
+
+˚θ∇ϕ̸= + ˚ρ∇ζ̸=
+
+−∇p̸=
+˜ρ
+
+L2
+≤
+
+R
+˜ρ
+
+∂1˚ϕζ̸= + ∂1˚θϕ̸=
+
+L2
++
+3
+X
+i=1
+
+R
+˜ρ (∂iϕ̸=ζ̸= + ∂iζ̸=ϕ̸=)
+
+L2
+≤C¯η
+(∇ϕ̸=, ∇2φ̸=, ∇2ζ̸=)
+
+L2 .
+(3.63)
+Then we carry out the calculation for D̸=
+h
+1
+ρ −1
+˜ρ
+
+(µ∆u + (λ + µ)∇divu)
+i
+as
+D̸=
+1
+ρ −1
+˜ρ
+
+(µ∆u + (λ + µ)∇divu)
+
+L2
+≤
+D̸=
+1
+ρ −1
+˜ρ
+
+(µ∆˚u + (λ + µ)∇div˚u)
+
+L2 +
+D0
+ ϕ
+ρ˜ρ
+
+(µ∆φ̸= + (λ + µ)∇divφ̸=)
+
+L2
++
+D̸=
+"1
+ρ −1
+˜ρ
+
+̸=
+(µ∆φ̸= + (λ + µ)∇divφ̸=)
+#
+L2
+≤C¯η
+(∇ϕ̸=, ∇2φ̸=, ∇2ζ̸=)
+
+L2 .
+(3.64)
+The calculation of the remaining terms in Fi̸= is similar to the calculation of the above two terms. Combining (3.63)
+and (3.64), one has
+∥F̸=∥2
+L2 ≤C¯η∥(∇ϕ̸=, ∇2φ̸=, ∇2ζ̸=)∥2
+L2.
+(3.65)
+The estimates of F0̸= and F4̸= are the same as those of F̸=. Thus, using the same calculation method as that for F̸=
+(3.65), we obtain
+∥∇F0̸=∥2
+L2 +
+4
+X
+i=1
+∥Fi̸=∥2
+L2 ≤C¯η∥(∇ϕ̸=, ∇2φ̸=, ∇2ζ̸=)∥2
+L2.
+(3.66)
+Then we have completed the proof of Theorem 3.9.
+□
+Based on Theorem 3.9, we provide the estimate of equation (3.62).
+Lemma 3.10. Under the same assumptions of Theorem 3.2, it holds
+d
+dt∥(ϕ̸=, φ̸=, ζ̸=)∥2
+H1 + c∥(∇ϕ̸=, ∇2φ̸=, ∇2ζ̸=)∥2
+L2 ≤0.
+(3.67)
+Proof. Step 1. Multiplying (3.62)1 by R
+˚
+θ
+˚
+ρ˜ρϕ̸=, (3.62)2 by φ̸=, (3.62)3 by
+˚
+ρ
+˚
+θ˜ρζ̸=, one has
+∂t
+ 
+R˚θ
+2˚ρ˜ρϕ2
+̸= + |φ̸=|2
+2
++
+˚ρ
+2˚θ˜ρ
+ζ2
+̸=
+!
++ µ
+˜ρ |∇φ̸=|2 + λ + µ
+˜ρ
+|divφ̸=|2 + ˚ρκ
+˚θ˜ρ2 |∇ζ̸=|2 = J0 + div(· · · ),
+(3.68)
+where
+J0 :=
+" ˚θ
+˚ρ˜ρ
+!
+t
++ ∇·
+ ˚θ˚u
+˚ρ˜ρ
+!#
+Rϕ2
+̸=
+2
++
+" ˚ρ
+˚θ˜ρ
+
+t
++ ∇·
+˚ρ˚u
+˚θ˜ρ
+#
+ζ2
+̸=
+2 + ∂1˚u1
+2
+|φ̸=|2 + R˚θ
+˚ρ˜ρ ϕ̸=F0̸= + ˚ρ
+˚θ˜ρ
+ζ̸=F4̸=
+−∂1
+1
+˜ρ
+ 
+µ
+3
+X
+j=1
+∂1φj̸=φj̸= + (λ + µ)divφ̸=φ1̸=
+
+−∂1
+ κ˚ρ
+˜ρ2˚θ
+
+∂1ζ̸=ζ̸= + φ̸= · F̸=.
+According to a priori assumptions (3.7) and applying H¨older’s inequality, one has
+Z
+Ω
+J0dx ≤C¯η ∥(∇ϕ̸=, ∇φ̸=, ∇ζ̸=)∥2
+L2 + C
+4
+X
+j=0
+∥Fj̸=∥2
+L2 .
+(3.69)
+
+
+STABILITY OF PLANAR ENTROPY WAVE FOR 3-D NAVIER-STOKES IN EULERIAN COORDINATES
+23
+Integrating (3.68) on Ωand combining (3.69), it yields
+d
+dt ∥(ϕ̸=, φ̸=, ζ̸=)∥2
+L2 + ∥(∇φ̸=, ∇ζ̸=)∥2
+L2 ≤C¯η ∥∇ϕ̸=∥2
+L2 + C
+4
+X
+i=0
+∥Fi̸=∥2
+L2 .
+(3.70)
+Step 2. We still need to estimate ∥∇ϕ̸=∥2. Taking (3.62)2 × ˜ρ∇ϕ̸= + ∇(3.62)1 × λ+2µ
+˚
+ρ
+∇ϕ̸=, one has
+∂t
+λ + 2µ
+2˚ρ
+|∇ϕ̸=|2 + ˜ρφ̸= · ∇ϕ̸=
+
++ R˚θ|∇ϕ̸=|2 = J1 + div(· · · ),
+(3.71)
+where
+J1 = −˜ρ∇ϕ̸= · ˚u · ∇φ̸= −R˚ρ∇ϕ̸= · ∇ζ̸= + ∂t˜ρφ̸= · ∇ϕ̸= + div(˜ρφ̸=)˚u · ∇ϕ̸= + div(˜ρφ̸=)˚ρdivφ̸=
++ ∂t
+λ + 2µ
+2˚ρ
+
+|∇ϕ̸=|2 −(λ + 2µ)∂1˚u
+˚ρ
+· ∇ϕ̸=∂1ϕ̸= + (λ + 2µ)∂1
+˚u1
+˚ρ
+
+|∇ϕ̸=|2 + ˜ρφ̸= · ∇F0̸=
++ λ + 2µ
+˚ρ
+∇ϕ̸= · ∇F0̸= −(λ + 2µ)∂1˚ρdivφ̸=
+˚ρ
+∂1ϕ̸= + ˜ρF̸= · ∇ϕ̸=,
+where we have used
+˜ρ∂tφ̸= · ∇ϕ̸= = ∂t(˜ρφ̸= · ∇ϕ̸=) −∂t˜ρφ̸= · ∇ϕ̸= −˜ρφ̸= · ∇∂tϕ̸=
+=∂t(˜ρφ̸= · ∇ϕ̸=) −∂t˜ρφ̸= · ∇ϕ̸= −div(˜ρφ̸=)˚u · ∇ϕ̸= −div(˜ρφ̸=)˚ρdivφ̸= −˜ρφ̸= · ∇F0̸=.
+According to a priori assumptions (3.7) and applying H¨older’s inequality, one has
+Z
+Ω
+J1dx ≤C¯η∥∇ϕ̸=∥2
+L2 + C
+
+∥∇φ̸=∥2
+L2 + ∥∇ζ̸=∥2
+L2 + ∥∇F0̸=∥2
+L2 + ∥F̸=∥2
+L2
+
+.
+(3.72)
+Integrating (3.71) on Ωand combining (3.72), it yields
+d
+dt
+Z
+Ω
+λ + 2µ
+2˚ρ
+|∇ϕ̸=|2 + ˜ρφ̸= · ∇ϕ̸=
+
+dx +
+Z
+Ω
+R˚θ
+2 |∇ϕ̸=|2dx
+≤C
+
+∥∇φ̸=∥2
+L2 + ∥∇ζ̸=∥2
+L2 + ∥∇F0̸=∥2
+L2 + ∥F̸=∥2
+L2
+
+.
+(3.73)
+Step 3. We estimate ∇φ̸= and ∇ζ̸=. Taking ∇(3.62)1 × R˚
+θ
+˚
+ρ˜ρ ∇ϕ̸= + ∇(3.62)2 × ∇φ̸= + ∇(3.62)3 × ˚
+ρ
+˚
+θ˜ρ∇ζ̸=, one has
+∂t
+ R˚θ
+2˚ρ˜ρ |∇ϕ̸=|2 + |∇φ̸=|2
+2
++
+˚ρ
+2˚θ˜ρ
+|∇ζ̸=|2 
++ µ
+˜ρ |∆φ̸=|2
++ λ + µ
+˜ρ
+|∇divφ̸=|2 + ˚ρκ
+˚θ˜ρ2 |∆ζ̸=|2 = J2 + div(· · · ),
+(3.74)
+where
+J2 =
+" ˚θ
+˚ρ˜ρ
+!
+t
++ ∇·
+ ˚θ˚u
+˚ρ˜ρ
+!#
+R |∇ϕ̸=|2
+2
++
+" ˚ρ
+˚θ˜ρ
+
+t
++ ∇·
+˚ρ˚u
+˚θ˜ρ
+#
+|∇ζ̸=|2
+2
++ ∂1˚u1
+2
+|∇φ̸=|2
+−R˚θ∂1˚ρ
+˚ρ˜ρ
+divφ̸=∂1ϕ̸= −R˚ρ∂1˚θ
+˚θ˜ρ
+divφ̸=∂1ζ̸= −R˚θ
+˚ρ˜ρ ∂1˚u · ∇ϕ̸=∂1ϕ̸= −∂1˚u · ∇φ̸= · ∂1φ̸=
+−˚ρ
+˚θ˜ρ
+∂1˚u · ∇ζ̸=∂1ζ̸= −R∂1
+ ˚θ
+˜ρ
+!
+∂1φ̸= · ∇ϕ̸= + R∂1
+ ˚θ
+˜ρ
+!
+∇φ1̸= · ∇ϕ̸= + R˚θ
+˚ρ˜ρ ∇ϕ̸= · ∇F0̸=
+−R∂1
+˚ρ
+˜ρ
+
+∂1φ̸= · ∇ζ̸= + R∂1
+˚ρ
+˜ρ
+
+∇φ1̸= · ∇ζ̸= −∂1
+λ + µ
+˜ρ
+
+divφ̸=∆φ1̸= + ∇φ̸= · ∇F̸=
+−∂1
+λ + µ
+˜ρ
+
+divφ̸=∂1divφ̸= −κ
+˜ρ∂1
+ ˚ρ
+˚θ˜ρ
+
+∂1ζ̸=∆ζ̸= + ˚ρ
+˚θ˜ρ
+∇ζ̸= · ∇F4̸=.
+According to a priori assumptions (3.7) and applying H¨older’s inequality, one has
+Z
+Ω
+J2dx ≤C¯η
+
+∥∇ϕ̸=∥2
+L2 +
+∇2φ̸=
+2
+L2 +
+∇2ζ̸=
+2
+L2
+
++ C
+ 
+∥∇F0̸=∥2
+L2 +
+4
+X
+i=1
+∥Fi̸=∥2
+L2
+!
+.
+(3.75)
+Integrating (3.74) on Ωand combining (3.75), it yields
+d
+dt ∥(∇ϕ̸=, ∇φ̸=, ∇ζ̸=)∥2
+L2 +
+(∇2φ̸=, ∇2ζ̸=)
+2
+L2 ≤C¯η∥∇ϕ̸=∥2
+L2 + C
+ 
+∥∇F0̸=∥2
+L2 +
+4
+X
+i=1
+∥Fi̸=∥2
+L2
+!
+.
+(3.76)
+
+
+24
+R.-J. DUAN, F. HUANG, R. LI, AND L. XU
+Combining Theorem 3.9, (3.70), (3.73), and (3.76), we have completed the proof of Theorem 3.10.
+□
+Decay rate for the non-zero modes.
+Lemma 3.11. Under the same assumptions as Theorem 3.2, one has the following estimates for the non-zero modes
+∥(ϕ̸=, φ̸=, ζ̸=)∥H1 ≤εe−ct.
+Proof. Note that the Poincar´e inequality holds for (ϕ̸=, φ̸=, ζ̸=) in (3.61). Then, applying Gr¨onwall’s inequality to
+(3.67), we have completed the proof of Theorem 3.11.
+□
+3.5. Higher order estimates. The main objective of this section is to make energy estimates in the original pertur-
+bation equations and to verify the a priori assumptions. To close the a priori estimates, we need to return back to the
+original system (3.2), that is
+
+
+
+
+
+
+
+∂tϕ + u · ∇ϕ + ρdivφ = ˆR1,
+ρ∂tφ + ρu · ∇φ + R(θ∇ϕ + ρ∇ζ) = µ△φ + (µ + λ)∇divφ + ˆR2,
+ρ∂tζ + ρu · ∇ζ + Rρθdivφ = κ△ζ + ˆR3.
+(3.77)
+Note that the energy estimates for the zero- and first-order derivatives are already done. In order to verify the a priori
+assumptions, we only need to perform further energy estimates for the second- and third-order derivatives.
+We emphasise the strategy of proof. Since we already have estimates of lower order, it is most important to note the
+sign of the energy of the highest order derivative when estimating. Applying ∂j∂i(i, j = 1, 2, 3) to the mass equation
+(3.77)1 and ∂j(j = 1, 2, 3 ) to the i-th (i = 1, 2, 3) component of the momentum equation (3.77)2 and ∂j(j = 1, 2, 3 ) to
+the energy equation (3.77)3, we have
+
+
+
+
+
+
+
+∂t∂ijϕ + u · ∇∂ijϕ + ρdiv∂ijφ = ∂ij ˆR1 + ˆQ1,
+ρ∂t∂jφ + ρu · ∇∂jφ + R(θ∇∂jϕ + ρ∇∂jζ) = µ△∂jφ + (µ + λ)∇div∂jφ + ∂j ˆR2 + ˆQ2,
+ρ∂t∂jζ + ρu · ∇∂jζ + Rρθdiv∂jφ = κ△∂jζ + ∂j ˆR3 + ˆQ3,
+(3.78)
+where
+ˆQ1 := −∂ij (u · ∇ϕ + ρdivφ) + (u · ∇∂ijϕ + ρdiv∂ijφ) ,
+ˆQ2 := −∂jρ∂tφ −∂j (ρu) · ∇φ + R(∂jθ∇ϕ + ∂jρ∇ζ),
+ˆQ3 := −∂jρ∂tζ −∂j(ρu) · ∇ζ −R∂j(ρθ)divφ.
+By the a priori assumptions (3.7), we have the result
+∥∇k ˆQi∥L2 ≤C(¯δ + χ)∥∇(ϕ, φ, ζ)∥Hk+1,
+i = 1, 2, 3.
+(3.79)
+It remains to estimate ˆRi, i=1,2,3 (3.3). Note that the highest order of derivatives for (ϕ, φ, ζ) is zero order in ˆR1, ˆR2,
+first order in ˆR3. Thus, by a priori assumption (3.7), one has
+∥∇k( ˆR1, ˆR2)∥L2 ≤C¯δ(1 + t)−5
+2 −k + C¯η(1 + t)−k−l+1
+2
+k
+X
+l=0
+∇l(ϕ, φ, ζ)
+
+L2,
+(3.80)
+∥∇k ˆR3∥L2 ≤C∥∇k( ˆR1, ˆR2)∥L2 + Cχ
+∇φ
+
+Hk(Ω) + C¯η(1 + t)−k−l+1
+2
+k
+X
+l=0
+∇l+1φ
+
+L2.
+(3.81)
+Then we have the following result.
+Lemma 3.12. Under the same assumptions of Theorem 3.2, one has
+∥∇2(ϕ, φ, ζ)∥2
+H1
+
+t
+0 +
+Z t
+0
+∥(∇2ϕ, ∇3φ, ∇3ζ)∥2
+H1dτ ≤C¯δ.
+Proof. We have divided the proof into three parts.
+Step 1. Estimates on ∥∇2ϕ∥L2.
+
+
+STABILITY OF PLANAR ENTROPY WAVE FOR 3-D NAVIER-STOKES IN EULERIAN COORDINATES
+25
+Next, multiplying the equation (3.78)2 by ∇∂jϕ and integrating the result on Ωleads to
+d
+dt
+Z
+Ω
+ρ∂jφi∂j∂iϕdx +
+Z
+Ω
+Rθ |∂j∂iϕ|2 dx
+=
+Z
+Ω
+∂tρ∂jφi∂j∂iϕdx +
+Z
+Ω
+∂i
+ ρ∂jφi
+
+∂j
+ u · ∇ϕ + ρdivφ −ˆR1
+
+dx
+−
+Z
+Ω
+h
+ρu · ∇∂jφ + Rρ∇∂jζ −∂j ˆR2 −ˆQ2
+i
+· ∇∂jϕdx + (2µ + λ)
+Z
+Ω
+∂j∂iϕ∂j∂i div φdx,
+(3.82)
+where we have used the following two facts:
+Z
+Ω
+ρ∂t∂jφi∂ijϕdx = d
+dt
+Z
+Ω
+ρ∂jφi∂ijϕdx −
+Z
+Ω
+∂tρ∂jφi∂j∂iϕdx −
+Z
+Ω
+ρ∂jφi∂j∂i∂tϕdx
+= d
+dt
+Z
+Ω
+ρ∂jφi∂j∂iϕdx −
+Z
+Ω
+∂tρ∂jφi∂j∂iϕdx +
+Z
+Ω
+∂j
+ ρ∂jφi
+
+∂i∂tϕdx
+= d
+dt
+Z
+Ω
+ρ∂jφi∂j∂iϕdx −
+Z
+Ω
+∂tρ∂jφi∂j∂iϕdx −
+Z
+Ω
+∂j
+ ρ∂jφi
+
+∂i
+ u · ∇ϕ + ρdivφ −ˆR1
+
+dx,
+and
+Z
+Ω
+(µ∆∂jφi + (µ + λ)∂j∂i div φ) ∂j∂iϕdx = (2µ + λ)
+Z
+Ω
+∂j∂iϕ∂j∂i div φdx.
+Next, multiplying the equation (3.78)1 by 1
+ρ∂j∂iϕ and integrating with respect to x yields
+d
+dt
+Z
+Ω
+|∂ijϕ|2
+2ρ
+dx = −
+Z
+Ω
+∂ijϕ∂ijkφkdx +
+Z
+Ω
+
+∂t
+  1
+2ρ
+
++ div
+  u
+2ρ
+
+|∂ijϕ|2 dx +
+Z
+Ω
+(∂ij ˆR1 + ˆQ1)∂ijϕ
+ρ dx.
+(3.83)
+Finally, adding (3.82) and (3.83)×(2µ + λ) up, summing i, j from 1 to 3, integrating the resulting equation over (0, t),
+and applying (3.79) to (3.81), gives
+Z
+Ω
+2µ + λ
+2ρ
+|∇2ϕ|2 + ρ∇φ · ∇2ϕdx
+
++
+Z t
+0
+Z
+Ω
+Rθ|∇2ϕ|2dxdτ
+≤C
+Z t
+0
+Z
+Ω
+|∇2ϕ|
+
+|∇2(φ, ζ)| + |∇2 ˆR1| + |∇ˆR2| + | ˆQ1| + | ˆQ2| + O(δ + χ)
+ |∇2ϕ| + |∇φ|
+
+dxdτ
++ C
+Z t
+0
+Z
+Ω
+|(∇ρ||∇φ| + |∇2φ|)(|∇u||∇ϕ| + |∇φ| +
+∇2φ
+ +
+∇ˆR1
+)dxdτ
+≤R
+120
+Z t
+0
+Z
+Ω
+θ
+∇2ϕ
+2 dxdτ + C¯δ,
+(3.84)
+where estimates on the lower order terms have been used.
+Step 2. Estimates on ∥(∇2φ, ∇2ζ)∥L2.
+Next, We estimate ∇2φ and ∇2ζ. Multiplying (3.78)2 by (−∆∂iφ), (3.78)3 by (−∆∂iζ) and using (3.79)-(3.81), we
+have
+Z
+Ω
+ρ
+2
+∇2(φ, ζ)
+2 dx
+
+τ=t
+τ=0
++
+Z t
+0
+Z
+Ω
+
+µ
+∇3φ
+2 + (µ + λ)
+∇2 div φ
+2 + κ|∇3ζ|2
+dxdτ
+≤
+Z t
+0
+Z
+Ω
+ρu · ∇∂jφ + R(θ∇∂jϕ + ρ∇∂jζ) + ∂j ˆR2 + ˆQ2
+ |∆∂iφ| + |∂tρ|
+2
+|∇2φ|2 + |∇ρ| |∂t∇φ|
+∇2φ
+ dxdτ
++
+Z t
+0
+Z
+Ω
+ρu · ∇∂jζ + Rρθdiv∂jφ + ∂j ˆR3 + ˆQ3
+ |∆∂iζ| + |∂tρ|
+2
+|∇2ζ|2 + |∇ρ| |∂t∇ζ|
+∇2ζ
+ dxdτ
+≤min{µ, κ, λ + µ}
+120
+Z t
+0
+∥∇3(φ, ζ)∥2
+L2dτ + C¯δ.
+(3.85)
+Step 3. Third Order Estimate.
+To close the a priori estimate, we need to estimate the third order derivatives. Applying ∂k, k = 1, 2, 3 to (3.78)1
+and ∂i, i = 1, 2, 3 to (3.78)2 and (3.78)3, we have
+
+
+
+
+
+
+
+∂t∂ijkϕ + u · ∇∂ijkϕ + ρdiv∂ijkφ = ∂ijk ˆR1 + ∂k ˆQ1 + ˆQ∗
+1,
+ρ∂t∂ijφ + ρu · ∇∂ijφ + R(θ∇∂ijϕ + ρ∇∂ijζ) = µ△∂ijφ + (µ + λ)∇div∂ijφ + ∂ij ˆR2 + ∂i ˆQ2 + ˆQ∗
+2,
+ρ∂t∂ijζ + ρu · ∇∂ijζ + Rρθdiv∂ijφ = κ△∂ijζ + ∂ij ˆR3 + ∂i ˆQ3 + ˆQ∗
+3,
+(3.86)
+
+
+26
+R.-J. DUAN, F. HUANG, R. LI, AND L. XU
+where
+ˆQ∗
+1 := −∂ku · ∇∂ijϕ −∂kρdiv∂ijφ,
+ˆQ∗
+2 := −∂iρ∂t∂jφ −∂i (ρu) · ∇∂jφ + R(∂iθ∇∂jϕ + ∂iρ∇∂jζ),
+ˆQ∗
+3 := −∂iρ∂t∂jζ −∂i(ρu) · ∇∂jζ −R∂i(ρθ)div∂jφ.
+By the a priori assumptions (3.7), we have
+∥ˆQ∗
+i ∥L2 ≤C(¯δ + χ)∥∇(ϕ, φ, ζ)∥H2,
+i = 1, 2, 3.
+(3.87)
+Firstly, we estimate ∥∇3ϕ∥2
+L2. Similarly, multiplying (3.86)2 by ∇∂ijϕ, one has
+d
+dt
+Z
+Ω
+ρ∂ijφk∂ijkϕdx +
+Z
+Ω
+Rθ |∂ijkϕ|2 dx
+=
+Z
+Ω
+∂tρ∂ijφk∂ijkϕdx +
+Z
+Ω
+∂k
+ ρ∂ijφk
+ u · ∇∂ijϕ + ρdiv∂ijφ −∂ij ˆR1 −ˆQ1
+
+dx
+−
+Z
+Ω
+h
+ρu · ∇∂ijφ + Rρ∇∂ijζ −∂ij ˆR2 −∂i ˆQ2 −ˆQ∗
+2
+i
+· ∇∂ijϕdx + (2µ + λ)
+Z
+Ω
+∂ijkϕ∂ijk div φdx.
+(3.88)
+Next, multiplying (3.86)1 by ∂ijkϕ
+ρ
+, it follows
+d
+dt
+Z
+Ω
+|∂ijkϕ|2
+2ρ
+dx = −
+Z
+Ω
+∂ijkϕ∂ijkdivφdx
++
+Z
+Ω
+
+∂t
+  1
+2ρ
+
++ div
+  u
+2ρ
+
+|∂ijkϕ|2 dx +
+Z
+Ω
+(∂ijk ˆR1 + ∂k ˆQ1 + ˆQ∗
+1)∂ijkϕ
+ρ
+dx.
+(3.89)
+Adding (3.88) and (3.89)×(2µ + λ) up, summing i, j from 1 to 3, integrating the resulting equation over (0, t), and
+applying (3.79)-(3.81) and (3.87), gives
+Z
+Ω
+2µ + λ
+2ρ
+|∇3ϕ|2 + ρ∇2φ · ∇3ϕdx
+
++
+Z t
+0
+Z
+Ω
+Rθ|∇3ϕ|2dxdτ
+≤R
+120
+Z t
+0
+Z
+Ω
+θ|∇3ϕ|2dxdτ + C
+Z t
+0
+∥∇3(φ, ζ)∥2
+L2dτ + C¯δ.
+(3.90)
+Finally, we estimate ∇3φ and ∇3ζ. Using the same argument as (3.85), multiplying (3.86)2 by −∆∂ijφ, (3.86)3 by
+−∆∂ijζ, and using (3.79)-(3.81) and (3.87), we have
+Z
+Ω
+ρ
+2
+∇3(φ, ζ)
+2 dx
+
+τ=t
+τ=0
++
+Z t
+0
+Z
+Ω
+
+µ
+∇4φ
+2 + (µ + λ)
+∇3 div φ
+2 + κ|∇4ζ|2
+dxdτ
+≤min{µ, κ, λ + µ}
+120
+∥∇4(φ, ζ)∥2
+L2 + C¯δ.
+(3.91)
+Combining (3.84), (3.85), (3.90) and (3.91), we have proved Theorem 3.12.
+□
+Combining Theorem 3.8, Theorem 3.11 and Theorem 3.12, we have proved Theorem 3.2.
+4. Proof of Theorem 2.4: the zero initial mass
+The differences between Theorem 2.1 and Theorem 2.4 lie in the estimates of zero modes. We show these estimates
+and omit similar ones.
+We start from (2.5) and D0(2.16) since there are no diffusion waves if the initial mass is zero. Using the same
+notations as (3.4), one has
+
+
+
+
+
+
+
+
+
+∂tΦ + ∂1Ψ1 = 0,
+∂tΨ1 + (γ −1)∂1W = (2µ + λ) ∂1 (˚u1 −¯u1) + Q#
+21 −Q1,
+∂tΨi = µ∂1 (˚ui −¯ui) + Q#
+2i,
+i = 2, 3,
+∂tW + γ¯θ∂1Ψ1 = κ∂1
+
+˚θ −¯θ
+
++ Q#
+3 −Q2,
+where
+Q#
+21 :=
+
+−˚
+P(U) + ˚
+P( ¯U)
+
+,
+Q#
+2i :=
+
+−D0(m1mi
+ρ
+) + D0( ¯m1 ¯mi
+¯ρ
+)
+
+,
+i = 2, 3,
+Q#
+3 :=
+
+γ˜θ∂1Ψ1 −˚
+N31(U) + ˚
+N31( ¯U)
+
+.
+
+
+STABILITY OF PLANAR ENTROPY WAVE FOR 3-D NAVIER-STOKES IN EULERIAN COORDINATES
+27
+Then, similar to (3.8), we have the following perturbation system
+
+
+
+
+
+
+
+
+
+∂t ¯Φ + ¯θ∂1 ¯Ψ1 = J#
+1 ,
+∂t ¯Ψ1 + (γ −1)∂1
+  ¯W + ¯Φ
+
+= (2µ+λ)
+¯ρ
+∂2
+1 ¯Ψ1 + J#
+21 + Q#
+21 −Q1,
+∂t ¯Ψi = µ
+¯ρ ∂2
+1 ¯Ψi + J#
+2i + Q#
+2i, i = 2, 3,
+∂t ¯W + (γ −1)¯θ∂1 ¯Ψ1 = κ
+¯ρ∂2
+1 ¯W + J#
+3 + Q#
+3 −Q2,
+(4.1)
+where
+J#
+1 := ∂t¯θΦ −¯θB1r,
+J#
+2i := −Bid +
+
+µ∂1(˚ui −¯ui) −µ
+¯ρ ∂2
+1 ¯Ψi
+
+:= J#(1)
+2i
++ J#(2)
+2i
+,
+i = 2, 3,
+J#
+21 :=
+h
+−B#
+1d −(γ −1)B#
+wr
+i
++
+
+(2µ + λ)∂1(˚u1 −˜u1) −(2µ + λ)
+¯ρ
+∂2
+1 ¯Ψ1
+
+:= J#(1)
+21
++ J#(2)
+21
+,
+J#
+3 :=
+h
+−B#
+wd −γ¯θB#
+1r
+i
++
+
+κ∂1
+
+˚θ −¯θ
+
+−κ
+˜ρ∂2
+1 ¯W
+
+:= J#(1)
+3
++ J#(2)
+3
+,
+B#
+ir := ¯ui∂1Φ + ∂1¯uiΦ,
+B#
+wr := ∂1
+
+¯u · ¯Ψ + |¯u|2
+2 Φ
+
+,
+B#
+id := −¯ui∂1Ψ1 + ∂t¯uiΦ,
+i = 2, 3,
+B#
+wd := −|¯u|2
+2 ∂1Ψ1 + ¯u · ∂t ¯Ψ + ∂t¯u · ¯Ψ + ∂t
+
+¯θ + |¯u|2
+2
+
+Φ.
+We set the following a priori assumption
+
+
+
+
+
+sup
+0≤t≤T
+n
+∥(Φ, Ψ, W)∥2
+L∞+ ln−1(2 + t)
+h
+(1 + t) ∥(ϕ, φ, ζ)∥2
+L2 + (1 + t)2 ∥(∂1ϕ, ∂1φ, ∂1ζ)∥2
+L2
+i
++ ∥(ϕ, φ, ζ)∥2
+H3
+o
+≤χ2,
+sup
+0≤t≤T
+ect ∥(ϕ̸=, φ̸=, ζ̸=)∥2
+H1 ≤ε2 + δ.
+(4.2)
+Then we need to close the a priori assumptions. We prove the following a priori estimate.
+Proposition 4.1 (a priori estimate). Assume that (ϕ, φ, ζ) is the unique solution given in Theorem 3.1 and satisfies
+the a priori assumptions (4.2). Then the following estimates hold
+ln−1(2 + t)
+h
+∥(Φ, Ψ, W)∥2
+L2 + (1 + t) ∥(ϕ, φ, ζ)∥2
+L2 + (1 + t)2 ∥∂1(ϕ, φ, ζ)∥2
+L2
+i
++
+3
+X
+i=2
+∂i
+1(ϕ, φ, ζ)
+2
+L2 ≤C(δ + ε2),
+∥(ϕ̸=, φ̸=, ζ̸=)∥2
+H1 ≤ε2e−c(1+t),
+where C, c > 0 are the universal constants independent of any small parameters in this paper.
+By the same argument as Theorem 3.4 and Theorem 3.5, one has
+Lemma 4.2. Under the same assumptions as Theorem 4.1, one has
+∂k
+1Q#
+2i
+ ≤C
+
+T #(k) + Z(k)
+,
+k = 0, 1, 2,
+i = 1, 2, 3,
+∂k
+1Q#
+3
+ ≤C
+ T #(k) + T #(k+1) + Z(k) + Z(k+1)
+,
+k = 0, 1,
+∂k
+1J#
+1 , ∂k
+1J#(1)
+2i
+ ≤CD#(k),
+k = 0, 1, 2,
+i = 1, 2, 3,
+∂k
+1J#(2)
+2i
+, ∂k
+1J#(2)
+3
+ ≤C
+ D#(k+1) + T #(k+1) + Z(k+1)
+,
+k = 0, 1,
+i = 1, 2, 3,
+∂k
+1J#(1)
+3
+ ≤C
+ D#(k) + D#(k+1) + T #(k+1) + Z(k+1)
+,
+k = 0, 1.
+Compared with (3.12), the definition of V in D#, T # is (¯Φ, ¯Ψ, ¯W)t, and D−α is changed to ω−α.
+By the same definitions as those in Section 3.3, we arrive at
+∂tB + Λ∂1B = ¯LA2 ¯R∂2
+1B + 2¯LA2∂1 ¯R∂1B +
+ ∂t ¯L + Λ∂1 ¯L
+
+R + ¯LA2∂2
+1 ¯R
+
+B + ¯LA3,
+(4.3)
+where
+Λ := diag{¯λ1, 0, ¯λ3},
+¯λ1 = −
+q
+γ(γ −1)¯θ,
+λ2 = 0,
+¯λ3 =
+q
+γ(γ −1)¯θ,
+A3 := (A31, A32, A33)t = (J#
+1 , J#
+21 + Q#
+21 −Q1, J#
+3 + Q#
+3 −Q2)t,
+
+
+28
+R.-J. DUAN, F. HUANG, R. LI, AND L. XU
+and the corresponding eigenvectors are
+¯L :=
+
+
+
+
+1
+√2γ
+1
+√2γ
+¯λ1
+γ−1
+1
+√2γ
+q
+γ−1
+γ
+0
+−
+1
+√
+γ(γ−1)
+1
+√2γ
+−
+1
+√2γ
+¯λ1
+γ−1
+1
+√2γ
+
+
+
+,
+¯R :=
+
+
+
+
+1
+√2γ
+q
+γ−1
+γ
+1
+√2γ
+1
+√2γ
+¯λ1¯θ
+0
+−
+1
+√2γ
+¯λ1¯θ
+γ−1
+√2γ
+−
+q
+γ−1
+γ
+γ−1
+√2γ
+
+
+
+.
+Direct calculations yield
+
+¯LA3
+
+2 =
+rγ −1
+γ
+J#
+1 −
+1
+p
+γ(γ −1)
+(J#
+3 + Q#
+3 −Q2),
+(4.4)
+
+¯LA3
+
+i =
+r 1
+2γ J#
+1 +
+r 1
+2γ
+¯λi
+γ −1(J#
+21 + Q#
+21 −Q1) +
+1
+√2γ (J#
+3 + Q#
+3 −Q2),
+for
+i = 1, 3.
+(4.5)
+Then, the error term in (¯LA3)2 becomes
+Q2
+√
+γ(γ−1) ≲|∂1¯ρ|3 + |∂1¯ρ|
+∂2
+1 ¯ρ
+, which is the key observation for improving the
+decay rate. Using the same notation as (3.20)-(3.22), we have
+Lemma 4.3. Under the same assumptions as Theorem 4.1, one has
+d
+dt
+ 2
+X
+i=0
+Ei
+
++
+2
+X
+i=0
+(Ki + Gi) ≤C¯η
+Z
+R
+ω−1(¯Φ2 + ¯Ψ2 + ¯W 2)dx1 + Cδ(1 + t)−1,
+(4.6)
+d
+dt
+ 2
+X
+i=1
+Ei
+
++
+2
+X
+i=1
+(Ki + Gi) ≤C¯η(1 + t)−1 2
+X
+i=1
+Ei + G0
+
++ Cδ(1 + t)−2 + C¯η(1 + t)−2E0,
+(4.7)
+d
+dtE2 + K2 + G2 ≤C¯η
+2
+X
+i=0
+(1 + t)−(3−i)Ei + Cδ(1 + t)−3 + C¯η
+
+(1 + t)−2G0 + (1 + t)−1G1
+
+,
+(4.8)
+where the definitions of Ei, Ki and Gi are similar to (3.17)-(3.18) and (3.25).
+Proof. Applying ∂k
+1, k = 0, 1, 2 to (4.3), one has
+∂k
+1Bt + Λ∂k+1
+1
+B = ¯LA2 ¯R∂k+2
+1
+B + Mk,
+where
+Mk :=
+k
+X
+j=1
+
+−∂j
+1Λ∂k−j+1
+1
+B + ∂j
+1(¯LA2 ¯R)∂k−j+2
+1
+B
+
++ 2
+k
+X
+i=0
+∂i
+1
+ ¯LA2∂1 ¯R
+
+∂k−i+1
+1
+B
++
+k
+X
+i=0
+
+∂i
+1
+  ¯Lt + Λ∂1 ¯L
+ ¯R + ¯LA2 ¯Rx1x1
+
+∂k−i
+1
+B
+
++ ∂k
+1
+ ¯LA3
+
+≤C
+k+1
+X
+j=1
+∂j
+1 ¯ρ
+
+∂k−j+1
+1
+b1
+ , 0,
+∂j
+1 ¯ρ
+
+∂k−j+1
+1
+b3
+
+t
++ Cδ
+k+2
+X
+j=1
+ω−j
+2 ∂k−j+2
+1
+B
+ + ∂k
+1
+ ¯LA3
+
+:=
+3
+X
+i=1
+M(i)
+k .
+Using the same method as (3.24), one has
+Z
+R
+vn
+1
+2 ∂k
+1b2
+1 + 1
+2∂k
+1b2
+2 + v−n
+1
+2 ∂k
+1b2
+3
+
+t
++ ¯B(k)
+x1 A4∂k+1
+1
+Bdx1 +
+Z
+R
+a1∂k
+1b2
+1 + a3∂k
+1b2
+3dx1
+=
+Z
+R
+¯B(k)∂1A4∂k
+1∂1B +
+ vn
+1
+2
+
+t
+∂k
+1b1
+2 +
+v−n
+1
+2
+
+t
+∂k
+1b3
+2 
++ ¯B(k)Mkdx1 := I#
+1 + I#
+2 + I#
+3 .
+Same as (3.28)-(3.29) and applying a priori assumptions (4.2), one has
+Z
+R
+∂1
+
+¯B(0) −Bt
+A4∂1Bdx1 ≤C(χ + δ
+1
+2 )
+Z
+R
+ω−1
+
+¯Φ2 +
+¯Ψ
+2 + ¯W 2
+dx1 + C(χ + δ
+1
+2 )K0,
+Z
+R
+∂1
+
+¯B(k) −∂k
+1Bt
+A4∂k+1
+1
+Bdx1 ≤C(χ + δ
+1
+2 )(1 + t)−1Ek + C(χ + δ
+1
+2 )Kk,
+for
+k ≥1,
+I#
+1 + I#
+2 ≤C(χ + δ
+1
+2 )
+Z
+R
+ω−1
+
+¯Φ2 +
+¯Ψ
+2 + ¯W 2
+dx1 + C(χ + δ
+1
+2 )K0,
+for
+k = 0,
+I#
+1 + I#
+2 ≤C(χ + δ
+1
+2 )(1 + t)−1Ek + C(χ + δ
+1
+2 )Kk,
+for
+k ≥1.
+
+
+STABILITY OF PLANAR ENTROPY WAVE FOR 3-D NAVIER-STOKES IN EULERIAN COORDINATES
+29
+For I#
+3 , by (4.4) and (4.5), we only provide the estimation of the error term
+M(3e)
+0
+:= (−
+r 1
+2γ
+¯λ1
+γ −1Q1 −
+1
+√2γ Q2,
+1
+p
+γ(γ −1)
+Q2, −
+r 1
+2γ
+¯λ3
+γ −1Q1 −
+1
+√2γ Q2)
+in M(3)
+k , one can find that the decay rate of the error term in the second equation has been improved
+X
+i=1,3
+Z
+R
+∂k
+1
+r 1
+2γ
+¯λi
+γ −1Q1 +
+1
+√2γ Q2
+
+∂k
+1bidx1 ≤C
+Z
+R
+∂1¯ρ
+
+(∂k
+1b1)2 + (∂k
+1b3)2
+dx1 + Cδ(1 + t)−k−1,
+1
+p
+γ(γ −1)
+Z
+R
+∂k
+1Q2∂k
+1b2dx1 ≤Cδ
+Z
+R
+ω−1(∂k
+1b2)2dx1 + Cδ(1 + t)−k−3
+2 .
+And the calculation of the remaining terms is the same as that of the estimation of (3.31)-(3.45). Then we have
+d
+dt
+ 2
+X
+i=0
+Ei
+
++
+2
+X
+i=0
+(Ki + Gi) ≤Cδ(1 + t)−1 + C¯η
+Z
+R
+ω−1(¯Φ2 + ¯Ψ2 + ¯W 2)dx1.
+Thus, we prove (4.6). The proof of (4.7) and (4.8) is similar to that of (3.21) and (3.22), so we omit it here.
+□
+To obtain the optimal decay rate, one cannot simply bound
+R
+R ω−1(¯Φ2 +
+¯Ψ
+2 + ¯W 2)dx1 by (1 + t)−1 R
+R(¯Φ2 +
+¯Ψ
+2 +
+¯W 2)dx1 which is out of control. Instead, we need to use the following elementary inequality that involves the heat
+kernel as a weight function.
+Lemma 4.4. [5] For 0 < T ≤+∞, assume that h(x1, t) satisfies
+hx1 ∈L2(0, T; L2(R)),
+ht ∈L2(0, T; H−1(R)).
+Then the following estimate holds:
+Z T
+0
+Z
+R
+h2ω−1dx1dt ≤4π∥h(0)∥2 + 4πc−1
+Z T
+0
+∥hx1(x1, t)∥2dt + 8c
+Z T
+0
+⟨ht, hg2⟩H−1×H1dt,
+where g =
+R x1
+−∞ω−1
+2 (y1, t)dy1.
+Then we give the following Poincar´e type inequality, which plays an important role in our energy estimates.
+Lemma 4.5. For ω−n defined in (2.11), and assume (4.2) holds. Then there exists some positive constant C depending
+on α such that
+Z t
+0
+Z
+R
+
+¯Φ2 +
+¯Ψ
+2 + ¯W 2
+ω−1dx1dτ ≤C + C
+Z t
+0
+∥∂1(¯Φ, ¯Ψ, ¯W)∥2
+H1dτ.
+Proof. Defining
+f(x1, t) =
+Z x1
+−∞
+ω−1(y1, t)dy1,
+one has
+∥f(·, t)∥L∞≤2c−1
+2 (1 + t)−1
+2 ,
+∥ft(·, t)∥L∞≤4c−1
+2 (1 + t)−3
+2 .
+Multiplying (4.1)2 × ( ¯W + ¯Φ)f and integrating the resulting equation over R leads to
+γ −1
+2
+Z
+R
+( ¯W + ¯Φ)2ω−1dx1 =
+Z
+R
+¯Ψ1t( ¯W + ¯Φ)fdx1 +
+Z
+R
+(2µ + λ)∂1 ¯Ψ1∂1
+
+( ¯W + ¯Φ)f
+¯ρ
+
+dx1
+−
+Z
+R
+
+J#
+21 + Q#
+21 −Q1
+
+( ¯W + ¯Φ)fdx1 :=
+3
+X
+i=1
+Ii
+ω.
+(4.9)
+We estimate Ii
+ω as follows:
+I1
+ω =
+Z
+R
+¯Ψ1( ¯W + ¯Φ)fdx1
+
+t
+−
+Z
+R
+¯Ψ1( ¯W + ¯Φ)tfdx1 −
+Z
+R
+¯Ψ1( ¯W + ¯Φ)ftdx1 := I11
+ω + I12
+ω + I13
+ω .
+Firstly, by the a priori assumptions (4.2), one has
+I13
+ω ≤C
+Z
+R
+|ft|
+
+¯Φ2 + ¯Ψ2
+1 + ¯W 2
+dx1 ≤C¯η(1 + t)−5
+4 .
+By (4.1)1,4, we have
+
+¯W + ¯Φ
+
+t = −γ¯θ∂1 ¯Ψ1 + κ
+¯ρ∂2
+1 ¯W + J#
+1 + J#
+3 + Q#
+3 −Q2.
+
+
+30
+R.-J. DUAN, F. HUANG, R. LI, AND L. XU
+Consequently
+I12
+ω = −
+Z
+R
+κ
+¯ρ
+¯Ψ1∂2
+1 ¯Wfdx1 + γ
+2
+Z
+R
+∂1
+ ¯Ψ2
+1
+¯θfdx1 −
+Z
+R
+
+J#
+1 + J#
+3 + Q#
+3 −Q2
+
+¯Ψ1fdx1
+:=J121
+ω
++ J122
+ω
++ J123
+ω
+,
+and
+J121
+ω
+=
+Z
+R
+κ
+¯ρ∂1 ¯Ψ1∂1 ¯Wfdx1 +
+Z
+R
+¯Ψ1∂1 ¯W∂1
+
+f κ
+¯ρ
+
+dx1 ≤C
+∂1 ¯Ψ1, ∂1 ¯W
+2
+L2 + η
+Z
+R
+ω−1 ¯Ψ2
+1dx1,
+where η is a sufficiently small constant to be determined later. The estimate on I123
+ω
+is similar to (3.35) to (3.38)
+I123
+ω
+≤C
+∂1(¯Φ, ¯Ψ, ¯W)
+2
+H1 + η
+Z
+R
+ω−1
+
+¯Φ2 +
+¯Ψ
+2 + ¯W 2
+dx1 + Cδ(1 + t)−3
+2 .
+(4.10)
+And I122
+ω
+= −c
+R
+R ω−1Ψ2
+1dx1, then we arrive at
+I12
+ω ≤C∥∂1(¯Φ, ¯Ψ, ¯W)∥2
+H1 + Cδ(1 + t)−3
+2 −c
+Z
+R
+¯Ψ2
+1ω−1dx1 + Cη
+Z
+R
+ω−1
+
+¯Φ2 + ¯Ψ2
+2 + ¯Ψ2
+3 + ¯W 2
+dx1.
+Also, we can estimate I3
+ω by the same line as (4.10). As for I2
+ω, one has
+I2
+ω ≤C
+∂1(¯Φ, ¯Ψ, ¯W)
+2
+L2 + η
+Z
+R
+ω−1
+
+¯Φ2 + ¯Ψ2
+1 + ¯W 2
+dx1.
+Finally, collecting (4.9) and estimates on I1
+ω, I2
+ω, I3
+ω, one has
+γ −1
+2
+Z
+R
+( ¯W + ¯Φ)2ω−1dx1 + c
+Z
+R
+¯Ψ2
+1ω−1dx1 −I11
+ω
+≤C∥∂1(¯Φ, ¯Ψ, ¯W)∥2
+H1 + Cη
+Z
+R
+ω−1
+
+¯Φ2 + ¯Ψ2
+2 + ¯Ψ2
+3 + ¯W 2
+dx1 + C(1 + t)−5
+4 .
+(4.11)
+Note that we still need to estimate
+R
+R( ¯W −¯Φ)2ω−1dx1, for which we will apply Theorem 4.4. Firstly, we use (4.1)
+to obtain the cancellation as 
+¯W −(γ −1)¯Φ
+
+t = κ
+¯ρ∂2
+1 ¯W + J#
+3 + Q#
+3 −Q2 −(γ −1)J#
+1 .
+Next, to apply Theorem 4.4, we define h = ¯W −(γ −1)¯Φ to have
+⟨ht, hg2⟩H−1×H1 =
+Z
+R
+κ
+¯ρ∂2
+1 ¯Whg2dx1 +
+Z
+R
+ J#
+3 + Q#
+3 −Q2 −(γ −1)J#
+1
+
+hg2dx1 := I1
+h + I2
+h.
+(4.12)
+We only show the estimations of I1
+h, since I2
+h is similar to (4.10).
+Using an integration by part about x1, we have
+Z
+R
+κ
+¯ρ∂2
+1 ¯Whg2dx1 = −
+Z
+R
+∂1
+κ
+¯ρ
+
+∂1 ¯Whg2dx1 −
+Z
+R
+κ
+¯ρ∂1 ¯W∂1hg2dx1 −2
+Z
+R
+κ
+¯ρ∂1 ¯Whgω−1
+2 dx1
+≤C(δ + η)
+Z
+R
+(¯Φ2 + ¯W 2)ω−1dx1 + C∥∂1 ¯W∥2 + C∥∂1 ¯Φ∥2.
+(4.13)
+By choosing a suitably small η > 0, one has
+⟨ht, hg2⟩H−1×H1 ≤C(δ + η)
+Z
+R
+(¯Φ2 +
+¯Ψ
+2 + ¯W 2)ω−1dx1 + C∥∂1(¯Φ, ¯Ψ, ¯W)∥2
+H1 + Cδ(1 + t)−3
+2 .
+(4.14)
+It follows from Theorem 4.4 and (4.14) that
+Z t
+0
+Z
+R
+( ¯W −(γ −1)¯Φ)2ω−1dx1dτ ≤C + C(δ + η)
+Z t
+0
+Z
+R
+(¯Φ2 +
+¯Ψ
+2 + ¯W 2)ω−1dx1 + C
+Z t
+0
+∥∂1(¯Φ, ¯Ψ, ¯W)∥2
+H1dτ.
+(4.15)
+By (4.1)3,4 and Theorem 4.5, using the same method as (4.12) to (4.15), one has
+Z t
+0
+Z
+R
+(¯Ψ2 + ¯Ψ3)2ω−1dx1dτ ≤C + C(δ + η)
+Z t
+0
+Z
+R
+(¯Φ2 + ¯W 2 + ¯Ψ2
+1)ω−1dx1 + C
+Z t
+0
+∥∂1(¯Φ, ¯Ψ, ¯W)∥2
+H1dτ.
+(4.16)
+Combining (4.11), (4.15) and (4.16) and taking η small enough, we have completed the proof of Theorem 4.5.
+□
+The decay rate: proof of Theorem 2.4.
+
+
+STABILITY OF PLANAR ENTROPY WAVE FOR 3-D NAVIER-STOKES IN EULERIAN COORDINATES
+31
+Proof. Integrating (4.6) with [0, t] and employing Theorem 4.5, we have
+2
+X
+i=0
+Ei +
+Z t
+0
+2
+X
+i=0
+(Ki + Gi)dτ ≤C(ε2 + δ) ln(2 + t).
+Multiplying (4.7) by (1 + t) and integrating the resulting inequality on [0, t], one has
+2
+X
+i=1
+Ei ≤C(ε2 + ¯δ)(1 + t)−1 ln(2 + t),
+Z t
+0
+(1 + τ)
+2
+X
+i=1
+(Ki + Gi)dτ ≤C(ε2 + δ) ln(2 + t).
+(4.17)
+Multiplying (4.8) by (1 + t)2 and integrating the resulting inequality into [0, t], one has
+(1 + t)2E2 +
+Z t
+0
+(1 + τ)2(K2 + G2)dτ ≤C(ε2 + δ) ln(2 + t).
+It then follows
+E2 ≤C(ε2 + δ)(1 + t)−2 ln(2 + t).
+(4.18)
+Then by (4.17) and (4.18), it holds that
+∥(˚ϕ, ˚
+ψ, ˚
+w)∥L∞≤C(ε + δ
+1
+2 )(1 + t)−3
+4 ln
+1
+2 (2 + t).
+The proof of the decay rate of the non-zero mode is the same as that of Theorem 3.10 and Theorem 3.11, so we omit
+it. Then the proof of Theorem 4.1 is completed.
+□
+Acknowledgment: The work of Feimin Huang was partially supported by National Key R&D Program of China No.
+2021YFA1000800, and National Natural Sciences Foundation of China (NSFC) No. 12288201. The research of Renjun
+Duan was partially supported by the General Research Fund (Project No. 14303523) from RGC of Hong Kong and also
+by the grant from the National Natural Science Foundation of China (Project No. 12425109). Lingda Xu was supported
+by the Research Center for Nonlinear Analysis of the Hong Kong Polytechnic University.
+Data availability: The manuscript contains no associated data.
+Conflict of Interest: The authors declare that they have no conflict of interest.
+References
+[1] H. Freist¨uhler and P. Szmolyan, Spectral stability of small shock waves. Arch. Ration. Mech. Anal. 164, No. 4, 287-309 (2002).
+[2] H. Freist¨uhler and P. Szmolyan, Spectral stability of small-amplitude viscous shock waves in several space dimensions. (English) Arch.
+Ration. Mech. Anal. 195, No. 2, 353-373 (2010).
+[3] J. Goodman, Nonlinear asymptotic stability of viscous shock profiles for conservation laws. Arch. Ration. Mech. Anal. 95, 325-344
+(1986).
+[4] L. Hsiao and T.-P. Liu, Nonlinear diffusive phenomena of nonlinear hyperbolic systems. Chinese Ann. Math. Ser. B, 14, 465-480 (1993).
+[5] F. M. Huang, J. Li and A. Matsumura, Asymptotic stability of combination of viscous entropy wave with rarefaction waves for 1-d
+compressible Navier-Stokes system. Arch. Ration. Mech. Anal. 197, 89-116 (2010).
+[6] F. M. Huang and A. Matsumura, Stability of the composite wave of two viscous shock waves for the full compressible Navier-Stokes
+equation. Comm. Math. Phys. 289, 841-861.28 (2009).
+[7] F. M. Huang, A. Matsumura and Z. P. Xin, Stability of entropy waves for the 1-D compressible Navier-Stokes equations. Arch. Ration.
+Mech. Anal. 179, 55-77 (2006).
+[8] F. M. Huang, T. Wang and Y. Wang, Diffusive wave in the low Mach limit for compressible Navier-Stokes equations. Adv. Math. 319,
+348-395 (2017).
+[9] F. M. Huang, Z. P. Xin and T. Yang, entropy waves with general perturbation for gas motion. Adv. Math. 219, 1246-1297 (2008).
+[10] F. M. Huang, L. Xu and Q. Yuan: Asymptotic stability of planar rarefaction waves under periodic perturbations for 3-d Navier-Stokes
+equations. Adv. Math. 404, Paper No. 108452, 27 pp. (2022).
+[11] F. M. Huang, Z. P. Xin, L. Xu and Q. Yuan: Nonlinear asymptotic stability of compressible vortex sheets with viscosity effects.
+arXiv:2308.06180.
+[12] J. Humpherys, G. Lyng and K. Zumbrun: Multidimensional stability of large-amplitude Navier-Stokes shocks. Arch. Ration. Mech.
+Anal. 226(3), 923-973 (2017).
+[13] A. M. Il’in and O. A. Oleˇınik, Asymptotic behavior of solutions of the Cauchy problem for some quasi-linear equations for large values
+of the time. Mat. Sb. (N.S.) 51(93) 191–216 (1960).
+[14] M.-J. Kang, A. Vasseur and Y, Wang, Time-asymptotic stability of composite waves of viscous shock and rarefaction for barotropic
+Navier-Stokes equations. Adv. Math. 419, Article ID 108963, 66 p. (2023).
+[15] L. Li and Y, Wang, Stability of the planar rarefaction wave to the two-dimensional compressible Navier-Stokes equations. SIAM J.
+Math. Anal. 50(5), (2018).
+[16] L. Li, T. Wang and Y, Wang, Stability of planar rarefaction wave to 3D full compressible Navier-Stokes equations. Arch. Ration. Mech.
+Anal. 230, No. 3, 911-937 (2018).
+[17] L. Liu, S. Wang and L. Xu: Optimal decay rates to the contact wave for 1-D compressible Navier-Stokes equations. arXiv:2310.12747.
+[18] T.-P. Liu, Nonlinear stability of shock waves for viscous conservation laws. Mem. Amer. Math. Soc. 56, no. 328, v+108 (1985).
+[19] T.-P. Liu, Pointwise convergence to shock waves for viscous conservation laws. Comm. Pure Appl. Math. 50, no. 11, 1113-1182 (1997).
+[20] T.-P. Liu and H. Wang, Viscous scalar rarefaction waves. SIAM J. Math. Anal. 49, No. 3, 2061-2100 (2017).
+
+
+32
+R.-J. DUAN, F. HUANG, R. LI, AND L. XU
+[21] T.-P. Liu and Z. P. Xin, Pointwise decay to contact discontinuities for systems of viscous conservation laws. Asian J. Math. 1 34-84
+(1997).
+[22] T.-P. Liu and S.-H Yu, Multi-dimensional wave propagation over a Burgers shock profile. Arch. Ration. Mech. Anal. 229, No. 1, 231-337
+(2018).
+[23] T.-P. Liu and Y .N. Zeng, Time-asymptotic behavior of wave propagation around a viscous shock profile. Comm. Math. Phys. 290 , no.
+1, 23-82 (2009).
+[24] T.-P. Liu and Y .N. Zeng, Shock waves in conservation laws with physical viscosity. Mem. Amer. Math. Soc. 234, no. 1105, vi+168 pp
+(2015).
+[25] A. Matsumura and K. Nishihara, On the stability of travelling wave solutions of a 1-d model system for compressible viscous gas. Japan
+J. Appl. Math. 2, no. 1, 17-25 (1985).
+[26] A. Matsumura and K. Nishihara, Asymptotics toward the rarefaction wave of the solutions of a one dimensional model system for
+compressible viscous gas. Japan J. Appl. Math. 3, 1-13 (1986).
+[27] A. Szepessy and Z. P. Xin, Nonlinear stability of viscous shock waves. Arch. Ration. Mech. Anal. 122, 53-103 (1993).
+[28] T. Wang and Y. Wang, Nonlinear stability of planar viscous shock wave to three- dimensional compressible Navier-Stokes equations. J.
+Eur. Math. Soc. (JEMS), to appear.
+[29] Z. P. Xin, Asymptotic stability of planar rarefaction waves for viscous conservation laws in several dimensions. Trans. Amer. Math. Soc.
+319, no. 2, 805–820 (1990).
+[30] Z. P. Xin and H. H. Zeng, Pointwise stability of entropy wave for viscous conservation laws with general perturbations. Comm. Partial
+Differential Equations. 35, no. 7, 1326-1354 (2010).
+[31] D. C. Yang, A remark on the contact wave for the 1-D compressible Navier-Stokes equations. Commun. Math. Sci. 18, No. 1, 189-204
+(2020).
+[32] Q. Yuan, Time-asymptotic stability of planar Navier-Stokes shocks with spatial oscillations. Sci. China Math. 68, no. 6, 1355–1392
+(2025).
+[33] Q. Yuan and W. Zhao, Global nonlinear stability of vortex sheets for the Navier-Stokes equations with large data. arXiv:2507.09359
+(2025).
+[34] K. Zumbrum, Planar stability criteria for viscous shock waves of systems with real viscosity. In: Hyperbolic Systems of Balance Laws,
+Lecture Notes in Math. 1911, Berlin: Springer, 2007, pp. 229-326.
+(R.-J. Duan) Department of Mathematics, The Chinese University of Hong Kong, Shatin, Hong Kong, China.
+Email address: rjduan@math.cuhk.edu.hk
+(F. Huang) Academy of Mathematics and Systems Science, Chinese Academy of Sciences, Beijing 100190, China, and School
+of Mathematical Sciences, University of Chinese Academy of Sciences, Beijing 100049, China.
+Email address: fhuang@amt.ac.cn
+(R. Li) Department of Mathematics, The Chinese University of Hong Kong, Shatin, Hong Kong, China.
+Email address: ruili001@cuhk.edu.hk
+(L. Xu) Department of Applied Mathematics, The Hong Kong Polytechnic University, Hong Kong, China.
+Email address: lingda.xu@polyu.edu.hk

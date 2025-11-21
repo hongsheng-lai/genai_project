@@ -1,0 +1,753 @@
+Detection of spiking motifs of arbitrary length in neural activity
+using bounded synaptic delays
+T. Kronland-Martinet
+S. Viollet
+L. Perrinet
+November 20, 2025
+Abstract
+In the context of spiking neural networks, temporal coding of signals is increasingly preferred
+over the rate coding hypothesis due to its advantages in processing speed and energy efficiency.
+In temporal coding, synaptic delays are crucial for processing signals with precise spike timings,
+known as spiking motifs. Synaptic delays are however bounded in the brain and can thus be shorter
+than the duration of a motif. This prevents the use of motif recognition methods that consist of
+setting heterogeneous delays to synchronize the input spikes on a single output neuron acting as a
+coincidence detector. To address this issue, we developed a method to detect motifs of arbitrary
+length using a sequence of output neurons connected to input neurons by bounded synaptic delays.
+Each output neuron is associated with a sub-motif of bounded duration. A motif is recognized if
+all sub-motifs are sequentially detected by the output neurons. We simulated this network using
+leaky integrate-and-fire neurons and tested it on the Spiking Heidelberg Digits (SHD) database,
+that is, on audio data converted to spikes via a cochlear model, as well as on random simultaneous
+motifs. The results demonstrate that the network can effectively recognize motifs of arbitrary
+length extracted from the SHD database. Our method features a correct detection rate of about
+60% in presence of ten simultaneous motifs from the SHD dataset and up to 80% for five motifs,
+showing the robustness of the network to noise. Results on random overlapping patterns show
+that the recognition of a single motif overlapping with other motifs is most effective for a large
+number of input neurons and sparser motifs. Our method provides a foundation for more general
+models for the storage and retrieval of neural information of arbitrary temporal lengths.
+1
+Introduction
+Increasing evidence suggests that precise spike timings play a crucial role in neuronal communication
+within the brain [1].
+The temporal coding hypothesis has gained significant attention due to its
+efficiency in processing speed compared to rate coding, which typically requires longer processing
+times [2, 3].
+A crucial model was found in spiking neural networks where neurons are randomly
+connected with random frozen synaptic delays [4]. Groups known as polychronous groups defined by
+precise millisecond-scale spiking motifs have been observed to naturally emerge as a consequence of
+Spike-Timing Dependent Plasticity (STDP) learning [5]. These polychronous groups were reoccurring
+multiple times during simulations, even when the network inputs were random, suggesting that learning
+motifs with precise spike timings could be highly relevant in the brain [6].
+Moreover, reducing time precision leads to a degradation of results such that the precise timing of
+spikes is crucial for motif recognition tasks [7]. Previous studies on motif recognition have primarily
+focused on synaptic weights, as seen in Hopfield networks [8], often disregarding the temporal precision
+of learned motifs. Some Hebbian learning rules, such as STDP, consider the precise timing of spikes for
+learning but most often update only the synaptic weights [9]. Other studies have suggested strategies
+for learning temporal motifs. For instance, networks using bistable neurons and global inhibition can
+recognize sequences of spikes of arbitrary length [10, 11, 12]. However, these networks do not account
+for precise spike timings. In contrast, networks with heterogeneous delays have been used to recognize
+motifs with precise spike timing [13, 14]. However, although delays can be set with arbitrary lengths on
+a computer, they are constrained in the brain, with synaptic delays generally considered to be shorter
+than 30 ms [15, 16]. Therefore, as defined in [13, 14], synaptic delays highly constrain the length of
+learned motifs. Learning rules, such as the DELTRON [17], have been developed to learn delays but
+do not consider the limited range of delays imposed by biological neurons.
+1
+arXiv:2511.15296v1  [q-bio.NC]  19 Nov 2025
+
+
+To overcome these constraints, we developed a network architecture capable of detecting motifs of
+arbitrary length using bounded delays. This network operates by dividing a spiking motif of arbitrary
+length into sub-motifs of bounded duration. For each sub-motif, an output neuron is connected to
+the input neurons to learn the sub-motif. Output neurons are then connected together sequentially,
+and a motif is recognized if the final output neuron fires following the sequential activation of all sub-
+motifs. We tested this network in simulations using audio data converted to spikes via a model of the
+cochlea. The network successfully recognized motifs even when they were presented simultaneously.
+Additionally, we evaluated the network’s capacity to recognize a motif in the presence of simultaneous
+motifs using random synthetic motifs. This test, related to the cocktail party problem [18], highlighted
+the network’s ability to recognize motifs even with high levels of background noise. In the following
+sections, we first describe the network in Section 2, then detail the simulation process in Section 2.3,
+and analyze the results in Section 3. Finally, we discuss the results in Section 4.
+2
+Methods: recognition network for arbitrary-length motifs
+2.1
+Network architecture
+In this section, we describe the architecture of the network designed to recognize a single spiking motif
+generated by a group of input neurons. Recognition is achieved through the sequential activation of
+output neurons, each corresponding to a sub-motif, that is, a segment of the motif. Figure 1 provides
+a visual overview of this architecture.
+2.1.1
+Definition of spiking motifs
+Let us consider n ∈N∗input neurons that fire a motif of duration T ∈R+∗.
+The input neu-
+rons are labelled i1, i2, ..., in and a neuron ij, with j ∈{1, ..., n}, emits m ∈N spikes with timings
+{tij
+1 , tij
+2 , ..., tij
+m} ∈Rm. These timings are ordered, that is, 0 ≤tij
+1 < tij
+2 < ... < tij
+m < T (cf. figure 1c).
+The motif is defined as a sequence of spikes from the input neurons, where the timing of each spike is
+precise. The goal of the network is to recognize this motif by detecting the precise timing of spikes in
+the input neurons.
+To construct the network, the motif duration T is divided in s ∈N∗intervals of length I = T
+s (cf.
+figure 1a). The parameter s should be chosen such as the length of the intervals is shorter than the
+maximum possible synaptic delay. We can compute the number of input neurons spikes in the motif
+that occurs in each interval Iℓ= [(ℓ−1) I, ℓI[, where ℓ∈{1, ..., s}, as follows:
+NIℓ=
+n
+X
+j=1
+m
+X
+k=1
+1(ℓ−1)I≤t
+ij
+k <ℓI
+(1)
+Where 1C is the Kronecker delta function, which is equal to 1 if the condition C is true and 0 otherwise
+(cf. figure 1b).
+2.1.2
+Sub-motif detection
+The input neurons are connected to a group of s output neurons labelled o1, o2, ..., os each associated
+to a time interval. Each output neuron is such that oℓhas NIℓsynapses from input neurons. For each
+spike timing tij
+k such as (ℓ−1) I ≤tij
+k < ℓI, a synapse connects input neuron ij to output neuron oℓ
+with a delay tuned such that the spikes converging on the soma of output neuron oℓsynchronize to the
+end of the interval Iℓ. In other words, we define the synaptic delay δij,oℓ,k from neuron ij to output
+neuron oℓsuch as if neuron ij spikes at time tij
+k , with respect to the beginning of the motif, this spike
+reaches neuron oℓat time tiℓ= ℓI + a. Here, a > 0 is a constant added to ensure that every synaptic
+delay is strictly positive, i.e., δij,oℓ,k ≥a. This prevents any synapse from having zero delay, which
+is biologically implausible and problematic in simulations. As a consequence, if delays are attuned
+regarding the following equation :
+tiℓ= ℓI + a = δij,oℓ,k + tij
+k
+(2)
+2
+
+
+b
+b
+Network architecture
+a
+b
+c
+Spiking motif  and output spikes
+Single neuron spiking motif  and 
+output spikes
+Spiking sub-motif
+Synaptic weights
+Synaptic delays
+i1
+i2
+i3
+in
+o1
+o2
+o3
+os
+ℓI
+N  =11
+Iℓ
+(ℓ-1)I
+i1
+t
+i2
+i3
+in.
+.
+.
+Iℓ
+i1
+i2
+i3
+in
+.
+.
+.
+ol-1
+ol
+wℓ
+wℓ
+wℓ
+wℓ
+wℓ
+wℓ
+γ.wℓ
+δ1
+δo=I-b
+δo
+δo
+δ2
+ik
+t
+I1
+a
+a
+a
+t1
+ik t2
+ik
+t3
+ik
+tm
+ik
+I2
+I+a
+I3
+...
+Is
+δ3
+δm
+δ1 δ2
+δ0
+o1
+o2
+o3
+os
+t
+I1
+ab
+a
+ab
+I2
+I+a+b
+I3
+...
+Is
+δ3
+δm
+ik
+o1
+o2
+o3
+os
+i1
+t
+T
+I1
+I2
+i2
+i3
+in
+I3
+...
+Is
+o1
+t
+0
+I
+2I
+3I
+sI
+o2
+o3
+os
+Iℓ
+wℓ =w/(γ+N  ) 
+a
+Figure 1: Neural network architecture for the recognition of arbitrary-length motifs (each black or red
+dot on right-side figures correspond to a spike). a) Network achitecture : the connectivity between input
+and output neurons follows the distribution of input spikes within each sub-motif I. b) Distribution of
+the synaptic weights according to equation 9. c) Calculus of the synaptic delay according to equation
+7 and their representation for a given motif.
+3
+
+
+then all spikes from the sub-motif reach the output neuron at the same precise time. Finally, the
+synaptic delay is therefore defined as (cf. figure 1c) :
+δij,oℓ,k = ℓI + a −tij
+k
+(3)
+The synaptic weights are defined such as neuron oℓfires only if all spikes of the motif occurring in
+the interval Iℓreach simultaneously the neuron oℓ. Details are given in the following section.
+2.1.3
+From local to global detection
+An input spiking motif may be trigered after a silent period, such that we define the first output neuron
+of having connections with input neurons by its index f:
+f = min
+ℓ
+(NIℓ> 0)
+(4)
+For output neuron of, the synaptic weights are defined such that of fires only if it receives NIf
+synchronous spikes. Let us consider w the minimum weight such that a Leaky Integrate-and-Fire (LIF)
+neuron fires from a single input (see next section for more details). The synaptic weight associated
+with each input synapse to output neuron of is given by
+wf =
+w
+NIf
+(5)
+To allow for noisy inputs, a threshold can be defined such as of fires if input spikes are missing or if
+the input spikes are only approximately synchronous. Equivalently, we can define a new weight:
+wf,noisy = wf + ϵ, ϵ ∈R+
+(6)
+To ensure a chain of detection of the global motif by the convergence of the spiking motifs within
+each interval Iℓ, each output neuron oℓwith f ≤ℓ< s is connected to the next output neuron oℓ+1 with
+a synaptic delay δoℓ,oℓ+1. As precised in section 2.1.2, if the learned motif occurs, the output neuron
+oℓshould receive all simultaneous input spikes at time tiℓ= ℓI + a, with respect to the begining of
+the motif. Therefore, by considering its dynamic, neuron oℓwould fire at time toℓ= ℓI + a + b, where
+b > 0 is the the delay neuron oℓneeds to generate a spike when receiving the learned input signal.
+Similarly, output neuron oℓ+1 should receive all input spikes at time ti(ℓ+1) = (ℓ+ 1)I + a, including
+the spike from output neuron oℓ. Therefore, the delay δoℓ,oℓ+1 is defined such that (cf. figure 1c):
+ti(ℓ+1) = toℓ+ δoℓ,oℓ+1
+⇐⇒(ℓ+ 1)I + a = ℓI + a + b + δoℓ,oℓ+1
+⇐⇒δoℓ,oℓ+1 = I −b
+(7)
+Except for output neuron of, the synaptic weight of input synapses to output neuron oℓare given
+by:
+wℓ=
+w
+NIℓ+ 1
+(8)
+Such that neuron oℓspikes only if it receives NIℓsynchronous spike from input neurons and one more
+synchronous spike from the previous output neuron.
+If we want to ensure that the output neurons spike only if the previous output neuron spiked, we
+can define the synaptic weight of input synapses to output neuron oℓby (cf. figure 1b):
+wℓ=
+w
+NIℓ+ γ
+(9)
+In that equation, γ > 1 is a parameter giving the relative strength of output to output synapses with
+respect to input to output synapses, such that:
+woℓ−1oℓ=
+γw
+NIℓ+ γ = γwℓ
+(10)
+is the weight between two successive output neurons oℓ−1 and oℓ. By increasing the value of γ, we
+reduce the probability for neurons to spike independently from the learned sequence.
+All weights can be adjusted to process noisy motifs, as shown in eq. 6.
+Finally, the motif is
+recognized if and only if neuron os fires.
+4
+
+
+2.2
+Network implementation using LIF neurons
+2.2.1
+Definition of w and b from the Leaky Integrate-and-Fire (LIF) neuron equation
+To explain the choice of parameters w and b defined in the previous section, we consider the LIF model
+of a spiking neuron for its simplicity and because it was sufficient for the efficient simulation of the
+network. A LIF neuron’s membrane potential is defined by [19]:
+τm
+du
+dt = −[u(t) −urest] + RI(t)
+(11)
+Where u is the membrane potential of the neuron, τm its membrane time constant, urest is the neuron’s
+resting membrane potential, R the membrane resistance and I the input signal’s intensity.
+The solution of the LIF membrane potential equation for a neuron receiving an input spike of intensity
+I(t) = wI0 for 0 < t < ∆is:
+(
+u(t) = urest
+if t ≤0
+u(t) = urest + RwI0
+h
+1 −exp
+
+−t
+τm
+i
+if 0 < t < ∆
+(12)
+Where w is the synaptic weight and I0 is the current generated by a spike.
+The neuron spikes if u ≥uthreshold (urest < uthreshold). If we choose w such as u(∆) = uthreshold, the
+delay b, defined in section 2.1, is given by b = ∆, and w is given by:
+u(∆) = uthreshold
+⇐⇒uthreshold = urest + RwI0
+
+1 −exp
+
+−∆
+τm
+
+⇐⇒w =
+uthreshold −urest
+RI0
+h
+1 −exp
+
+−∆
+τm
+i
+(13)
+If the neuron’s membrane potential reaches the threshold, it is reset to a value ureset. In this paper,
+we set ureset = urest. The parameters and spike generation are shown in figure 2
+urest
+ureset
+0
+0
+b
+I0
+uthreshold
+u(t)
+t
+t
+I(t)
+Δ
+Figure 2: Neuron spike generation from an input current. Top: input current. Bottom: membrane
+potential of the neuron as a function of time.
+2.2.2
+Recognition of a spiking motif of arbitrary length
+When a set of input neurons spike a learned motif, the network activates in a sequential manner.
+The input neurons spikes the first sub-motif at time interval If. Input spikes propagate through the
+synapses with various delays, and will reach output neuron of simultaneously at time tif = fI + a.
+Neuron of will therefore fire at time tof = fI + a + b. Meanwhile, the input neurons generate spikes
+5
+
+
+from the next sub-motif starting at time interval If+1. Input spikes and the spike from output neuron
+of will reach synchronously the output neuron of+1, at time ti(f+1) = (f + 1)I + a. Neuron of+1
+will then fire at time to(f+1) = (f + 1)I + a + b. This sequence of activation of output neurons will
+go on until neuron os will emit a spike, meaning that the sequence is recognized (cf. figure 1a,c for
+visualization of sequential activation of spikes). If one output neuron does not spike, the next output
+neurons will not spike (except in some particular cases where parameters allow for noisy inputs, cf.
+eq. 6), and the pattern will therefore not be recognized.
+2.2.3
+Parallel recognition of multiple motifs of arbitrary length
+Since input neurons can generate several motifs, we may need to learn more than one motif. For
+each motif we wish to learn, a group of output neurons is connected to the input neurons. All sets of
+output neurons, encoding a motif, are independent from each other. A visualization of an architecture
+encoding two distinct patterns is given in figure 3.
+i1
+i2
+i3
+in
+o11
+o12
+o13
+o1s
+o21
+o22
+o23
+o2s
+i1
+t
+T
+I1
+0
+I
+2I
+3I
+sI
+I2
+i2
+i3
+in.
+.
+.
+I3
+...
+Is
+Figure 3: Neural network architecture for coding distinct motifs, here two motifs plotted respectively
+with blue and red spikes.
+2.3
+Simulation of the network
+The network was simulated using Python with the PyNN Application Programming Interface (API) [20],
+which provides a unified language. One advantage of using PyNN is that it allows for easy switching
+between different simulators, such as NEST, Brian2, or NEURON, without changing the code. This
+flexibility is beneficial for testing the network on different platforms and ensuring compatibility with
+various simulation environments but also to extend it to neuromorphic hardware in the near future [21].
+For this work, we used PyNN with the NEST backend, which efficiently integrates the LIF neuron
+model described in equation 11 using optimized C++ code.
+To test the recognition of a given set of known motifs, a network was built following the description
+in section 2.1.
+For each motif, input neurons where connected to a group of output neurons, as
+represented in figure 3. The network was simulated using LIF neurons with fixed threshold and alpha-
+function-shaped post-synaptic current (IF curr alpha on PyNN). To avoid long term effects of input
+spikes on the membrane potential of output neurons, the membrane time constant of the neurons
+was set to 1 ms such that neurons had fast dynamics. We also set a non zero refractory time for
+all neurons in order to avoid excessive spiking of neurons since the network was only composed of
+excitatory neurons. The initial, resting and reset membrane potential of the neurons where all set to
+-65mV, and the threshold was set to -50mV.
+The number of output neurons was defined with respect to the maximum synaptic delays and the
+duration of the learned motif. For instance, 10 output neurons are required to memorize a 100 ms
+duration motif with maximum synaptic delays of 10ms. The synapses connecting input neurons to
+output neurons have constant weights and delays, as defined in section 2.1. The synaptic weight of
+output to output neurons were 10 times higher than the weights of input to output neurons (γ = 10 in
+6
+
+
+eq. 9 and 10) Our code was partly compiled using Numba [22], and processed in parallel on multiple
+CPU’s using Joblib. Reproducible code is available at your_code_link_here.
+3
+Results
+3.1
+Random synthetic spiking motifs
+To evaluate the network’s ability to recognize a learned motif in the presence of simultaneous motifs
+(i.e., noise), we generated random synthetic spiking motifs to serve as input. Each motif was con-
+structed by specifying the minimum and maximum interspike intervals, the total motif duration, and
+the maximum number of spikes per neuron. For each neuron, spike times were drawn from a uniform
+distribution within the specified interval, with a minimum interval of 3 ms enforced to prevent excessive
+firing.
+In all tests, the membrane time constant was set to 1 ms for all neurons and the refractory period
+was set to 1 ms for input neurons and 0.5 ms for output neurons, balancing the need to prevent
+excessive spiking while allowing motif detection in noisy conditions. All networks used a maximum
+synaptic delay of 10 ms. For each configuration, 40 independent trials were performed with randomly
+generated motifs to ensure statistical reliability.
+The first experiment evaluated the network’s ability to recognize a single motif in the presence of
+multiple overlapping motifs, as a function of motif duration and the number of overlapping motifs.
+Here, the number of input neurons was fixed at 100, and the maximum interspike interval was set to
+500 ms, resulting in a mean firing rate of approximately 4 Hz per neuron. Results are shown in Figure 4.
+The proportion of correctly recognized motifs decreases as either the number of simultaneous motifs or
+the motif duration increases. This is expected, as more simultaneous motifs reduce the signal-to-noise
+ratio, and longer motif durations increase the likelihood of spike conflicts at the output neurons. If an
+output neuron spikes at the wrong time due to noise, its refractory period may prevent it from firing
+when the actual motif occurs. Both effects contribute to an increase in false negatives, reducing the
+proportion of motifs successfully recognized.
+Figure 4: Results of the simulated network on simultaneous random motifs for various numbers of
+simultaneous motifs and motifs duration. The shaded bands give the standard deviation of the results,
+each configuration was tested 40 times. Both figures correspond to the same simulation. We only
+display the proportion of true positive in this figure since the proportion of false positive is always
+null, and the proportion of false negative can be deduced from the proportion of true positive and
+eq. 15.
+The second experiment analyzed the network’s ability to recognize a single motif in the presence
+of simultaneous motifs, as a function of the number of input neurons and the maximum interspike
+interval (which determines the firing rate). In this test, 50 motifs of 5000 ms duration were generated.
+Results are shown in Figure 5.
+The results indicate that the proportion of correctly recognized motifs increases with both the
+number of input neurons and the maximum interspike interval (i.e., as the firing rate decreases).
+Increasing the number of input neurons expands the space of possible motifs, reducing the likelihood
+that an output neuron is incorrectly activated by noise.
+False negatives typically occur when an
+output neuron spikes prematurely due to noise and is then unable to fire at the correct time due to its
+7
+
+
+refractory period. Since output neurons are activated sequentially, a missed or mistimed spike in any
+output neuron prevents recognition of the entire motif.
+Similarly, increasing the maximum interspike interval (lowering the firing rate) makes motifs sparser,
+which reduces the probability of spike conflicts and erroneous output neuron activation. At high firing
+rates, the proportion of false positives is elevated, but this decreases as firing rates drop. False neg-
+atives also decrease with sparser activation, as fewer spike conflicts occur. When input neurons are
+highly active, false positives dominate; as activity decreases, errors shift toward false negatives due to
+missed activations. Overall, correct recognition improves as input neuron activity becomes sparser.
+Figure 5: Results of the simulated network on simultaneous random motifs for various numbers of
+input neurons and maximum interspike interval. The shaded bands indicate the standard deviation
+across 40 trials per configuration. All figures correspond to the same simulation.
+In summary, these tests demonstrate that the motif recognition network is robust to noise, with
+optimal detection achieved for short motifs, a large number of input neurons, and sparse neuronal
+activation. An unexpected result in Figure 5 is that, for 200 input neurons, the highest recognition
+rate occurs at a maximum interspike interval of 200 ms. This phenomenon is not yet fully understood
+and suggests that optimal configurations may depend on the specific characteristics of the input motifs.
+3.2
+Spiking Heidelberg Digits
+The network was further evaluated using the Spiking Heidelberg Digits (SHD) dataset [23].
+This
+dataset consists of audio recordings of spoken digits (0–9) in both English and German, converted
+to spike trains via the Lauscher cochlear model. In figure 6a, label “4” refers to the English digit
+’four’, and label “17” to the German digit ’sieben’ (’seven’). The dataset was accessed using the Tonic
+Python library [24]. To reduce simulation time, the spike data was downsampled by a factor of 103.
+Since SHD data have microsecond resolution, this downsampling step leads to millisecond resolution
+of the data (using Tonic’s Downsample transform), and the minimum interspike interval (ISI) was set
+to 5 ms to prevent excessive output neuron spiking.
+For clarity, we standardized the motif duration to 4 seconds, even though the actual motifs varied
+in length. If a motif was shorter than 4 seconds (see motif 1 in figure 6a), spikes simply propagated
+through the remaining output neurons without requiring additional input spikes.
+Each motif was
+encoded by connecting input neurons to a sequence of output neurons, with synaptic delays capped
+at 20 ms. Thus, a 4-second motif was represented by 200 output neurons (one per 20 ms interval). In
+figure 6b-c, recognition of motif 1 was indicated by a spike from output neuron number 199, which
+corresponds to the final interval of the motif.
+8
+
+
+All neurons were configured with a refractory period of 2 ms and a membrane time constant of
+1 ms. Connections followed the architecture described in Section 2.1. For testing, the input signal
+consisted of: motif 1 (from 10 ms to 4010 ms), motif 2 (from 4010 ms to 8010 ms), and then both motifs
+presented simultaneously with an offset of 190 ms between the motif 1 (from 8020 ms to 12020 ms)
+and the motif 2 (from 8210 ms to 12210 ms). This offset allowed us to distinguish true positive motif
+recognition from false positives. It was chosen arbitrarily, but long enough to distinguish visually the
+recognition of both motifs by output neurons in Figure 6b-c, while maximizing the overlap between
+both patterns, as seen in Figure 6a. Motif 1 (label 4) was detected at 4013.1 ms and 12023.1 ms, and
+motif 2 (label 17) at 8016.6 ms and 12216.6 ms, as indicated by spikes from output neuron number 199
+in Figure 6c. These detection times correspond to the end of each motif, confirming that the network
+accurately identified both the timing and identity of the motifs—even when they overlapped.
+In addition, we performed similar tests with an increasing number of simultaneous motifs. In those
+tests, only overlapping motifs were tested, and motifs were offset from each other by 50 ms. The
+number of simultaneous motifs ranged from 2 to 20, and each condition was tested 40 times with
+random motifs from the SHD dataset. For each test, we considered that the recognition was successful
+only if all patterns were correctly detected.
+For instance, if one pattern was not recognized, the
+recognition was considered wrong. The mean proportion, over the 40 tests, of successful recognition
+for varying number of overlapping patterns is given in figure 7. This result demonstrates the network’s
+robustness to noise and its ability to reliably recognize multiple motifs within complex input patterns.
+4
+Discussion
+This paper demonstrates that spiking neural networks with bounded synaptic delays can reliably
+recognize motifs of arbitrary length. The proposed architecture is biologically plausible, reflecting key
+constraints observed in the brain. Notably, the network features a much higher number of synapses
+than neurons, mirroring biological circuits [25]. Simulations show that motif recognition remains robust
+even when multiple motifs occur simultaneously, and that sparse neuronal activity further improves
+accuracy. This result is in line with experimental findings about cortical neurons typically firing less
+than one spike every 7 seconds [26]. Moreover, encoding information in precise spike timings, rather
+than firing rates, makes the network resilient to changes in stimulus intensity. For example, in the
+brain, sensory inputs are often encoded on a logarithmic scale, so variations in intensity affect firing
+rates but not the relative timing of spikes [27].
+Despite these strengths, the network has several limitations.
+First, it currently includes only
+excitatory neurons. To prevent excessive spiking and false positives, we imposed a nonzero refractory
+period and a minimum interspike interval of 3 ms. Incorporating inhibitory neurons could help regulate
+activity through homeostatic mechanisms [28] and enable recognition of a broader range of motifs.
+Second, motif recognition depends on a single output neuron firing; if this neuron (or any in the
+output chain) fails, the motif is not detected—a challenge known as the ’grandmother cell problem’ [29].
+Using populations of output neurons, rather than single cells, could improve robustness. Adding skip
+connections between output neurons may also allow partial motif recognition, even if one neuron fails
+to fire. Probabilistic neurons with stochastic escape rates could further enhance detection of noisy or
+incomplete motifs.
+Future work should address several open questions. For example, the network’s memory capacity
+could be analyzed more formally, as initial results suggest high storage potential for simultaneous
+motifs. Recent advances show that Hopfield networks can achieve exponential memory capacity by
+optimizing synaptic weights [30]; combining weights and delays may further increase capacity in spiking
+networks. The impact of interspike interval distributions also merits investigation: while this study
+used uniform intervals, biological spike trains are often modeled as Poisson processes, which may affect
+recognition performance. Synaptic delays could be combined with other temporal mechanisms, such as
+adaptive firing or variable membrane time constants, to reduce the number of output neurons needed
+for motif encoding. Learning both delays and weights through supervised or unsupervised methods
+could enable motif classification; relevant synaptic learning rules have been proposed [31, 32, 33].
+Additionally, while all spikes within a time interval were assigned equal synaptic weights in this study,
+some spikes may be more informative for motif recognition, for instance because they would be more
+selective to a motif, suggesting that heterogeneous weights could be beneficial. The network is well
+suited for processing asynchronous spiking motifs, such as those from neuromorphic sensors, and could
+9
+
+
+Pattern 1
+Pattern 1
+Pattern 2
+Pattern 2
+a
+b
+c
+Figure 6: Simulation of the network on two motifs from the Spiking Heidelberg Digits (SHD) dataset.
+a) Two spiking patterns (in blue and red) corresponding to two different digits (4 and 17). To test the
+robustness of the NN, patterns were overlapped. b) Activation of the output neurons of each networks
+coding for each pattern. c) Membrane potentials versus time of 5 output neurons out of 200.
+10
+
+
+Figure 7: Performance of the network as a function of the number of simultaneous motifs from the
+Spiking Heidelberg Digits (SHD) dataset. For each condition, 40 tests were performed. Each point
+corresponds to the mean value over the 40 tests.
+be tested in real time on neuromorphic hardware. Finally, as discussed in [34] about the cocktail party
+problem, future studies could explore our network’s ability to detect weak signals in the presence of
+periodic motifs.
+5
+Materials and methods
+In section 3.1, to systematically test robustness, motifs were designed to partially overlap rather than
+occur strictly simultaneously. This was achieved by introducing a fixed offset of 10 ms between the
+start times of each motif. For example, with three motifs of 100 ms duration, the first motif would span
+10–110 ms, the second 20–120 ms, and the third 30–130 ms. Since the network typically recognizes a
+motif within 10 ms after its end, motif 1 was considered correctly recognized only if detection occurred
+between 110 and 120 ms. To ensure sufficient overlap, motif durations were chosen to be at least as
+long as the total offset (e.g., at least 30 ms for three motifs).
+This approach allowed us to systematically assess the network’s robustness to overlapping and noisy
+spike patterns. Simulation results are reported as proportions of true positives, false positives, and
+false negatives in motif recognition. Specifically, the proportion of true positives PT P is defined as:
+PT P =
+TP
+TP + FP + FN ,
+(14)
+where TP is the number of correctly recognized motifs (true positives), FP is the number of incorrectly
+recognized motifs (false positives), and FN is the number of missed motifs (false negatives). We do
+not consider the number of correctly ignored motifs (true negatives) here, since this number would be
+too large. Similarly, the proportions of false positives PF P and false negatives PF N are given by:
+PF P =
+FP
+TP + FP + FN ,
+PF N =
+FN
+TP + FP + FN = 1 −PF P −PT P
+(15)
+References
+[1] Antoine Grimaldi, Am´elie Gruel, Camille Besnainou, Jean-Nicolas J´er´emie, Jean Martinet, and
+Laurent U Perrinet.
+Precise spiking motifs in neurobiological and neuromorphic data.
+Brain
+Sciences, 13(1):68, 2022.
+[2] Rufin Van Rullen and Simon J Thorpe. Rate coding versus temporal order coding: what the
+retinal ganglion cells tell the visual cortex. Neural computation, 13(6):1255–1283, 2001.
+[3] Romain Brette. Philosophy of the spike: rate-based vs. spike-based theories of the brain. Frontiers
+in systems neuroscience, 9:151, 2015.
+11
+
+
+[4] Eugene M Izhikevich. Polychronization: computation with spikes. Neural computation, 18(2):245–
+282, 2006.
+[5] Eugene M Izhikevich, Joseph A Gally, and Gerald M Edelman. Spike-timing dynamics of neuronal
+groups. Cerebral Cortex, 14(8):933–944, 2004.
+[6] Vincent Villette, Arnaud Malvache, Thomas Tressard, Nathalie Dupuy, and Rosa Cossart. Inter-
+nally Recurring Hippocampal Sequences as a Population Template of Spatiotemporal Information.
+Neuron, 88(2):357–366, October 2015. 00085.
+[7] Himanshu Akolkar, Cedric Meyer, Xavier Clady, Olivier Marre, Chiara Bartolozzi, Stefano Panz-
+eri, and Ryad Benosman. What can neuromorphic event-driven precise timing add to spike-based
+pattern recognition? Neural Computation, 27(3):561–593, 2015.
+[8] John J Hopfield. Neural networks and physical systems with emergent collective computational
+abilities. Proceedings of the national academy of sciences, 79(8):2554–2558, 1982.
+[9] L. Perrinet. Coherence detection in a spiking neuron via Hebbian learning. Neurocomputing,
+44–46(C):133–139, 2002.
+[10] Qiang Yu, Rui Yan, Huajin Tang, Kay Chen Tan, and Haizhou Li. A spiking neural network system
+for robust sequence recognition. IEEE transactions on neural networks and learning systems,
+27(3):621–635, 2015.
+[11] Dezhe Z Jin. Spiking neural network for recognizing spatiotemporal sequences of spikes. Physical
+Review E, 69(2):021905, 2004.
+[12] Dezhe Z Jin. Decoding spatiotemporal spike sequences via the finite state automata dynamics of
+spiking neural networks. New Journal of Physics, 10(1):015010, 2008.
+[13] K Unnikrishnan, John J Hopfield, and David W Tank. Connected-digit speaker-dependent speech
+recognition using a neural network. IEEE Transactions on Signal Process, 39, 1991.
+[14] David W Tank and JJ Hopfield.
+Neural computation by concentrating information in time.
+Proceedings of the National Academy of Sciences, 84(7):1896–1900, 1987.
+[15] H. A. Swadlow. Physiological properties of individual cerebral axons studied in vivo for as long
+as one year. Journal of Neurophysiology, 54(5):1346–1362, 1985.
+[16] Jean-Didier Lemar´echal, Maciej Jedynak, Lena Trebaul, Anthony Boyer, Fran¸cois Tadel, Manik
+Bhattacharjee, Pierre Deman, Viateur Tuyisenge, Leila Ayoubian, Etienne Hugues, et al. A brain
+atlas of axonal and synaptic delays based on modelling of cortico-cortical evoked potentials. Brain,
+145(5):1653–1667, 2022.
+[17] Shaista Hussain, Arindam Basu, Mark Wang, and Tara Julia Hamilton. Deltron: Neuromorphic
+architectures for delay based learning. In 2012 IEEE Asia Pacific Conference on Circuits and
+Systems, pages 304–307. IEEE, 2012.
+[18] Josh H McDermott. The cocktail party problem. Current Biology, 19(22):R1024–R1027, 2009.
+[19] Wulfram Gerstner, Werner M Kistler, Richard Naud, and Liam Paninski. Neuronal dynamics:
+From single neurons to networks and models of cognition. Cambridge University Press, 2014.
+[20] Andrew P Davison. PyNN: A common interface for neuronal network simulators. Frontiers in
+Neuroinformatics, 2:11, 2008.
+[21] Julian G¨oltz, Jimmy Weber, Laura Kriener, Sebastian Billaudelle, Peter Lake, Johannes Schem-
+mel, Melika Payvand, and Mihai A Petrovici. Delgrad: Exact event-based gradients for training
+delays and weights on spiking neuromorphic hardware. arXiv preprint arXiv:2404.19165, 2024.
+[22] Siu Kwan Lam, Antoine Pitrou, and Stanley Seibert. Numba: A llvm-based python jit compiler.
+In Proceedings of the Second Workshop on the LLVM Compiler Infrastructure in HPC, pages 1–6,
+2015.
+12
+
+
+[23] Benjamin Cramer, Yannik Stradmann, Johannes Schemmel, and Friedemann Zenke. The heidel-
+berg spiking data sets for the systematic evaluation of spiking neural networks. IEEE Transactions
+on Neural Networks and Learning Systems, 33(7):2744–2757, 2020.
+[24] Gregor Lenz, Kenneth Chaney, Sumit Bam Shrestha, Omar Oubari, Serge Picaud, and Guido
+Zarrella. Tonic: event-based datasets and transformations. Technical report, July 2021. Docu-
+mentation available under https://tonic.readthedocs.io.
+[25] Gy¨orgy Buzs´aki. Neural syntax: cell assemblies, synapsembles, and readers. Neuron, 68(3):362–
+385, 2010.
+[26] Peter Lennie. The cost of cortical computation. Current biology, 13(6):493–497, 2003.
+[27] John J Hopfield.
+Pattern recognition computation using action potential timing for stimulus
+representation. Nature, 376(6535):33–36, 1995.
+[28] Laurent U Perrinet. An adaptive homeostatic algorithm for the unsupervised learning of visual
+features. Vision, 3(3):47, 2019.
+[29] Charles G Gross. Genealogy of the “grandmother cell”. The Neuroscientist, 8(5):512–518, 2002.
+[30] Hubert Ramsauer, Bernhard Sch¨afl, Johannes Lehner, Philipp Seidl, Michael Widrich, Thomas
+Adler, Lukas Gruber, Markus Holzleitner, Milena Pavlovi´c, Geir Kjetil Sandve, et al. Hopfield
+networks is all you need. arXiv preprint arXiv:2008.02217, 2020.
+[31] Antoine Grimaldi and Laurent U Perrinet. Learning heterogeneous delays in a layer of spiking
+neurons for fast motion detection. Biological Cybernetics, 117(4):373–387, 2023.
+[32] Laurent U Perrinet. Accurate detection of spiking motifs by learning heterogeneous delays of
+a spiking neural network.
+In ICANN Special Session on Recent Advances in Spiking Neural
+Networks, 2023.
+[33] Shaista Hussain, Arindam Basu, Runchun Mark Wang, and Tara Julia Hamilton. Delay learning
+architectures for memory and classification. Neurocomputing, 138:14–26, 2014.
+[34] Maria Schlungbaum and Benjamin Lindner. Detecting a periodic signal by a population of spiking
+neurons in the weakly nonlinear response regime. The European Physical Journal E, 46(11):108,
+2023.
+13

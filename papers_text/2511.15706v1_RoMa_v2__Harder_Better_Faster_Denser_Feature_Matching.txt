@@ -1,0 +1,1701 @@
+RoMa v2: Harder Better Faster Denser Feature Matching
+Johan Edstedt1
+David Nordstr¨om2
+Yushan Zhang1
+Georg B¨okman3
+Jonathan Astermark4
+Viktor Larsson4
+Anders Heyden4
+Fredrik Kahl2
+M˚arten Wadenb¨ack1
+Michael Felsberg1
+1Link¨oping University, 2Chalmers University of Technology
+3University of Amsterdam, 4Centre for Mathematical Sciences, Lund University
+Abstract
+Dense feature matching aims to estimate all correspon-
+dences between two images of a 3D scene and has recently
+been established as the gold-standard due to its high accu-
+racy and robustness. However, existing dense matchers still
+fail or perform poorly for many hard real-world scenarios,
+and high-precision models are often slow, limiting their ap-
+plicability. In this paper, we attack these weaknesses on
+a wide front through a series of systematic improvements
+that together yield a significantly better model. In partic-
+ular, we construct a novel matching architecture and loss,
+which, combined with a curated diverse training distribu-
+tion, enables our model to solve many complex matching
+tasks. We further make training faster through a decou-
+pled two-stage matching-then-refinement pipeline, and at
+the same time, significantly reduce refinement memory us-
+age through a custom CUDA kernel. Finally, we leverage
+the recent DINOv3 foundation model along with multiple
+other insights to make the model more robust and unbiased.
+In our extensive set of experiments we show that the result-
+ing novel matcher sets a new state-of-the-art, being signif-
+icantly more accurate than its predecessors. Code is avail-
+able at https://github.com/Parskatt/romav2.
+1. Introduction
+Dense matching is the task of matching every pixel of image
+IA ∈RHA×W A×3, with image IB ∈RHB×W B×3 in terms
+of a warp WA7→B ∈RHA×W A×2 and a confidence mask
+pA7→B ∈[0, 1]HA×W A×1. In dense feature matching, the
+assumption is that the pixels in both images are observations
+of 3D points from the same scene. In this case, for a perfect
+matcher, the confidence pA7→B is 1 for pixels correspond-
+ing to a 3D point in the scene that is observable from both
+views, i.e., that are co-visible, and 0 for occluded pixels.
+Feature matching is a fundamental task in Computer
+Vision, as many downstream tasks, e.g., visual localiza-
+tion [29, 34, 42] and 3D reconstruction [19, 20, 25, 36, 38],
+TartanAirV2
+MegaDepth
+ScanNet++ v2
+FlyingThings3D
+AerialMegaDepth
+MapFree
+MegaDepth1500
+ScanNet1500
+WxBS
+SatAst
+20
+40
+60
+80
+RoMa
+UFM
+RoMa v2
+Figure 1.
+Radar chart of performance on benchmarks.
+RoMa v2 outperforms previous dense matchers on a wide range
+of pose estimation and dense matching tasks. Further details on
+these experiments can be found in Section 4.
+rely on precise and trustworthy correspondences in order
+to function robustly. Traditionally, these methods relied on
+sparse matches established purely through descriptor simi-
+larity. In the last couple of years, these detector-descriptor
+methods have been gradually replaced by learning-based
+matchers that consider pairs of images when establishing
+the correspondences, allowing the networks to not only con-
+sider visual similarly but also the spatial context.
+This development in feature matching has been driven
+by the introduction of several challenging benchmarks,
+such as MegaDepth-1500 [22, 41], ScanNet-1500 [9, 33],
+WxBS [27] and the recurring Image Matching Challenge at
+CVPR [15]. These benchmarks are currently dominated by
+detector-free methods, such as dense feature matchers [11]
+and feed-forward reconstruction models [47].
+One noteable dense matcher is RoMa [12], which has
+proven robust to extreme photometric changes, including
+different modalities, due to using features from a frozen
+foundation model for the matching instead of learning fea-
+tures from scratch.
+However, RoMa still struggles in
+1
+arXiv:2511.15706v1  [cs.CV]  19 Nov 2025
+
+
+Figure 2. Qualitative results. RoMa v2 excels at matching in diverse scenarios. We show a snapshot of results from different benchmarks.
+Below each image pair we visualize the dense warp by coloring each pixel by the RGB value from its estimated corresponding location in
+the opposite image. Brighter values mean lower warp confidence as output by the model.
+many challenging scenarios. For example, the recent RU-
+BIK benchmark [24] highlights its weakness under extreme
+viewpoint changes. Additionally, RoMa has a significant
+runtime and memory footprint, limiting its applicability for
+large-scale tasks or resource constrained settings. Recently,
+UFM [52] showed that dense matching can be made signif-
+icantly faster than in RoMa. However, UFM requires fine-
+tuning of the pretrained feature extracting backbone, which
+leads to worse performance on datasets with extreme ap-
+pearance changes such as WxBS. Furthermore, UFM per-
+forms worse than RoMa on benchmarks that require sub-
+pixel precision, such as MegaDepth-1500 [22, 41].
+Motivated by the different trade-offs in RoMa and UFM,
+in this paper we address the challenge of combining their re-
+spective strengths, i.e., developing a dense feature matcher
+that is both robust to extreme changes in viewpoint and ap-
+pearance, applicable to a wide range of real-world scenar-
+ios, all while maintaining subpixel precision and a practi-
+cal runtime and memory footprint. To this end, we intro-
+duce RoMa v2, which builds on RoMa and features several
+improvements to increase robustness while simultaneously
+reducing the computational cost. RoMa v2 achieves state-
+of-the-art results on a wide range of benchmarks, as seen
+in Figure 1. Qualitative examples from the benchmarks are
+visualized in Figure 2.
+In summary, our main contributions are:
+1. A novel matching objective, combining warp and
+correlation-based losses, which enables multi-view con-
+text to be learned in the coarse matcher of RoMa, de-
+scribed in Section 3.2.
+2. Faster and less memory intensive refiners than in RoMa,
+described in Section 3.3 and ablated in Table 8.
+3. A custom mixture of wide- and small-baseline datasets
+in the training data, that helps balance robustness to
+extreme viewpoints while maintaining sub-pixel perfor-
+mance across a wide range of difficult matching tasks,
+detailed in Section 3.4.
+4. Prediction of pixel-wise error covariance that can be
+used downstream in refinement of estimated geometry,
+as demostrated in Section 4.6
+5. We experimentally verify that these improvements sig-
+nificantly reduce the runtime compared to baseline
+RoMa, while matching or outperforming both RoMa
+and UFM on their respective strongpoints across a wide
+range of benchmarks in Section 4.
+2. Related Work
+Feature Matching:
+Traditionally, feature matching has
+been dominated by the sparse paradigm, where keypoints
+are first detected separately in each image, and then
+matched by a sparse feature matcher. While early match-
+ing was driven by similarity of local descriptors, the recent
+trend is instead to rely on a learned matcher that jointly con-
+siders the keypoints and descriptors in each image. Notable
+recent works in this area include SuperGlue [33] and Light-
+Glue [23] which both use an attention-based approach for
+solving the optimal assignment. Common among the sparse
+2
+
+
+methods is the reliance on salient image regions, where re-
+peatable keypoints can be detected. In contrast, LoFTR [41]
+takes a detector-free approach by matching through atten-
+tion on learned features, resulting in a semi-dense match-
+ing where even non-salient points can be matched.
+In
+DKM [11], the matching is performed on a pyramid of fea-
+ture maps, enabling pixel-dense matches. In a follow-up
+work, RoMa [12] further improves on this method by us-
+ing a frozen foundation model to encode the coarse match-
+ing features, making it significantly more robust to extreme
+appearance changes. Recently, UFM [52] was introduced
+as a more lightweight dense matcher, where the training
+of wide-baseline dense matching is unified with the related
+task of optical flow.
+Feedforward Reconstruction:
+Recovering 3D structure
+and camera parameters from images, or Structure-from-
+Motion (SfM) [14], has traditionally relied on sequential
+pipelines such as Bundler [38] and COLMAP [36], where
+point correspondences obtained through image matching
+play a central role. Recently, learning-based SfM meth-
+ods have emerged, and many now incorporate match-
+ing within a feedforward architecture. DUSt3R [47] and
+MASt3R [21] directly regresses point maps from image
+pairs; and VGGT [46] and MapAnything [18] extend this
+paradigm to longer sequences. While these models can pro-
+duce coarse correspondences, they struggle to yield accu-
+rate high-resolution dense matches. While our architecture
+is loosely inspired by these approaches we retain an explicit
+dense matching formulation that provides subpixel-accurate
+correspondences.
+3. Method
+In this section, we outline our proposed method. We be-
+gin by discussing our two-stage matching-then-refinement
+architecture in Section 3.1 and proceed to discuss its two
+parts in Sections 3.2 and 3.3, respectively. In Section 3.4,
+we describe the training data used and in Section 3.5 we
+explain the method used to make RoMa v2 more robust to
+changes in image resolution.
+3.1. Architecture
+We take inspiration from previous works [12, 52] and divide
+the dense matching task into a matching step and a refine-
+ment step. Intuitively, these two tasks entail first finding
+an approximate or coarse match for each pixel, and, condi-
+tioned on this, refining the matching to sub-pixel accuracy.
+An overview of the architecture is shown in Figure 3, and
+the respective components in Figure 4 and Figure 5.
+While some previous works, e.g. [11, 12], decouple gra-
+dients between matchers and refiners but still train both
+jointly, we instead opt for a two-stage training paradigm in-
+spired by UFM [52]. This enables rapid experimentation.
+We next go into detail on the matcher in Section 3.2, fol-
+lowed by the refinement in Section 3.3.
+3.2. Matcher
+An overview of the coarse matcher is shown in Figure 4.
+We upgrade the DINOv2 [28] encoder used in RoMa to the
+newer DINOv3 [37]. Inspired by Edstedt et al. [12], we
+compare the encoders (frozen) by training a single linear
+layer on the features followed by a kernel nearest neighbor
+matcher. As is shown in Table 1, we find that DINOv3 is
+more robust than its predecessor despite its slightly larger
+patch size (16 vs. 14). As in RoMa, but unlike UFM, we
+freeze the encoder weights, improving robustness.
+While RoMa is robust and generalizes well, one of its
+main weaknesses is its lacking multi-view context in the
+matcher, which relies solely on Gaussian Process (GP) [31]
+regression combined with a single-view Transformer de-
+coder to classify warp bins. A naive approach would be
+to add a Multi-view Transformer to RoMa before the GP,
+however, we found that in practice the gradients through the
+GP were not sufficiently informative to yield improvements,
+and caused stability issues during training.
+To remedy this, we replace the Gaussian Process with a
+simple single headed Attention mechanism. Additionally,
+we add an auxiliary target, LNLL, to minimize the negative
+log-likelihood of the best matching patch in image B for
+each patch in image A. We first compute the similarity be-
+tween all patches from image A and image B to form a sim-
+ilarity matrix S ∈RM×N, where M and N are the number
+of patches in image A and B respectively. The loss LNLL
+is computed by first applying Softmax over the second di-
+mension of S and then selecting the most similar pairs for
+all patches in A, i.e.
+LNLL =
+M
+X
+m=1
+−log(Softmax(Sm)n∗)
+(1)
+where n∗is the index of the patch closest to the GT warp
+for patch m.
+This approach can be seen as a dense di-
+rectional version of, e.g. LoFTR [41]. We still however
+use a regression head, which is trained to minimize the
+robust regression loss between its predicted warp and the
+ground truth warp. The full coarse matching pipeline inde-
+pendently tokenizes the input frames using DINOv3 ViT-
+L, and then applies a ViT-B Multi-view Transformer. Fol-
+lowing Wang et al. [46], we alternate between frame-wise
+and global Attention. In contrast to Wang et al. [46], we
+do not use RoPE across frames. The final token embed-
+dings, Softmax(S)xB, where xB are position embeddings
+as in RoMa, and DINOv3 features, are jointly processed by
+a DPT head to predict the warp and confidence. Further
+details on the matcher architecture are given in the supple-
+mentary material.
+3
+
+
+Refiners
+Coarse 
+Matcher
+Figure 3. Overview of RoMa v2. We estimate bidirectional dense image warps W = {WA7→B ∈RH×W ×2, WB7→A ∈RH×W ×2}
+and warp confidences p = {pA7→B ∈RH×W ×1, pB7→A ∈RH×W ×1} between two input images using a two-stage pipeline consisting
+of a matching and refinement stage. Different from recent SotA dense matchers, we additionally predict a precision matrix Σ−1 =
+{(Σ−1)A7→B ∈RH×W ×2×2, (Σ−1)B7→A ∈RH×W ×2×2}. The coarse matcher is a Multi-view Transformer, that takes in frozen
+DINOv3 [37] foundation model features from image IA ∈RH×W ×3 and IB ∈RH×W ×3. Its internals are further illustrated in Figure 4,
+and explained in detail in Section 3.2. The refiners are fine-grained UNet-like CNN models that, conditioned on the previous warp and
+confidence, produce displacements and delta confidences. Besides this, they additionally predict a full 2 × 2 precision matrix per-pixel,
+which is visualized as
+Σ−1−1/4. The refiners are further illustrated in Figure 5 and explained in more detail in Section 3.3.
+DINOv3
+DINOv3
+Multi-view
+Transformer
+w/
+Alternating 
+Attention
+DPT 
+Head
+DPT 
+Head
+Figure 4. Coarse matcher. We use a frozen DINOv3 feature ex-
+tractor in the coarse matching stage. DINOv3 features from both
+input images are input to a Multi-view Transformer utilizing alter-
+nating Attention. Dense Prediction Transformer (DPT) [30] heads
+output coarse warps W between the images and confidences p for
+4x downsampled resolution.
+Table 1. Robustness of frozen features. We compare coarse fea-
+tures for matching through a linear probe on MegaDepth. Robust-
+ness is the share of matches with an error below 32 pixels.
+Method
+EPE ↓
+Robustness % ↑
+DINOv2
+27.1
+77.0
+DINOv3
+19.0
+86.4
+Matching Loss:
+We use the same overlap loss Loverlap,
+and weighting factor, as in RoMa. However, we replace the
+classification-by-regression term from the matching loss for
+the robust regression term Lwarp used in the refinement loss,
+which is also used by UFM. Finally, we add our proposed
+LNLL and obtain:
+Lmatcher = LNLL + Lwarp(rθmatcher, pGT)
++ 10−2Loverlap(pθmatcher, pGT) .
+(2)
+In contrast to UFM, our matching objective incorporates
+the auxiliary target LNLL.We compare these architectures in
+Table 2. Comparing RoMa v2 and UFM matching architec-
+tures on Hypersim [32]. Measured in PCK (higher is better).
+Method ↓
+PCK@ →
+1px ↑
+3px
+5px ↑
+UFM
+11.2
+48.3
+67.4
+RoMa v2
+30.5
+76.7
+86.7
+VGG19
+VGG19
+Convolutional
+Refiners
+Linear 
+Head
+Linear 
+Head
+B
+Figure 5. Refiner internals. The coarse matcher predicts at a
+resolution 4x smaller than the original image size. The refiners
+output at the original resolution.
+Table 2 by training on a subset of the data using the train-
+ing setup outlined below and evaluating on holdout scenes
+from Hypersim [32]. We find that the RoMa v2 matcher
+significantly improves robustness.
+Coarse Matching Training:
+We start by training the
+coarse matcher for 300k steps of batch size 128, resulting
+in approximately 38M pairs seen throughout training. We
+use a learning rate of 4 · 10−4.
+4
+
+
+3.3. Refiners
+After the matcher has finished training, we freeze it and run
+it in inference mode, producing a coarse warp for the refin-
+ers to refine. We train the refiners for 300k steps of batch
+size 64, resulting in a total of approximately 19M pairs.
+Like the matcher, we use a learning rate of 4 · 10−4.
+Architecture:
+As the matcher, in contrast to RoMa where
+the matcher predicts at stride 14, predicts at stride 4, there
+is only a need to refine at strides equal or smaller.
+We
+thus construct three refiners at strides {4, 2, 1} respectively.
+These follow a similar architecture as in RoMa [12] with
+some efficiency improvements. First, we find that the lo-
+cal correlation implementation used in RoMa uses a large
+amount of memory, especially at high resolution. To rem-
+edy this we write a custom CUDA kernel as a PyTorch ex-
+tension, which significantly reduces the memory consump-
+tion (cf. Table 8). We further change all channel dimensions
+to be powers of two, which further boosts performance. Fur-
+ther details about the refiners is given in the appendix.
+Predictive Covariance:
+It is often useful, besides a no-
+tion of predicted overlap, to have access to a numerical es-
+timate of the expected error. While predictive uncertainty
+has been previously studied [16, 35, 44, 51, 55], State-of-
+the-Art methods such as RoMa [12] or UFM [52] do not
+provide any such estimate. To remedy this, we predict a
+pixel-wise Gaussian uncertainty of the 2D residuals,
+rθ := WA7→B
+θ
+−WA7→B
+GT
+∈RH×W ×2,
+(3)
+through a 2 × 2 precision matrix Pθ ∈RH×W ×2×2 where
+Σ−1
+θ (h, w) ≻0, i.e., Σ−1
+θ (h, w) is positive definite. We
+ensure this by constraining the network to predict the three
+elements z11, z21, z22 and mapping these to Cholesky fac-
+tors as l11 = Softplus(z11) + 10−6, l21 = z21, l22 =
+Softplus(z22)+10−6, where Softplus(·) = ln(1+exp(·)).
+The lower triangular matrix is composed from the factors as
+L =
+l11
+0
+l21
+l22
+
+(4)
+and then the covariance matrix is formed from this as
+Σ−1 = LL⊤. To learn z11, z21, z22 we directly train the
+model to minimize the negative log-likelihood
+Lprecision(r) = −log N(r|0, Σ)
+(5)
+= 1
+2r⊤Σ−1r −1
+2 log det(Σ−1) + log(2π).
+To ensure stability, we only train the model to predict this
+covariance for covisible regions where ∥r∥< 8 pixels. We
+additionally detach the residuals rθ before the loss.
+We predict the precision in an hierarchical fashion from
+stride 4 up to stride 1, and use that fact that information
+0
+50
+100
+Training step
+0.2
+0.1
+0.0
+0.1
+0.2
+Magnitude
+Bias x (px)
+Bias y (px)
+(a) Before EMA
+0
+50
+100
+Training step
+0.2
+0.1
+0.0
+0.1
+0.2
+Magnitude
+Bias x (px)
+Bias y (px)
+(b) After EMA
+Figure 6. Subpixel bias of refinement. We observe that models
+exhibit subpixel fluctuations in their predictions throughout train-
+ing, leading to bias. We propose a simple remedy through storing
+an exponential moving average (EMA).
+is additive in the precision parameterization to predict our
+final precision matrix as
+Σ−1
+θi =
+X
+j≥i
+∆Σ−1
+θj .
+(6)
+We find empirically that our covariance improves perfor-
+mance in downstream tasks (cf. Table 10), and that it quali-
+tatively behaves as one would expect in Figure 9.
+EMA to remedy bias:
+During training, we empirically
+observed that predictions tend to have a small, but notice-
+able, sub-pixel bias (typically around ±0.1 pixels in reso-
+lution 640 × 640). At first this seemed like a data issue,
+but through plotting this bias over the course of training we
+found that it appears almost random, see Figure 6a. As the
+bias is seemingly uncorrelated over the course of training, a
+simple way to fix it is to simply use an Exponential Moving
+Average (EMA)1. We found a decay factor of α = 0.999 to
+work well empirically. After applying this remedy, we find
+that the bias in both orientations is substantially diminished,
+see Figure 6b.
+Refinement Loss:
+We train the refiners using a combina-
+tion of three losses. Following RoMa we use a generalized
+Charbonnier loss [2] which for each refiner reads
+Lwarp = (ic)α
+ ∥r∥2
+(ic)2 + 12
+α/2
+,
+(7)
+where we follow RoMa and set α = 0.5, c = 10−3 and
+i ∈{4, 2, 1} is the stride.
+For estimating the overlap
+we follow UFM and RoMa and use a pixel-wise binary
+cross-entropy loss as Loverlap, with the ground truth over-
+lap pGT ∈{0, 1} being derived from either consistent depth
+(for MVS style datasets) or from warp cycle consistency
+(for flow datasets). Further details on computing ground
+truth warps and overlaps are given in the suppl. material.
+1See Izmailov et al. [17] for discussion regarding different variants.
+5
+
+
+Figure 7. Finegrained objects in warp. Left: RoMa warp for
+small baseline pair. Note the missing warp for the guitar in the
+bottom right. Right: RoMa v2 warp. RoMa v2 is significantly
+better at capturing small objects with dynamic motion.
+The total refinement loss is
+Lrefiners =
+X
+i∈{1,2,4}
+Lwarp(rθi, pGT)
++ 10−2Loverlap(pθi, pGT)
+(8)
++ 10−3Lprecision(Σ−1
+θi , detach(rθi)).
+3.4. Data
+We train RoMa v2 on a mix of wide and small baseline two-
+view datasets, a summary of which is presented in Table 3.
+Our mix is inspired by UFM [52], and significantly more di-
+verse than RoMa [12], which is only trained on MegaDepth.
+In particular,
+the inclusion of the Aerial datasets
+AerialMD [45] and BlendedMVS [49], enable our pro-
+posed model to be significantly more robust to large ro-
+tations and air-to-ground viewpoint changes.
+The inclu-
+sion of small-baseline datasets, like FlyingThings3D [26],
+makes RoMa v2 significantly better at predicting fine-
+grained details.
+We qualitatively compare RoMa v2 to
+RoMa on fine-grained prediction on the FlyingThings3D
+dataset in Figure 7.
+We also find that our data mixture
+enables us to predict textureless surface significantly better
+than RoMa, particularly in Autonomous Driving (AD) sce-
+narios, despite only training on the very small-scale dataset
+VKITTI2 [6, 13]. We demonstrate this for a randomly se-
+lected pair from the NuScenes dataset [7] in Figure 8.
+3.5. Resolution
+We find that some elementary key changes make matching
+and refinement robust to the choice of resolution.
+Coarse Matching:
+Following DINOv3 [37] we use
+RoPE [40] on a normalized grid, rather than a pixel grid.
+Figure 8. Better texture-poor geometry prediction. Left: RoMa
+warp for large-baseline pair with texture-poor road surfaces, with
+warp missing for almost the entire road. Right: RoMa v2 warp.
+RoMa v2 predicts accurately for covisible road.
+Table 3.
+Dataset mixture for RoMa v2.
+The top part con-
+tains wide-baseline datasets, while the bottom part contains small-
+baseline datasets. The weight is proportional to the probability of
+sampling an image pair from the respective dataset. Further details
+about the datasets is provided in the supplementary.
+Datasets
+Type / GT Source
+Weight №Scenes
+MegaDepth [22]
+Outdoor / MVS
+1
+169
+AerialMD [45]
+Aerial / MVS
+1
+124
+BlendedMVS [49]
+Aerial / Mesh
+1
+493
+Hypersim [32]
+Indoor / Graphics
+1
+393
+TartanAir v2 [48]
+Outdoor / Graphics
+1
+46
+Map-Free [1]
+Object-centric / MVS
+1
+397
+ScanNet++ v2 [50]
+Indoor / Mesh
+1
+856
+UnrealStereo4k [43]
+Outdoor / Graphics
+0.01
+8
+Virtual KITTI 2 [6, 13]
+Outdoor / Graphics
+0.01
+5
+FlyingThings3D [26]
+Outdoor / Graphics
+0.5
+2239
+Total
+5069
+This ensures that distances are always in distribution, even
+when changing resolution significantly.
+Secondly, we find that the absolute position encodings
+used for the match embeddings need to be of low enough
+frequency, to ensure that their interpolation is unproblem-
+atic [53]. Compared to RoMa, which initializes the scale to
+ω = 8, and let it be trained, we set it fixed to ω = 1. It is
+possible that the high frequency of the position embeddings
+is the cause of the issue which requires UFM to be run at a
+fixed resolution of 420 × 560 during inference.
+Refinement:
+Ensuring resolution robustness for the refin-
+ers is non-trivial, as convolution is tied to the pixel grid.
+We find that the approach used in RoMa, whereby the input
+displacement is rescaled relative to a canonical resolution
+6
+
+
+Table 4. SotA comparison on MegaDepth-1500 [22, 41]. The
+top part contains feed-forward 3D reconstruction models, while
+the bottom part contains feature matchers.
+Method ↓
+AUC@ →
+5◦↑
+10◦↑
+20◦↑
+Reloc3r [10] CVPR’25
+49.6
+67.9
+81.2
+MASt3R [21] ECCV’24
+42.4
+61.5
+76.9
+VGGT† [46] CVPR’25
+33.5
+52.9
+70.0
+LightGlue [23] ICCV’23
+51.0
+68.1
+80.7
+LoFTR [41] CVPR’21
+52.8
+69.2
+81.2
+DKM [11] CVPR’23
+60.4
+74.9
+85.1
+RoMa [12] CVPR’24
+62.6
+76.7
+86.3
+UFM† [52] NeurIPS’25
+41.5
+57.9
+72.4
+RoMa v2
+62.8
+77.0
+86.6
+†Our reproduced numbers.
+generalizes the best.
+Training:
+We train the coarse matcher on a mix of res-
+olutions and aspect ratios, specifically: {512 × 512, 592 ×
+448, 624×416, 688×384, 448×592, 416×624, 384×688}.
+The refiners are trained exclusively with size 640 × 640.
+4. Experiments
+The qualitative improvements of RoMa v2 as shown in Fig-
+ures 2, 7 and 8 are confirmed by the quantitative results from
+extensive experiments, listed in this section.
+4.1. Relative Pose Estimation
+We compare RoMa v2 to state-of-the-art matchers and feed-
+forward 3D reconstruction methods on relative pose esti-
+mation. For sampling correspondences we follow RoMa
+and compute bidirectional warps from which we sample
+correspondences in a thresholded distribution where we set
+ˆpA7→B = max(1pA7→B>0.05, pA7→B). We use a coarse res-
+olution of 800 × 800 and a fine resolution of 1024 × 1024.
+Similarly, we also sample a balanced subset of matches us-
+ing their kernel density estimate approach.
+We report results on MegaDepth-1500 [22, 41] in Ta-
+ble 4 and ScanNet-1500 [9, 33] in Table 5. RoMa v2 consis-
+tently outperforms all prior matchers on both benchmarks.
+On MegaDepth, which demands accurate sub-pixel corre-
+spondences, RoMa v2 also surpasses all 3D reconstruction
+methods. On ScanNet, RoMa v2 achieves performance on
+par with VGGT and MASt3R.
+4.2. Dense Matching
+We evaluate dense matching performance in Table 6 and
+Table 7 on a wide array of datasets and compare to state-
+of-the-art dense matchers RoMa and UFM. For RoMa and
+RoMa v2, we directly feed the 640 × 640 images into the
+model, while for UFM we first resize the image to their sug-
+gested inference resolution 560 × 420 and then bilinearly
+Table 5. SotA comparison on ScanNet-1500 [9, 33]. The top part
+contains feed-forward 3D reconstruction models, while the bottom
+part contains feature matchers.
+Method ↓
+AUC@ →
+5◦↑
+10◦↑
+20◦↑
+Reloc3r [10] CVPR’25
+34.8
+58.4
+75.6
+MASt3R† [21] ECCV’24
+33.6
+56.8
+74.1
+VGGT [46] CVPR’25
+33.9
+55.2
+73.4
+LightGlue [23] ICCV’23
+17.8
+34.0
+52.0
+LoFTR [41] CVPR’21
+22.1
+40.8
+57.6
+DKM [11] CVPR’23
+29.4
+50.7
+68.3
+RoMa[12] CVPR’24
+31.8
+53.4
+70.9
+UFM [52] NeurIPS’25
+31.6
+54.1
+-
+UFM† [52] NeurIPS’25
+31.3
+54.1
+72.0
+RoMa v2
+33.6
+56.2
+73.8
+†Our reproduced numbers.
+upsample the predictions back to 640 × 640, as their preci-
+sion degrades significantly for higher resolution.
+RoMa v2 consistently outperforms across all 6 datasets.
+Notably, we simultaneously beat UFM on its own bench-
+mark, TA-WB, and RoMa on MegaDepth, on which it is
+exclusively trained, while having 84% lower EPE compared
+to RoMa on the challenging AerialMegaDepth benchmark.
+4.3. Runtime Comparisons
+In Table 8 we compare the runtime of RoMa v2 with RoMa
+and UFM. As can be seen from the table, we improve the
+throughput significantly compared to RoMa, running 1.7×
+faster.
+Compared to UFM our model is slightly slower,
+however with a much smaller memory memory footprint.
+4.4. Multi-Modal Matching on WxBS
+We evaluate the robustness of RoMa v2 on the extremely
+challenging WxBS benchmark [27]. This benchmark con-
+sists of handlabeled correspondences between images taken
+with extreme changes in either viewpoint, illumination,
+modality, or all three, which measures the generalizability
+of the matcher to out-of-distribution downstream tasks. Re-
+sults are presented in Table 9.
+We observe that the per-
+formance of RoMa v2 is significantly higher than UFM, but
+slightly lower than RoMa. Investigating the cause of this
+we found that RoMa v2 and UFM both struggle with the
+IR-to-RGB multi-modal subset of WxBS.
+4.5. Astronaut to Satellite Image Matching
+We introduce a new benchmark, SatAst, for matching im-
+ages taken by astronauts from the international space station
+to satellite images. Prior work on this modality has focused
+on the retrieval task of searching a database of satellite im-
+ages for the image content of a given astronaut image [3–
+5, 39]. We take 39 corresponding image pairs from Earth-
+Match [3] to create SatAst and hand-annotate 10 accurate
+7
+
+
+Table 6. Dense matching performance. Images are resized to 640 × 640 pixels.
+Method
+TA-WB
+MegaDepth
+ScanNet++ v2
+EPE ↓
+1px ↑
+3px ↑
+5px ↑
+EPE ↓
+1px ↑
+3px ↑
+5px ↑
+EPE ↓
+1px ↑
+3px ↑
+5px ↑
+RoMa
+60.61
+35.1
+52.6
+56.2
+2.34
+74.8
+93.7
+96.4
+27.52
+20.2
+42.8
+53.6
+UFM
+15.85
+31.3
+65.5
+75.1
+3.15
+55.3
+88.0
+93.7
+6.93
+31.4
+67.7
+80.0
+RoMa v2
+13.82
+67.7
+81.8
+85.8
+1.47
+79.6
+94.7
+96.7
+4.00
+45.5
+77.3
+86.6
+Table 7. Further dense matching performance. Images are resized to 640 × 640 pixels.
+Method
+FlyingThings3D
+AerialMegaDepth
+MapFree
+EPE ↓
+1px ↑
+3px ↑
+5px ↑
+EPE ↓
+1px ↑
+3px ↑
+5px ↑
+EPE ↓
+1px ↑
+3px ↑
+5px ↑
+RoMa
+5.68
+78.0
+86.6
+89.2
+25.05
+39.0
+65.0
+73.9
+8.55
+45.8
+72.3
+80.9
+UFM
+1.33
+83.4
+93.9
+96.1
+17.44
+29.3
+61.6
+73.8
+3.59
+31.6
+66.7
+81.7
+RoMa v2
+0.93
+89.4
+95.2
+96.8
+4.12
+55.9
+81.1
+87.9
+2.03
+55.4
+84.9
+92.7
+Table 8. Runtime and memory. Benchmarking on 640 × 640†
+images with a batch size of 8 on an H200. RoMa v2 is 1.7× faster
+than RoMa with similar memory footprint. K indicates the custom
+CUDA kernel for the local correlation operation.
+Method
+Throughput (pairs/s) ↑
+Mem. (GB) ↓
+UFM
+43.0
+16.2
+RoMa
+18.5
+4.7
+RoMa v2 (w/o K)
+30.3
+5.6
+RoMa v2 (w/ K)
+30.9
+4.8
+†We use 644 × 644 for RoMa and UFM due to patch size 14.
+Table 9. SotA comparison on the WxBS [27] and SatAst bench-
+marks. mAA and AUC at 10px respectively (higher is better).
+Method
+WxBs (mAA@10px)
+SatAst (AUC@10px)
+RoMa
+60.8
+23.5
+UFM
+42.3
+1.8
+RoMa v2
+55.4
+37.0
+correspondences for each pair. Further, we include 90 de-
+gree rotated copies of the satellite images, yielding a total of
+156 image pairs. Given estimated correspondences from a
+model, we use RANSAC to obtain a homography and com-
+pute AUC@10px of the reprojection error of the annotated
+ground-truth correspondences using this homography.
+SatAst is difficult, the most challenging aspects being
+i) satellite images are OOD for most matchers (including
+RoMa v2), ii) large scale changes and iii) large in-plane ro-
+tations. We compare RoMa v2 against previous dense meth-
+ods and present results in Table 9. More information about
+the benchmark is found in the supplementary material.
+4.6. Covariance Estimate
+While most robust pose estimation pipelines assume identi-
+cally distributed residuals, our predictive covariance can be
+used to reweight residuals. To highlight the usefulness, we
+perform an experiment leveraging the covariance-weighted
+Table 10. Impact of predictive covariance on Hypersim [32].
+Measured in AUC (higher is better). We use the predicted covari-
+ance to weight the residuals in the model refinement.
+Method ↓
+AUC@ →
+1◦↑
+3◦↑
+5◦↑
+RoMa v2 (w/o Σ−1)
+54.9
+79.5
+85.9
+RoMa v2 (w/ Σ−1 Refine)
+75.8
+89.0
+92.6
+RoMa v2 (w/ Σ−1 RANSAC + Refine)
+76.4
+89.3
+92.8
+Figure 9. Qualitative example of covariances. We plot the pre-
+dicted covariance for randomly sampled keypoints. In the right
+image, we have applied a linear kernel to simulate motion blur,
+yielding larger covariances, especially in the blur direction.
+residuals. First, only as post-processing, refining the out-
+put of a classic point-based RANSAC. Second, we compare
+with using it to reweight the residuals used for scoring in-
+side RANSAC. For the experiment we consider image pairs
+sampled from the HyperSim [32] dataset. In Table 10 we
+show that we gain significant improvements on 3D pose er-
+ror metrics. In particular, we improve by ≈20 points on
+AUC@1. Further experimental details can be found in the
+supplementary material. In Figure 9 we show a qualitative
+example of the predicted covariances.
+5. Limitations and Future Work
+Compared to RoMa, our model is slightly less robust to ex-
+treme changes in modality, such as in WxBS. However, we
+are significantly more robust to these changes than UFM,
+as indicated by Table 9. Exploring the trade-offs between
+8
+
+
+generalization and maximizing performance is an interest-
+ing direction for future work.
+6. Conclusion
+We have introduced RoMa v2, a new dense feature
+matcher capable of matching harder pairs, with bet-
+ter (i.e.,
+more precise) predictions,
+and with faster
+runtime than its predecessor, leading to denser matches.
+References
+[1] Eduardo Arnold, Jamie Wynn, Sara Vicente, Guillermo
+Garcia-Hernando, Aron Monszpart, Victor Prisacariu, Dani-
+yar Turmukhambetov, and Eric Brachmann. Map-free visual
+relocalization: Metric pose relative to a single image. In Eu-
+ropean Conf. Computer Vision (ECCV), 2022. 6
+[2] Jonathan T Barron. A general and adaptive robust loss func-
+tion. In IEEE Conf. Computer Vision and Pattern Recogni-
+tion (CVPR), 2019. 5
+[3] Gabriele Berton, Gabriele Goletto, Gabriele Trivigno, Alex
+Stoken, Barbara Caputo, and Carlo Masone.
+Earthmatch:
+Iterative coregistration for fine-grained localization of astro-
+naut photography. In IEEE Conf. Computer Vision and Pat-
+tern Recognition (CVPR), 2024. 7, 2
+[4] Gabriele Berton, Alex Stoken, Barbara Caputo, and Carlo
+Masone. Earthloc: Astronaut photography localization by
+indexing earth from space. In IEEE Conf. Computer Vision
+and Pattern Recognition (CVPR), 2024.
+[5] Georg B¨okman, Johan Edstedt, Michael Felsberg, and
+Fredrik Kahl. Steerers: A framework for rotation equivariant
+keypoint descriptors. In IEEE Conf. Computer Vision and
+Pattern Recognition (CVPR), 2024. 7
+[6] Yohann Cabon, Naila Murray, and Martin Humenberger. Vir-
+tual kitti 2. arXiv preprint arXiv:2001.10773, 2020. 6
+[7] Holger Caesar, Varun Bankiti, Alex H Lang, Sourabh Vora,
+Venice Erin Liong, Qiang Xu, Anush Krishnan, Yu Pan, Gi-
+ancarlo Baldan, and Oscar Beijbom.
+nuscenes: A multi-
+modal dataset for autonomous driving. In IEEE Conf. Com-
+puter Vision and Pattern Recognition (CVPR), 2020. 6
+[8] Wojciech Chojnacki,
+Michael J. Brooks,
+Anton Van
+Den Hengel, and Darren Gawley. On the fitting of surfaces
+to data with covariances. IEEE Trans. Pattern Analysis and
+Machine Intelligence (T-PAMI), 22(11):1294–1303, 2000. 3
+[9] Angela Dai, Angel X Chang, Manolis Savva, Maciej Hal-
+ber, Thomas Funkhouser, and Matthias Nießner.
+Scan-
+net: Richly-annotated 3d reconstructions of indoor scenes.
+In IEEE Conf. Computer Vision and Pattern Recognition
+(CVPR), 2017. 1, 7
+[10] Siyan Dong, Shuzhe Wang, Shaohui Liu, Lulu Cai, Qingnan
+Fan, Juho Kannala, and Yanchao Yang. Reloc3r: Large-scale
+training of relative camera pose regression for generalizable,
+fast, and accurate visual localization. In IEEE Conf. Com-
+puter Vision and Pattern Recognition (CVPR), 2025. 7, 5
+[11] Johan Edstedt, Ioannis Athanasiadis, M˚arten Wadenb¨ack,
+and Michael Felsberg.
+DKM: Dense kernelized feature
+matching for geometry estimation. In IEEE Conf. Computer
+Vision and Pattern Recognition (CVPR), 2023. 1, 3, 7, 5
+[12] Johan
+Edstedt,
+Qiyu
+Sun,
+Georg
+B¨okman,
+M˚arten
+Wadenb¨ack, and Michael Felsberg.
+RoMa: Robust dense
+feature matching. In IEEE Conf. Computer Vision and Pat-
+tern Recognition (CVPR), 2024. 1, 3, 5, 6, 7
+[13] Adrien Gaidon, Qiao Wang, Yohann Cabon, and Eleonora
+Vig. Virtual worlds as proxy for multi-object tracking analy-
+sis. In IEEE Conf. Computer Vision and Pattern Recognition
+(CVPR), 2016. 6
+[14] Richard Hartley and Andrew Zisserman. Multiple view ge-
+ometry in computer vision.
+Cambridge university press,
+2003. 3
+[15] Addison Howard, Eduard Trulls, Kwang Moo Yi, Dmitry
+Mishkin, Sohier Dane, and Yuhe Jin. Image matching chal-
+lenge 2022, 2022. 1
+[16] Eddy Ilg, Ozgun Cicek, Silvio Galesso, Aaron Klein, Osama
+Makansi, Frank Hutter, and Thomas Brox. Uncertainty es-
+timates and multi-hypotheses networks for optical flow. In
+European Conf. Computer Vision (ECCV), 2018. 5
+[17] Pavel Izmailov, Dmitrii Podoprikhin, Timur Garipov, Dmitry
+Vetrov, and Andrew Gordon Wilson.
+Averaging weights
+leads to wider optima and better generalization.
+arXiv
+preprint arXiv:1803.05407, 2018. 5
+[18] Nikhil Keetha, Norman M¨uller, Johannes Sch¨onberger,
+Lorenzo Porzi,
+Yuchen Zhang,
+Tobias Fischer,
+Arno
+Knapitsch, Duncan Zauss, Ethan Weber, Nelson Antunes,
+Jonathon Luiten, Manuel Lopez-Antequera, Samuel Rota
+Bul`o, Christian Richardt, Deva Ramanan, Sebastian Scherer,
+and Peter Kontschieder.
+MapAnything: Universal feed-
+forward metric 3D reconstruction, 2025.
+arXiv preprint
+arXiv:2509.13414. 3
+[19] Dmytro Kotovenko, Olga Grebenkova, and Bj¨orn Ommer.
+Edgs: Eliminating densification for efficient convergence of
+3dgs. arXiv preprint arXiv:2504.13204, 2025. 1
+[20] JongMin Lee and Sungjoo Yoo. Dense-sfm: Structure from
+motion with dense consistent matching. In IEEE Conf. Com-
+puter Vision and Pattern Recognition (CVPR), 2025. 1
+[21] Vincent Leroy, Yohann Cabon, and J´erˆome Revaud. Ground-
+ing image matching in 3d with mast3r. In European Conf.
+Computer Vision (ECCV), 2024. 3, 7, 5
+[22] Zhengqi Li and Noah Snavely. Megadepth: Learning single-
+view depth prediction from internet photos. In IEEE Conf.
+Computer Vision and Pattern Recognition (CVPR), 2018. 1,
+2, 6, 7, 5
+[23] Philipp Lindenberger, Paul-Edouard Sarlin, and Marc Polle-
+feys. LightGlue: Local Feature Matching at Light Speed. In
+IEEE Int’l Conf. Computer Vision (ICCV), 2023. 2, 7, 5
+[24] Thibaut Loiseau and Guillaume Bourmaud. Rubik: A struc-
+tured benchmark for image matching across geometric chal-
+lenges. In IEEE Conf. Computer Vision and Pattern Recog-
+nition (CVPR), 2025. 2
+[25] Mapillary.
+Opensfm.
+https : / / github . com /
+mapillary/OpenSfM, 2014. 1
+[26] Nikolaus Mayer, Eddy Ilg, Philip Hausser, Philipp Fischer,
+Daniel Cremers, Alexey Dosovitskiy, and Thomas Brox. A
+large dataset to train convolutional networks for disparity,
+9
+
+
+optical flow, and scene flow estimation. In IEEE Conf. Com-
+puter Vision and Pattern Recognition (CVPR), 2016. 6
+[27] Dmytro Mishkin, Jiri Matas, Michal Perdoch, and Karel
+Lenc.
+WxBS: Wide baseline stereo generalizations.
+In
+British Machine Vision Conference (BMVC), 2015. 1, 7, 8
+[28] Maxime Oquab, Timoth´ee Darcet, Theo Moutakanni, Huy V.
+Vo, Marc Szafraniec, Vasil Khalidov, Pierre Fernandez,
+Daniel Haziza, Francisco Massa, Alaaeldin El-Nouby, Rus-
+sell Howes, Po-Yao Huang, Hu Xu, Vasu Sharma, Shang-
+Wen Li, Wojciech Galuba, Mike Rabbat, Mido Assran, Nico-
+las Ballas, Gabriel Synnaeve, Ishan Misra, Herve Jegou,
+Julien Mairal, Patrick Labatut, Armand Joulin, and Piotr Bo-
+janowski. DINOv2: Learning robust visual features without
+supervision. In Int’l Conf. Learning Representations (ICLR),
+2023. 3
+[29] Vojtech
+Panek,
+Qunjie
+Zhou,
+Yaqing
+Ding,
+S´ergio
+Agostinho, Zuzana Kukelova, Torsten Sattler, and Laura
+Leal-Taix´e.
+A guide to structureless visual localization.
+arXiv preprint arXiv:2504.17636, 2025. 1
+[30] Ren´e Ranftl, Alexey Bochkovskiy, and Vladlen Koltun. Vi-
+sion transformers for dense prediction. In IEEE Conf. Com-
+puter Vision and Pattern Recognition (CVPR), 2021. 4, 1
+[31] Carl Edward Rasmussen and Christopher K. I. Williams.
+Gaussian Processes for Machine Learning (Adaptive Com-
+putation and Machine Learning). The MIT Press, 2005. 3
+[32] Mike Roberts, Jason Ramapuram, Anurag Ranjan, Atulit
+Kumar, Miguel Angel Bautista, Nathan Paczan, Russ Webb,
+and Joshua M. Susskind. Hypersim: A photorealistic syn-
+thetic dataset for holistic indoor scene understanding.
+In
+IEEE Int’l Conf. Computer Vision (ICCV), 2021. 4, 6, 8,
+2
+[33] Paul-Edouard Sarlin, Daniel DeTone, Tomasz Malisiewicz,
+and Andrew Rabinovich.
+Superglue:
+Learning feature
+matching with graph neural networks. In IEEE Conf. Com-
+puter Vision and Pattern Recognition (CVPR), 2020. 1, 2,
+7
+[34] Torsten Sattler, Will Maddern, Carl Toft, Akihiko Torii,
+Lars Hammarstrand, Erik Stenborg, Daniel Safari, Masatoshi
+Okutomi, Marc Pollefeys, Josef Sivic, Fredrik Kahl, and
+Tomas Pajdla. Benchmarking 6dof outdoor visual localiza-
+tion in changing conditions. In IEEE Conf. Computer Vision
+and Pattern Recognition (CVPR), 2018. 1
+[35] Philipp Schr¨oppel, Jan Bechtold, Artemij Amiranashvili, and
+Thomas Brox. A benchmark and a baseline for robust multi-
+view depth estimation. In Int’l Conf. 3D Vision (3DV), 2022.
+5
+[36] Johannes
+Lutz
+Sch¨onberger
+and
+Jan-Michael
+Frahm.
+Structure-from-Motion Revisited. In IEEE Conf. Computer
+Vision and Pattern Recognition (CVPR), 2016. 1, 3
+[37] Oriane Sim´eoni, Huy V. Vo, Maximilian Seitzer, Federico
+Baldassarre, Maxime Oquab, Cijo Jose, Vasil Khalidov,
+Marc Szafraniec, Seungeun Yi, Micha¨el Ramamonjisoa,
+Francisco Massa, Daniel Haziza, Luca Wehrstedt, Jianyuan
+Wang, Timoth´ee Darcet, Th´eo Moutakanni, Leonel Sentana,
+Claire Roberts, Andrea Vedaldi, Jamie Tolan, John Brandt,
+Camille Couprie, Julien Mairal, Herv´e J´egou, Patrick La-
+batut, and Piotr Bojanowski.
+Dinov3.
+arXiv preprint
+arXiv:2508.10104, 2025. 3, 4, 6
+[38] Noah Snavely, Steven M Seitz, and Richard Szeliski. Mod-
+eling the world from internet photo collections. Int’l J. Com-
+puter Vision (IJCV), 80(2), 2008. 1, 3
+[39] Alex Stoken and Kenton Fisher. Find my astronaut photo:
+Automated localization and georectification of astronaut
+photography. In IEEE Conf. Computer Vision and Pattern
+Recognition (CVPR) Workshops, 2023. 7, 2
+[40] Jianlin Su, Yu Lu, Shengfeng Pan, Ahmed Murtadha, Bo
+Wen, and Yunfeng Liu. Roformer: Enhanced transformer
+with rotary position embedding, 2023. 6
+[41] Jiaming Sun, Zehong Shen, Yuang Wang, Hujun Bao, and
+Xiaowei Zhou. LoFTR: Detector-free local feature match-
+ing with transformers. In IEEE Conf. Computer Vision and
+Pattern Recognition (CVPR), 2021. 1, 2, 3, 7, 5
+[42] Hajime Taira, Masatoshi Okutomi, Torsten Sattler, Mircea
+Cimpoi, Marc Pollefeys, Josef Sivic, Tomas Pajdla, and Ak-
+ihiko Torii.
+Inloc: Indoor visual localization with dense
+matching and view synthesis. In IEEE Conf. Computer Vi-
+sion and Pattern Recognition (CVPR), 2018. 1
+[43] Fabio Tosi, Yiyi Liao, Carolin Schmitt, and Andreas Geiger.
+Smd-nets: Stereo mixture density networks. In Conference
+on Computer Vision and Pattern Recognition (CVPR), 2021.
+6
+[44] Prune Truong, Martin Danelljan, Radu Timofte, and Luc
+Van Gool. PDC-Net+: Enhanced Probabilistic Dense Cor-
+respondence Network.
+IEEE Trans. Pattern Analysis and
+Machine Intelligence (T-PAMI), 2023. 5
+[45] Khiem Vuong, Anurag Ghosh, Deva Ramanan, Srinivasa
+Narasimhan, and Shubham Tulsiani.
+Aerialmegadepth:
+Learning aerial-ground reconstruction and view synthesis.
+In IEEE Conf. Computer Vision and Pattern Recognition
+(CVPR), 2025. 6
+[46] Jianyuan Wang, Minghao Chen, Nikita Karaev, Andrea
+Vedaldi, Christian Rupprecht, and David Novotny.
+Vggt:
+Visual geometry grounded transformer. In IEEE Conf. Com-
+puter Vision and Pattern Recognition (CVPR), 2025. 3, 7,
+5
+[47] Shuzhe Wang,
+Vincent Leroy,
+Yohann Cabon,
+Boris
+Chidlovskii, and Jerome Revaud. Dust3r: Geometric 3d vi-
+sion made easy. In IEEE Conf. Computer Vision and Pattern
+Recognition (CVPR), 2024. 1, 3
+[48] Wenshan Wang, Delong Zhu, Xiangwei Wang, Yaoyu Hu,
+Yuheng Qiu, Chen Wang, Yafei Hu, Ashish Kapoor, and Se-
+bastian Scherer. Tartanair: A dataset to push the limits of
+visual slam. In IEEE/RSJ Int’l Conf. Intelligent Robots and
+Systems (IROS), 2020. 6
+[49] Yao Yao, Zixin Luo, Shiwei Li, Jingyang Zhang, Yufan
+Ren, Lei Zhou, Tian Fang, and Long Quan. Blendedmvs:
+A large-scale dataset for generalized multi-view stereo net-
+works. In IEEE Conf. Computer Vision and Pattern Recog-
+nition (CVPR), 2020. 6
+[50] Chandan Yeshwanth, Yueh-Cheng Liu, Matthias Nießner,
+and Angela Dai. Scannet++: A high-fidelity dataset of 3d
+indoor scenes. In IEEE Int’l Conf. Computer Vision (ICCV),
+2023. 6
+[51] Zhichao Yin, Trevor Darrell, and Fisher Yu. Hierarchical
+discrete distribution decomposition for match density esti-
+10
+
+
+mation. In IEEE Conf. Computer Vision and Pattern Recog-
+nition (CVPR), 2019. 5
+[52] Yuchen Zhang, Nikhil Keetha, Chenwei Lyu, Bhuvan Jhamb,
+Yutian Chen, Yuheng Qiu, Jay Karhade, Shreyas Jha, Yaoyu
+Hu, Deva Ramanan, Sebastian Scherer, and Wenshan Wang.
+Ufm: A simple path towards unified dense correspondence
+with flow. In Advances in Neural Information Processing
+Systems (NeurIPS), 2025. 2, 3, 5, 6, 7
+[53] Jie Zhao, Xin Chen, Yongsheng Yuan, Michael Felsberg,
+Dong Wang, and Huchuan Lu.
+Efficient motion prompt
+learning for robust visual tracking. In Int’l Conf. Machine
+learning (ICML), 2025. 6
+[54] Xiaoming Zhao, Xingming Wu, Weihai Chen, Peter C. Y.
+Chen, Qingsong Xu, and Zhengguo Li. Aliked: A lighter
+keypoint and descriptor extraction network via deformable
+transformation.
+IEEE Transactions on Instrumentation &
+Measurement, 72, 2023. 5
+[55] Huizhong Zhou, Benjamin Ummenhofer, and Thomas Brox.
+Deeptam: Deep tracking and mapping. In European Conf.
+Computer Vision (ECCV), 2018. 5
+11
+
+
+RoMa v2: Harder Better Faster Denser Feature Matching
+Supplementary Material
+A. Architectural Details
+Here we give further details on the exact dimensions of in-
+puts and outputs of the different components of our model.
+Matcher:
+The matcher takes in a list of features from the
+DINOv3 ViT-L backbone, in our implementation specifi-
+cally layers 11 and 17, each have dimension DDINO = 1024,
+and which we denote as f A
+{11,17}, f B
+{11,17}. These features
+are concatenated into a 2048-dimensional feature, which is
+linearly projected into a 768-dimensional subspace as
+˜f A = P(f A
+11 ⊕f A
+17) ∈R768, P ∈R768×2048
+(9)
+˜f B = P(f B
+11 ⊕f B
+17) ∈R768, P ∈R768×2048
+(10)
+The projected features from image A and image B are
+then stacked and fed into an alternating Attention Multi-
+view Transformer of ViT-B architecture (we use a standard
+implementation with dim=768, depth=12, num heads=12,
+ffn ratio=4, and do not employ LayerScale, we however re-
+tain the 1024 output dim through a linear map to conform
+to ViT-L) as
+(zA, zB) = mθ(˜f A,˜f B) ∈(RM×1024, RN×1024)
+(11)
+This Transformer alternates between global Attention, pro-
+cessing both frames jointly without any positional en-
+coding, and frame-wise Attention using normalized Axial
+RoPE (as in DINOv3).
+The output of mθ is used to construct the similarity ma-
+trix S ∈RM×N as
+Smn = exp(1/τ cossim(zA
+m, zB
+n ))
+(12)
+where τ
+= 1/10 is the temperature following RoMa,
+and cossim denotes cosine similarity, i.e., cossim(x, y) =
+x·y
+∥x∥∥y∥where · is the dot product. Using this similarity ma-
+trix, we compute so-called “match embeddings” (following
+the nomenclature of RoMa) as
+χA7→B
+m
+= SmχB ∈R1024,
+(13)
+where χB
+n = cos(2πωWxB
+n ) ⊕sin(2πωWxB
+n ) ∈R1024,
+xB
+n ∈R2 is the pixel-coordinate of patch n in image B,
+ω = 1 (as discussed in the main text), and W ∈R512×2 is
+a non-learnable matrix with elements drawn from N(0, 1).
+We combine features into input for a DPT [30] head as
+{f B
+11, f B
+11, f B
+17 + χA7→B
+m
++ zA, f B
+17 + χA7→B
+m
++ zA},
+(14)
+where we set the finest resolution to a quarter of the original
+image size. We use a scratch dimension of 256 and out di-
+mensions of [256, 512, 1024, 1024] for strides [4, 8, 16, 32]
+respectively for the DPT head. The final prediction is made
+at stride 4.
+Refiners:
+We use a modified version of the refiners pro-
+posed in DKM and RoMa [11, 12]. In particular, we retain
+only the refiners at stride [4, 2, 1], due to matching at stride
+4. This has the effect of making the refinement significantly
+cheaper, as we also only have to extract features from the
+VGG19 backbone until stride 4, compared to RoMa and
+DKM which require features and refinement from stride 16.
+We denote the fine features as
+φ4 ∈R
+H
+4 × W
+4 ×192, φ2 ∈R
+H
+2 × W
+2 ×48, φ1 ∈RH×W ×12,
+(15)
+where the dimensions come from the raw VGG19
+features
+(extracted
+right
+before
+the
+correspond-
+ing
+maxpool)
+projected
+with
+linear
+layers
+of
+sizes
+R192×256, R48×128, R12×64. Refiners at stride i take input
+of the form.
+φA
+i ⊕φB
+i (WA7→B) ⊕gi(WA7→B −xA)
+(16)
+⊕local corr(φA
+i , φB
+i , WA7→B, ki)
+(17)
+where at each pixel xa local corr uses the previous
+warp to construct a ki × ki local correlation around
+WA7→B(xA), and gi are linear maps. We use [k4, k2, k1] =
+[7, 3, 0 (no corr)], g4
+=
+R79×2, g2
+=
+R23×2, g1
+=
+R8×2. The concatenation of all these features sum up to
+512, 128, 32 respectively for strides 4, 2, 1, which are inten-
+tionally powers of two, as this slightly increases inference
+speed. The internals are as in DKM and RoMa, that is, 8
+layers each consisting of 5 × 5 depthwise convolution, fol-
+lowed by BatchNorm, ReLU, and 1 × 1 pointwise convolu-
+tion.
+B. Further Details on Datasets
+MegaDepth and AerialMegaDepth:
+We follow the
+setup in RoMa [12], which is the following. For each scene,
+directional overlaps are first computed using the number of
+shared 3D tracks divided by the number of observed tracks,
+giving a number between 0 and 1.
+Up to 200000 pairs
+are selected from each scene by randomly sampling up to
+100000 pairs with overlap > 0.01, and up to 100000 pairs
+with overlap > 0.35. Different from other datasets, sam-
+pling is not done uniformly over scenes. Rather, sampling
+is done over pairs, but pair sampling likelihood is down-
+weighted by the number of pairs in the scene to the power
+of 0.75. Note that if the power had been 1 this would be
+equivalent to uniform sampling.
+MapFree
+We run COLMAP’s MVS on all scenes with
+default settings, giving us per image depth maps.
+Like
+1
+
+
+MegaDepth we compute overlaps as the directional percent-
+age of shared 3D tracks between images. For training we
+sample pairs with overlap > 0.01 uniformly over the scenes,
+using only seq0 per-scene.
+ScanNet++ v2:
+We train on the nvs sem train split
+which consists of 856 indoor scenes from which we use the
+DSLR images. For each scene we render image aligned
+depth maps from the scene mesh, which is derived from a
+Faro Focus Premium laser scanner. We compute the over-
+lap pairs of images as the geometric mean of their respec-
+tive directional depth map overlaps in 512×512 resolution.
+We use a threshold of 0.2 for the minimum required over-
+lap. For each scene we compute 10000 pairs that fulfill the
+overlap threshold, and use them for training. This gives us
+≈8 · 106 total pairs.
+TartanAir V2:
+We follow the setup in UFM and use
+their TA-WB pairs for training, where we like UFM leave
+out the OldScandinavia, Sewerage, Supermarket, Desert-
+GasStation, and PolarSciFi scenes for test. For further de-
+tails about the pair construction, see Zhang et al. [52].
+BlendedMVS:
+We follow MapAnything and exclude the
+scenes:
+- 5692a4c2adafac1f14201821,
+- 5864a935712e2761469111b4,
+- 59f87d0bfa6280566fb38c9a,
+- 58a44463156b87103d3ed45e,
+- 5c2b3ed5e611832e8aed46bf,
+- 5bf03590d4392319481971dc,
+- 00000000000000000000001a,
+- 00000000000000000000000c,
+- 000000000000000000000000.
+We train on all other scenes. We use pairs with directional
+overlap (computed from the depth maps) larger than 0.05.
+Hypersim:
+We train on scenes with index < 50, and val-
+idate on scenes with index ≥50. We sample pairs with a
+unidirectional overlap (based on depth maps) ≥0.2.
+FlyingThings3D:
+We use the official “TRAIN” “TEST”
+split and train on both the “clean” and “final”-pass images,
+converting the provided optical flows into warps.
+UnrealStereo4K:
+We train on all scenes and use the
+left/right images with their disparities, which we convert to
+warps through the disparity/depth inverse relation.
+Virtual KITTI 2:
+We train on all scenes, using subse-
+quent frames with the same condition and camera, and de-
+riving the warp from the provided optical flow.
+During
+training we randomly draw conditions (weather conditions
+and camera rig position), and using either left or right stereo
+camera.
+C. Further Details on Training Data
+Augmentations:
+Besides using different aspect ratios,
+we additionally employ light data augmentation. Specifi-
+cally, we use horizontal flipping, grayscale with probability
+0.1, multiplicative brightness (ratio between [1/1.5, 1.5]),
+and hue jitter ([−15◦, 15◦] in the HSV parameterization).
+For MegaDepth and AerialMegaDepth we additionally fol-
+low RoMa and translate the image randomly in the range
+{−32, ..., 32} in both rows and columns.
+Visualization of Training Batch:
+We visualize a ran-
+domly drawn batch in from the training data in Figure 10, in
+order to give a qualitative understanding of the type of pairs
+RoMa v2 is trained on.
+Overlap/Covisibility
+Computation:
+For
+depth-based
+datasets (all datasets except FlyingThings3D, Unreal-
+Stereo4k, and Virtual KITTI 2) we use depth consistency
+to compute pixel-wise covisibility. We say that the depth is
+consistent if
+|zB(xA7→B) −zA7→B|
+zB(xA7→B)
+< τ = 0.05,
+(18)
+where xA7→B is the mapping of the pixel-coordinate xA into
+B as xA7→B ∼KB(RA7→B(KA)−1xA + t) and zA7→B =
+(KB(RA7→B(KA)−1xA + t))3 is the corresponding depth.
+For flow-based datasets, we measure the warp cycle con-
+sistency as
+WB7→A(WA7→B(xA))−xA < 5·10−3 ≈1.6 px (19)
+at a resolution of 640 × 640.
+D. Further Details on Benchmarks
+SatAst:
+We create a new matching benchmark called Sa-
+tAst (Satellite, Astronaut), that uses images taken by astro-
+nauts from the international space station and satellite im-
+ages. We take 39 pairs of corresponding images from Earth-
+Match [3] (which they in turn took from AIMS [39]). The
+pairs in EarthMatch were obtained by retrieving ten satellite
+images from a large database for each given astronaut im-
+age. For our benchmark we only select image pairs that are
+correctly matching (confirmed by visual inspection). We
+also exclude images with extreme cloud occlusions as well
+as images where we were not able to accurately annotate
+correspondences that agree on a homography.
+We annotate corresponding points in the image pairs in
+an iterative fashion as illustrated in Figure 11.
+To get a sense of how good the annotations are, we es-
+timate homographies from them and calculate the reprojec-
+tion error from mapping the points from the astronaut image
+through the homography to the satellite image. The result-
+ing errors are plotted in Figure 12.
+E. Further Details on Predictive Covariance
+Experiment
+We create a benchmark out of 1500 pairs from validation
+scenes the HyperSim [32] dataset, where pairs with < 0.2
+overlap are discarded.
+2
+
+
+Figure 10. Visualization of training batch. Our data mixures is diverse and challenging, covering many types of scenes.
+Since RoMa v2 predicts only the forward covariance
+(and the residuals are two-sided), we approximate the full
+4 × 4 covariance matrix of the matches by a block diagonal
+matrix where for each drawn correspondence pair xA, xB
+the covariance of points in IA are approximated by sam-
+pling the backwards covariance as
+(Σ−1)A(xA) ≈(Σ−1)B7→A(WA7→B(xA)).
+(20)
+We optimize the covariance weighted Sampson error [8],
+(xT
+BFxA)
+∥F12xA∥2
+ΣA + ∥(F T )12xB∥2
+ΣB
+(21)
+where ∥u∥2
+Σ = uT Σu. For the robust estimation experi-
+ment, we similarly use the residual inside the MSAC scor-
+ing, inside a standard LO-RANSAC.
+3
+
+
+Figure 11. Annotation of correspondences for SatAst: 1) We annotate four initial approximate correspondences. 2) We warp the satellite
+image using the homography obtained from the previous step and annotate ten accurate correspondences. 3) Visualization of the warp
+obtained by estimating a homography from the ten accurate annotations. 4) The ten accurate correspondences visualized in the original
+images, where we score the homographies obtained from the dense matchers. Step 2) is sometimes repeated several times until a warp that
+is deemed good enough is obtained.
+4
+
+
+0–1
+1–2
+2–3
+3–5
+5–10
+0
+50
+100
+150
+200
+250
+Pixel Error
+Correspondences
+Figure 12. Accuracy of annotations on SatAst: A histogram over
+the reprojection errors of the 390 annotated correspondences in
+SatAst according to homographies estimated from the ten annno-
+tations in each image. The image resolution of the satellite images
+is 3072 × 3072, so an error of 10 pixels is around 0.3% of the
+image width.
+F. Relative Pose Estimation
+VGGT:
+For evaluating VGGT on MegaDepth-1500, we
+follow the evaluation outlined by Wang et al. [46]. In par-
+ticular, we sample 1024 keypoints using ALIKED [54] and
+use as query points in the tracking head. We try different
+confidence and covisibility thresholds. We settle for 0.1 for
+both.
+UFM:
+We follow the same sampling as for RoMa v2 and
+RoMa, using bidirectional warps and balanced sampling.
+However, as UFM only supports a fixed resolution of H =
+420 × W = 560 we do not use upsampling.
+G. MegaDepth1500 Full Table
+Due to a formatting error, UFM and RoMa v2 were omitted
+from Table 4. In Table 11 we present the results in full.
+H. Bias In AerialMegaDepth
+We observe that RoMa v2 sometimes produces estimates
+overlaps in textureless sky regions, as demonstrated in Fig-
+ure 13 We believe that this is due to AerialMegaDepth
+sometimes propagating depths from the mesh to sky pixels,
+as illustrated in Figure 14.
+Table 11. SotA comparison on MegaDepth-1500 [22, 41]. The
+top part contains feed-forward 3D reconstruction models, while
+the bottom part contains feature matchers.
+Method ↓
+AUC@ →
+5◦↑
+10◦↑
+20◦↑
+Reloc3r [10] CVPR’25
+49.6
+67.9
+81.2
+MASt3R [21] ECCV’24
+42.4
+61.5
+76.9
+VGGT† [46] CVPR’25
+33.5
+52.9
+70.0
+LightGlue [23] ICCV’23
+51.0
+68.1
+80.7
+LoFTR [41] CVPR’21
+52.8
+69.2
+81.2
+DKM [11] CVPR’23
+60.4
+74.9
+85.1
+RoMa [12] CVPR’24
+62.6
+76.7
+86.3
+UFM† [52] NeurIPS’25
+41.5
+57.9
+72.4
+RoMa v2
+62.8
+77.0
+86.6
+†Our reproduced numbers.
+Figure 13. Visualization of RoMa v2 warp. Note that the model
+puts some confidence erroneously in sky pixels (see top-left). This
+may be due to bias stemming from AerialMegaDepth.
+5
+
+
+Figure 14.
+Spurious depth estimates in AerialMegaDepth.
+Depth from the scene leaks into the sky, causing some skypix-
+els to be multi-view consistent. This possibly leaks into the warp
+estimate of RoMa v2.
+6

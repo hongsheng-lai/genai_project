@@ -1,0 +1,2855 @@
+A Full-Induction Magnetohydrodynamics Solver for Liquid Metal Fusion
+Blankets in Vertex-CFD⋆
+Eirik Endevea,e,∗, Doug Stefanskib, Marc-Olivier G. Delchinic, Stuart Slatteryb, Cory D. Haucka,f, Bruno Turcksinb,
+Sergey Smolentsevd
+aComputer Science and Mathematics Division, Oak Ridge National Laboratory, Oak Ridge, TN 37831, USA
+bComputational Science and Engineering Division, Oak Ridge National Laboratory, Oak Ridge, TN 37831, USA
+cReactor and Nuclear Systems Division, Oak Ridge National Laboratory, Oak Ridge, TN 37831, USA
+dFusion Energy Division, Oak Ridge National Laboratory, Oak Ridge, TN 37831, USA
+eDepartment of Physics and Astronomy, University of Tennessee Knoxville, TN 37996-1200, USA
+fDepartment of Mathematics, University of Tennessee Knoxville, TN 37996-1320, USA
+Abstract
+Multiphysics modeling of liquid metal fusion blankets, which produce tritium and convert energy of neutrons cre-
+ated via fusion reactions into heat, is crucial for predicting performance, ensuring structural integrity, and optimizing
+energy production. While traditional blanket modeling of liquid metal flows during normal steady operating condi-
+tions commonly employs the inductionless approximation of the magnetohydrodynamics (MHD) equations, transient
+scenarios, when the plasma-confining magnetic field varies on millisecond time scales, require a full-induction MHD
+approach that dynamically evolves the magnetic field via the time-dependent induction equation. This paper presents
+the formulation, implementation, and initial verification of a full-induction MHD solver integrated within the open-
+source Vertex-CFD framework, which aims to achieve tight multiphysics coupling, a flexible software design enabling
+easy extension and addition of physics models, and performance portability across computing platforms. The solver
+utilizes finite element spatial discretization, implicit Runge–Kutta time integration, and an inexact Newton method
+to solve the resulting discrete nonlinear system, leveraging Trilinos packages for efficient computation. Verification
+against selected benchmark problems demonstrates accuracy and robustness of the solver. Furthermore, when the
+solver is applied to an idealized blanket model in 2.5D and full 3D, results obtained with Vertex-CFD are in good
+agreement with recently published quasi-2D simulations. These findings establish a computational foundation for fu-
+ture simulations of transient MHD phenomena in liquid metal blankets with Vertex-CFD, and open avenues for future
+extensions and performance optimizations.
+Keywords: Full-induction magnetohydrodynamics; Liquid metal fusion blankets; Finite element method (FEM);
+Implicit Runge–Kutta; High-performance computing (HPC); Open-source computational framework
+1. Introduction
+This paper presents the formulation, implementation, and initial verification of a full-induction magnetohydrody-
+namics (MHD) solver for electrically conducting fluids, such as liquid metals, in a magnetic field, developed within
+the open-source Vertex-CFD framework [1]. The solver is a computational tool to support the assessment of fusion
+⋆This manuscript has been authored by UT-Battelle, LLC under Contract No. DE-AC05-00OR22725 with the U.S. Department of Energy.
+The United States Government retains and the publisher, by accepting the article for publication, acknowledges that the United States Government
+retains a non-exclusive, paid-up, irrevocable, world-wide license to publish or reproduce the published form of this manuscript, or allow others
+to do so, for United States Government purposes. The Department of Energy will provide public access to these results of federally sponsored
+research in accordance with the DOE Public Access Plan (http://energy.gov/downloads/doe-public-access-plan).
+∗Corresponding author
+Email addresses: endevee@ornl.gov (Eirik Endeve), stefanskidl@ornl.gov (Doug Stefanski), delchinimg@ornl.gov
+(Marc-Olivier G. Delchini), slatterysr@ornl.gov (Stuart Slattery), hauckc@ornl.gov (Cory D. Hauck), turcksinbr@ornl.gov
+(Bruno Turcksin), smolentsevsy@ornl.gov (Sergey Smolentsev)
+arXiv:2511.15549v1  [physics.comp-ph]  19 Nov 2025
+
+
+blanket designs for emerging reactor concepts. The numerical approach employs finite element methods (FEMs) for
+spatial discretization, singly diagonally implicit Runge–Kutta (SDIRK) methods for time integration, and an inexact
+Newton method to solve the nonlinear system of the fully discrete MHD equations. For performance portability across
+computing platforms, including GPU-accelerated architectures, Vertex-CFD is built on Trilinos, a suite of packages
+for large-scale multiphysics simulations with device-level abstraction and optimization provided through Kokkos.
+Fusion reactor concepts under development for future energy production such as tokamaks and stellarators confine
+hot plasmas using strong magnetic fields, subjecting surrounding structures to intense thermal and electromagnetic
+loads. The fusion blanket is a critical reactor subsystem that is designed to serve multiple functions, including heat
+extraction for power generation, breeding tritium for fuel recycling, and radiation shielding (e.g., [2, 3]). Various
+blanket concepts have been proposed to fulfill these roles, including solid breeder blankets and liquid metal systems
+that leverage the favorable thermal and nuclear properties of materials like lead-lithium (PbLi). For example, in the
+dual-coolant lead-lithium (DCLL) blanket, a PbLi alloy circulates at low velocities (∼0.1 m s−1) through ducts
+to absorb energy of neutrons produced by fusion reactions and produce tritium, while pressurized helium removes
+surface heat to cool the inner surface of the reactor chamber and other structures [4, 5]. Modeling of liquid metal
+blanket systems is essential for predicting performance under normal and off-normal operating conditions, and for
+guiding material selection, optimizing energy production, and ensuring structural integrity.
+Due to their high electrical conductivity, liquid metal flows in fusion blankets are governed by the MHD equa-
+tions. Many existing computational models employ the inductionless approximation (e.g., [6, 7]), which assumes a
+low magnetic Reynolds number (i.e., magnetic field diffusion dominates over advection) so that flow-induced mag-
+netic fields can be neglected. Under this assumption, the magnetic field is treated as externally imposed and steady,
+and the primary electromagnetic variable is the scalar electric potential obtained by solving an elliptic equation. The
+inductionless approximation is widely used for modeling quasi-steady, normal operating conditions in blanket sys-
+tems. See, for example, [8, 9, 10, 11, 12] for implementations of the inductionless approximation for numerical
+modeling of liquid metal blanket flows, and [13] for a review of blanket-relevant computations using this approach.
+Magnetic field configurations in fusion devices, particularly tokamaks, are prone to instabilities such as those
+associated with vertical displacement events, magnetic island locking, and resistive wall modes [14, 15]. Instability-
+induced disruptions, which involve a thermal quench followed by a current quench, release large amounts of thermal
+and magnetic energy [14]. During these rapid transients, thermal energy and electromagnetic loads can far exceed
+those during steady operation, and the resulting rapidly changing magnetic fields generate high eddy currents in both
+solid and liquid blanket components. The associated electromagnetic forces are known to accelerate the flowing liquid
+metal in the blanket to velocities that may significantly exceed the blanket limits. Such scenarios motivate the use of
+full-induction MHD, which evolves the magnetic field dynamically using the full time-dependent induction equation.
+This formulation captures both the advection and diffusion of magnetic fields and is necessary when the magnetic
+Reynolds number is moderate or high, or when induced magnetic fields and transient electromagnetic effects are non-
+negligible. While some prior studies have applied full-induction MHD to simplified blanket geometries [16, 17, 18],
+broader use remains limited.
+By nature, computational models for blanket analysis are both multiphysics and multiscale. They must be ca-
+pable of handling multi-material domains (e.g., coupling liquid metal, solid structures, and plasma), complex three-
+dimensional geometries, and far-field boundary conditions that connect to reactor-scale electromagnetic environments.
+Furthermore, the accurate resolution of boundary layers (e.g., Hartmann layers) requires high spatial resolution near
+walls, and models are stiff due to disparate timescales, necessitating implicit time integration to stably capture evo-
+lution from milliseconds to seconds without resolving the fastest time scales of the system. At the numerical level,
+the design of robust and accurate solution methods is demanding, as solvers should preserve key structural properties,
+such as the divergence-free condition on the magnetic field [19, 20], conservation principles, and positivity of density
+and temperature [21, 22, 23]. Robust preconditioning strategies that account for multiphysics coupling across the
+range of relevant time scales remain a central challenge in achieving performance on high-performance computing
+(HPC) systems [24, 25], while also ensuring software extensibility so that new physics capabilities can be added
+without major code refactoring [26, 27].
+As an initial step towards addressing some of these challenges, we have implemented a full-induction liquid
+metal MHD solver within the open-source framework Vertex-CFD [1]. This solver is based on a FEM for spatial
+discretization, SDIRK methods for time integration, and inexact Newton methods for handling nonlinearities of the
+discrete system. Linear systems arising within the Newton iterations are solved using iterative methods. To handle
+2
+
+
+the divergence-free constraints on the velocity and magnetic field, the incompressibility condition is relaxed with the
+artificial compressibility method due to Chorin [28], and the divergence-free condition is relaxed with the generalized
+Lagrange multiplier method introduced to MHD by Dedner et al. [29]. Vertex-CFD derives capabilities from Trilinos
+[30], a suite of packages for large-scale multiphysics simulations, which provides finite-element assembly, time in-
+tegrators, nonlinear solvers, linear solvers and preconditioners. Vertex-CFD aims for performance on heterogeneous
+architectures, including GPU-accelerated systems, via its use of Kokkos for performance portability. Software exten-
+sibility is facilitated through C++ templates, which provide a mechanism for adding, modifying, or coupling physics
+models without extensive code refactoring.
+The remainder of the paper is organized as follows: Section 2 provides the theoretical formulation of the full-
+induction MHD model, followed by Section 3, which summarizes the numerical methods used to solve the MHD
+equations. Section 4 presents numerical verification results on standard test cases, and Section 5 presents results
+from the application of the MHD solver to an idealized model of blanket flow driven by a transient external magnetic
+field. Section 6 summarizes our findings, draws some conclusions, and discusses future directions for Vertex-CFD
+development. Appendix A presents wave speeds associated with the full-induction MHD model. Appendix B provides
+additional details on the implementation of the numerical methods in Vertex-CFD.
+2. AC-GLM-MHD Model
+We employ the artificial compressibility (AC) model as an approximation to the incompressible Navier–Stokes
+(NS) equations. The formulation is a coupled hyperbolic-parabolic system of partial differential equations (PDEs)
+after introducing a time evolution equation for pressure that approximates incompressible dynamics (e.g., [28, 31, 32,
+33])
+∂t(ρ0 v) + ∇·   ρ0 v ⊗v + P I −τ  = J × B,
+(1a)
+∂tP + ρ0 c2
+0 ∇· v = 0,
+(1b)
+where ρ0 is the constant mass density, v the velocity field, P the pressure, c0 the (constant) artificial sound speed, and
+τ the viscous stress tensor, defined as
+τ = ρ0 ν   (∇v) + (∇v)⊺,
+(2)
+where ν is the kinematic viscosity. The Lorentz force on the right-hand side of Eq. (1a) couples the NS equations to
+the electromagnetic fields, where B denotes the magnetic field and the current density is J = ∇× B/µ0, where µ0
+is the vacuum magnetic permeability. The evolution of the magnetic field, which completes the MHD coupling, is
+discussed in more detail below.
+The AC model transforms the incompressible NS system by replacing the incompressibility constraint ∇· v = 0
+with the evolution equation in Eq. (1b). This introduces artificial, finite-speed acoustic waves into the system, in
+contrast to the instantaneous pressure response of the incompressible formulation, which involves solving an elliptic
+equation at each time step. The model aims to approximate low Mach number flows, where the Mach number Ma =
+|v|/c0 ≪1. Within this framework, density fluctuations are neglected, i.e., δρ/ρ0 ∼O(Ma2) [33], and ρ0 is treated
+as a constant. The AC model can be derived as the isentropic limit of the first law of thermodynamics [33], with the
+pressure equation commonly formulated in terms of the material derivative, but the approximation ∂tP +v·∇P ≈∂tP
+can be made under the assumption that the acoustic wave speed is much greater than the characteristic flow speed.
+While the AC model can be derived from the first law of thermodynamics, we emphasize that the sound speed c0 is a
+user-specified artificial computational parameter, not necessarily intended to reflect the true physical compressibility
+of the flow. Its value may be tuned for consistency with experimental or numerical reference data.
+The low Mach number assumption is expected to be well justified in models of liquid PbLi blankets for fusion
+applications. In these systems, the speed of sound is typically of order 103 m s−1 (e.g., [34, 35]), while characteristic
+flow velocities under normal operating conditions are much lower. Even during transient events such as plasma
+disruptions, flow speeds may rise considerably but are still expected to remain within O(10 m s−1) (e.g., [36]).
+For the evolution of the magnetic field we adopt the generalized Lagrange multiplier (GLM) form of the magnetic
+induction equation (e.g., [29]). The GLM formulation introduces a coupled system for the magnetic field B and a
+3
+
+
+“divergence-correcting” scalar field ψ
+∂tB + ∇× E = −v (∇· B) −ch ∇ψ,
+(3a)
+∂tψ + ch ∇· B = −α ψ,
+(3b)
+where the electric field E is defined by Ohm’s law,
+E = −(v × B) + η J,
+(4)
+and η is the electrical resistivity, here assumed to be constant in space and time. The GLM system in Eq. (3) is
+designed to mitigate numerically induced violations of the divergence-free condition on the magnetic field ∇·B = 0,
+and the coupling to the scalar field ψ facilitates propagation and damping of divergence errors. In Eq. (3), ch is
+the hyperbolic cleaning speed controlling the rate at which divergence errors propagate, and α ≥0 is a damping
+coefficient that controls the decay of these errors. The first term on the right-hand side of Eq. (3a), which arises from
+a generalized form of Maxwell’s equations that admits magnetic monopoles [37], facilitates advection of divergence
+errors with the fluid flow [38]. As one of the so-called Godunov–Powell source terms it plays a role in rendering the
+MHD system symmetrizable [39], which is important for ensuring stability of numerical schemes in the presence of
+∇· B errors (e.g., [40, 41]).
+The coupled system defined by Eqs. (1) and (3) — referred to here as the AC-GLM-MHD model — approximates
+viscous, resistive, incompressible MHD flows governed by the constraints ∇·v = 0 and ∇·B = 0. In this formulation,
+these solenoidal constraints are not enforced exactly but are instead relaxed through hyperbolic evolution equations
+that allow constraint violations to propagate with finite, user-specified speeds c0 (velocity) and ch (magnetic field).
+This is reflected in the structural similarity of the pressure and magnetic correction equations, Eqs (1b) and (3b),
+and their respective coupling to the momentum and induction equations via gradients of P and ψ. By incorporating
+divergence mitigation directly into the model, rather than, e.g., enforcing the constraints through discrete projection
+[19] or specialized approximation spaces [42], this approach offers greater flexibility in the choice of numerical
+methods. It enables numerically induced divergence errors to propagate out of the domain, avoiding the need for
+computationally expensive elliptic solves at each time step, as required by traditional projection-based methods (e.g.,
+[19]). We refer to [43] for a theoretical analysis of an artificial-compressibility-based MHD system closely related to
+the AC-GLM-MHD model.
+Conservation Form of the AC-GLM-MHD Equations. For numerical solutions using Vertex-CFD, we express the
+AC-GLM-MHD system in a compact hyperbolic-parabolic balance-law form that is suitable for finite element dis-
+cretization
+∂tU + ∇·   F (U) −G(U, ∇U)  = S(U, ∇U).
+(5)
+Here, the evolved state vector is U = [ρ0v, P, B, ψ]⊺, and the inviscid and viscous fluxes are defined as
+F (U) =
+
+
+ρ0v ⊗v + (P + Pm)I −
+1
+µ0 B ⊗B
+ρ0c2
+0 v
+v ⊗B −B ⊗v + ch ψ I
+ch B
+
+and G(U, ∇U) =
+
+
+τ
+0
+η
+µ0
+ ∇B −(∇· B)I
+0
+
+,
+(6)
+with magnetic pressure Pm =
+1
+2µ0 |B|2. The source terms are given by
+S(U, ∇U) = −
+
+
+1
+µ0 B
+0
+v
+0
+
+(∇· B) −α ψ
+
+
+0
+0
+0
+1
+
+.
+(7)
+The momentum source in Eq. (7) results from rewriting the Lorentz force in divergence form and retaining the term
+proportional to ∇· B, which in a numerical setting may improve the orthogonality of the Lorentz force and the
+magnetic field in the presence of divergence errors [19]. The first term on the right-hand side of Eq. (7) is commonly
+referred to as the Godunov–Powell (GP) source term.
+Eq. (5) must be equipped with initial and boundary conditions, which we leave unspecified for now, but will return
+to when solving specific problems in Sections 4 and 5.
+4
+
+
+3. Numerical Methods
+This section provides a brief overview of the numerical methods used by Vertex-CFD to solve Eq. (5). The
+software implementations of these methods are discussed in detail in Section Appendix B.
+Spatial Discretization. We discretize Eq. (5) in space over the computational domain Ω⊂R3, with boundary Γ,
+using the FEM. To this end, let Th denote a triangulation of Ωinto disjoint elements K such that Ω= ∪K∈ThK. We
+define the finite element approximation space
+Vk
+h =  φh ∈C0(Ω) : φh|K ∈Mk(K), ∀K ∈Th
+	,
+(8)
+where Mk(K) is the space of polynomials of degree k used to approximate components of U on the element K. (We
+use the subscript h to denote quantities associated with the discrete, finite-element representation of the continuous
+problem.) The semi-discrete Ritz–Galerkin variational formulation for solving Eq. (5) is then to find the approxima-
+tion to U, i.e., U h = ((ρ0v)⊺
+h, Ph, B⊺
+h, ψh)⊺∈V h := [Vk
+h]8, such that
+Z
+Ω
+W ⊺
+h
+  ∂tU h −S(U h, ∇U h)  dV −
+Z
+Ω
+∇W ⊺
+h ·   F (U h) −G(U h, ∇U h)  dV
++
+I
+Γ
+W ⊺
+h
+  F (U h) −“
+G(U h, ∇U h)  · n dΓ = 0
+(9)
+holds for all W h ∈V h. In Eq. (9), n is the unit normal on the boundary Γ, and “
+G is the numerical approximation to
+the viscous flux on the boundary, for which we use a symmetric interior penalty method [44, 45, 46].
+Temporal Discretization. The semi-discrete scheme in Eq. (9) can be reorganized into a system of ordinary differential
+equations (ODEs) of the form
+dY
+dt = f(Y , t),
+(10)
+where the global solution vector Y represents all the degrees of freedom in Ωand f captures the spatial discretization
+of the AC-GLM-MHD model. (In Eq. (10), f also includes a left multiplication by the inverse mass matrix.) Explicit
+time-dependence in f is included to, e.g., accommodate time-dependent boundary conditions and/or external forcing.
+We use implicit Runge–Kutta methods to integrate the system in Eq. (10) forward in time. While Vertex-CFD
+can access a wide variety of time integrators (Section Appendix B), in this paper we specifically consider s-stage
+singly diagonally implicit Runge–Kutta (SDIRK) methods to advance the state vector a time step ∆t from time tn to
+tn+1 = tn + ∆t, which take the general form (e.g., [47])
+Y (i) = Y n + ∆t
+s
+X
+j=1
+aij f(Y (j), t(n,j)),
+(i = 1, . . . , s),
+(11a)
+Y n+1 = Y n + ∆t
+s
+X
+i=1
+bi f(Y (i), t(n,i)),
+(11b)
+where t(n,i) = tn + ci∆t, the stage weights aij are components of the matrix A ∈Rs×s, and the scheme weights
+bi and nodes ci are components of b, c ∈Rs. For diagonally implicit Runge–Kutta (DIRK) methods, A is lower
+triangular, so the upper limit of the sum in Eq. (11a) can be set to i. SDIRK methods are a subclass of DIRK methods
+in which all the diagonal entries of A are identical. The scheme is often organized in the Butcher table format
+c
+A
+b⊺.
+(12)
+Since A is lower triangular, each implicit solve in the stages in Eq. (11a) can be viewed as a backward Euler solve,
+Y (i) = Y (n,i) + aii∆t f(Y (i), t(n,i)),
+(13)
+5
+
+
+with modified time step aii∆t and known initial state
+Y (n,i) = Y n + ∆t
+i−1
+X
+j=1
+aij f(Y (j), t(n,j)).
+(14)
+In this paper, we consider the two-stage second-order SDIRK method (SDIRK22) with Butcher table (e.g., [47,
+Section 4.2.1])
+c
+A
+b⊺
+=
+γ
+γ
+1
+1 −γ
+γ
+1 −γ
+γ
+,
+(15)
+where γ = 1
+2(2 −
+√
+2), and the five-stage fourth-order SDIRK method (SDIRK54) with Butcher table [48, Chap-
+ter IV.6]
+c
+A
+b⊺
+=
+1/4
+1/4
+3/4
+1/2
+1/4
+11/20
+17/50
+−1/25
+1/4
+1/2
+371/1360
+−137/2720
+15/544
+1/4
+1
+25/24
+−49/48
+125/16
+−85/12
+1/4
+25/24
+−49/48
+125/16
+−85/12
+1/4
+.
+(16)
+Both SDIRK22 and SDIRK45 are stiffly accurate, that is asi = bi, for i = 1, . . . , s, which implies the “first same as
+last” (FSAL) property; i.e., Y n+1 = Y (s), and the assembly step in Eq. (11b) is not needed.
+To determine the step size ∆t in Eq. (11), we define the element-local Courant–Friedrichs–Lewy (CFL) time step
+∆tCFL in a computational domain of dimension D as a function of the maximum eigenvalues {λi
+max}, the mesh size
+|K|, and the user-input CFL number (CFL > 0),
+∆tCFL|K = CFL ×
+|K|
+PD
+i=1 λimax
+,
+(17)
+where λi
+max is the largest absolute eigenvalue of the AC-GLM-MHD flux Jacobian in the ith spatial dimension (see
+Appendix A). Because an implicit temporal integrator is employed, the CFL number can (ideally) be set to any positive
+value. For linear stability we can take CFL > 1, while explicit methods typically require CFL ≤1. However, temporal
+accuracy, nonlinear solver convergence, and linear solver conditioning considerations typically place restrictions on
+CFL.
+Nonlinear Solution Method. In Vertex-CFD, the nonlinear system arising from the semi-discretization in Eq. (9) is
+solved iteratively with Newton’s method by considering the residual
+R( ˙Y , Y , t) ≡˙Y −f(Y , t) = 0.
+(18)
+Considering residuals in the form of Eq.(18) allows for generality in terms of both software design and algorithm
+choices for time integration by requiring only the construction of the algorithmic building blocks in Eq. (9) via the
+finite element method and the associated derivatives of the residual with respect to Y and ˙Y . Considering the fully
+discrete system obtained after applying the SDIRK method to Eq. (10), as given by Eq. (13), as an example, Y := Y (i)
+represents the unknowns to be solved for and ˙Y = ˙Y (Y (i)) := (Y (i) −Y (n,i))/(aii∆t).
+Given an initial guess Y [0] for Y (i), the solution is iteratively refined through the sequence [see, e.g., 49, and
+references therein]
+W [k] δY [k] = −R[k],
+Y [k+1] = Y [k] + δY [k],
+k = 0, 1, . . . ,
+(19)
+until the residual norm drops below a user-specified tolerance. In Eq. (19), the iteration (Jacobian) matrix is defined
+as
+W [k] = ∂˙Y
+∂Y
+
+Y [k]
+∂R
+∂˙Y
+
+Y [k] + ∂R
+∂Y
+
+Y [k].
+(20)
+The update from Y [k] to Y [k+1] requires the solution of a linear system for δY [k], which is carried out iteratively
+using preconditioned GMRES (see Section Appendix B for details).
+6
+
+
+Implementations. The implementation of the above methods in Vertex-CFD is guided by three primary goals central
+to coupled physics modeling: (i) tight algorithmic coupling [“tight coupling” in 50], achieved through a fully implicit
+formulation in which all physics components are solved within a single monolithic system; (ii) extensibility, enabling
+the addition and coupling of new physics terms or models without substantial code refactoring; and (iii) performance
+portability, ensuring efficient use of leadership-class computing systems, which are currently built by a variety of
+vendors that require their own programming models for execution on accelerated hardware. Conceptually, an implicit
+finite element solver has two key components: (a) assembly of vectors and matrices representing the discretized
+equations, and (b) numerical algorithms which use them to advance the simulation in time. Vertex-CFD is designed
+around these two components to achieve the primary design goals through the Trilinos scientific computing libraries
+[30]. Solver implementations, including mesh representation and partitioning, operator assembly, time integrators,
+and the subsequent linear solvers and preconditioners arising from linearization of the nonlinear system are described
+in more detail in Appendix B. We also highlight the use of Kokkos for performance portability.
+4. Numerical Tests
+In this section, we verify the implementation of the AC-GLM-MHD model in Vertex-CFD through a series of
+numerical tests with known reference solutions — either analytical solutions or well-established numerical bench-
+marks from the literature. All numerical results are reported in dimensionless units (“code units”) with the vacuum
+permeability µ0 set to unity, following common practice in MHD code-verification studies (e.g., [20, 51, 52]).
+For problems where an analytic solution exists, we compare the numerical and analytical solutions in the p-norm.
+To this end, we denote the numerical solution of a variable X ∈{vx, vy, vz, Bx, By, Bz} by Xh, and compute the
+p-norm error as
+Lp(X) =
+ R
+Ω|X −Xh|pdV
+1/p
+R
+ΩdV
+,
+(21)
+for p ∈{1, 2}, where the integrals are evaluated by numerical quadrature. When performing mesh refinement studies,
+we quantify the convergence rate of the numerical solution towards the analytic solution as the mesh is refined. Let
+N1 to N2 denote the number of degrees of freedom in two successive meshes, with corresponding p-norm errors Lp
+1
+and Lp
+2. The convergence rate is then computed as
+rate =
+ log  Lp
+1/Lp
+2
+
+log  N1/N2
+
+.
+(22)
+Thus, a rate of r indicates that the error decreases as N −r under mesh refinement.
+We also investigate violations of the divergence-free condition on the magnetic field, and the efficacy of the
+various divergence control mechanisms in the model (i.e., GP sources and GLM divergence cleaning). To this end,
+the following measures for tracking the discrete global divergence in time are considered:
+max
+K∈Ω(|∇· Bh|) =
+nele
+max
+i=1
+ï
+nqp
+max
+j=1 |∇· Bh|ij
+ò
+,
+(23)
+Z
+Ω
+|∇· Bh|dV =
+nele
+X
+i=1
+nqp
+X
+j=1
+wij |∇· Bh|ij,
+(24)
+where nele and nqp are the number of discrete elements in the domain and the number of quadrature points per element,
+respectively, and wij is the quadrature weight for a given point.
+We define the artificial compressibility parameter β = ρ0 c2
+0; see Eq. (1b). Below, the magnetic advection-
+diffusion (Section 4.1) and circularly polarized Alfvén wave (4.2) tests used β = 1. The current sheet test (Section 4.4)
+used β = 104. The divergence cleaning (Section 4.3) and the lid-driven cavity (Section 4.5) tests used β = 103.
+As a rule of thumb, we set β ∼O(1) when compressibility effects are negligible, and choose larger values when
+compressibility is expected to matter and a nearly divergence-free velocity field is required. In the latter case, β
+should be chosen so that the associated acoustic modes remain fast relative to other physical wave speeds, but not so
+large that solver performance or convergence is adversely affected.
+7
+
+
+4.1. Magnetic Advection-Diffusion
+To verify the MHD model implemented in Vertex-CFD, we begin by solving the induction equation with various
+divergence control methods, as defined in Eq. (3), without coupling to the fluid model in Eq. (1). That is, this test
+is carried out by simulating the advection and diffusion of a magnetic field in a periodic domain, subjected to a
+prescribed velocity field that is constant in both space and time. While modeling different physics, the computational
+setup here is similar to that of the circularly polarized Alfvén wave test (e.g., [20]), which we consider in Section 4.2.
+For a specified v∥, the velocity components are given by
+vx = v∥cos φ,
+vy = v∥sin φ,
+and
+vz = 0,
+(25)
+where φ is the angle between the velocity vector and the x-axis. For φ ∈(0, π/2), we consider a two-dimensional
+periodic domain Ω= [0, 1/ cos φ] × [0, 1/ sin φ], which renders the magnetic field prescribed below periodic.
+By substituting Eq. (4) in Eq. (3a), and assuming constant resistivity η as well as ∇·B = ψ = 0, each component
+of the magnetic field evolves according to an advection-diffusion equation of the form
+∂tX + v · ∇X = η ∆X,
+(26)
+for X ∈{Bx, By, Bz}. The initial magnetic field is specified as
+B∥,0 = 1,
+B⊥,0 = A sin(2π x∥),
+and
+Bz,0 = A cos(2π x∥),
+(27)
+where x∥= x cos φ + y sin φ denotes the coordinate aligned with the flow direction, and the amplitude is set to
+A = 0.1. The initial x- and y-components of the magnetic field are obtained by rotating the ∥and ⊥components
+Bx,0 = B∥,0 cos φ −B⊥,0 sin φ,
+and
+By,0 = B⊥,0 cos φ + B∥,0 sin φ.
+(28)
+Given the initial and boundary conditions, the exact solution is
+B∥(x∥, t) = B∥,0,
+(29a)
+B⊥(x∥, t) = B⊥,0(x∥−v∥t) × exp(−(2π)2 η t),
+(29b)
+Bz(x∥, t) = Bz,0(x∥−v∥t) × exp(−(2π)2 η t),
+(29c)
+with Bx and By obtained by rotation according to Eq. (28). Thus, sinusoidal perturbations in B⊥and Bz are super-
+imposed on a constant background field B∥aligned with the flow. These perturbations are advected with the velocity
+field while diffusing due to finite resistivity, with their detailed evolution dependent on the values of v∥and η.
+In the following, for v∥= 1 and φ = π/6, we assess the accuracy of the implementation by varying the resistivity
+η, as well as the terms responsible for the transport and dissipation of numerically induced magnetic monopoles (i.e.,
+divergence errors) appearing on the right-hand side of Eq. (3a). Although all three magnetic field components are
+subject to numerical errors due to spatial and temporal discretization, in this two-dimensional configuration, only
+Bx and By are directly affected by errors arising from violations of the divergence-free constraint. Specifically, the
+solution in Eq. (29) is obtained from the induction equation assuming ∇· B = 0 holds for all times. We use a
+quasi-two-dimensional mesh with N × N × 1 uniform hexahedral elements. Thus, for φ = π/6, ∆x = (2/
+√
+3)/N
+and ∆y = 2/N. We set the time step as ∆t = 0.8/N, and set linear and nonlinear tolerances for the implicit solve to
+tolL = tolN = 10−12.
+To enable the demonstration of high-order accuracy, i.e., beyond second order in both space and time, all results
+in this section were obtained using quadratic elements and the SDIRK54 time integration scheme.
+In this test, we consider the induction equation, Eq. (3a), in the following form
+∂tB + ∇·   v ⊗B −B ⊗v −η   ∇B −(∇· B) I
+|
+{z
+}
+η(∇·B)-term
+  = −v (∇· B)
+|
+{z
+}
+GP-term
+−ch ∇ψ
+| {z }
+GLM-term
+,
+(30)
+where we have emphasized terms that are associated with divergence control or present because the divergence-free
+condition on the magnetic field is not strictly enforced. The “η(∇· B)-term” on the left-hand side of Eq. (30) arises
+when transforming the resistive part of the induction equation into divergence form using the identity
+∇× (∇× B) = ∇·   (∇· B)I −∇B .
+(31)
+8
+
+
+The first term on the right-hand side of Eq. (30), labeled “GP-term”, is the Godunov–Powell source for the induction
+equation, which results in the transport of divergence errors with the flow [38]. The second term on the right-hand side
+of Eq. (30), labeled “GLM-term”, provides coupling to Eq. (3b) and propagation and damping of divergence errors
+[29]. When this term is enabled, we set ch = 1 and α = ch/0.18 ≈5.56.
+Table 1 lists the L2 error norm for each of the magnetic field components and the divergence error as defined by
+Eq. (24) versus spatial resolution N at t = 1 for the resistive case η = (2π)−2. At this time, the initial profile has
+advected once across the grid and the peak amplitude has been reduced by a factor e.
+(i) no ∇· B terms
+(ii) η (∇· B)
+(iii) GP+η (∇· B)
+(iv) GLM+η (∇· B)
+(v) all ∇· B terms
+N
+L2
+rate
+L2
+rate
+L2
+rate
+L2
+rate
+L2
+rate
+Bx
+8
+5.721 × 10−5
+—
+1.783 × 10−4
+—
+8.356 × 10−5
+—
+5.668 × 10−5
+—
+4.018 × 10−5
+—
+16
+5.279 × 10−6
+3.44
+2.230 × 10−5
+3.00
+2.326 × 10−5
+1.85
+9.769 × 10−6
+2.54
+8.132 × 10−6
+2.30
+32
+5.632 × 10−7
+3.23
+4.739 × 10−6
+2.23
+6.464 × 10−6
+1.85
+2.589 × 10−6
+1.92
+2.716 × 10−6
+1.58
+64
+6.702 × 10−8
+3.07
+1.144 × 10−6
+2.05
+1.619 × 10−6
+2.00
+6.569 × 10−7
+1.98
+7.219 × 10−7
+1.91
+By
+8
+6.530 × 10−5
+—
+3.163 × 10−4
+—
+1.345 × 10−4
+—
+8.795 × 10−5
+—
+8.003 × 10−5
+—
+16
+7.535 × 10−6
+3.12
+3.785 × 10−5
+3.06
+3.414 × 10−5
+1.98
+1.909 × 10−5
+2.20
+1.874 × 10−5
+2.09
+32
+9.199 × 10−7
+3.03
+6.419 × 10−6
+2.56
+8.314 × 10−6
+2.04
+4.144 × 10−6
+2.20
+4.485 × 10−6
+2.06
+64
+1.143 × 10−7
+3.01
+1.422 × 10−6
+2.17
+2.059 × 10−7
+2.01
+1.007 × 10−6
+2.04
+1.104 × 10−6
+2.02
+Bz
+8
+7.338 × 10−5
+—
+7.338 × 10−5
+—
+7.338 × 10−5
+—
+7.338 × 10−5
+—
+7.338 × 10−5
+—
+16
+8.707 × 10−6
+3.07
+8.707 × 10−6
+3.07
+8.707 × 10−6
+3.07
+8.707 × 10−6
+3.07
+8.707 × 10−6
+3.07
+32
+1.063 × 10−6
+3.03
+1.063 × 10−6
+3.03
+1.063 × 10−6
+3.03
+1.063 × 10−6
+3.03
+1.063 × 10−6
+3.03
+64
+1.320 × 10−7
+3.01
+1.320 × 10−7
+3.01
+1.320 × 10−7
+3.01
+1.320 × 10−7
+3.01
+1.320 × 10−7
+3.01
+∇· B
+8
+3.527 × 10−3
+—
+3.199 × 10−2
+—
+1.416 × 10−2
+—
+9.335 × 10−3
+—
+7.140 × 10−3
+—
+16
+8.526 × 10−4
+2.05
+9.397 × 10−3
+1.77
+8.830 × 10−3
+0.68
+3.983 × 10−3
+1.23
+3.623 × 10−3
+0.98
+32
+2.072 × 10−4
+2.04
+3.742 × 10−3
+1.33
+4.488 × 10−3
+0.98
+1.925 × 10−3
+1.05
+2.107 × 10−3
+0.78
+64
+5.106 × 10−5
+2.02
+1.763 × 10−3
+1.09
+2.234 × 10−3
+1.01
+9.611 × 10−4
+1.00
+1.084 × 10−3
+0.96
+Table 1: Magnetic advection-diffusion L2 error norms and convergence rates for resistivity η = (2π)−2. Errors are given for Bx, By, Bz, and
+∇· B versus number of elements N ∈{8, 16, 32, 64}. Columns of errors and convergence rates are grouped from left to right for the following
+cases: (i) no ∇· B-terms included in the induction equation — i.e., the η(∇· B)-, GP-, and GLM-terms all excluded; (ii) only the η(∇· B)-term
+included; (iii) the η(∇· B)- and GP-terms included; (iv) the η(∇· B)- and GLM-terms included; and (v) all ∇· B-terms (i.e., the η(∇· B)-,
+GP-, and GLM-terms) included.
+From Table 1, we observe that the error convergence rates for Bx and By, computed as defined in Eq. (22), are
+influenced by the inclusion of ∇· B-terms in the induction equation. For case (i), with no ∇· B-terms, the error
+convergence rates for all magnetic field components are third-order. The error convergence rates for Bx and By
+are reduced to second-order when any of the considered combinations of ∇· B-terms are included. Among these,
+cases (iv) and (v) produce somewhat smaller overall errors. The error in Bz is unaffected by the ∇· B-terms, and
+we observe third-order convergence rate for this field component for all the cases considered. The magnetic field
+divergence decreases with increasing resolution: for any of the cases with ∇·B-terms included, the divergence of the
+magnetic field decreases with first-order rate, while it decreases with second-order rate when none of the ∇· B-terms
+are included.
+Table 2 shows similar results for the ideal case (η = 0). Here, we observe that the error for all magnetic field
+components converges with a second-order rate. The error for the x- and y-components depends on which ∇·B-terms
+are included. Interestingly, case (i) with no ∇· B-terms exhibits the largest errors. Suboptimal error convergence rate
+for unstabilized FEMs for advection-dominated problems have been reported by others (e.g., [53]).
+Finally, in additional experiments not tabulated, we observed asymptotic third-order accuracy for both the η =
+(2π)−2 and η = 0 cases when the flow is aligned with the coordinate axes. Also, with φ = π/6, we observe second-
+order convergence rate for all magnetic field components when using linear elements and SDIRK22 time stepping.
+4.2. Circularly Polarized Alfvén Wave
+Described in [20], this test considers the propagation of circularly polarized Alfvén waves in a periodic domain.
+By varying the background flow velocity, we consider both traveling and standing waves. Similar to the magnetic
+advection-diffusion test in Section 4.1, the Alfvén wave propagates in the xy-plane with the propagation direction
+9
+
+
+(i) no ∇· B terms
+(ii) GP
+(iii) GLM
+(iv) GLM+GP
+N
+L2
+rate
+L2
+rate
+L2
+rate
+L2
+rate
+Bx
+8
+2.184 × 10−3
+—
+1.812 × 10−4
+—
+1.906 × 10−4
+—
+1.359 × 10−4
+—
+16
+4.838 × 10−4
+2.17
+5.773 × 10−5
+1.65
+3.787 × 10−5
+2.33
+3.462 × 10−5
+1.97
+32
+1.141 × 10−4
+2.08
+1.567 × 10−5
+1.88
+9.157 × 10−6
+2.05
+9.001 × 10−6
+1.94
+64
+2.804 × 10−5
+2.02
+3.939 × 10−6
+1.99
+2.277 × 10−6
+2.01
+2.280 × 10−6
+1.98
+By
+8
+9.898 × 10−4
+—
+3.139 × 10−4
+—
+1.772 × 10−4
+—
+2.381 × 10−4
+—
+16
+2.026 × 10−4
+2.29
+9.999 × 10−5
+1.65
+7.200 × 10−5
+1.30
+7.249 × 10−5
+1.72
+32
+4.866 × 10−5
+2.06
+2.714 × 10−5
+1.88
+1.715 × 10−5
+2.07
+2.046 × 10−5
+1.83
+64
+1.194 × 10−5
+2.03
+6.822 × 10−6
+1.99
+4.152 × 10−6
+2.05
+5.151 × 10−6
+1.99
+Bz
+8
+3.624 × 10−4
+—
+3.624 × 10−4
+—
+3.624 × 10−4
+—
+3.624 × 10−4
+—
+16
+1.155 × 10−4
+1.65
+1.155 × 10−4
+1.65
+1.155 × 10−4
+1.65
+1.155 × 10−4
+1.65
+32
+3.134 × 10−5
+1.88
+3.134 × 10−5
+1.88
+3.134 × 10−5
+1.88
+3.134 × 10−5
+1.88
+64
+7.877 × 10−6
+1.99
+7.877 × 10−6
+1.99
+7.877 × 10−6
+1.99
+7.877 × 10−6
+1.99
+∇· B
+8
+6.311 × 10−2
+—
+2.723 × 10−2
+—
+1.968 × 10−2
+—
+1.813 × 10−2
+—
+16
+2.912 × 10−2
+1.12
+1.651 × 10−2
+0.72
+8.247 × 10−3
+1.25
+7.863 × 10−3
+1.21
+32
+1.390 × 10−2
+1.07
+8.502 × 10−3
+0.96
+4.271 × 10−3
+0.95
+3.955 × 10−3
+0.99
+64
+6.857 × 10−3
+1.02
+4.206 × 10−3
+1.02
+2.160 × 10−3
+0.98
+1.992 × 10−3
+0.99
+Table 2: Magnetic advection-diffusion L2 error norms and convergence rates for resistivity η = 0. Errors are given for Bx, By, Bz, and ∇· B
+versus number of elements N ∈{8, 16, 32, 64}. Columns of errors and convergence rates are grouped from left to right for the following cases:
+(i) no ∇· B-terms included; (ii) only the GP-term included; (iii) only the GLM-term included; and (iv) GP- and GLM-terms included.
+forming an angle φ relative to the x-axis. The periodic domain is 0 ≤x ≤1/ cos φ, 0 ≤y ≤1/ sin φ, and
+0 ≤z ≤1, and, as in [20], the propagation angle is set to φ = π/6. Then, x ∈[0, 2/
+√
+3], y ∈[0, 2], and we let
+z ∈[0, 1]. The magnetic field components parallel (B∥) and perpendicular (B⊥and Bz) to the propagation direction
+are initialized as
+B∥= 1,
+B⊥= A sin(2π x∥),
+and
+Bz = A cos(2π x∥),
+(32)
+where x∥is the coordinate along the wave propagation direction, and we set the amplitude to A = 0.1. The density is
+set to ρ0 = 1, so that the Alfvén speed is vA = B∥/√ρ0 = 1. The velocity components are set as
+v∥=
+ß 0
+for traveling waves
+1
+for standing waves
+,
+v⊥= A × sin(2π x∥),
+and
+vz = A × cos(2π x∥).
+(33)
+The coordinates in the coordinate system rotated by an angle φ about the z-axis, (x∥, x⊥), are related to the
+corresponding Cartesian coordinates, (x, y), by x∥= x cos φ + y sin φ and x⊥= y cos φ −x sin φ. The Cartesian x
+and y magnetic field and velocity components are obtained from Eqs. (32) and (33), respectively, by
+Bx = B∥cos φ −B⊥sin φ
+and
+By = B⊥cos φ + B∥sin φ,
+(34)
+and
+vx = v∥cos φ −v⊥sin φ
+and
+vy = v⊥cos φ + v∥sin φ.
+(35)
+We let N be the number of elements in the x and y dimensions. We use a single element in the z dimension.
+We set the time step as ∆t = 0.8/N, with N ∈{8, 16, 32, 64}, and evolve to t = 5, when the traveling wave
+has crossed the computational domain five times. Linear and nonlinear tolerances for the implicit solve are set to
+tolL = tolN = 10−12. For this test, we include the GP sources, but do not include GLM divergence cleaning.
+To measure the order of accuracy of the implementation in Vertex-CFD, we compare the numerical solution against
+the analytical solution at t = 5. Table 3 shows results for both traveling and standing waves, obtained using linear
+elements and SDIRK22 time stepping. We list average L1 and L2 error norms, where the average is computed across
+all the components of v and B. We observe second-order accuracy across all error measures.
+10
+
+
+Traveling Wave
+Standing Wave
+N
+L1
+rate
+L2
+rate
+L1
+rate
+L2
+rate
+8
+2.651 × 10−2
+—
+1.935 × 10−2
+—
+4.860 × 10−3
+—
+3.605 × 10−3
+—
+16
+6.529 × 10−3
+2.02
+4.765 × 10−3
+2.02
+1.271 × 10−3
+1.93
+9.325 × 10−4
+1.95
+32
+1.616 × 10−3
+2.01
+1.181 × 10−3
+2.01
+3.214 × 10−4
+1.98
+2.351 × 10−4
+1.99
+64
+4.025 × 10−4
+2.01
+2.942 × 10−4
+2.00
+8.058 × 10−5
+2.00
+5.891 × 10−5
+2.00
+Table 3: Circularly polarized Alfvén wave average errors and convergence rates for traveling and standing waves (columns 2-5 and 6-9, respectively)
+using linear elements and SDIRK22 time stepping. Note: for the standing wave case with linear elements, the initial condition results in a
+sufficiently small residual that the nonlinear solver considers the solution converged. Therefore, the listed errors for this case are due to the
+projection of the initial condition onto the FEM basis.
+We repeated these tests using quadratic elements and SDIRK54 time stepping, with results listed in Table 4. While
+we only observe second-order error convergence rate for this case, as is expected given the results in Section 4.1, for
+a given N, the errors are considerably smaller than for the case with linear elements and SDIRK22 time stepping.
+Specifically, for the traveling wave case, errors obtained with quadratic elements and N = 8 are comparable to those
+obtained with linear elements and N = 64.
+Traveling Wave
+Standing Wave
+N
+L1
+rate
+L2
+rate
+L1
+rate
+L2
+rate
+8
+5.409 × 10−4
+—
+4.179 × 10−4
+—
+4.942 × 10−4
+—
+4.264 × 10−4
+—
+16
+1.328 × 10−4
+2.03
+1.058 × 10−4
+1.98
+1.199 × 10−4
+2.04
+1.099 × 10−4
+1.96
+32
+3.802 × 10−5
+1.80
+2.944 × 10−5
+1.85
+3.189 × 10−5
+1.91
+3.013 × 10−5
+1.87
+64
+9.138 × 10−6
+2.06
+6.927 × 10−6
+2.09
+7.787 × 10−6
+2.03
+7.542 × 10−6
+2.00
+Table 4: Circularly polarized Alfvén wave test showing the same quantities as in Table 3 with quadratic elements and SDIRK54 time stepping.
+4.3. Divergence Cleaning Tests
+To investigate the efficacy of divergence cleaning approaches in Vertex-CFD, we consider the evolution of an
+initial divergence in the magnetic field over time. Following [29] and [54], the initial defect in the magnetic field
+is advected by a background flow in a two-dimensional periodic domain Ω= [−0.5, 1.5]2, according to the initial
+conditions
+ρ0 = 1.0,
+p = 6.0,
+v =
+Ñ
+1.0
+1.0
+0
+é
+,
+B =
+1
+√
+4π
+Ñ(r/r0)8 −2(r/r0)4 + 1
+0
+1
+é
+,
+(36)
+where r =
+p
+x2 + y2 and r0 = 1/
+√
+8 prescribes the radial extent of the perturbation in Bx. This perturbation results
+in violation of the divergence-free condition on B in the initial condition, and the evolution of ∇· B in the solution
+is examined to determine the extent to which the cleaning method reduces the divergence in the magnetic field. We
+run this test using a diagonalized 180 × 180 linear mesh (64800 triangular elements) and evolve with the SDIRK22
+time stepper, with ∆t = 0.0025, until t = 2, when the divergence perturbation has had time to advect once across
+the domain diagonally. The linear and nonlinear tolerances for the implicit solve are set to tolL = 10−10 and
+tolN = 10−8, respectively.
+The impact of various divergence cleaning terms is shown in Figure 1, which shows results from five different
+models. With only the GP sources, the initial divergence defect is carried by the background velocity with limited
+dispersion and essentially no reduction in amplitude. With GLM divergence cleaning without damping, the divergence
+error spreads across domain at a rate proportional to the cleaning speed, which was set to ch = 50 here. The added
+damping source term (GLM Damp) facilitates active removal of divergence error. Comparing the second and third
+rows with the fourth and fifth rows, respectively, the addition of the Godunov-Powell source increases dispersion by
+11
+
+
+transporting divergence errors with the flow velocity. For the specified time step ∆t = 2.5 × 10−3, Eq. (17) gives
+CFL ≈0.73 for the case with only GP sources, while it increases to CFL ≈32.5 for the cases with GLM divergence
+cleaning and ch = 50. The Lorentz force is active in the momentum equation for this test, which results in a velocity
+magnitude deviation of about 10% relative to the initial value at the end of the simulation. However, within the core
+of the divergence bubble, both the Lorentz force and velocity deviation remain effectively zero.
+Figure 1: Divergence cleaning test: ∇· B at several times under the effects of various cleaning terms: only GP sources, (first row; GP); only
+GLM divergence cleaning without damping, ch = 50 and α = 0 (second row; GLM No Damp); only GLM divergence cleaning, ch = 50 and
+α = ch/0.18 (third row; GLM Damp); GP sources and GLM divergence cleaning without damping, ch = 50 and α = 0 (fourth row; GP+GLM
+ND); and GP sources and GLM divergence cleaning, ch = 50 and α = ch/0.18 (fifth row; GP+GLM D).
+The effect of altering the cleaning parameters ch and α is shown in Figure 2. (The GP sources are also active in
+these simulations.) From Figure 2a, we observe that increasing the divergence cleaning speed ch with a fixed relative
+damping of α = ch/0.18 results in more rapid reduction of the maximum divergence in the domain, here computed
+as in Eq. (23). However, there is a point of diminishing returns at which additional increases to ch no longer provide
+appreciable benefit. Cases with ch = 1, 10, 102, and 103 resulted in CFL ≈1.3, 7, 64, and 64, respectively; for
+ch = 103, we reduced ∆t by an order of magnitude due to problems with linear solver convergence. The impacts
+of altering the damping parameter α for a fixed ch = 1.0 are shown in Figure 2b. Increased damping results in a
+reduction in maximum divergence; however, values of α larger than the ch/0.18 ≈5.56 level suggested by [29]
+results in slightly elevated maximum divergence values later in the simulation, indicating that α = ch/0.18 may be a
+suitable choice for Vertex-CFD as well.
+4.4. Current Sheet Problem
+Here, Vertex-CFD is employed to model the current sheet problem described in [55]. It consists of a computational
+domain Ω= [−1, 1] × [−0.1, 0.1]. The fluid is initially at rest with an uniform pressure P = 0. The initial magnetic
+12
+
+
+(a) Variation of cleaning speed ch
+(b) Variation of damping parameter α
+Figure 2: Impact of divergence cleaning parameters on the time evolution of maximum local divergence metrics.
+field is given by
+Bx = 0 and By =
+®
+−0.1 if x ≤0
+0.1 if x > 0
+.
+(37)
+In this problem, the fluid remains at rest and an exact solution for the y-component of the magnetic field is
+By(x, t) = 1
+10erf
+Å
+x
+2√ηt
+ã
+.
+(38)
+Vertex-CFD is run until t = 5.0 with a CFL = 1.0, using the SDIRK22 temporal integrator and linear elements.
+The linear and nonlinear tolerances for the implicit solve are set to tolL = 10−10 and tolN = 10−8, respectively.
+The computational domain is meshed with quadrilateral elements or triangle elements. The domain is periodic in the
+y-direction, and Dirichlet-like boundary conditions are applied in the x-direction to match the initial conditions. Nu-
+merical results obtained with Vertex-CFD for two values of the resistivity η and two mesh element types are presented
+in Figures 3. It is observed that the Vertex-CFD numerical solution matches the exact solution well, independent
+(a) Quadrilateral elements.
+(b) Triangle elements.
+Figure 3: Comparison of the Vertex-CFD solution against the exact solution for the current sheet problem obtained with a quadrilateral (left) and
+triangle (right) mesh composed of 50 elements in each Cartesian direction. Fewer markers than nodal points are plotted to reduce marker density.
+13
+
+
+of resistivity values and mesh element types. We also verify that the other variables (pressure and velocity) remain
+constant during the evolution of By.
+4.5. Lid-Driven Cavity with Magnetic Field
+The lid-driven cavity (LDC) problem (e.g., [56]), which was simulated with magnetic fields in [55], considers a
+flow in a two-dimensional box, (x, y) ∈Ω= [xmin, xmax] × [ymin, ymax], with stationary no-slip walls at xmin, ymin,
+and xmax, and the no-slip wall at ymax traveling at a constant velocity vwall = (V0, 0)⊺. The flow is initially at rest
+and develops over time due to the motion of the upper wall (the lid) and the viscosity of the fluid, under the influence
+of an initially constant magnetic field B0 = (B0
+x, B0
+y)⊺. The cavity walls are considered to be perfectly conducting,
+which requires on the boundaries
+B · n = B0 · n
+and
+E × n = 0,
+(39)
+where n is the boundary normal unit vector. The first condition provides the normal component of the boundary
+magnetic field. The second gives a condition on the gradient of the magnetic field. Using Eq. (4), the condition
+E × n = 0 can be recast from
+E × n = n ×   v × B  −n ×   η ∇× B ,
+(40)
+so that
+n ×   v × B  = n ×   η ∇× B .
+(41)
+With some additional manipulation, the above can be expressed as
+(n · ∇)B = −η n × (v × B) = η   B(n · v) −v(n · B) .
+(42)
+As in [55], we consider two orientations of the initial magnetic field for the LDC: horizontal and vertical. For
+these cases, the above boundary conditions reduce to the following:
+• For the initially horizontal magnetic field, on the x-boundary faces (xb ∈{xmin, xmax}):
+Bx,b = B0
+x
+(43)
+• For the initially vertical magnetic field, on the y-boundary faces (yb ∈{ymin, ymax}):
+By,b = B0
+y
+and
+∂Bx
+∂y |b = −V0B0
+y
+η
+,
+(44)
+where all other unspecified components are trivially zero on the boundaries.
+Following [55], LDC simulations with domain boundaries at xmin = ymin = −0.5 and xmax = ymax = 0.5, lid
+velocity V0 = 1, and kinematic viscosity and resistivity of ν = η = 0.01 were run to t = 20 with Vertex-CFD for
+horizontal and vertical initial magnetic fields, B0 = (B0, 0)⊺and B0 = (0, B0)⊺, respectively, with field strengths
+B0 ∈{0.10, 0.25, 0.50, 1.00}. The mesh used for these simulations consists of 128 × 128 linear quadrilateral
+elements, with a fine spacing of about 4.2 × 10−5 near the boundaries, which increases towards the center of the
+domain with an approximate geometric growth factor of 1.134 near the wall. For all models, the time step is set by
+increasing CFL according to the following schedule: For the first 200 time steps, CFL = 10 (∆t ≈3.6 × 10−6); for
+time steps 201-2000, CFL increases linearly from 10 to 104; from time step 2001, CFL = 104 (∆t ≈3.6 × 10−3).
+Each model completed in about 6637 time steps using the SDIRK22 time integrator. Linear and nonlinear implicit
+solver tolerances are set to tolL = 5 × 10−7 and tolN = 10−8, respectively.
+In Figure 4, increasing horizontal magnetic field strength compresses the primary rotation (compare velocity
+streamline configurations across panels) toward the lid and results in additional weaker zones of rotation. Figure 5
+shows the increasing impact of the magnetic field with increasing B0, as the higher velocities driving the induced
+magnetic field are confined to the region near the cavity lid. In the case of the vertical initial magnetic field, a single
+rotating vortex is maintained at all strengths with the core flattening and compressing towards the lid as the field
+strength is increased, as shown in Figure 6. As in the horizontal case, Figure 7 shows magnetic field lines increasingly
+aligned with the applied field, with deviations due to induction moving toward the higher-velocity regions at the cavity
+lid and side walls. Qualitatively, the results agree well with those presented by [55, see their Figures 18-21]. The
+agreement is reinforced by a more quantitative comparisons of velocity and magnetic field profiles from Vertex-CFD
+with reference solution data provided by [55] plotted in Figures 8 and 9.
+14
+
+
+(a) B0
+x = 0.1.
+(b) B0
+x = 0.25.
+(c) B0
+x = 0.5.
+(d) B0
+x = 1.0.
+Figure 4: Velocity magnitude with streamlines overlaid for the MHD LDC with horizontal initial magnetic field of varying strength.
+5. Application to an Idealized Model of a Liquid Metal Fusion Blanket
+In this section, we consider the transient evolution of liquid metal flows in an idealized fusion blanket duct driven
+by the decay of an external magnetic field. The model was recently proposed and studied in detail by Smolentsev [36,
+S25 from hereon]. To this end, the magnetic field is decomposed as
+B = B0 + b,
+(45)
+where B0 is the external, prescribed plasma magnetic field and b is the blanket induced magnetic field. The induced
+magnetic field is evolved by solving the induction equation in the form
+∂tb + ∇·   v ⊗B −B ⊗v −η
+µ0
+  ∇B −(∇· B) I   = −v (∇· B) −ch ∇ψ −∂tB0,
+(46)
+where the source due to the time rate of change in the external field, −∂tB0, is prescribed.
+The computational domain is a square duct Ω= [−a, a]2 × [−L, L] with sides 2a and length 2L, where a ≪L;
+see Figure 10. Specifically, we set L = 1 m and a = 0.1 m. The components of the external plasma magnetic field
+threading the duct, B0 = (B0
+x, B0
+y, B0
+z)⊺, is characterized by the toroidal (B0
+y) and poloidal (B0
+z) components. The
+radial component (B0
+x) is set to zero in the models considered here. We keep the toroidal component fixed in space and
+time, while the poloidal component is constant in space, but decays linearly in time with a constant time rate of change
+∂tB0
+z = −102 T s−1. We take the initial poloidal field as B0
+z(t = 0)1 T, while we will vary the toroidal component
+with B0
+y ∈{ 0.2, 0.5, 1.0, 4.0 } T, as in S25. The liquid metal (PbLi) in the duct is characterized by the mass density
+15
+
+
+(a) B0
+x = 0.1.
+(b) B0
+x = 0.25.
+(c) B0
+x = 0.5.
+(d) B0
+x = 1.0.
+Figure 5: Magnetic field magnitude with field lines overlaid for the MHD LDC with horizontal initial magnetic field of varying strength.
+ρ0 = 9486 kg m−3, kinematic viscosity ν = 1.0542×10−7 m2 s−1, and electrical resistivity η = 1.4286×10−6 Ωm.
+Under these conditions, the Reynolds number and magnetic Reynolds number are
+Re = U ℓ
+ν
+∼107 ×
+
+U
+5 m s−1
+ 
+ℓ
+0.2 m
+
+and
+Rem = U ℓµ0
+η
+∼
+
+U
+5 m s−1
+ 
+ℓ
+0.2 m
+
+,
+(47)
+respectively, where U is a characteristic velocity and ℓis a characteristic length scale. For characteristic velocities
+U ∼5 m s−1 and length scales of order the width of the duct, Re ≫1, while Rem is of order unity. We shall obtain
+flow velocities that reach ∼50 m s−1, implying magnetic Reynolds numbers of O(10). Another key non-dimensional
+number is the Hartmann number (e.g., [57])
+Ha = B ℓ
+ 
+1
+ηνρ0
+∼104 ×
+ B
+2 T
+ 
+ℓ
+0.2 m
+
+,
+(48)
+where B represents a characteristic magnetic field strength. The Hartmann number, which quantifies the ratio of
+electromagnetic to viscous forces, governs the thickness of the boundary layer that develops near the duct walls.
+Higher Ha values lead to thinner boundary layers (e.g., [58]), necessitating finer mesh spacing for accurate resolution.
+We denote the boundaries in the x-dimension by Γx = {(x, y, z) | x = ±a, y ∈[−a, a], z ∈[−L, L]}, with the
+y and z boundaries defined similarly (denoted Γy and Γz, respectively). On the duct side walls, Γxy = Γx ∪Γy, we
+impose no-slip boundary conditions for the velocity field; i.e., for boundary normal n, n·v = 0 and n×v = 0, which
+implies v = 0 on Γxy. Similarly, we impose perfectly insulating wall boundary conditions on the induced magnetic
+field, b · n = 0 and b × n = 0, which implies b = 0 on Γxy. On the top and bottom boundaries, Γz, we consider
+two cases: (i) periodic and (ii) no-slip conditions for v and perfectly insulating conditions for b. The former is used
+16
+
+
+(a) B0
+y = 0.1.
+(b) B0
+y = 0.25.
+(c) B0
+y = 0.5.
+(d) B0
+y = 1.0.
+Figure 6: Velocity magnitude with streamlines overlaid for the MHD LDC with vertical initial magnetic field of varying strength.
+exclusively for the two-dimensional models discussed in Section 5.1, where we solve the MHD equations using a
+single element in the z-dimension, while we compute models using both periodic and no-slip/insulating conditions
+for the three-dimensional models discussed in Section 5.2. (All two-dimensional models evolve the z-component of
+the velocity and the induced magnetic field. Such models are sometimes referred to as 2.5D MHD models.)
+For initial conditions, both the velocity and induced magnetic field are set to zero throughout the computational
+domain. Although DCLL blankets exhibit a slow steady flow (∼0.1 m s−1) under normal operating conditions, the
+flow induced by the decay of the external magnetic field is expected to far exceed this steady background. Therefore,
+initializing with zero velocity represents a reasonable simplification for the purposes of this study.
+The flows driven by the transient external magnetic field develop thin velocity shear layers near the duct boundaries
+at y = ±a (see Figure 12 below). To resolve these “Hartmann” layers we employ a boundary layer mesh, where the
+mesh spacing is finest near the duct walls and increases towards the center of the duct as illustrated in the left panel of
+Figure 11. Specifically, we use the Pointwise [59] meshing tool to generate one-dimensional meshes based on the two-
+sided stretching function from [60], which is extended to two dimensions by tensorization. For the two-dimensional
+models discussed in Section 5.1 we have created three meshes: coarse, medium, and fine. The coarse two-dimensional
+(2D) mesh displayed in Figure 11 consists of 72 × 72 elements with a minimum element width of ≈3.67 × 10−6 m.
+The medium and fine 2D meshes consist of 108 × 108 and 162 × 162 elements and have minimum element widths
+of about 2.35 × 10−6 m and 1.5 × 10−6 m, respectively. By estimating the Hartmann layer thickness as a/Ha, the
+selected meshes are expected to provide sufficient resolution for all two-dimensional models considered.
+The mesh for three-dimensional model with no-slip and electrically insulating conditions on all boundaries dis-
+cussed in Section 5.2 contains a total of 68 × 68 × 116 hexahedral elements, with a mesh spacing in the x- and
+y-dimensions of 4×10−6 m near Γxy, which increases geometrically towards the center with a geometric growth rate
+17
+
+
+(a) B0
+y = 0.1.
+(b) B0
+y = 0.25.
+(c) B0
+y = 0.5.
+(d) B0
+y = 1.0.
+Figure 7: Magnetic field magnitude with field lines overlaid for the MHD LDC with vertical initial magnetic field of varying strength.
+of 1.3, reaching a maximum of approximately 2.3 × 10−2 m. In the z-dimension, the mesh spacing is 6 × 10−7 m
+near Γz, which increases geometrically towards the center with a growth rate of 1.25, reaching a maximum of about
+0.2 m.
+The time step is set to approximately capture the initial evolution with high temporal resolution, while taking
+relatively larger steps at later times. The external magnetic field drives a transient flow in the blanket duct, which
+eventually settles to a quasi-steady state, and the duration of the initial transient depends on the strength of the toroidal
+external magnetic field. Table 3 in S25 provides “transition times”, τ, as a function of B0
+y. Specifically, τ = 4.0 s
+for B0
+y = 0.2 T, τ = 0.5 s for B0
+y = 0.5 T, τ = 0.1 s for B0
+y = 1.0 T, and τ = 0.015 s for B0
+y = 4.0 T. For each
+model, we let the time step increase linearly with time, starting with ∆t = 10−6 s, until it reaches the maximum value
+∆tmax. The maximum time step is determined by requiring each model to complete the time interval from τ to tend
+in 103 step; i.e., ∆tmax = (tend −τ)/103. For models with B0
+y = 0.2, 0.5, 1.0, and 4.0 T, we set tend = 7.0, 2.0,
+0.1, and 0.015 s, so that ∆tmax = 4 × 10−3, 1.5 × 10−3, 4 × 10−4, and 3.5 × 10−5 s, respectively. The time step ∆t
+for each model we consider is plotted versus time in the right panel in Figure 11. For the medium mesh, each model
+starts out with CFL number of approximately 40, as defined in Eq. (17). As the simulations progress and reach their
+maximum step sizes (∆tmax), the CFL number increases significantly. Specifically, for models with B0
+y = 0.2, 0.5,
+1.0, and 4.0 T the CFL numbers at ∆tmax are approximately 1.6×105, 6×104, 1.6×104, and 1.4×104, respectively.
+Clearly, implicit time stepping is advantageous for these simulations.
+In the three-dimensional simulation, a CFL-number schedule is used to set the time stepping behavior. CFL is
+initially set to 100 (∆t ≈10−6 s), and linearly ramped up to 1000 over the first 200 time steps, at which point it is
+held fixed for the remainder of the simulation, corresponding to a time step just below ∆t = 1 × 10−5 s.
+The artificial compressibility parameter is set to β = 104 J m−3 for all simulations in this section. With ρ0 =
+18
+
+
+(a) Velocity profiles.
+(b) Magnetic field profiles.
+Figure 8: Comparison of velocity (top) and magnetic field (bottom) component profiles along x = 0 (vx and Bx) and y = 0 (vy and By) from
+Vertex-CFD (lines) with reference data from [55] (symbols) for the initially horizontal magnetic field.
+9486 kg m−3, this corresponds to an artificial sound speed of c0 =
+p
+β/ρ0 ≈1 m s−1. In the two-dimensional
+models, the in-plane velocity components (x and y) remain below 2 × 10−2 m s−1, confirming that the low-Mach
+number assumption is satisfied for this choice of β. For the fully three-dimensional model, however, the x- and y-
+velocity components may grow larger near the duct end caps, and the low-Mach assumption may not hold everywhere,
+19
+
+
+(a) Velocity, B0
+y
+(b) Magnetic field, B0
+y
+Figure 9: Comparison of velocity (top) and magnetic field (bottom) component profiles along x = 0 (vx and Bx) and y = 0 (vy and By) from
+Vertex-CFD (lines) with reference data from [55] (symbols) for the initially vertical magnetic field.
+particularly at late times.
+The GMRES tolerance for the linear solves within Newton iterations is set to tolL = 5×10−9. For the nonlinear
+iterations, the absolute and relative residual tolerances are set to atolN = 5 × 10−9 and rtolN = 1 × 10−9,
+respectively.
+20
+
+
+!!
+!"
+!#
+2#
+2$
+2$
+%#$
+%!$
+%"$(')
+Figure 10: Sketch of idealized blanket duct with cross sectional area 2a × 2a and height 2L, and applied plasma magnetic field B0 =
+(B0
+x, B0
+y, B0
+z)⊺. During the simulation of a plasma disruption, the poloidal magnetic field, B0
+z (initially set to 1 T), decays at a constant rate
+∂tB0
+z = −102 T s−1, while the toroidal magnetic field, B0
+y, remains fixed. In the simulations presented here, the radial magnetic field B0
+x = 0.
+5.1. Two-Dimensional Models
+We begin by presenting results obtained by running two-dimensional (2.5D) models. First, we perform a com-
+parison with results from S25, specifically models discussed in Section 5 of that paper. This serves both to verify
+the MHD implementation in Vertex-CFD in an application-relevant setting, and to verify some model assumptions
+made in S25. Specifically, S25 solves only for vz and bz in 2D, assuming the other components are zero, while we
+solve for all three components of the velocity and induced magnetic field (i.e., 2.5D). Next, we briefly investigate the
+impact of spatial resolution on some quantities of interest. Finally, we investigate the impact of various divergence
+cleaning approaches for one of the models. All 2.5D models were performed using linear, quadrilateral elements and
+the SDIRK22 time integrator.
+Table 5 provides an overview of the 2.5D models discussed in this section. The first four models, computed with
+21
+
+
+10
+5
+10
+4
+10
+3
+10
+2
+10
+1
+100
+101
+t [ s ]
+10
+5
+10
+4
+10
+3
+10
+2
+t [ s ]
+B0
+y = 0.2 T
+B0
+y = 0.5 T
+B0
+y = 1.0 T
+B0
+y = 4.0 T
+Figure 11: Coarse boundary layer mesh in the xy-plane (left panel) and time step versus time (right panel) for models with B0
+y = 0.2 T (blue),
+0.5 T (green), 1.0 T, and 4.0 T (black). The vertical, dotted lines in the right panel indicate the “transition time”, τ, for each model.
+Model Name
+B0
+y [T]
+Mesh
+GLM
+ch [m s−1]
+α [s−1]
+GP
+By_4.0_M
+4.0
+Medium
+✓
+50.0
+ch/0.18
+✓
+By_1.0_M
+1.0
+Medium
+✓
+50.0
+ch/0.18
+✓
+By_0.5_M
+0.5
+Medium
+✓
+50.0
+ch/0.18
+✓
+By_0.2_M
+0.2
+Medium
+✓
+50.0
+ch/0.18
+✓
+By_4.0_C
+4.0
+Coarse
+✓
+50.0
+ch/0.18
+✓
+By_4.0_F
+4.0
+Fine
+✓
+50.0
+ch/0.18
+✓
+By_4.0_F_slow
+4.0
+Fine
+✓
+1
+ch/0.18
+✓
+By_4.0_F_fast
+4.0
+Fine
+✓
+250
+ch/0.18
+✓
+By_4.0_F_no_damp
+4.0
+Fine
+✓
+50
+0.0
+✓
+By_4.0_F_GLM
+4.0
+Fine
+✓
+50
+ch/0.18
+✗
+By_4.0_F_GP
+4.0
+Fine
+✗
+N/A
+N/A
+✓
+By_4.0_F_no_clean
+4.0
+Fine
+✗
+N/A
+N/A
+✗
+Table 5: Overview of 2.5D models
+the medium mesh, differ in the external toroidal magnetic field B0
+y. These models include full GLM divergence clean-
+ing and the GP sources (indicated by the ✓in the fourth and seventh column). The hyperbolic divergence cleaning
+speed is ch = 50 m s−1 and the damping parameter is set to the fiducial value α = ch/0.18. The next two models,
+By_4.0_C and By_4.0_F, are identical to model By_4.0_M, but are computed using the coarse and fine mesh, re-
+spectively. The last six models were also computed with the same physical parameters as model By_4.0_M, but differ
+in the approach to divergence cleaning. To minimize any finite spatial resolution effects, these models were all run with
+the fine mesh. Models By_4.0_F_slow (ch = 1), By_4.0_F_fast (ch = 250), and By_4.0_F_no_damp
+(α = 0) include GLM divergence cleaning and GP sources. Model By_4.0_F_GLM includes only GLM diver-
+gence cleaning, while model By_4.0_F_GP only includes the GP sources. Model By_4.0_F_no_clean does
+not include any mechanisms for divergence control.
+22
+
+
+Figure 12: Surface plots illustrating the evolution of the z-component of velocity (top row) and induced magnetic field (bottom row) for model
+By_4.0_F. Snapshots are shown t ≈2.5 × 10−3 s (left panels), t ≈5 × 10−3 s (middle panels), and t = 5 × 10−2 s (right panels).
+5.1.1. Comparison with S25
+Figure 12 illustrates the time evolution of vz (top panels) and bz (bottom panels) for model By_4.0_F, providing
+an overview of the dynamics driven by the decaying external field, B0
+z. As evident from the last term on the right-hand
+side of Eq. (46), the decrease in B0
+z leads to an increase in bz. Due to the insulating wall boundary conditions, bz
+remains zero along the duct walls (Γxy), resulting in the induced magnetic field distribution shown in the lower left
+panel at t ≈2.5 ms. The associated current density j = ∇× b/µ0 forms closed loops in the xy-plane (see Figure 19
+below), producing a Lorentz force j × B0 that drives upward flow near the inner y-boundary and a downward flow
+near the outer y-boundary, as seen in the top panels of Figure 12. Following an initial transient growth phase—
+peaking at approximately 0.14 T around 2.5 ms—the induced magnetic field begins to decay, falling below 2 mT
+by the end of the simulation at t = 0.05 s. The duct flow reaches a peak velocity of about 3 m s−1 near 5 ms and
+subsequently relaxes into a quasi-steady state as the Lorentz force diminishes. The middle and right top panels of
+Figure 12 correspond closely with the upper and lower right panels of Figure 10 in S25, showing qualitatively good
+agreement.
+Figures 13 and 14 present a more quantitative comparison with the results from S25. The left panel of Figure 13
+shows excellent qualitative agreement in the time evolution of the maximum vz across a range of model parameter
+values B0
+y ∈{0.2, 0.5, 1.0, 4.0} T. In general, both the duration of the transient phase and the peak and terminal
+velocities increase as B0
+y decreases. This trend is well correlated with the general effect of the applied magnetic field
+to suppress convective flows due to Joule dissipation associated with Ohmic losses in the conducting fluid. Similarly,
+the right panel of Figure 13 demonstrates good agreement with S25 in the evolution of the maximum induced magnetic
+field bz. A brief deviation from S25 is observed for the B0
+y = 4.0 T model around t = 0.01 s, though this behavior
+is not present in the other cases. The appearance of the local peak is explained in S25 by changes in the location
+of maximum velocity with time from the corner to the center line of the duct. This short-duration discrepancy with
+the current computations can indicate a deficiency of the 2D model compared to higher dimensionality models in
+this study. Figure 14 compares the z-component velocity profiles computed using Vertex-CFD (solid lines) with
+23
+
+
+10
+4
+10
+3
+10
+2
+10
+1
+100
+101
+t [ s ]
+0
+10
+20
+30
+40
+50
+60
+max vz [ m s
+1 ]
+S25 0.2 T
+S25 0.5 T
+S25 1.0 T
+S25 4.0 T
+By_0.2_M
+By_0.5_M
+By_1.0_M
+By_4.0_M
+10
+4
+10
+3
+10
+2
+10
+1
+100
+101
+t [ s ]
+0.00
+0.05
+0.10
+0.15
+0.20
+0.25
+0.30
+max bz [ T ]
+Figure 13: Plot of maximum z-component of velocity (left panel) and induced magnetic field (right panel) versus time for models By_0.2_M
+(solid blue), By_0.5_M (solid green), By_1.0_M (solid red), and By_4.0_M (solid black). In each panel, the corresponding results from S25
+are plotted with dotted lines.
+those from S25 (dotted lines) for the same models as in Figure 13. The Vertex-CFD profiles are sampled at the final
+simulation time for each model. The qualitative agreement is again very good, particularly in the peak velocities
+near the duct walls and the thickness of the boundary (Hartmann) layers (see inset). For model By_0.2_M, the peak
+velocity reaches approximately 49.3 m s−1, located around 10−3 m from the duct wall. For model By_4.0_M, the
+peak velocity is around 2.5 m s−1, occurring approximately 6 × 10−5 m from the wall. Recall that, for the medium
+mesh, the spacing closest to the wall is 2.35 × 10−6 m.
+As shown in the top panel of Figure 15, the x- and y-components of the velocity remain small throughout all
+simulations. These components reach peak amplitudes of approximately 0.015 −0.02 m s−1 around t = 1 ms
+and remain lower at later times, with their time evolution exhibiting mild oscillatory behavior over the interval t ∈
+[10−3, 10−1] s. For comparison, at t = 1 ms, the z-component of the velocity is approximately 0.04 m s−1 for model
+By_0.2_M and 0.6 m s−1 for model By_4.0_M. Similarly, the corresponding components of the induced magnetic
+field (bottom panel) remain small across all simulations, with peak values not exceeding 10−3 T (notably for model
+By_4.0_M) during t ∈[10−3, 10−2] s, and a general trend of decreasing amplitudes at later times. In contrast, the z-
+component of the induced magnetic field, although also decaying, maintains significantly larger amplitudes—ranging
+from 2 × 10−3 T to 6 × 10−3 T by the end of the simulations. These findings provide support for the assumptions
+made in the more simplified model considered by S25.
+5.1.2. Spatial Resolution
+In this section, we examine the impact of spatial resolution on key quantities of interest: the time evolution of the
+maximum z-component of velocity and induced magnetic field. Additionally, we assess the resolution of the sharp
+boundary layer that developes in vz near the duct walls (y = ±a). These quantities are shown in Figure 16 for the
+model with B0
+y = 4.0 T, using coarse, medium, and fine meshes (models By_4.0_C, By_4.0_M, and By_4.0_F,
+respectively). This particular model is selected because it produces the sharpest boundary layer among all cases
+considered.
+As shown in the left panels of Figure 16, the overall time evolution of the maximum vz and bz is well captured
+across all mesh resolution, with the corresponding curves nearly overlapping. Insets in each panel zoom in on time
+intervals where these quantities reach their peak values and include reference results from S25. These insets confirm
+good agreement with S25, with a trend of improved accuracy as spatial resolution increases. At t = 6 ms, the relative
+differences in vz compared to S25 are 2.0 × 10−3, 1.3 × 10−3, and 1.0 × 10−3 for models By_4.0_C, By_4.0_M,
+and By_4.0_F, respectively. Similarly, near the peak of the induced magnetic field at t ≈2.26 ms, the relative
+differences in bz are 6.7 × 10−3 (coarse), 4.6 × 10−3 (medium), and 3.4 × 10−3 (fine). The right panel of Figure 16
+shows that all the meshes are adequate for resolving the sharp boundary layer in vz. The coarse mesh provides 8
+24
+
+
+0.100
+0.075
+0.050
+0.025 0.000
+0.025
+0.050
+0.075
+0.100
+y [ m ]
+40
+20
+0
+20
+40
+vz [ m s
+1 ]
+S25 0.2 T
+S25 0.5 T
+S25 1.0 T
+S25 4.0 T
+By_0.2_M
+By_0.5_M
+By_1.0_M
+By_4.0_M
+0.100
+0.099
+0.098
+0
+10
+20
+30
+40
+50
+Figure 14: Plot of vz versus y for x = 0 at the final time for models By_0.2_M (solid blue; t = 8 s), By_0.5_M (solid green; t = 2 s),
+By_1.0_M (solid red; t = 0.5 s), and By_4.0_M (solid black; t = 0.05 s). Corresponding results from S25 are plotted with dotted lines. The
+inset shows the velocity profiles near the boundary layer for y ∈[−0.1, −0.098].
+elements within the first 10−4 m from the duct wall, while the fine mesh provides approximately 18. The inset reveals
+good agreement in the vz profiles across the different meshes and with the S25 results (dotted lines). Some deviations
+are observed around the domain center (y = 0), where the mesh spacing is coarsest, but these discrepancies diminish
+with increasing mesh resolution.
+5.1.3. Divergence Cleaning
+In this section, we examine the influence of various divergence control mechanisms on the evolution of the max-
+imum absolute divergence of the magnetic field for the model with external toroidal magnetic field B0
+y = 4.0 T.
+Figure 17 presents this quantity for the last seven models listed in Table 5. Notably, the model without explicit diver-
+gence control (By_4.0_F_no_clean) becomes unstable and diverges at approximately t = 0.021 s—well before
+the intended end time of 0.05 s (see solid red line in Figure 17). In contrast, all the other models successfully reach
+the final simulation time and exhibit consistent behavior. Over the interval t ∈[0, 0.05] s, the relative deviations in the
+maximum vz and maximum bz from the corresponding average values across all stable models remain below 10−3
+and 5 × 10−3, respectively.
+Figure 17 shows that the model using only GP sources for divergence control (By_4.0_F_GP) closely fol-
+lows the unstable model (By_4.0_F_no_clean) up to approximately t = 10−3 s, at which point the maximum
+magnetic field divergence reaches several tens of T m−1. Beyond this time, the divergence trajectories of the two
+models diverge: the no-cleaning model exhibits a brief period of reduced divergence before ultimately blowing up,
+while model By_4.0_F_GP demonstrates a sustained overall decrease in divergence through the end of the sim-
+ulation. Among the stable models, model By_4.0_F_slow, which uses a reduced hyperbolic cleaning speed of
+25
+
+
+10
+4
+10
+3
+10
+2
+10
+1
+100
+101
+0.000
+0.005
+0.010
+0.015
+0.020
+max |vx|, max |vy| [ m s
+1 ]
+vx
+vx
+vx
+vx
+vy (By_0.2_M)
+vy (By_0.5_M)
+vy (By_1.0_M)
+vy (By_4.0_M)
+10
+4
+10
+3
+10
+2
+10
+1
+100
+101
+t [ s ]
+10
+7
+10
+6
+10
+5
+10
+4
+10
+3
+max |bx|, max |by| [ T ]
+bx
+bx
+bx
+bx
+by (By_0.2_M)
+by (By_0.5_M)
+by (By_1.0_M)
+by (By_4.0_M)
+Figure 15: Plot of maximum in-plane (i.e., x and y) components of velocity (upper panel) and induced magnetic field (lower panel) versus time for
+models By_0.2_M (blue), By_0.5_M (green), By_1.0_M (red), and By_4.0_M (black). In each panel, x-components are plotted with solid
+lines while y-components are plotted with dotted lines.
+10
+5
+10
+4
+10
+3
+10
+2
+10
+1
+0
+1
+2
+3
+4
+max vz [ m s
+1 ]
+By_4.0_C
+By_4.0_M
+By_4.0_F
+10
+5
+10
+4
+10
+3
+10
+2
+10
+1
+t [ s ]
+0.00
+0.05
+0.10
+0.15
+max bz [ T ]
+0.0056
+0.0066
+3.12
+3.16
+0.0020
+0.0025
+0.136
+0.142
+0.100
+0.075
+0.050
+0.025 0.000
+0.025
+0.050
+0.075
+0.100
+y [ m ]
+3
+2
+1
+0
+1
+2
+3
+vz [ m s
+1 ]
+S25
+By_4.0_C
+By_4.0_M
+By_4.0_F
+0.1000
+0.0999
+0
+1
+2
+Figure 16: Plot of maximum vz and maximum bz versus time (top and bottom left panel, respectively) and vz versus y for x = 0 at t = 0.05 s
+(right panel) for models By_4.0_C (red), By_4.0_M (blue), and By_4.0_F (black). The insets in the left panels also include the corresponding
+result from S25 (dotted black).
+ch = 1 m s−1, reaches the largest divergence values—exceeding 102 T m−1 around t = 0.01 s. In contrast, mod-
+els employing hyperbolic divergence cleaning with ch ≥50 m s−1 maintain significantly smaller divergence errors,
+consistently below 5 × 10−1 T m−1, with only modest variation across models. Notably, model By_4.0_F_fast
+26
+
+
+10
+5
+10
+4
+10
+3
+10
+2
+t [ s ]
+10
+3
+10
+2
+10
+1
+100
+101
+102
+103
+max |div(B)| [ T m
+1 ]
+By_4.0_F_no_clean
+By_4.0_F_GP
+By_4.0_F_GLM
+By_4.0_F_slow
+By_4.0_F
+By_4.0_F_no_damp
+By_4.0_F_fast
+Figure 17:
+Plot of maximum absolute magnetic field divergence, as defined in Eq. (23), versus time for the last seven models of Ta-
+ble 5: By_4.0_F_no_clean (red), By_4.0_F_GP (blue), By_4.0_F_GLM (green), By_4.0_F_slow (cyan), By_4.0_F (magenta),
+By_4.0_F_no_damp (yellow), and By_4.0_F_fast (black).
+(ch = 250 m s−1) shows the lowest divergence violations up to about 0.01 s, after which its trajectory aligns with that
+of models By_4.0_F and By_4.0_F_no_damp towards the end of the simulation. The model with only hyper-
+bolic divergence cleaning (By_4.0_F_GLM) exhibits the smallest divergence violations overall at the final simulation
+time. These results indicate that some form of divergence control is necessary for stable evolution. However, among
+the models that incorporate divergence control, there is no significant variation in key physical quantities of interest,
+such as maximum vz and bz. Models employing hyperbolic divergence cleaning with hyperbolic cleaning speeds
+significantly higher than typical flow speeds (ch ≥50 m s−1) offer the best performance in maintaining the solenoidal
+condition of the induced magnetic field.
+The hyperbolic cleaning speed directly influences the CFL number for a given time step and spatial resolution (see
+Eq. (17)), and can therefore affect the performance of the implicit solver. We investigate this in Figure 18, which plots
+the CFL number as a function of time, along with the number of nonlinear and linear iterations for the converging
+models from Figure 17. All models follow the same time step progression, shown by the black line in the right panel
+of Figure 11: beginning with ∆t = 10−6 s and increasing linearly to a maximum of ∆tmax = 3.5 × 10−5 s at
+t = 0.015 s. The evolution of CFL for models By_4.0_F_GP and By_4.0_F_slow is nearly identical, indicating
+that ch = 1 m s−1 is smaller than other characteristic wave speeds for this problem. For these models, CFL starts
+at approximately 20 and increases to a maximum of around 800. Models with ch = 50 m s−1 (By_4.0_F_GLM,
+By_4.0_F, and By_4.0_F_no_damp) reach higher CFL, beginning at about 63 and peaking near 2200. Model
+By_4.0_F_fast (ch = 250 m s−1) evolves with the largest CFL, staring at 314 and reaching CFL = 1.1 × 104 by
+the end of the simulation. Despite this wide range in CFL, the number of nonlinear iterations per Runge–Kutta stage
+remains largely unaffected. On average, all models require two nonlinear iterations per stage. Toward the end of the
+simulations, some time steps require only one nonlinear iteration in the first stage, reducing the average to 1.5 (see
+inset, middle panel of Figure 18). In contrast, the number of linear iterations per nonlinear iteration (bottom panel)
+shows greater sensitivity to CFL, but only the model with ch = 250 m s−1 stands out as requiring more iterations
+than the other models. Most models start out requiring an average of 10-12 linear iterations, which increases to 40-45
+when the time step reaches its maximum; i.e., about a fourfold increase in linear iterations after a 35-fold increase
+in ∆t. Model By_4.0_F_fast also starts with an average of 10-12 linear iterations, but ultimately requires 50-60
+27
+
+
+101
+102
+103
+104
+CFL
+1
+2
+3
+Nonlinear Iters.
+By_4.0_F_GP
+By_4.0_F_GLM
+By_4.0_F_slow
+By_4.0_F
+By_4.0_F_no_damp
+By_4.0_F_fast
+10
+5
+10
+4
+10
+3
+10
+2
+t [ s ]
+10
+20
+30
+40
+50
+60
+70
+Linear Iters.
+0.04
+0.05
+1.5
+2.0
+Figure 18: Plot of CFL number (top panel), average number of nonlinear iterations per SDIRK stage per time step (middle panel), and average
+number of linear iterations per nonlinear iteration per SDIRK stage per time step (bottom panel) versus time for the convergent models plotted in
+Figure 17 (i.e., all but model By_4.0_F_no_clean).
+iterations when the time step is maximal.
+5.2. Three-Dimensional Models
+We conclude this section by discussing results from three-dimensional (3D) models. Due to the larger computa-
+tional cost associated with fully 3D models—particularly from resolving the thin boundary layers and capturing the
+initial transient dynamics—the number of 3D models included in this study is limited. Our 3D models were performed
+using resources provided by NERSC (Perlmutter) and a dedicated cluster at ORNL. On Perlmutter, the simulations
+were executed on 6 CPU nodes, with 64 MPI tasks per node. Each task utilized 4 CPU cores, corresponding to a total
+of 384 MPI ranks and 1536 CPU cores. On the ORNL cluster, the simulations were run using 8 CPU nodes with 31
+tasks per node and 4 CPUs per task (248 MPI ranks and 992 CPU cores). The primary objectives are to demonstrate
+the computational capability of Vertex-CFD and to provide a point of comparison against predictions obtained from
+the reduced models of S25 and the 2.5D models discussed in the previous section. Similar to the 2.5D models, these
+were performed using linear, hexahedral elements and the SDIRK22 time integrator.
+Figure 19 highlights key aspects of the flow evolution in the three-dimensional (3D) model with no-slip, electri-
+cally insulating boundary conditions at z = ±1 m. (We note that the genuinely 3D model with periodic boundary
+conditions in the z-dimension reproduces the results of the corresponding 2.5D model uniformly across all z, and will
+therefore not be discussed further.) The left panels of Figure 19 shows streamlines of the current density associated
+with the induced magnetic field, specifically µ0j = ∇× b, at various times during the evolution. Specifically, the
+middle left panel shows the current density at t ≈4.9 ms, shortly before the vertical velocity component vz reaches its
+peak (see Figure 20). The current circulates in closed counterclockwise loops within the xy-plane, remaining relative
+uniform along the z-direction, except near the top and bottom boundaries where 3D effects become significant. The
+interaction of this induced current with the external magnetic field, particularly the toroidal component B0
+y, produces
+28
+
+
+the Lorentz force j × B0 that drives flow in the vertical direction. The streamlines are colored-coded by vz, revealing
+a general upward flow for y < 0 and downward flow for y > 0. The resulting flow circulation pattern is illustrated
+in the right panels of Figure 19. The lower right panel displays velocity streamlines at the final time (t = 50 ms),
+after the duct flow in the midplane (z = 0) has settled into a quasi-steady state. At this stage of the simulation, the
+z-component of the induced magnetic field has decayed significantly (see Figure 20), and the current no longer main-
+tains the coherent loop structure observed at earlier times. As in the 2.5D models, the flow is predominately vertical,
+while near the top and bottom boundaries it turns laterally to complete closed-loop circulations within the duct.
+Figure 20 presents the time evolution of the maximum velocity and induced magnetic field components from the
+3D simulation. The top panels compare the evolution of the maximum vz and bz in the midplane (black circles)
+with corresponding results from the 2.5D model (solid black lines), showing very good agreement for all times.
+Consequently, the agreement with the solution from S25 is also very good.
+The bottom panels show the evolution of the x- and y-components of both velocity and induced magnetic field.
+Here too, the 3D midplane results (red and blue open circles) align closely with the 2.5D model predictions (red and
+blue solid lines). This agreement holds consistently for the velocity components throughout the simulation and for
+the magnetic field components up to t ≲10 ms. At later times, however, oscillatory behavior emerges, especially in
+max bx, whose amplitude becomes comparable to that of max bz. These increased fluctuations may contribute to the
+more disordered structure of the current density seen in the lower left panel of Figure 19.
+The maximum vz and bz values computed across the entire 3D domain (dotted black lines) track the corresponding
+midplane values well during the early evolution, but vz begins to diverge after t ≈40 ms, when a notable upward
+trend is observed. The maximum values of the x- and y-components values of both velocity and magnetic field (dotted
+lines in the lower panels) exceed their midplane counterparts, consistent with the genuinely three-dimensional flow
+structure.
+At present, the cause of the late-time growth observed in maximum vz in the 3D model remains unclear. It may
+be linked to hydromagnetic instabilities in the quasi-steady flow, which warrants further investigation but lies beyond
+the scope of this study. Alternatively, the growth could be of numerical origin. The finite element method employed
+is not stabilized and may be susceptible to numerical instabilities, particularly in under-resolved regions. Evidence of
+such behavior is visible in the lower right panel in Figure 19, where a significant upflow develops in the lower corned
+of the domain, suggesting the presence of steep gradients. Future work will explore this behavior using higher spatial
+resolution and/or stabilization techniques in the numerical method.
+6. Summary, Conclusions, and Outlook
+We have implemented and tested a numerical method for the incompressible, full-induction MHD equations within
+the open-source Vertex-CFD framework, targeting future applications to liquid metal flows in fusion blankets, includ-
+ing transient scenarios driven by plasma disruptions. The solenoidal constraints on the velocity and magnetic field
+are relaxed using the artificial compressibility method [28] and the generalized Lagrange multiplier formulation [29],
+respectively. The AC-GLM-MHD model is further augmented with the Godunov–Powell sources, which enhance
+numerical orthogonality between the Lorentz force and the magnetic field in the presence of divergence errors [19],
+and transports these errors with the flow [38]. The GP sources also symmetrize the MHD equations [39], though this
+aspect has not been analyzed here in the context of the AC-GLM-MHD model. The governing hyperbolic-parabolic
+PDEs are discretized in space using the FEM, yielding a system of ODEs in time that is advanced with SDIRK
+methods. The resulting nonlinear system is solved with Newton’s method, using a preconditioned iterative solver
+for the associated linear systems. The Vertex-CFD implementation leverages Trilinos packages to enable a portable,
+HPC-ready solver framework, and has been verified against several benchmarks with known (analytical or numerical)
+solutions, where we focused on solver accuracy and efficacy of divergence control mechanisms. We also applied the
+full-induction MHD solver to an idealized blanket model with a decaying external magnetic field in 2.5D and full 3D,
+and performed a detailed comparison with the recent quasi-2D simulations by Smolentsev [36].
+Benchmark simulations with analytic solutions demonstrate that the implementation exhibits convergent behavior.
+Using linear elements with the SDIRK22 time integrator, we verified second-order accuracy in space and time for
+both the magnetic advection-diffusion test (Section 4.1) and the circularly polarized Alfvén wave (Section 4.2). With
+quadratic elements and the SDIRK54 integrator for the advection-diffusion test at η = (2π)−2, third-order accuracy
+29
+
+
+(a) ∇× b, t = 3.0 ms
+(b) Velocity, t = 3.0 ms
+(c) ∇× b, t = 4.9 ms
+(d) Velocity, t = 4.9 ms
+(e) ∇× b, t = 50 ms
+(f) Velocity, t = 50 ms
+Figure 19: Streamlines of the curl of the induced magnetic field ∇× b (left panels) and velocity (right panels) at several times for the 3D model
+with no-slip and insulating wall boundary conditions, and B0
+y = 4.0 T. Note, x and y coordinates have been scaled by a factor of four for visibility.
+for all magnetic field components was achieved only with ∇· B-terms in the MHD equations disabled; otherwise,
+30
+
+
+0
+1
+2
+3
+max vz [ m s
+1 ]
+vz (2.5D)
+vz (3D)
+vz (3D, z = 0)
+10
+5
+10
+4
+10
+3
+10
+2
+t [ s ]
+10
+5
+10
+3
+10
+1
+101
+max vx, max vy [ m s
+1 ]
+Vx (2.5D)
+Vx (3D)
+Vx (3D, z = 0)
+Vy (2.5D)
+Vy (3D)
+Vy (3D, z = 0)
+0.01
+0.02
+0.03
+2.6
+2.8
+3.0
+3.2
+0.00
+0.05
+0.10
+0.15
+max bz [ T ]
+bz (2.5D)
+bz (3D)
+by (3D, z = 0)
+10
+5
+10
+4
+10
+3
+10
+2
+t [ s ]
+10
+6
+10
+5
+10
+4
+10
+3
+10
+2
+10
+1
+max bx, max by [ T ]
+Figure 20: Plot of maximum velocity (left panels) and induced magnetic field (right panels) components versus time for the genuinely three-
+dimensional model from Figure 19, compared with the corresponding 2.5D model By_4.0_M. The upper panels plot the maximum z-component
+of velocity and induced magnetic field, where the maximum is over the full computational domain (dotted lines), in the xy-plane with z = 0
+(circles), and from the 2.5D model (solid lines). The lower panels plot the corresponding maximum x- and y-components of the velocity (left) and
+induced magnetic field (right).
+the x- and y-components showed second-order accuracy, while the z-component retained third-order accuracy. This
+indicates that relaxing the divergence-free constraint can impact asymptotic convergence. In the advection limit
+(η = 0), all components converged at second order, with Bz errors largely independent of ∇· B-terms, and Bx
+and By errors reduced with these terms included. For the circularly polarized Alfvén wave, quadratic elements and
+SDIRK54 also yielded sub-optimal second-order convergence. We suspect the observed order reduction in both the
+advection-diffusion (with η = 0) and Alfvén wave problems is due in part to the lack of dissipation, a behavior
+previously noted in analyses of wave-propagation methods (e.g., [61, 53]).
+The divergence cleaning test (Section 4.3) shows good qualitative agreement with previously published results
+(e.g., [29, 54]). While both the GP source term and undamped GLM cleaning disperse divergence errors, adding
+damping reduces divergence errors markedly. With implicit time stepping, stable evolution is achieved with ch = 103
+without time step reduction, and the damping factor of α = ch/0.18 recommended by [29] is confirmed to be effective.
+For the lid-driven cavity, which lacks an analytic solution, we compared Vertex-CFD results with those published
+by Fambri et al. [55], obtained using their well-balanced, exactly divergence-free scheme. These comparisons are
+comprehensive in that they probe both incompressibility and divergence-free properties in a viscous, resistive set-
+ting. Simulations with vertical and horizontal initial fields, across a range of field strengths, show good qualitative
+agreement with the steady-state structures of |v| and |B| published in [55]. Direct comparisons of solution profiles
+further confirm close quantitative agreement, supporting the conclusion that the Vertex-CFD implementation of the
+AC-GLM-MHD model is consistent and robust.
+Application of the full-induction AC-GLM-MHD model in 2.5D and 3D Vertex-CFD simulations of the idealized
+blanket configuration proposed by S25 (Section 5) leads to two main conclusions: (i) the Vertex-CFD implementation
+is capable of handling transient MHD flows that develop thin Hartmann boundary layers with Ha ∼O(104), a
+key prerequisite for modeling disruption-driven events in more realistic blanket geometries; and (ii) the quasi-2D
+modeling assumption — evolving only vz and bz — remains a reasonable approximation, with our results providing
+further evidence in support of S25. Across a range of external toroidal field strengths, we found excellent agreement
+in the time evolution of maximum vz and bz, as well as in the quasi-steady vz profiles, particularly in the structure of
+the Hartmann layers.
+The successful implementation and verification of the full-induction model in Vertex-CFD provides a foundation
+for extending its capabilities and performance. Continuing development will focus on incorporating multi-material
+domain capabilities and far-field or pseudo-vacuum boundary conditions to enable studies of the coupled behavior
+of liquid metals, structural materials, and the plasma. Realistic modeling of liquid metal flows driven by plasma
+31
+
+
+disruptions will ultimately require coupling to plasma MHD, e.g., as provided by M3D-C1 [62, 63]. We also plan a
+systematic study of solver scalability on HPC systems, including both CPU-only and GPU-accelerated platforms, to
+identify any existing performance bottlenecks and guide improvements to enhance efficiency at application-relevant
+resolutions. From a numerical perspective, future work will include incorporating finite-element stabilization to im-
+prove robustness in under-resolved regions, e.g., via the streamline-upwind Petrov–Galerkin, variational multiscale,
+or entropy viscosity method [64, 65, 66, 67]. Supporting this, we plan to conduct a continuous entropy analysis
+and develop suitable viscous regularization, e.g., as in [23, 41], for the AC-GLM-MHD system. In parallel, we will
+design preconditioners tailored to the system’s characteristic coupling and stiffness properties. These developments
+will strengthen Vertex-CFD as a versatile platform for modeling transient MHD phenomena to support fusion blanket
+designs.
+Acknowledgements
+Research at Oak Ridge National Laboratory is supported under contract DE-AC05-00OR22725 from the U.S. Depart-
+ment of Energy (DOE) to UT-Battelle, LLC. This work was performed under the SciDAC project “Center for Simu-
+lation of Plasma-Liquid Metal Interactions in Plasma Facing Components and Breeding Blankets of a Fusion Power
+Reactor” under contract DE-AC05-00OR22725 with the US DOE. This research used resources of the National En-
+ergy Research Scientific Computing Center (NERSC), a DOE User Facility using NERSC award FES-ERCAP 32482.
+Declaration of generative AI and AI-assisted technologies in the writing process
+During the preparation of this manuscript the authors used ChatGPT to provide editing suggestions for several sen-
+tences. After using this tool, the authors reviewed and edited the content as needed and take full responsibility for the
+content of the published article.
+References
+[1] M. O. Delchini, F. Oz, K. Kincaid, J. T. Erwin, S. Slattery, F. Curtis, R. Glasby, F. Brandao, K. Gotti-
+parthi, J. DeGraw, R. Savery, Ornl/vertex-cfd: vertex-cfd-v1.0.0-alpha (Feb. 2025). doi:10.5281/zenodo.
+14907174.
+URL https://doi.org/10.5281/zenodo.14907174
+[2] M. Abdou, N. B. Morley, S. Smolentsev, A. Ying, S. Malang, A. Rowcliffe, M. Ulrickson, Blanket/first wall
+challenges and required r&d on the pathway to demo, Fusion Engineering and Design 100 (2015) 2–43. doi:
+https://doi.org/10.1016/j.fusengdes.2015.07.021.
+[3] C. Kessel, J. Blanchard, A. Davis, L. El-Guebaly, L. Garrison, N. Ghoniem, P. Humrickhouse, Y. Huang, Y. Ka-
+toh, A. Khodak, E. Marriott, S. Malang, N. Morley, G. Neilson, J. Rapp, M. Rensink, T. Rognlien, A. Rowcliffe,
+S. Smolentsev, L. Snead, M. Tillack, P. Titus, L. Waganer, G. Wallace, S. Wukitch, A. Ying, K. Young, Y. Zhai,
+Overview of the fusion nuclear science facility, a credible break-in step on the path to fusion energy, Fusion En-
+gineering and Design 135 (2018) 236–270. doi:https://doi.org/10.1016/j.fusengdes.2017.
+05.081.
+[4] S. Smolentsev, R. Moreau, M. Abdou, Characterization of key magnetohydrodynamic phenomena in pbli flows
+for the us dcll blanket, Fusion Engineering and Design 83 (5) (2008) 771–783. doi:https://doi.org/
+10.1016/j.fusengdes.2008.07.023.
+[5] S. Smolentsev, N. B. Morley, M. A. Abdou, S. Malang, Dual-coolant lead–lithium (dcll) blanket status and
+r&d needs, Fusion Engineering and Design 100 (2015) 44–54. doi:https://doi.org/10.1016/j.
+fusengdes.2014.12.031.
+32
+
+
+[6] S. Smolentsev, S. Badia, R. Bhattacharyay, L. Bühler, L. Chen, Q. Huang, H.-G. Jin, D. Krasnov, D.-W. Lee,
+E. M. de les Valls, C. Mistrangelo, R. Munipalli, M.-J. Ni, D. Pashkevich, A. Patel, G. Pulugundla, P. Satya-
+murthy, A. Snegirev, V. Sviridov, P. Swain, T. Zhou, O. Zikanov, An approach to verification and validation
+of mhd codes for fusion applications, Fusion Engineering and Design 100 (2015) 65–72.
+doi:https:
+//doi.org/10.1016/j.fusengdes.2014.04.049.
+[7] S. Smolentsev, T. Rhodes, Y. Yan, A. Tassone, C. Mistrangelo, L. Bühler, F. R. Urgorri, Code-to-code
+comparison for a pbli mixed-convection mhd flow, Fusion Science and Technology 76 (5) (2020) 653–669.
+doi:10.1080/15361055.2020.1751378.
+[8] M.-J. Ni, R. Munipalli, N. B. Morley, P. Huang, M. A. Abdou, Validation Case Results for 2D and 3D MHD
+Simulations, Fusion Science and Technology 52 (2007) 587–594. doi:10.13182/FST07-A1552.
+[9] T. Zhou, Z. Yang, M. Ni, H. Chen, Code development and validation for analyzing liquid metal MHD flow in
+rectangular ducts, Fusion Engineering and Design 85 (10) (2010) 1736–1741. doi:https://doi.org/
+10.1016/j.fusengdes.2010.05.034.
+[10] R. Planas, S. Badia, R. Codina, Approximation of the inductionless MHD problem using a stabilized finite
+element method, Journal of Computational Physics 230 (8) (2011) 2977–2996. doi:https://doi.org/
+10.1016/j.jcp.2010.12.046.
+[11] Q. He, H. Chen, J. Feng, Acceleration of the OpenFOAM-based MHD solver using graphics processing units,
+Fusion Engineering and Design 101 (2015) 88–93. doi:https://doi.org/10.1016/j.fusengdes.
+2015.09.017.
+[12] R. W. Eardley-Brunt, A. J. Dubas, A. Davis, On scalable liquid-metal mhd solvers for fusion breeder blanket
+multiphysics applications, Plasma Physics and Controlled Fusion 66 (1) (2023) 015015.
+doi:10.1088/
+1361-6587/ad100a.
+[13] S. Smolentsev, Physical Background, Computations and Practical Issues of the Magnetohydrodynamic Pressure
+Drop in a Fusion Liquid Metal Blanket, Fluids 6 (3) (2021). doi:10.3390/fluids6030110.
+[14] T. C. Hender, J. C. Wesley, J. Bialek, A. Bondeson, A. H. Boozer, R. J. Buttery, A. Garofalo, T. P. Goodman, R. S.
+Granetz, Y. Gribov, O. Gruber, M. Gryaznevich, G. Giruzzi, S. G"unter, N. Hayashi, P. Helander, C. C. Hegna,
+D. F. Howell, D. A. Humphreys, G. T. A. Huysmans, A. W. Hyatt, A. Isayama, S. C. Jardin, Y. Kawano, A. Kell-
+man, C. Kessel, H. R. Koslowski, R. J. L. Haye, E. Lazzaro, Y. Q. Liu, V. Lukash, J. Manickam, S. Medvedev,
+V. Mertens, S. V. Mirnov, Y. Nakamura, G. Navratil, M. Okabayashi, T. Ozeki, R. Paccagnella, G. Pautasso,
+F. Porcelli, V. D. Pustovitov, V. Riccardo, M. Sato, O. Sauter, M. J. Schaffer, M. Shimada, P. Sonato, E. J. Strait,
+M. Sugihara, M. Takechi, A. D. Turnbull, E. Westerhof, D. G. Whyte, R. Yoshino, H. Zohm, D. the ITPA MHD,
+M. C. T. Group, Chapter 3: MHD stability, operational limits and disruptions, Nucl. Fusion 47 (2007) S128.
+[15] A. H. Boozer, Theory of tokamak disruptions), Physics of Plasmas 19 (2012) 058101. doi:10.1063/1.
+3703327.
+[16] P. Huang, R. Chhabra, R. Munipalli, G. Pulugundla, C. Kawczynski, S. Smolentsev, A comprehensive high
+performance predictive tool for fusion liquid metal hydromagnetics, Tech. rep., HyPerComp Inc., Westlake
+Village, CA (United States) (10 2017).
+URL https://www.osti.gov/biblio/1402053
+[17] C. Kawczynski, A Numerical Investigation of Moderate Magnetic Reynolds Number Fusion Liquid Metal Mag-
+netohydrodynamic Flows, Ph.D. thesis, University of California, Los Angeles, Ann Arbor, MI (2018).
+[18] C. Kawczynski, S. Smolentsev, M. Abdou, Characterization of the lid-driven cavity magnetohydrodynamic flow
+at finite magnetic reynolds numbers using far-field magnetic boundary conditions, Physics of Fluids 30 (6)
+(2018) 067103. doi:10.1063/1.5036775.
+33
+
+
+[19] J. Brackbill, D. Barnes, The Effect of Nonzero ∇· B on the Numerical Solution of the Magnetohydrodynamic
+Equations, Journal of Computational Physics 35 (3) (1980) 426–430. doi:https://doi.org/10.1016/
+0021-9991(80)90079-0.
+[20] G. Tóth, The ∇· B=0 Constraint in Shock-Capturing Magnetohydrodynamics Codes, Journal of Computational
+Physics 161 (2) (2000) 605–652. doi:10.1006/jcph.2000.6519.
+[21] X. D. Liu, S. Osher, Nonoscillatory high order accurate self-similar maximum principle satisfying shock captur-
+ing schemes I, SIAM J. Numer. Anal. 33 (2) (1996) 760–779.
+[22] X. Zhang, C.-W. Shu, Maximum-principle-satisfying and positivity-preserving high-order schemes for conser-
+vation laws: survey and new developments, Proceedings of the Royal Society A: Mathematical, Physical and
+Engineering Sciences 467 (2134) (2011) 2752–2776. doi:10.1098/rspa.2011.0153.
+[23] J.-L. Guermond, B. Popov, Viscous Regularization of the Euler Equations and Entropy Principles, SIAM Journal
+on Applied Mathematics 74 (2) (2014) 284–305. doi:10.1137/120903312.
+[24] E. C. Cyr, J. N. Shadid, R. S. Tuminaro, Teko: A block preconditioning capability with concrete example
+applications in navier–stokes and mhd, SIAM Journal on Scientific Computing 38 (5) (2016) S307–S331. doi:
+10.1137/15M1017946.
+[25] P. Ohm, J. Bonilla, E. Phillips, J. N. Shadid, M. Crockatt, R. S. Tuminaro, J. Hu, X.-Z. Tang, Scalable mul-
+tiphysics block preconditioning for low mach number compressible resistive mhd with application to mag-
+netic confinement fusion, SIAM Journal on Scientific Computing 46 (5) (2024) S170–S201. doi:10.1137/
+23M1582667.
+[26] R. P. Pawlowski, E. T. Phipps, A. G. Salinger, Automating embedded analysis capabilities and managing soft-
+ware complexity in multiphysics simulation, part i: Template-based generic programming, Scientific Program-
+ming 20 (2) (2012) 197–219.
+[27] R. P. Pawlowski, E. T. Phipps, A. G. Salinger, S. J. Owen, C. M. Siefert, M. L. Staten, Automating embedded
+analysis capabilities and managing software complexity in multiphysics simulation, part ii: Application to partial
+differential equations, Scientific Programming 20 (3) (2012) 327–345.
+[28] A. J. Chorin, A numerical method for solving incompressible viscous flow problems, Journal of Computational
+Physics 2 (1) (1967) 12–26. doi:https://doi.org/10.1016/0021-9991(67)90037-X.
+[29] A. Dedner, F. Kemm, D. Kröner, C. D. Munz, T. Schnitzer, M. Wesenberg, Hyperbolic Divergence Cleaning
+for the MHD Equations, Journal of Computational Physics 175 (2) (2002) 645–673. doi:10.1006/jcph.
+2001.6961.
+[30] T. Trilinos Project Team, The Trilinos Project Website (2025 (acccessed March 13, 2025)).
+URL https://trilinos.github.io
+[31] S. Rogers, D. Kwak, U. Kaul, On the accuracy of the pseudocompressibility method in solving the incom-
+pressible Navier-Stokes equations, Applied Mathematical Modelling 11 (1) (1987) 35–44.
+doi:https:
+//doi.org/10.1016/0307-904X(87)90182-X.
+[32] D. Kwak, C. Kiris, Computation of Viscous Incompressible Flows, Scientific Computation, Springer Dordrecht,
+2013.
+[33] J. R. Clausen, Entropically damped form of artificial compressibility for explicit simulation of incompressible
+flow, Phys. Rev. E 87 (2013) 013309. doi:10.1103/PhysRevE.87.013309.
+[34] P. Humrickhouse, B. Merrill, An equation of state for liquid Pb83Li17, Fusion Engineering and Design 127
+(2018) 10–16. doi:https://doi.org/10.1016/j.fusengdes.2017.11.023.
+34
+
+
+[35] D. Martelli, A. Venturini, M. Utili, Literature review of lead-lithium thermophysical properties, Fusion Engi-
+neering and Design 138 (2019) 183–195. doi:https://doi.org/10.1016/j.fusengdes.2018.
+11.028.
+[36] S. Smolentsev, A model and assessments of the effect of transient plasma on liquid metal flows in a fu-
+sion blanket, Fusion Engineering and Design 213 (2025) 114854. doi:https://doi.org/10.1016/
+j.fusengdes.2025.114854.
+URL https://www.sciencedirect.com/science/article/pii/S0920379625000572
+[37] J. D. Jackson, Classical Electrodynamics, 2nd Edition, McGraw-Hill, 1975.
+[38] K. G. Powell, P. L. Roe, T. J. Linde, T. I. Gombosi, D. L. De Zeeuw, A Solution-Adaptive Upwind Scheme for
+Ideal Magnetohydrodynamics, Journal of Computational Physics 154 (2) (1999) 284–309. doi:10.1006/
+jcph.1999.6299.
+[39] S. Godunov, Symmetric form of the equations of magnetohydrodynamics, Numer. Methods Mech. Contin.
+Medium 1 (1972) 26–34.
+[40] D. Derigs, A. R. Winters, G. J. Gassner, S. Walch, M. Bohm, Ideal GLM-MHD: About the entropy consistent
+nine-wave magnetic field divergence diminishing ideal magnetohydrodynamics equations, Journal of Computa-
+tional Physics 364 (2018) 420–467. doi:10.1016/j.jcp.2018.03.002.
+[41] T. A. Dao, L. Lundgren, M. Nazarov, Viscous regularization of the mhd equations, SIAM Journal on Applied
+Mathematics 84 (4) (2024) 1439–1459. doi:10.1137/23M1564274.
+[42] K. Hu, Y.-J. Lee, J. Xu, Helicity-conservative finite element discretization for incompressible mhd systems, Jour-
+nal of Computational Physics 436 (2021) 110284. doi:https://doi.org/10.1016/j.jcp.2021.
+110284.
+URL https://www.sciencedirect.com/science/article/pii/S0021999121001790
+[43] D. Donatelli, The artificial compressibility approximation for mhd equations in unbounded domain, Journal of
+Hyperbolic Differential Equations 10 (2013) 181–198. doi:10.1142/S0219891613500082.
+[44] M. F. Wheeler, An elliptic collocation-finite element method with interior penalties, SIAM Journal on Numeri-
+cal Analysis 15 (1) (1978) 152–161. arXiv:https://doi.org/10.1137/0715010, doi:10.1137/
+0715010.
+URL https://doi.org/10.1137/0715010
+[45] R. Hartmann, P. Houston, Symmetric interior penalty dg methods for the compressible navier–stokes equations
+ii: Goal–oriented a posteriori error estimation, Int. J. Num. Anal. Model 3 (2) (2006) 141–162.
+[46] R. Hartmann, P. Houston, An optimal order interior penalty discontinuous galerkin discretization of the com-
+pressible navier–stokes equations, Journal of Computational Physics 227 (22) (2008) 9670–9685. doi:https:
+//doi.org/10.1016/j.jcp.2008.07.015.
+URL https://www.sciencedirect.com/science/article/pii/S0021999108003975
+[47] C. A. Kennedy, M. H. Carpenter, Diagonally Implicit Runge-Kutta Methods for Ordinary Differential Equations.
+A Review, Tech. Rep. NASA/TM-2016-219173, Langley Research Center (2016).
+[48] E. Hairer, G. Wanner, Solving Ordinary Differential Eqiations II. Stiff and Differential-Algebraic Problems.,
+Springer Series in Computational Mathematics, Springer Berlin, Heidelberg, 1996.
+[49] D. Knoll, D. Keyes, Jacobian-free newton–krylov methods: a survey of approaches and applications, Journal
+of Computational Physics 193 (2) (2004) 357–397. doi:https://doi.org/10.1016/j.jcp.2003.
+08.010.
+35
+
+
+[50] D. E. Keyes, L. C. McInnes, C. Woodward, W. Gropp, E. Myra, M. Pernice, J. Bell, J. Brown, A. Clo, J. Connors,
+E. Constantinescu, D. Estep, K. Evans, C. Farhat, A. Hakim, G. Hammond, G. Hansen, J. Hill, T. Isaac, X. Jiao,
+K. Jordan, D. Kaushik, E. Kaxiras, A. Koniges, K. Lee, A. Lott, Q. Lu, J. Magerlein, R. Maxwell, M. McCourt,
+M. Mehl, R. Pawlowski, A. P. Randles, D. Reynolds, B. Rivière, U. Rüde, T. Scheibe, J. Shadid, B. Sheehan,
+M. Shephard, A. Siegel, B. Smith, X. Tang, C. Wilson, B. Wohlmuth, Multiphysics simulations: Challenges
+and opportunities, The International Journal of High Performance Computing Applications 27 (1) (2013) 4–83.
+doi:10.1177/1094342012468181.
+[51] T. A. Gardiner, J. M. Stone, An unsplit godunov method for ideal mhd via constrained transport in three dimen-
+sions, Journal of Computational Physics 227 (2008) 4123–4141. doi:https://doi.org/10.1016/j.
+jcp.2007.12.017.
+[52] J. M. Stone, K. Tomida, C. J. White, K. G. Felker, The athena++ adaptive mesh refinement framework: Design
+and magnetohydrodynamic solvers, The Astrophysical Journal Supplement Series 249 (2020) 4. doi:10.
+3847/1538-4365/ab929b.
+[53] B. García-Archilla, V. John, J. Novo, On the convergence order of the finite element error in the kinetic energy
+for high reynolds number incompressible flows, Computer Methods in Applied Mechanics and Engineering 385
+(2021) 114032. doi:https://doi.org/10.1016/j.cma.2021.114032.
+[54] T. S. Tricco, D. J. Price, Constrained hyperbolic divergence cleaning for smoothed particle magnetohydrodynam-
+ics, Journal of Computational Physics 231 (21) (2012) 7214–7236. doi:https://doi.org/10.1016/
+j.jcp.2012.06.039.
+URL https://www.sciencedirect.com/science/article/pii/S0021999112003737
+[55] F. Fambri, E. Zampa, S. Busto, L. Río-Martín, F. Hindenlang, E. Sonnendrücker, M. Dumbser, A well-
+balanced and exactly divergence-free staggered semi-implicit hybrid finite volume / finite element scheme
+for the incompressible mhd equations, Journal of Computational Physics 493 (2023) 112493. doi:https:
+//doi.org/10.1016/j.jcp.2023.112493.
+[56] U. Ghia, K. Ghia, C. Shin, High-re solutions for incompressible flow using the navier-stokes equations and a
+multigrid method, Journal of Computational Physics 48 (3) (1982) 387–411. doi:https://doi.org/10.
+1016/0021-9991(82)90058-4.
+[57] J. C. R. Hunt, J. A. Shercliff, Magnetohydrodynamics at High Hartmann Number, Annual Review of Fluid
+Mechanics 3 (1971) 37–62. doi:https://doi.org/10.1146/annurev.fl.03.010171.000345.
+[58] J. A. Shercliff, Steady motion of conducting fluids in pipes under transverse magnetic fields, Mathe-
+matical Proceedings of the Cambridge Philosophical Society 49 (1) (1953) 136–144.
+doi:10.1017/
+S0305004100028139.
+[59] Fidelity pointwise for cfd meshing, www.pointwise.com, accessed: 2025-07-11 (2025).
+[60] M. Vinokur, On One-Dimensional Stretching Functions for Finite-Difference Calculations, Journal of Compu-
+tational Physics 50 (1983) 215–234.
+[61] Y. Cheng, C.-S. Chou, F. Li, Y. Xing, L2 stable discontinuous Galerkin methods for one-dimensional two-way
+wave equations, Mathematics of Computation 86 (303) (2017) 121–155.
+[62] J. Breslau, N. Ferraro, S. Jardin, Some properties of the M3D-C1 form of the three-dimensional magnetohydro-
+dynamics equations, Physics of Plasmas 16 (9) (2009) 092503. doi:10.1063/1.3224035.
+[63] N. Ferraro, S. Jardin, Calculations of two-fluid magnetohydrodynamic axisymmetric steady-states, Journal of
+Computational Physics 228 (20) (2009) 7742–7770. doi:https://doi.org/10.1016/j.jcp.2009.
+07.015.
+36
+
+
+[64] T. J. Hughes, M. Mallet, A new finite element formulation for computational fluid dynamics: Iii. the generalized
+streamline operator for multidimensional advective-diffusive systems, Computer Methods in Applied Mechanics
+and Engineering 58 (1986) 305–328. doi:https://doi.org/10.1016/0045-7825(86)90152-0.
+[65] T. J. Hughes, G. R. Feijóo, L. Mazzei, J.-B. Quincy, The variational multiscale method—a paradigm for compu-
+tational mechanics, Computer Methods in Applied Mechanics and Engineering 166 (1998) 3–24. doi:https:
+//doi.org/10.1016/S0045-7825(98)00079-6.
+[66] B. S. Kirk, G. F. Carey, Development and validation of a supg finite element scheme for the compressible
+navier–stokes equations using a modified inviscid flux discretization, International Journal for Numerical Meth-
+ods in Fluids 57 (2008) 265–293. doi:https://doi.org/10.1002/fld.1635.
+[67] J.-L. Guermond, R. Pasquetti, B. Popov, Entropy viscosity method for nonlinear conservation laws, Journal of
+Computational Physics 230 (2011) 4248–4267. doi:https://doi.org/10.1016/j.jcp.2010.11.
+043.
+[68] C. C. Ober, R. Pawlowski, E. C. Cyr, S. Conde, Tempus v. 1.0, Tech. rep., Sandia National Lab.(SNL-NM),
+Albuquerque, NM (United States) (2017).
+[69] B. W. Bader, R. P. Pawlowski, T. G. Kolda, Robust large-scale parallel nonlinear solvers for simulations., Tech.
+rep., Sandia National Laboratories (SNL), Albuquerque, NM, and Livermore, CA ... (2005).
+[70] C. T. Kelley, Solving nonlinear equations with Newton’s method, SIAM, 2003.
+[71] Y. Saad, M. H. Schultz, Gmres: A generalized minimal residual algorithm for solving nonsymmetric linear
+systems, SIAM Journal on scientific and statistical computing 7 (3) (1986) 856–869.
+[72] E. Bavier, M. Hoemmen, S. Rajamanickam, H. Thornquist, Amesos2 and belos: Direct and iterative solvers for
+large sparse linear systems, Scientific Programming 20 (3) (2012) 241–255.
+[73] E. G. Phillips, H. C. Elman, E. C. Cyr, J. N. Shadid, R. P. Pawlowski, A block preconditioner for an exact penalty
+formulation for stationary mhd, SIAM Journal on Scientific Computing 36 (6) (2014) B930–B951.
+[74] A. Klawonn, L. F. Pavarino, A comparison of overlapping schwarz methods and block preconditioners for saddle
+point problems, Numerical linear algebra with applications 7 (1) (2000) 1–25.
+[75] A. Prokopenko, C. M. Siefert, J. J. Hu, M. Hoemmen, A. Klinvex, Ifpack2 user’s guide 1.0 (trilinos version
+12.6), Sandia Report, SAND2016-5338 (2016).
+[76] O. Schenk, K. Gärtner, Pardiso, in: Encyclopedia of parallel computing, Springer, 2011, pp. 1458–1464.
+[77] I. Yamazaki, N. Ellingwood, S. Rajamanickam, Shylu node: On-node scalable solvers and preconditioners recent
+progresses and current performance, arXiv preprint arXiv:2506.05793 (2025).
+[78] C. R. Trott, D. Lebrun-Grandié, D. Arndt, J. Ciesko, V. Dang, N. Ellingwood, R. Gayatri, E. Harvey, D. S.
+Hollman, D. Ibanez, et al., Kokkos 3: Programming model extensions for the exascale era, IEEE Transactions
+on Parallel and Distributed Systems 33 (4) (2021) 805–817.
+[79] E. Phipps, R. Pawlowski, C. Trott, Automatic differentiation of c++ codes on emerging manycore architectures
+with sacado, ACM Transactions on Mathematical Software 48 (4) (2022) 1–29.
+[80] T. Panzer Project Team, The Panzer Project Website (2025 (acccessed March 13, 2025)).
+URL https://trilinos.github.io/panzer.html
+[81] P. Bochev, H. C. Edwards, R. C. Kirby, K. Peterson, D. Ridzal, Solving pdes with intrepid, Scientific Program-
+ming 20 (2) (2012) 151–180.
+37
+
+
+[82] H. C. Edwards, T. S. Coffey, D. Sunderland, A. B. Williams, Stk-mesh tutorial minisymposium., Tech. rep.,
+Sandia National Lab.(SNL-NM), Albuquerque, NM (United States) (2011).
+[83] G. D. Sjaardema, L. A. Schoof, V. R. Yarberry, Exodus ii: A finite element data model, Computational Mechanics
+and Visualization Department, Sandia National Laboratories, Albuquerque, NM 87185 (2006).
+[84] T. D. Blacker, W. J. Bohnhoff, T. L. Edwards, Cubit mesh generation environment. volume 1: Users manual,
+Tech. rep., Sandia National Lab.(SNL-NM), Albuquerque, NM (United States) (1994).
+[85] K. Devine, E. Boman, R. Heaphy, B. Hendrickson, C. Vaughan, Zoltan data management services for parallel
+dynamic applications, Computing in Science & Engineering 4 (2) (2002) 90–96.
+[86] G. Karypis, Metis and parmetis, in: Encyclopedia of parallel computing, Springer, 2011, pp. 1117–1124.
+Appendix A. Wave Speeds of the AC-GLM-MHD System
+Here we consider the wave speeds associated with the MHD system in the inviscid and ideal limit of Eq. (5); i.e.,
+∂tU + ∇· F = S,
+(A.1)
+which is obtained from Eq. (5) by setting ν = η = 0. We also set α = 0 in the source term in Eq. (7). Defining
+primitive variables V = [v⊺, P, B⊺, ψ]⊺, we can write Eq. (A.1) in quasilinear form
+∂tV + Ax(V )∂xV + Ay(V )∂yV + Az(V )∂zV = 0,
+(A.2)
+where
+Ax =
+∂U
+∂V
+−1∂F x
+∂V
+
+=
+
+
+2vx
+0
+0
+1/ρ0
+0
+By
+µ0ρ0
+Bz
+µ0ρ0
+0
+vy
+vx
+0
+0
+0
+−Bx
+µ0ρ0
+0
+0
+vz
+0
+vx
+0
+0
+0
+−Bx
+µ0ρ0
+0
+ρ0c2
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+vx
+0
+0
+ch
+By
+−Bx
+0
+0
+0
+vx
+0
+0
+Bz
+0
+−Bx
+0
+0
+0
+vx
+0
+0
+0
+0
+0
+ch
+0
+0
+0
+
+
+,
+(A.3)
+with Ay and Az defined similarly. We let ˜Ax denote the upper left 4 × 4 block of Ax, corresponding to the inviscid
+part of the NS subsystem in Eq. (1) with B = 0.
+Computing the characteristic polynomial of ˜Ax, we obtain
+det( ˜Ax −λx I) =   λx −vx
+2   λx −(vx −c)    λx −(vx + c) ,
+(A.4)
+where c2 = v2
+x + c2
+0. Thus, the eigenvalues of the NS system correspond to entropy (λx = vx) and acoustic (λx =
+vx ± c) modes. Since, for c0 > 0,
+0 ≤|vx|/ max(|vx + c|, |vx −c|) < 1
+(A.5)
+it follows that the flow is always subsonic.
+Computing the characteristic polynomial of Ax for the case with v = 0, we obtain
+det(Ax −λx I)
+(A.6)
+v=0
+=   λx −cs,x
+   λx + cs,x
+   λx −bx
+   λx + bx
+   λx −cf,x
+   λx + cf,x
+   λx −ch
+   λx + ch
+,
+where bx = Bx/√µ0ρ0, the fast and slow magnetosonic speeds are
+c2
+f,x = 1
+2
+ (c2
+0 + |b|2) +
+»
+(c2
+0 + |b|2)2 −4 c2
+0 b2x
+,
+(A.7a)
+c2
+s,x = 1
+2
+ (c2
+0 + |b|2) −
+»
+(c2
+0 + |b|2)2 −4 c2
+0 b2x
+,
+(A.7b)
+38
+
+
+and |b| = |B|/√µ0ρ0 is the Alfvén speed.
+We do not have closed-form expressions for the eigenvalues of Ax for the general case with v ̸= 0 and B ̸= 0.
+Instead, we use the approximate expressions
+ vx −ch, vx −cf,x, vx −bx, vx −cs,x, vx + cs,x, vx + bx, vx + cf,x, vx + ch
+	,
+(A.8)
+with c0 replaced with c =
+p
+v2x + c2
+0 in Eq. (A.7). (Similar expressions can be found for Ay and Az.) Our FEM with
+implicit time stepping does not require exact expressions for the eigenvalues, only estimates for time step selection.
+We believe the estimates in Eq. (A.8) are sufficient for this purpose.
+Appendix B. Additional Implementation Details
+In this appendix, we provide implementation details of the methods outlined in Section 3, covering mesh repre-
+sentation and partitioning, operator assembly, time integrators, and the subsequent linear solvers and preconditioners
+that emerge from linearization of the nonlinear problem. Our overview is intentionally brief, as Vertex-CFD heavily
+leverages the technology and formalisms described in [26, 27] and other references, to which we refer the reader to
+for additional detail.
+Time Integrators. As described in Section 3, Vertex-CFD uses implicit time integration methods. The implementa-
+tion of these methods is provided by the Tempus library in Trilinos [68]. Tempus orchestrates the construction of the
+nonlinear problem solved at each time step for a given time integrator, which in turn builds the linear solver and pre-
+conditioner that drive the operator assembly through evaluation of physics terms; i.e., the individual terms in Eq. (9).
+Time step selection is controlled automatically through a specified CFL number. Physics kernels compute local wave
+speeds and element lengths, which are combined to build a local time step sizes via Eq. (17); a global minimum then
+sets the time step. In general, early stages of a simulation may use small CFL values due to initial transients resulting
+from initial conditions that are not equilibrium solutions to Eq. (9), and therefore make challenging nonlinear prob-
+lems. We have implemented a CFL-based time step controller within the Tempus framework to smoothly ramp the
+CFL in time, and we use this capability for the simulations discussed in Section 5.
+Nonlinear Solvers. The solution to Eq. (10) within the time integrator requires the solution of a nonlinear problem,
+for which we use the NOX library in Trilinos [69]. While many algorithms are available in NOX for the solution of
+nonlinear problems, we use inexact Newton methods [70], which rely on linearizations of the nonlinear residual in
+terms of the Jacobian matrix in Eq. (20), and an iterative method is used to approximately solve for the update vector
+in Eq.(19). We obtain both the residual vectors and the Jacobian matrices through coordination of NOX and the finite
+element assembly tools in Trilinos, which will be further outlined below. Subsequent matrix and vector operations
+needed for the implementation of Newton’s method, such as vector norms and dot products, can be executed on GPUs
+using the Trilinos Tpetra library. To improve robustness, many globalization methods (e.g., line search methods) are
+available in NOX for use with Newton’s method. We generally choose a simple backtracking scheme to modify δY
+in Eq. (19) to ensure reduction of the residual norm for a given nonlinear iteration. In the simulations documented in
+Sections 4 and 5, we report nonlinear solver tolerances tolN based on the norm of the nonlinear residual.
+Linear Solvers and Preconditioners. An inexact Newton method requires the inversion of the Jacobian matrix to
+compute the update vector in Eq.(19). This is generally among the most expensive parts of a simulation as it is
+repeated in each nonlinear iteration of which there may be several per time step, depending on the initial guess and
+time stepping method. The discretization in Eq. (9) results in Jacobian matrices that are generally neither symmetric
+nor positive definite. Furthermore, the systems are large, sparse, and distributed in an HPC context. We use GMRES
+[71] for the solution of linear problems with the Belos library in Trilinos [72]. In Sections 4 and 5, reported linear
+solver convergence tolerances tolL apply to the GMRES residual norm convergence criteria, which is distinct from
+the nonlinear solver convergence criteria discussed above.
+The implicit FEM discretization tends to produce particularly stiff matrices when large time steps are taken (see for
+example CFL numbers in Figure 18). As a result, a preconditioner is typically required with GMRES for efficient con-
+vergence of the nonlinear problem. For our initial efforts, we consider algebraic preconditioners (e.g., preconditioners
+39
+
+
+that only consider Jacobian matrix entries, and no additional information about the PDE being solved) because we
+have easy access to the matrix elements through the finite element assembly procedure via automatic differentiation
+as outlined below, and we avoid, at least initially, the challenge of developing specific physics-based approaches (e.g.,
+[73]). Unless small time steps are used to resolve dynamics in a time accurate way, general transient simulations with
+larger time steps or steady state problems do not result in diagonally dominant Jacobian matrices that make schemes
+based on diagonal preconditioning or incomplete factorizations effective. Furthermore, due to the hyperbolic nature
+of the AC-GLM-MHD model, off-the-shelf algebraic multigrid methods also do not work effectively. We have found
+sparse-direct solvers within an overlapping Schwarz method to be the most effective and algorithmically scalable
+[74]. The subdomain and overlap construction is handled by the Ipack2 library in Trilinos [75]. Within each local
+subdomain, we apply a sparse direct solve. For multi-threaded CPU architectures we have found the Pardiso solver
+[76] to be effective as well as the Trilinos Tacho solver [77], both of which are available through a common Ifpack2
+programming interface. On GPUs, the performance portable Tacho solver in Trilinos is also generally used. We used
+the Tacho solver for the simulations presented in this paper.
+ℚ!(#)
+ℚ"(#)
+Figure B.21: Illustration of linear (left) and quadratic (right) quadrilateral elements commonly used in Vertex-CFD, including many of the simu-
+lations in this paper. For linear elements, Mk(K) := Q1(K) in Eq. (8); that is, solution fields on the element K are approximated using tensor
+products of one-dimensional Lagrange polynomials of degree k = 1, defined at two-point Legendre–Gauss–Lobatto (LGL) nodes (solid circles).
+The gray plusses mark the quadrature points, obtained from tensorization of the one-dimensional two-point Legendre–Gauss (LG) rule, which is
+used to evaluate the volume integrals in Eq. (9). For quadratic elements, Mk(K) := Q2(K), fields are approximated by tensor products of degree
+k = 2 Lagrange polynomials at three-point LGL nodes (solid circles). Quadrature is performed using the three-point LG rule, whose tensorization
+provides the interior quadrature points (gray plusses). The N-point LG quadrature rule integrates polynomials of degree 2N −1 exactly.
+Physics Terms. The assembly of matrices and vectors needed to implement the time integration and solver schemes
+described above begins with the evaluation of physics terms — i.e., the individual terms in the PDEs that comprise
+the AC-GLM-MHD model. Integrals in Eq. (9) are evaluated with quadrature rules over individual elements; see Fig-
+ure B.21 for examples of nodes and quadrature points on an element. Quadrature rules specify discrete points within
+the element and associated weights such that evaluation of the integrand at the quadrature points can later be used to
+assemble the global integral. Physics terms are implemented at the quadrature point level using the Phalanx library
+in Trilinos [26]. In Vertex-CFD, developers describe the components contributing to the global residual by indicating
+the fields required to perform the evaluation and the fields that are generated as a product of the evaluation. Phalanx
+uses these field data descriptions to generate multidimensional arrays over groups of elements, called worksets, allow-
+ing for element-local loops over the nodes and quadrature points of the workset elements to be implemented for the
+evaluation of field terms. These multidimensional arrays are represented using the Kokkos library [78] allowing for
+a single array definition to contain data in CPU or GPU memory, depending on compilation parameters. Generally,
+the number of elements in a workset is chosen either to effectively use CPU cache or to enable as many threads as
+possible for throughput on a GPU.
+Kernel Performance Portability. The evaluation of physics terms is performed within function evaluation kernels.
+These kernels use C++ templates to determine, at compile time, both the target computing architecture (e.g., CPU
+versus GPU) and the mode of function evaluation. In residual mode, field data is represented as standard floating-point
+numbers, and the kernels compute residual function terms, which are then assembled into the global residual vector.
+40
+
+
+In Jacobian mode, used to construct the linearization of residuals for Newton’s method, field data is represented by
+forward automatic differentiation (FAD) types, provided by the Sacado library [79]. The number of derivatives in this
+mode equals the number of element nodes and degrees of freedom contributing to the local kernel evaluation. With
+Kokkos, array looping schemes are optimized for the data type and evaluation mode. For all modes, quadrature point
+loops are threaded over elements and points in a multidimensional layout. However, in Jacobian mode, additional
+threading is applied over derivative dimensions. By integrating Kokkos and Sacado within the Phalanx framework,
+a single unified physics kernel, implemented through C++ templates, can seamlessly support both CPUs and GPUs.
+This kernel can operate in basic function evaluation mode or in a mode where derivatives are automatically computed.
+Operator Assembly. Each local physics term described above includes information about its dependencies on other
+terms (i.e., the fields on which it depends and are therefore created by others and the fields it creates which are
+therefore depended upon by others). These dependencies are used by the Phalanx library to construct a Directed
+Acyclic Graph (DAG) which can represent a general physics operator describing the entire problem [27]. Examples
+of operators include a global residual vector, global Jacobian matrix, and auxiliary integrated quantities for analysis.
+Translating the Phalanx DAG into operators is achieved through the Panzer library in Trilinos [80]. Panzer provides
+a FEM assembly abstraction through which the DAG is used to generate all the needed physics terms. In addition,
+it provides access to finite element basis functions and quadrature rules from the Trilinos Intrepid2 library [81] and
+comes with a variety of graph kernels needed for implementing FEMs. Examples include gathering data from a global
+state vector into element-local arrays for kernel evaluation (i.e., the map between between U h in Eq. (9) and Y in
+Eq. (10)), projecting fields and their gradients from nodes to quadrature points (i.e., the discrete values of U h and their
+gradients), evaluating common residual components such as the nodal divergence of a flux computed at a quadrature
+point (i.e., basis functions and their gradients in Eq. (9)), and completing the global integration by scattering values
+back to the global residual vector, all while considering domain decomposition and MPI communication. Jacobian
+assembly is similar where FAD types are used to evaluate and integrate, and derivatives are unpacked into sparse
+matrices for physics operations. Every time a new matrix or vector is needed in Newton’s method, the operator
+assembly routines are triggered which perform DAG execution of kernels. If the matrices and vectors are needed on
+the GPU, the kernels launch on the GPU and assembly occurs in GPU memory. The Trilinos Tpetra library is used to
+represent the distributed sparse linear algebra objects and also includes performance portability via Kokkos.
+Computational Mesh. To represent elements K comprising Ω, Vertex-CFD uses general unstructured grids contain-
+ing a single element topology type (e.g., only 8-node hexahedrons or 4-node tetrahedra). This is implemented by the
+STK Mesh library [82] in Trilinos and the associated Shards element topology library. STK Mesh creates and stores
+the element descriptions including node connectivity, subdivisions of the domain into contiguous mesh blocks, and
+subdivision of domain boundaries into mesh sidesets. The Shards library applies nodal layouts to the elements to en-
+able higher order basis functions (e.g., 8-node linear hexahedra versus 27-node quadratic hexahedra). In this work, we
+restrict ourselves to using meshes of linear and quadratic element topologies although the finite element formulation
+is equally applicable to higher order element types. STK reads Exodus files and Exodus-formatted data [83] which
+can be created through conversion from other file types or directly created by several mesh generation tools including
+Cubit [84] and Pointwise [59].
+Load Balancing and Partitioning. To enable use of distributed memory parallel computers, which are required for
+large meshes to speed up computations and ensure that the problem fits in memory, we subdivide Ωby assigning a
+contiguous subset of elements K to each parallel process via a partitioning algorithm. Mesh partitioning is achieved
+in Vertex-CFD through the use of the Zoltan2 library [85] which can read and redistribute mesh data structures in
+a parallel setting. Many algorithms are available in Zoltan2 including geometric-based schemes such as Recursive
+Coordinate Bisectioning (RCB) as well as graph-based algorithms through the use of the ParMETIS library [86].
+Optimal partitioning seeks to balance the computational load assigned to each parallel process with the communication
+needed between processes to complete discretization stencils, compute matrix-vector products, and perform other
+linear algebra operations. For most simulations presented in this paper, we use the “geom k-way” algorithm provided
+by ParMETIS to partition our grids. In our testing, though not exhaustive, we have found this particular algorithm
+to be performant in its combination of a multilevel algorithm and a space-filling curve algorithm compared to purely
+geometric algorithms such as RCB.
+41

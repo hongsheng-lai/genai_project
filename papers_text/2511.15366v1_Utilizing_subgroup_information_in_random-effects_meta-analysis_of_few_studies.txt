@@ -1,0 +1,1685 @@
+Utilizing subgroup information in random-eﬀects
+meta-analysis of few studies
+Ao Huang
+Department of Medical Statistics, University Medical Center G¨ottingen,
+Humboldtallee 32, 37073 G¨ottingen, Germany.
+Email: huangao@biostat.med.osaka-u.ac.jp
+Christian R¨over
+Department of Medical Statistics, University Medical Center G¨ottingen,
+Humboldtallee 32, 37073 G¨ottingen, Germany.
+E-mail: christian.roever@med.uni-goettingen.de
+Tim Friede
+Department of Medical Statistics, University Medical Center G¨ottingen, Humboldtallee 32 G¨ottingen,
+Germany
+DZHK (German Center for Cardiovascular Research),
+Partner Site Lower Saxony, G¨ottingen, Germany
+DZKJ (German Center for Child and Adolescent Health), G¨ottingen, Germany
+E-mail: tim.friede@med.uni-goettingen.de
+Abstract
+Random-eﬀects meta-analyses are widely used for evidence synthesis in medical research. How-
+ever, conventional methods based on large-sample approximations often exhibit poor performance
+in case of very few studies (e.g., 2 to 4), which is very common in practice. Existing methods
+aiming to improve small-sample performance either still suﬀer from poor estimates of heterogene-
+ity or result in very wide conﬁdence intervals. Motivated by meta-analyses evaluating surrogate
+outcomes, where units nested within a trial are often exploited when the number of trials is small,
+we propose an inference approach based on a common-eﬀect estimator synthesizing data from
+the subgroup-level instead of the study-level. Two DerSimonian-Laird type heterogeneity estima-
+tors are derived using the subgroup-level data, and are incorporated into the Henmi-Copas type
+variance to adequately reﬂect variance components. We considered t-quantile based intervals to
+account for small-sample properties and used ﬂexible degrees of freedom to reduce interval lengths.
+A comprehensive simulation is conducted to study the performance of our methods depending
+on various magnitudes of subgroup eﬀects as well as subgroup prevalences. Some general recom-
+mendations are provided on how to select the subgroups, and methods are illustrated using two
+example applications.
+Keywords: Meta-analysis; heterogeneity; subgroups; small samples.
+1
+arXiv:2511.15366v1  [stat.ME]  19 Nov 2025
+
+
+1
+Introduction
+In a meta-analysis all studies on a particular topic are combined to yield a more reliable and valid
+answer for a speciﬁc research question than from a single trial. There are two commonly used types
+of models to achieve this purpose, the common-eﬀect model (also known as the ﬁxed-eﬀect model),
+and the random-eﬀects model. The former assumes the true treatment eﬀects are identical across
+all the included studies, which is often questionable or unrealistic in practice. In a random-eﬀects
+model, on the other hand, treatment eﬀects are assumed to vary from study to study around a
+grand mean µ with a normally distributed random error τ. Considering the diﬀerent backgrounds
+of individual trials (e.g., types of patients, diﬀerent investigators), and given that heterogeneity
+is often found to be present in practical applications,[1] it is reasonable to take these diﬀerences
+into account and hence the random-eﬀects model is commonly applied in practice; for a detailed
+discussion see e.g. Borenstein et al.[2]
+To perform a random-eﬀects meta-analysis, the commonly-used two-stage approach ﬁrst re-
+quires estimation of the between-study heterogeneity τ, and only then the overall treatment ef-
+fect (µ) may be estimated using the plug-in estimate of the between-study heterogeneity. However,
+a major challenge lies in the estimation of heterogeneity, in particular, in meta-analyses of few
+(e.g., 2 to 4) studies.[3, 4] In this context, the heterogeneity frequently fails to be identiﬁed by
+classical methods (e.g., the DerSimonian-Laird method),[5] which in turn results in an underesti-
+mation of the variance of the treatment eﬀect. Some methods have been developed to account for
+this uncertainty, such as the Knapp-Hartung method[6, 7] or its modiﬁcation.[8] Bender et al.[9]
+performed a comprehensive comparison of available methods, and concluded that no universally
+satisfactory (frequentist) method is currently available to perform meta-analyses in the case of
+(very) few studies.
+On the other hand, meta-analyses of individual participant data (IPD) are considered a more
+reliable option to meta-analyses using aggregated study level data.[10, 11, 9] However, a number
+of obstacles to sharing or obtaining detailed data still pose a major challenge for performing IPD
+meta-analyses.[12] Alternatively, aggregated data at a subpopulation level (e.g., study population
+subgroups based on gender or age), also known as subgroup-level data, may be easier to obtain
+and are routinely reported in clinical trials.[13] Therefore, it can be regarded as a compromise for
+evidence synthesis in between the aggregated study-level data and IPD. Actually, synthesizing
+such kind of subpopulation data is not new in the meta-analysis ﬁeld. In meta-analyses evaluating
+surrogate outcomes in clinical trials, models have been developed with units nested within a trial
+(e.g., center, country, investigator) when the number of trials itself is insuﬃcient to apply meta-
+analytic methods.[14, 15] In this paper, motivated by a similar idea, we propose synthesizing the
+evidence from subgroup-level instead of the study-level when the number of studies is very small.
+For the estimation of the overall treatment eﬀect µ, we rely on the common-eﬀect estimator, which
+guarantees unbiasedness and consistency as the conventional estimator based on study-level data.
+We show that the resulting between-study heterogeneity estimators based on subgroup-level data
+show a smaller risk of returning zero estimates than the classic DerSimonian-Laird estimator. These
+may be incorporated into variance calculation within the Henmi-Copas type variance framework
+to correctly reﬂect the variance components.[16] Conﬁdence intervals are constructed based on
+the Student-t distribution for the consideration of small samples as proposed by Follmann and
+2
+
+
+Proschan,[17] while the degrees of freedom are inherently based on the number of subgroups rather
+than the number of studies, hence the resulting width of the conﬁdence interval may be substantially
+shorter.
+The remainder of the paper is organized as follows. In Section 2, we introduce two motivating
+examples representing the typical case of meta-analysis of few studies. In Section 3, we brieﬂy
+review the existing methods developed for meta-analysis of very few studies. Then we illustrate
+our proposed method using the subgroup-level data including the heterogeneity derivation and the
+construction of conﬁdence intervals. We present the results of a simulation study to demonstrate
+the performance of our proposed method as well as other competitive approaches in Section 5. We
+revisit the two motivating examples in Section 6 and a brief discussion of our method is given in
+Section 7.
+2
+Motivating examples
+2.1
+The RESPIRE trials
+Non-cystic ﬁbrosis bronchiectasis (NCFB) is a chronic respiratory disease and is known for its
+lack of eﬀective licensed therapies for long-term disease management. The respire trials were
+conducted to investigate the potential of ciproﬂoxacin dry powder for inhalation (DPI) to ﬁll this
+gap, which involved two international phase III prospective, parallel-group, randomized, double-
+blinded, multicentre, placebo-controlled trials of the same design.[18, 19] In both trials, there are
+two active treatment groups (14 days on/oﬀtherapy as well as 28 days on/oﬀtherapy), both
+with their own matching placebo groups.
+The primary eﬃcacy endpoints include the time to
+ﬁrst exacerbation within 48 weeks after the start of treatment for ciproﬂoxacin DPI versus pooled
+placebo (which was quantiﬁed using a hazard ratio), and the frequency of exacerbations during
+the 48-week study for ciproﬂoxacin DPI versus matching placebo (quantiﬁed using an incidence
+rate ratio).
+A controversial issue in this experiment was that, despite the similarity in study
+designs of these two trials, the ﬁndings from the two independent trials appeared inconsistent.
+Meta-analytic techniques could be applied to synthesize the results from both trials for a more
+precise conclusion. Chotirmall et al.[20] and R¨over and Friede[21] both investigated the endpoint of
+frequency of exacerbations and discussed the role of between-study heterogeneity for the (apparent)
+inconsistency. Thus, this is a typical meta-analysis in practice facing the problems of very few
+studies and substantial uncertainty in the heterogeneity. In the following, we focus on the primary
+endpoint of time to ﬁrst exacerbation. A similar phenomenon was observed in the treatment group
+of 14 days on/oﬀtherapy, where a signiﬁcant result was only reported for the respire I trial.
+For the treatment group of 28 days on/oﬀtherapy, both trials reported non-signiﬁcant results
+(see Figure 1). We applied two separate meta-analyses for the two active treatments to show the
+speciﬁc problems in a typical meta-analysis of few studies and how we may resolve these problems
+using our new proposal.
+3
+
+
+0.37
+1
+Hazard Ratio (HR)
+RESPIRE 2
+RESPIRE 1
+RESPIRE 2
+RESPIRE 1
+28 days
+14 days
+345
+279
+350
+275
+0.71 [0.39, 1.27]
+0.73 [0.52, 1.02]
+0.87 [0.62, 1.21]
+0.53 [0.37, 0.75]
+Treatment
+Study
+N
+HR [95% CI]
+Figure 1: Data on the two (14-day and 28-day) endpoints reported in the two respire trials.[18, 19]
+2.2
+SGLT2 inhibitor studies
+For patients with type 2 diabetes, especially those at high cardiovascular risk or with chronic kidney
+disease (CKD), the risk of serious hyperkalemia might limit the utilization of renin-angiotensin-
+aldosterone system inhibitors and mineralocorticoid receptor antagonists (MRAs). Evidence from
+some small studies of relatively short duration showed that sodium/glucose cotransporter 2 (SGLT2)
+inhibitors have the potential to reduce the risk of hyperkalemia.[22] To investigate the long-term
+eﬀect of SGLT2 inhibitors on the risk of serious hyperkalemia, Neuen et al.[23] conducted a meta-
+analysis of six randomized, double-blind, placebo-controlled clinical trials (see Figure 2). While
+the original meta-analysis was conducted with individual participant data (IPD), we will make
+use of the aggregated subgroup data from its supplementary material to illustrate our proposed
+methods. The primary outcome was the incidence of serious hyperkalemia, deﬁned as time to the
+ﬁrst central laboratory-determined serum potassium ≥6.0 mmol/L and quantiﬁed as a log-hazard
+ratio. Although the original motivation in this review is to evaluate the long-term eﬀect of SGLT2
+inhibitors in large trials in patients with varying background therapies that may potentially be
+heterogeneous, the standard random-eﬀects model failed to identify any heterogeneity and hence
+eﬀectively resulted in a common-eﬀect analysis. Neuen et al.[23] concluded that SGLT2 inhibitors
+reduced the risk of serious hyperkalemia by 16% with an estimated hazard ratio of 0.84 (95% CI:
+[0.76, 0.93]). However, this result seems to be sensitive to potential heterogeneity (see the upper
+boundary of the conﬁdence interval). Considering the small number of studies included in this
+meta-analysis, a zero estimate of heterogeneity might not be uncommon even in the presence of
+substantial heterogeneity. The challenging question then concerns the robustness of this conclusion
+given the uncertainty around the presence of heterogeneity, and how to adequately estimate this
+between-study heterogeneity as well as the associated overall eﬀect.
+4
+
+
+0.45
+0.82
+Hazard Ratio (HR)
+VERTIS CV
+EMPA−REG OUTCOME
+DECLARE−TIMI 58
+DAPA−CKD
+CREDENCE
+CANVAS program
+8238
+7020
+17160
+2906
+4401
+10142
+0.90 [0.74, 1.09]
+0.83 [0.67, 1.03]
+0.67 [0.47, 0.95]
+0.88 [0.71, 1.09]
+0.77 [0.61, 0.98]
+0.89 [0.67, 1.18]
+Study
+N
+HR [95% CI]
+Figure 2: Data from the meta-analysis of sodium/glucose cotransporter 2 (SGLT2) inhibitor studies
+due to Neuen et al.[23]
+3
+Standard random-eﬀects model and approaches for
+inference
+In the likely presence of heterogeneity, the main focus of a meta-analysis usually is to estimate
+the grand population mean eﬀect µ using the observed estimates yi from k existing studies on
+the same topic, and their associated standard errors si which are commonly taken to be known
+without uncertainty. Under a random-eﬀects model, we assume the variation of each yi consists of
+two parts: the within-study sampling variance s2
+i and the between-study heterogeneity τ 2 which
+is unknown and needs to be estimated.
+Then the observed data can be explained within the
+popular normal-normal hierarchical model (NNHM) framework. For each study, the estimates yi
+are assumed to be approximately normally distributed with the mean of a study-speciﬁc eﬀect θi
+as
+yi|θi, si
+∼
+Normal(θi, s2
+i ),
+(i = 1, . . . , k).
+(1)
+Furthermore, these study-speciﬁc eﬀects are assumed to vary around the grand population mean µ
+with an additive (random-eﬀects) variance component of τ 2,
+θi|µ, τ
+∼
+Normal(µ, τ 2).
+(2)
+The random-eﬀects and the standard error si of each study are assumed to be independent, leading
+to a simpliﬁed marginal model as
+yi|µ, τ
+∼
+Normal(µ, τ 2 + s2
+i ).
+(3)
+5
+
+
+When τ=0, it reduces to the special case of a common-eﬀect model. Parameter estimation within
+the NNHM is commonly approached in two steps. First, the nuisance parameter τ is estimated;
+although many options are available,[24] here we focus on the widely-used moment estimator (also
+known as the DerSimonian-Laird (DL) estimator), which is deﬁned by
+ˆτ 2
+DL = max
+(
+0,
+Q −(k −1)
+Pk
+i=1 s−2
+i
+−Pk
+i=1 s−4
+i / Pk
+i=1 s−2
+i
+)
+,
+(4)
+where Q = Pk
+i=1(yi−ˆµCE)2/s2
+i is the test statistic for homogeneity (“Cochran’s Q”), which follows
+a χ2 distribution with k −1 degrees of freedom if τ = 0.[25] ˆµCE is the common-eﬀect estimate
+assuming τ = 0. Next, conditioning on τ (eﬀectively assuming τ was known and ﬁxing its value at
+ˆτDL), the grand mean is estimated using the inverse-variance weighted average [26] as
+ˆµRE =
+Pk
+i=1 ωi,REyi
+Pk
+i=1 ωi,RE
+,
+where ωi,RE = (s2
+i + ˆτ 2
+DL)−1 is the weight of study i under the random-eﬀects model, which reduces
+to ωi,CE = s−2
+i
+when the between-study heterogeneity estimator ˆτDL turns out as zero, which is
+often the case in meta-analysis of few studies even in the presence of heterogeneity,[5, 21] motivating
+a number of methodological developments to account for this uncertainty.
+Several approaches have been well-established to proceed with inferences and construct conﬁ-
+dence intervals in a frequentist fashion. The most popular ones are either based on a normal ap-
+proximation, consider an adjusted CI using Student-t quantiles,[6, 7, 27] or rely on non-parametric
+resampling procedures.[28] Here, we brieﬂy review these methods.
+Normal approximation: The marginal model (3) may be utilized by plugging in the hetero-
+geneity estimate ˆτDL (and ignoring potential estimation uncertainty). The resulting CI is given
+by ˆµRE ± z1−α/2
+p ˆVRE, where zγ denotes the γ-quantile of the standard normal distribution and
+ˆVRE =
+1
+Pk
+i=1 ωi,RE is the estimated standard error of ˆµRE. In case ˆτDL = 0, this leads to the variance
+of a common-eﬀect model, which is given by ˆVCE =
+1
+Pk
+i=1 ωi,CE . This CI may work well as long as
+the number of studies is large, or when heterogeneity is small.[5]
+Hartung-Knapp-Sidik-Jonkman (HKSJ) method: CIs based on the Student-t distri-
+bution have independently been proposed by Hartung and Knapp[6] and Sidik and Jonkman[7]
+with the aim of yielding valid intervals also in case of small numbers (k) of studies. Compared
+to the previous expression, the variance of ˆµRE is adjusted via a multiplicative factor q =
+Q
+k−1,
+while a Student-t quantile is used in place of the normal quantile. The resulting CI is given by
+ˆµRE ±tk−1;1−α/2
+p ˆVHKSJ, where tk−1,γ denotes the γ-quantile of a Student-t distribution with k−1
+degrees of freedom and ˆVHKSJ = q ˆVRE. These CIs are generally wider and exhibit better coverage;
+however, in some cases, these may also turn out shorter than the intervals based on a normal
+approximation.[29] Knapp and Hartung[30] hence already suggested an ad hoc modiﬁcation, re-
+placing q by the truncated quantity q⋆= max {1, q}, therefore the variance ˆVmHK = q⋆ˆVRE ≥ˆVRE,
+which will ensure a more conservative procedure. When q⋆= 1, the resulting CIs are the same
+6
+
+
+as the ad hoc procedure proposed by Follmann and Proschan,[17] and also are analogous to CIs
+based on HKSJ method but using a Paule-Mandel (PM) estimator instead.[31]
+Zejnullahi and Hedges’ method: To account for the small-sample properties in variance
+estimation of small meta-analysis with the standardized mean diﬀerence, Zejnullahi and Hedges
+[27] borrowed ideas from the econometrics area to develop a robust variance estimator for µ under
+the random-eﬀects model as ˆVROB = Pk
+i=1
+ω2
+i,RE(yi−ˆµRE)2
+(Pk
+i=1 ωi,RE)2
+ 
+1 −
+ωi,RE
+Pk
+i=1 ωi,RE
+!−C
+, where C constitutes
+a scale factor for the penalty term. Sidik and Jonkman[32] considered C = 1, while Zejnullahi
+and Hedges proposed the use of C = 2 to further penalize the squared sample residuals when the
+sample sizes across studies are substantially diﬀerent and C = 1 may be insuﬃcient. The proposed
+CIs based on the Student-t distribution are given by ˆµRE ± tk−1;1−α/2
+p ˆVZH, where ˆVZH is the
+robust variance estimator based on C = 2 .
+Michael et al method: Alternatively, Michael et al.[28] proposed a Monte Carlo sampling
+based approach to construct exact conﬁdence intervals for random-eﬀects meta-analyses in case
+of few studies. This method involves ﬁnding the conﬁdence limits with approximated test statis-
+tics from Monte Carlo samples, hence is computationally intensive, and it is known to provide
+overcoverage as well as wide conﬁdence intervals.[33]
+In case of meta-analysis with only few studies, the above-mentioned extensions of the simple
+intervals based on a normal approximation have been reported to improve performance in terms
+of coverage probability. However, these may yield disturbingly wide CIs, due to their reliance on
+the t-quantiles; in the extreme (yet common) case of combining only k = 2 studies, a quantile of
+t1,0.975 = 12.7 is used instead of the corresponding normal quantile of z0.975 = 1.96, often rendering
+the resulting quantile eﬀectively useless. Also, these methods do not solve the common problems
+with poor heterogeneity estimates. In the following, we will try to improve the poor behavior of
+heterogeneity estimates and the derived CIs.
+4
+Proposed method using subgroup information
+4.1
+Motivation
+In meta-analyses evaluating surrogate outcomes in clinical trials, splitting each study into multiple
+units (e.g., by center) is suggested as a useful approach when the number of studies is insuﬃcient
+to apply a hierarchical analysis model at the aggregated study-level data.[14] Based on this motiva-
+tion, we consider extending the study-level framework from Section 3 to aggregated subgroup-level
+data settings for random-eﬀects meta-analysis of few studies. Estimation of the overall treatment
+eﬀect µ then is based on subgroup-level rather than study-level data. Since subgroup analysis
+plays an important role in eihter demonstrating homegeneity of the treatment eﬀect across the
+study population or identifying interactions of main (treatment) eﬀects and subgroups, it is rou-
+tinely reported as a secondary objective in clinical trials (quite commonly in fact to essentially
+demonstrate the absence of subgroup diﬀerences).[13] Previous studies have shown that subgroup
+analyses are commonly published, especially in high-impact general medical journals.[34, 35] Data
+7
+
+
+on endpoints at the level of study subgroups (e.g., by age or sex) are hence likely to be readily
+available in many cases. By considering subgroup-level data, we hope to be able to beneﬁt from
+a bias-variance tradeoﬀ; one may be willing to accept a positive bias in the variance estimate in
+case the operating characteristics improve overall.
+4.2
+Measurement model of subgroup-level data
+We ﬁrst describe the data structure (a three-level hierarchy) in a meta-analysis using subgroup
+information. In practice, two subgroups (e.g., sex, age) may be common, and more than two may
+also occur, but for simplicity, we focus on the simple case of two subgroups within each study.
+To index the new hierarchy at the subgroup-level, we introduce a subscript j ∈{1, 2}. Note that
+j here is just used to distinguish the diﬀerent groups within one study; the same subscript j may
+not necessarily represent the same type of group across diﬀerent studies (e.g., study i = 1 may
+use subgroups by sex, while study i = 2 may use subgroups by ethnicity). This will become more
+concrete when we revisit the two examples, and in the discussion Section. Let yi,j denote the
+observed outcome from the jth subgroup of ith study, and si,j the corresponding standard error.
+For simplicity, we assume for the relationship between sample size and standard error that
+si
+=
+σu
+√ni
+,
+(5)
+where σu is the unit information standard deviation (UISD) and ni is the ith study’s sample size.
+For some more concrete examples of endpoints where (approximate) inverse proportionality
+of sample size and (squared) standard error may be motivated, see e.g. Spiegelhalter et al.,[36]
+R¨over,[37] or R¨over et al.[38] In certain cases, the “sample size” ni does not necessarily correspond
+to the number of subjects; for example, for time-to-event endpoints (hazard ratios), the standard
+errors scale with the number of events instead. Analogously, the standard error of the eﬀect in a
+subgroup then is given by
+si,j
+=
+σu
+√ni,j
+,
+(6)
+where ni,j is the sample size of the jth subgroup in the ith study. Suppose that pi is the proportion
+(prevalence) of patients in subgroup 1 of ith study; then ni,1 = pini and ni,2 = (1 −pi)ni. The
+case of pi = 0.5 corresponds to equally-sized subgroups, for diﬀerent prevalences, the subgroups are
+somewhat imbalanced. Allowing for the new hierarchy at subgroup-level, we extended the NNHM
+in Section 3 as
+yi,j
+∼
+Normal(θi,j, s2
+i,j), where
+(7)
+θi,j
+=
+ θi −(1 −pi)δi
+if j = 1
+θi + piδi
+if j = 2, and
+(8)
+δi
+∼
+Normal(∆, σ2
+∆).
+(9)
+In this model, the observed estimates yi,j from each subgroup are assumed to be normally dis-
+tributed with the mean of a subgroup-speciﬁc eﬀect θi,j and its sampling variance s2
+i,j, where the θi,j
+8
+
+
+are associated with the corresponding study-speciﬁc eﬀect θi from Equation (2) by considering the
+overall study eﬀect to result as a weighted mean of the subgroup eﬀects (with weights correspond-
+ing to subgroup prevalences pi). Here, δi in Equation (9) denotes the interaction eﬀect (diﬀerence
+between subgroups: E[θi,2 −θi,1]) within the ith study. This particular model formulation allows
+us to vary δi around a mean (interaction) eﬀect of ∆with a non-zero variance of σ2
+∆and allowing
+for diﬀerences between subgroups. Setting δi = ∆to a constant (i.e., assuming σ∆= 0) results in
+a homogeneous (“common-eﬀect”) model with identical subgroup eﬀects. This interaction eﬀect is
+decomposed with respect to the study-speciﬁc prevalence pi so that
+piθi,1 + (1 −pi)θi,2 = θi,
+(10)
+which means the average eﬀect at the study-level remains the same as in the “classical” NNHM
+from Section 3. When prevalences are balanced (i.e., pi = 0.5), model (8) leads to a model that
+is very similar to a common meta-analysis for arm-based data (“model 4”).[39, 40] Hence, our
+model could be regarded as a more general framework additionally considering prevalences, but
+the estimand is invariant to this reparameterization, which is the key feature of our formulation.
+4.3
+Heterogeneity estimate using subgroup information
+Next, we would like to introduce a new heterogeneity estimator based on the above-mentioned
+model and some desirable properties of it. To begin with, we ﬁrst summarize the marginal model
+as
+ yi,1
+yi,2
+  µ, τ, ∆, σ∆∼Normal
+  µ
+µ
+
++
+ −(1 −pi)∆
+pi∆
+
+,
+ τ 2 + s2
+i,1
+τ 2
+τ 2
+τ 2 + s2
+i,2
+
++
+
+(1 −pi)2σ2
+∆
+−pi(1 −pi)σ2
+∆
+−pi(1 −pi)σ2
+∆
+p2
+i σ2
+∆
+
+For the vector of subgroup-estimates (yi,1, yi,2)′, both mean and variance-covariance matrix can be
+clearly divided into two contributions, from the study-level as well as from the subgroup-level. To
+utilize the (“DerSimonian-Laird”) moment estimator, we deﬁne the Q-statistic based on subgroup
+information as
+QS =
+k
+X
+i=1
+2
+X
+j=1
+ωi,j(yi,j−ˆµCE)
+(11)
+where
+ˆµCE =
+Pk
+i=1
+P2
+j=1 ωi,jyi,j
+Pk
+i=1
+P2
+j=1 ωi,j
+=
+Pk
+i=1 ωi,CEyi
+Pk
+i=1 ωi,CE
+,
+and
+ωi,j =
+1
+s2
+i,j
+.
+(12)
+The consistency of these two common-eﬀect estimates in Equation (12) is due to the relationship
+in (5) and (6), that
+ωi,1
+= pi 1
+s2
+i = piωi,CE
+and
+ωi,2 = (1 −pi) 1
+s2
+i = (1 −pi)ωi,CE.
+9
+
+
+Consequently, we have
+ωi,CE =
+2
+X
+j=1
+ωi,j
+and
+yi =
+P2
+j=1 ωi,jyi,j
+P2
+j=1 ωi,j
+.
+(13)
+In web appendix A, we show that begin with, we ﬁrst summarize the marginal model as
+E(QS) = (2k −1) + τ 2
+
+
+
+k
+X
+i=1
+2
+X
+j=1
+ωi,j −
+Pk
+i=1
+P2
+j=1 ω2
+i,j
+Pk
+i=1
+P2
+j=1 ωi,j
+
+
+−τ 2
+(
+2 Pk
+i=1 ωi,1ωi,2
+Pk
+i=1
+P2
+j=1 ωi,j
+)
++ (∆2 + σ2
+∆)
+k
+X
+i=1
+2
+X
+j=1
+ωi,jpi(1 −pi).
+The resulting DerSimonian-Laird estimate using subgroup-level data is given by
+ˆτ 2
+DLS
+=
+QS −(2k −1)
+Pk
+i=1
+P2
+j=1 ωi,j −
+Pk
+i=1
+P2
+j=1 ω2
+i,j
+Pk
+i=1
+P2
+j=1 ωi,j
+,
+where, as usual, negative estimates are truncated to zero (as in Equation (4)). According to the
+expectation of (4.3), we can show that
+E(ˆτ 2
+DLS) = τ 2
+(
+1 −
+2 Pk
+i=1 ωi,1ωi,2
+(Pk
+i=1
+P2
+j=1 ωi,j)2 −Pk
+i=1
+P2
+j=1 ω2
+i,j
+)
++ (∆2 + σ2
+∆)
+Pk
+i=1
+P2
+j=1 ωi,jpi(1 −pi) Pk
+i=1
+P2
+j=1 ωi,j
+(Pk
+i=1
+P2
+j=1 ωi,j)2 −Pk
+i=1
+P2
+j=1 ω2
+i,j
+= Aτ 2 + B,
+which is a function of the true value of τ 2 as well as the unknown subgroup parameters ∆, σ∆and pi.
+In web appendix A, we show that the term A is close to unity as long as the number of studies k
+goes to inﬁnity. However, when k is small, A might down-scale τ 2 in a certain range, depending on
+the study sizes ni. On the other hand, the term B is always positive. Since very little information
+is available about τ 2 in meta-analyses of few studies, it is common to get zero estimates from the
+DerSimonian-Laird approach.[5] Alternative methods that may include a positive bias for τ have
+shown good performance in simulation studies.[1, 41] Using a similar motivation, we consider to
+adjust the potential impacts of term A on the DLS estimator as
+ˆτ 2
+DLS.adj = ˆτ 2
+DLS
+A ,
+(14)
+which can ensure a positive bias (of B
+A) asymptotically. To further reduce the number of zero esti-
+mates and guarantee the magnitude of variance components, we propose two naive but empirically
+useful alternatives based on the above-mentioned two DerSimonian-Laird type estimators as
+τ 2
+max1
+=
+max
+
+τ 2
+DL, τ 2
+DLS
+	
+,
+(15)
+and τ 2
+max2
+=
+max
+
+τ 2
+DL, τ 2
+DLS.adj
+	
+,
+(16)
+which are hybrid version of DerSimonian-Laird estimates using study-level data (4) and subgroup-
+level data (15) and (16) that can always achieve the maximum. For these two estimators, we have
+the relationship that τ 2
+max1 ≤τ 2
+max2, since the adjustment term is a proportion always less than 1.
+10
+
+
+4.4
+Conﬁdence interval with Henmi-Copas type variance
+As shown in (12), the common-eﬀect model leads to a consistent estimator of the grand population
+mean µ for both the meta-analysis using subgroup-level data and study-level data. The subgroup
+eﬀects do not appear in this estimate, since they cancel in (10). Therefore, in our method, we
+rely on the (unbiased) eﬀect estimate ˆµCE based on common-eﬀect weights (see also Section 4.3).
+For inference, to adequately account for the total variance components, we use the Henmi-Copas
+type variance which is derived for the common-eﬀect point estimator while also accounting for
+heterogeneity.[16] Under the marginal model for subgroup data described in Section 4.3, the Henmi-
+Copas type variance is given by
+VHCS
+=
+Pk
+i=1 ω2
+i,1Var(yi,1) + ω2
+i,2Var(yi,2) + 2ωi,1ωi,2Cov(yi,1, yi,2)
+(Pk
+i=1
+P2
+j=1 ωi,j)2
+=
+τ 2 Pk
+i=1 ω2
+i,CE + Pk
+i=1 ωi,CE
+(Pk
+i=1 ωi,CE)2
+.
+As one can see, its form is akin to the original estimator developed for meta-analysis using study-
+level data, the only diﬀerence being the choice of heterogeneity estimator plugged in here.
+In
+the original paper, τ 2 is replaced by the empirical point estimates ˆτ 2
+DL using study-level data.[16]
+We use the aforementioned two hybrid versions of DerSimonian-Laird estimators instead. When
+these estimators give zero estimates, the variance reduces to the variance of a common-eﬀect
+model; otherwise, it can help us inﬂate the variance reasonably to account for the uncertainty from
+between-study variance. To derive CIs, we utilize Student-t quantiles, deﬁning the limits
+ˆµCE ± tγ;1−α/2
+q
+ˆVHCS,
+where
+γ =
+ k −1
+if ˆτ 2
+max ≤ˆτ 2
+DL
+2k −1
+if ˆτ 2
+max > ˆτ 2
+DL
+.
+(17)
+The degrees of freedom used in deriving the CIs are ﬂexible to reﬂect the choice of heterogeneity
+estimates in the two hybrid estimators. When a heterogeneity estimator based on subgroups is
+adopted (e.g.,ˆτ 2
+DLS > ˆτ 2
+DL), one may beneﬁt from the extended data structure with subgroup
+information and use the larger number (2k −1) of degrees of freedom. Otherwise, we resort to
+the meta-analysis using study-level data, with degrees of freedom as in the approaches relying
+on Student-t-distribution (e.g., HKSJ, mKH). Recall that, in the meta-analysis using study-level
+data, when the between-study heterogeneity τ 2 is estimated as zero (Q < k −1), the original
+HKSJ-adjusted CIs might be unfavorable (for more discussion see Wiksten et al.[29] or Jackson
+et al.[31]). Here, we show the potential beneﬁts of our proposed method under this situation of a
+zero estimate of τ from the perspective of variance estimation as follows:
+ˆVHKSJ ≤ˆVCE = ˆVmKH ≤ˆVHCS(max1) ≤ˆVHCS(max2).
+From this inequality, one can see that our proposed method will lead to more conservative variance
+estimates in the problematic situation commonly encountered in practice. However, increasing the
+degrees of freedom from k −1 to 2k −1 also has a counteracting eﬀect. We will investigate how
+this eventually works out in the simulation section.
+11
+
+
+5
+Simulation
+5.1
+Data generation
+We conducted a comprehensive simulation study to evaluate the performance of the proposed meth-
+ods in comparison with common standard approaches. Data were generated from the subgroup-
+level model introduced in Section 4.2. We ﬁrst generated the true study-speciﬁc treatment eﬀects
+according to Equation (2), and the magnitudes of heterogeneity were considered to reﬂect the situ-
+ations from homogeneous to substantially heterogeneous (0.0 ≤τ ≤1.0). The subgroup interaction
+eﬀects within each study were generated based on Equations (8)–(9). The subgroup prevalence pi
+was ﬁxed at three levels (1
+4, 1
+3, 1
+2). Although in practice the prevalence of a certain subgroup might
+diﬀer between studies, we focused on the biases that might potentially be caused by consistent
+eﬀects in a common direction. Using diﬀerent combinations of the nuisance parameters (∆, σ∆,
+pi), we can systematically investigate their impacts on the diﬀerent methods. Following R¨over
+et al.,[42] we generated the sampling variance of each subgroup using σu = 4, which was motivated
+by a common case of a log-odds ratio endpoint, and the observed subgroup eﬀects were generated
+using Equation (7). With the generated subgroup-level data, we calculated the aggregated study-
+level data as in Equation (13) to perform the study-level meta-analysis. For each meta-analysis, we
+varied the number of studies in (k ∈{2, 3, 5}). Study sizes (ni) were rounded to multiples of 12 in
+order to ensure integer subgroup sizes. Table 1 lists all the simulation settings for data generation.
+For each scenario, 1000 meta-analyses were simulated.
+Table 1: Parameter settings considered in the simulation study.
+parameter
+values
+number of studies (k)
+2, 3, 5
+population mean (µ)
+0.0
+between-study heterogeneity (τ)
+0.0, 0.1, 0.2, 0.5, 1.0
+(mean) subgroup eﬀect (∆)
+0.0, 0.1, 0.2, 0.5, 1.0
+subgroup eﬀect heterogeneity (σ∆)
+0.0, 0.1, 0.2, 0.5, 1.0
+subgroup prevalence (pi)
+1/2, 1/3, 1/4
+study size (ni)
+max
+
+12, logNormal(1, 5)
+	
+5.2
+Methods to be compared
+To compare the proposed methods’ performance to commonly used competing approaches, we also
+applied the methods that were introduced for small meta-analyses in Section 3. These are the
+standard random-eﬀects model using normal approximation (Normal), the Hartung-Knapp-Sidik-
+Jonkman (HKSJ) approach and its modiﬁed version (mKH) as well as Zejnullahi and Hedges’
+method (ZH), and Michael’s Monte Carlo sampling based approach (MC). All these methods were
+implemented based on the study-level data. We used the metafor R package for the implementation
+12
+
+
+of the Normal and HKSJ method and rma.exact R package for the MC method. As commented by
+Weber et al.,[43] one may encounter computational problems when using the rma.exact package.
+To avoid failure of the MC method, we followed the instructions in its documentation and manually
+set the upper limit for the τ 2 parameter to 100. For the mKH and ZH methods, we used our own
+implementation; the R code is included in the supplementary material.
+5.3
+Results
+In total, we considered 1125 scenarios in the simulation study. Since all methods performed very
+similarly across diﬀerent prevalence (pi) values, here we focus on the (125) settings with pi = 1
+3 and
+only k = 2 studies. This is probably also the case of greatest practical relevance to most readers;
+for the remaining settings, see web appendix B).
+Figure 3 illustrates the bias of diﬀerent estimators of τ including the DerSimonian-Laird es-
+timator using study-level data (DL), the DL estimator using subgroup-level data (DLS), and its
+adjusted version (DLS.adj), as well as the two hybrid versions (max1 and max2). On average, the
+DL estimator gives an unbiased estimate in almost all scenarios. The DLS estimator may underes-
+timate when subgroup interaction eﬀects are not comparable to the between-study heterogeneity
+(e.g., τ > 0.5 but ∆≤0.5 and σ∆≤0.5). This negative bias may be due to the shrinkage term
+of A in Equation (4.3) and disappears when using the adjustment (DLS.adj). However, when the
+subgroup interaction eﬀects are large enough (e.g.,σ∆> 0.5 or ∆> 0.5), the DLS estimator may
+give positive bias (see the last row and last column of Figure 3). On the other hand, the adjusted
+(DLS.adj) estimator and the two hybrid estimators always lead to positive bias for τ. Once more
+studies are available, this positive bias will decrease (see the results for k = 5 in web appendix B).
+In practice, especially in meta-analyses of few studies, a positive bias might be considered as
+conservative, and potentially less harmful for inference than a negative bias.[37]
+Another important property of the diﬀerent τ estimators is how frequently they will yield zero
+estimates, since zero estimates of τ will push the inference procedure to a usually overoptimistic
+common-eﬀect model, hence may heavily impact the performance of conﬁdence intervals for the
+overall eﬀect µ. From Figure 4 we can see that the subgroup-level DLS estimator and its adjusted
+version (referred to as Subgroup-level) always yield fewer zero estimates in contrast to the classic
+DL estimator using study-level data. A mixture of two types of DL estimators (referred to as
+Hybrid) may further reduce the number of zero estimates. This beneﬁt largely depends on the
+magnitude of subgroup interaction eﬀects, which are reﬂected in the values of ∆and σ∆in our
+model. A clear trend of the decrease in the number of zero estimates can be observed from the
+left to the right and from the top to the bottom of Figure 4. One may be curious about what if ∆
+and σ∆are both equal to zero, which means the subgroups are homogeneous. As we can see in the
+ﬁrst panel of Figures 3 and 4, our proposed heterogeneity estimators still showed certain beneﬁts
+in terms of fewer zero estimates and potentially slightly positive bias. In contrast to the classic
+DL estimator, our simulation showed that the hybrid version estimators can substantially reduce
+the number of zero estimates. Since a zero estimate for the heterogeneity implies qualitatively
+diﬀerent inferences, this suggests an improvement in operating characteristics.
+Next, we investigate the performance of overall eﬀect (µ) estimates based on these diﬀerent
+heterogeneity estimators.
+As commented by Henmi and Copas (2010),[16] assuming normality
+13
+
+
+of the treatment eﬀects’ distribution as in 3, both ˆµCE and ˆµRE are unbiased estimators to the
+population mean regardless of their diﬀerent weighting scales, hence the focus here is about the
+coverage properties and lengths of conﬁdence intervals of various methods based on these two
+estimators.
+Figure 5 shows the coverage percentages of diﬀerent CIs for µ based on the diﬀerent values of
+between-study heterogeneity (for k = 2 and pi = 1
+3). To distinguish, we use solid lines to represent
+the methods using study-level data and dashed lines for our proposed methods using subgroup-
+level data. Without small-sample adjustment, the CIs based on a normal approximation exhibit
+substantial undercoverage.
+Among the others using study-level data, the HKSJ method yields
+coverage percentages mostly below the nominal level of 95%, especially when the true heterogeneity
+is substantial. On the other hand, all the other methods including our proposed methods lead to
+overcoverage. The mKH and MC methods are the most conservative ones; our proposed methods
+show decreased coverage percentages with increased heterogeneity (τ). The ZH method shows less
+conservative coverage in general.
+However, when k = 5, the subgroup-level methods may yield coverage slightly below the nominal
+level when the between-study heterogeneity is much larger than the subgroup interaction eﬀects
+(by 1.6% at most for max1, by 2% at most for max2), although they still outperform the HKSJ
+method. The coverage percentages of the MC method are below those of the mKH method. The
+mKH method performs similarly to our methods when the subgroup interaction eﬀects are small,
+while it can be less conservative or below the nominal level when the subgroup interaction eﬀects
+are substantial. The ZH method approximately attains 95% coverage in most scenarios (for all the
+results see Figure S7 in web appendix B).
+In Figure 6, we show the coverage percentages of two proposed CIs depending on the subgroup
+prevalence pi. We use the solid line to represent the coverage probability of the CIs using τ 2
+max1
+estimators, and dashed lines to represent those using τ 2
+max2 estimators. We ﬁnd no evidence from
+our simulation that the prevalence pi substantially aﬀects the coverage percentages for the two
+proposed CIs, and the diﬀerences between the two proposed CIs are very similar regardless of pi.
+Finally, we would like to investigate whether we may gain precision (in terms of the length of
+CIs) compared to the methods based on study-level data. Since the MC method may give inﬁnite
+limits in its implementation, for a fair comparison, here we show the median length of CIs for all the
+methods. Figure 7 addresses this question, indicating a clear divergence between the study-level
+and subgroup-level approaches. We can see that the proposed methods have the ability to reduce
+the median length of CIs when considerable between-study heterogeneity is present (e.g., τ > 0.5),
+especially the CIs using τ 2
+max2 estimates. While the ZH method has very wide CIs, HKSJ, mKH,
+and MC methods also show considerably wider CIs than our methods. However, the advantage
+of our methods in reducing the length of CIs diminishes with increasing k (see Figure S8 in web
+appendix B).
+6
+Subgroup selection and implementation issues
+Next, we discuss some issues in the practical application of our proposed methods. As already
+suggested in Section 4, the study subgroup deﬁnitions may not necessarily need to be the same
+14
+
+
+(i.e., based on the same subject characteristics) across all studies. This is because 1) in reality,
+diﬀerent studies may report diﬀerent types of aggregated subgroup data, and 2) our interest is
+not in estimating the actual subgroup interaction eﬀects. Therefore, when several subgroups are
+available for each study, as is often the case, one needs to make a choice of subgroups.
+Subgroup meta-analysis is a closely related application area aiming at investigating potential
+sources of between-study heterogeneity,[44], and it is included for consideration in the 27-item
+checklist of the Preferred Reporting Items for Systematic Reviews and Meta-Analyses (PRISMA)
+2020 statement.[45] In contrast to the selection of study characteristics in the context of a subgroup
+meta-analysis, where explanatory variables, potential eﬀect modiﬁers or covariates need to be pre-
+speciﬁed and carefully interpreted, subgroup selection here rather constitutes a post hoc selection
+based on observed diﬀerences. In the spirit of a conservative speciﬁcation, we suggest aiming for
+study subgroups (empirically) exhibiting increased heterogeneity, or suggesting greater interaction
+eﬀects. However, known eﬀect modiﬁers or dramatic eﬀect diﬀerences should also be avoided due
+to the potential of over-coverage. When p-values of each subgroup comparison within the studies
+are available (these commonly appear in forest plots for an individual study), one idea is to simply
+select the subgroups associated with the smallest p-values. If such information is not provided
+in the original publication, one might alternatively make a selection among candidate subgroups
+within each study using the empirical Q-statistics (QS, (11)), since this is equivalent to the square
+of the t-test, and hence the F-test comparing two subgroups; for a more detailed discussion, see
+Friede et al. (2009).[46]
+Most rigorously, one might check the empirical Q-statistics of all possible combinations of sub-
+groups among studies; the selected combination of subgroups would constitute a global maximum,
+while the former (simpler) selection may be considered a local maximum. If we have n choices
+of subgroups in each of the k studies, determination of the local maximum requires the n × k
+computations of QS, while in an exhaustive search for a global maximum, nk computations are
+necessary. When n is large, a search for the globally maximal subgroup combination might turn
+out prohibitively time-consuming.
+However, we will see in the following section that in prac-
+tice the diﬀerence between global and local maxima may often be negligible. For users to easily
+utilize this approach, we provided two R functions in the supplementary material to implement
+both locally maximal selection (the local.opt() function) as well as globally maximal selection
+(the global.opt() function). For readers who are familiar with the widely-used R packages for
+meta-analysis (e.g., metafor), the required data format is easy to organize and one essentially only
+needs to provide all subgroup-level as well as study-level data within one data table (see supporting
+information).
+15
+
+
+7
+Re-analysis of motivating examples using subgroup
+information
+7.1
+The Respire trials
+As discussed in Section 2.1, the two Respire trials investigated the eﬀects of DPI in long-term
+disease management of NCFB; the original data were shown in Figure 1.
+We synthesized the
+data from the two (14-day and 28-day) endpoints from this pair of studies using classical as well
+as the newly proposed approaches; the results are presented in Table 2. For the 14-days on/oﬀ
+therapy, random-eﬀects meta-analyses using study-level data all gave inconclusive results, even the
+CI based on normal approximation. CIs with small-sample adjustments showed very wide CIs, the
+ZH method yielded a very wide CI which might be considered useless in practice. Considering the
+number of studies involved, and the estimated magnitude of between-study heterogeneity, such kind
+of observation might not be so surprising. To apply our method, we collected subgroup information
+from the FDA brieﬁng document of the Respire trials;[47] such information is relatively easily
+obtained for trials registered for licensing. We considered three dichotomous subgroups based on
+patient age, sex and race (for a detailed description of the data, see the supplementary material).
+According to the selection strategy described in Section 6, we selected the subgroups based on
+the empirical QS, both local and global searches yielded the same combination of subgroups for
+this meta-analysis. Speciﬁcally, we used the subgroup of sex for both studies to synthesize the
+treatment eﬀects of 14-days on/oﬀtherapy. This gave us a slightly larger heterogeneity estimate
+of ˆτ = 0.396 using τDLS than the “classical” τDL estimate using study-level data, which was at 0.3,
+and the adjusted version τDLS.adj was even slightly larger at 0.470. However, with the increased
+number of degrees of freedom (3 instead of 1), the resulting CIs using our methods could be much
+shorter and still hold the same conclusion. For the µ estimate, we observed that the common-eﬀect
+estimate using subgroup-level data (ˆµCE) gave a slightly smaller value (0.639) in contrast to the
+one from the random-eﬀects estimate (0.680). We did the same analysis for the second treatment
+regimen (28-day on/oﬀ), using the combination of sex for Respire 1 and age for Respire 2
+according to the two types of selection method based on QS. In this case, all the heterogeneity
+estimators gave zero estimates, which led us to a common-eﬀect model analysis. In particular, for
+our proposed method, we would analyze the data in a study-level fashion, using the same degrees
+of freedom as mKH, and ZH. All the methods except Normal and HKSJ showed inclusive results.
+Interestingly, the ZH method gave the shortest CI, while mKH, MC and our methods showed
+similar CIs.
+7.2
+The SGLT2 inhibitor meta-analysis
+The original meta-analysis of sodium/glucose cotransporter 2 (SGLT2) inhibitor studies (see also
+Section 2.2) did not identify between-study heterogeneity, although the cohorts were considered
+to have diﬀerent backgrounds.[23] Therefore, the resulting common-eﬀect model gave signiﬁcant
+16
+
+
+Table 2: Summary of meta-analyses of the two Respire trials using a range of approaches.
+The
+endpoint is the hazard ratio (HR) of the time to ﬁrst exacerbation (see also Section 2.1). Both trials
+included two treatment regimens (14-day and 28-day on/oﬀ).
+treatment regimen
+method
+data
+HR (95%CI)
+DF
+ˆτ
+14 days on/oﬀ
+Normal
+study-level
+0.680 [0.420, 1.100]
+0.3
+HKSJ
+study-level
+0.680 [0.030, 15.400]
+1
+0.3
+mKH
+study-level
+0.680 [0.030, 15.400]
+1
+0.3
+ZH
+study-level
+0.680 [0.008, 56.126]
+1
+0.3
+MC
+study-level
+0.680 [0.026, 17.855]
+0.3
+max1
+subgroup-level
+0.639 [0.240, 1.703]
+3
+0.396
+max2
+subgroup-level
+0.639 [0.204, 2.000]
+3
+0.470
+28 days on/oﬀ
+Normal
+study-level
+0.724 [0.542, 0.967]
+0
+HKSJ
+study-level
+0.724 [0.605, 0.867]
+1
+0
+mKH
+study-level
+0.724 [0.111, 4.730]
+1
+0
+ZH
+study-level
+0.724 [0.518, 1.012]
+1
+0
+MC
+study-level
+0.724 [0.155, 3.389]
+0
+max1
+subgroup-level
+0.713 [0.106, 4.809]
+1
+0
+max2
+subgroup-level
+0.713 [0.106, 4.809]
+1
+0
+results in study-level meta-analysis. We utilized the subgroup information provided in the supple-
+mentary material of the original publication for the implementation of our method, which included
+four pairs of subgroups that provided complete information (HbA1c, eGFR, Heart failure, and
+Diuretic use).
+To convey an impression of how combinations based on these subgroups aﬀect
+heterogeneity, we show the histogram of the QS statistics in Figure 8, values of QS on the right
+side of the red dashed line correspond to non-zero estimates of τDLS. In this case, a search for a
+global maximum requires 4096 computations of QS statistics, while the local maximum only needs
+24 computations. However, both of them resulted in a very similar combination of subgroups,
+only one study (“canvas program”) selected diﬀerent subgroups (for details, see Figure 8). The
+resulting heterogeneity estimates are also almost identical. A small amount of heterogeneity was
+detected using the DLS method with ˆτDLS = 0.139, and slightly more when using the adjusted
+version (ˆτDLS.adj = 0.146). With these two non-zero estimates, the statistical signiﬁcance of the
+overall eﬀect vanished, indicating that the study-level meta-analysis results are quite sensitive to
+the heterogeneity estimate. If we have a brief look at the upper CI boundaries for these methods,
+we may consider the treatment eﬀect of the sodium/glucose cotransporter 2 inhibitor as marginal,
+and hence one should be cautious with the interpretation.
+17
+
+
+Table 3: Summary of meta-analysis of sodium/glucose cotransporter 2 inhibitor studies (see also Sec-
+tion 2.2) using diﬀerent analysis methods. The endpoint is the hazard ratio (HR) of time to serious
+hyperkalemia. Use of the proposed subgroup-level estimators renders the overall eﬀect non-signiﬁcant.
+method
+data
+HR (95%CI)
+DF
+ˆτ
+Normal
+study-level
+0.840 [0.763, 0.925]
+5
+0
+HKSJ
+study-level
+0.840 [0.762, 0.925]
+5
+0
+mKH
+study-level
+0.840 [0.740, 0.953]
+5
+0
+ZH
+study-level
+0.840 [0.764, 0.923]
+5
+0
+MC
+study-level
+0.840 [0.747, 0.941]
+0
+max1 (local)
+subgroup-level
+0.843 [0.711, 1.000]
+11
+0.139
+max2 (local)
+subgroup-level
+0.843 [0.707, 1.005]
+11
+0.146
+max1 (global)
+subgroup-level
+0.846 [0.714, 1.003]
+11
+0.139
+max2 (global)
+subgroup-level
+0.846 [0.710, 1.009]
+11
+0.146
+8
+Discussion
+Problems in the meta-analysis of few studies often relate to underestimation of the total variance,
+due to the fact that between-study heterogeneity cannot be reliably estimated in such a case. Some
+existing methods (e.g., HKSJ, mKH, ZH) aim to account for this uncertainty, while considering the
+total variance as a whole and based on heavier-tailed speciﬁcations (e.g., the Student-t distribution)
+generally lead to wider intervals. Consequently, these eﬀorts usually come at the cost of some
+unfavorable statistical properties, such as over-conservative coverage and wide CIs that may not
+be meaningful in practice. In the present investigation, we approached this problem by carefully
+nudging the empirical variance estimates by reasonable amounts, based on so far commonly ignored
+study information, while using the additional data granularity to yield less conservative inferences.
+This has been achieved in three aspects: 1) by utilizing the potential subgroup interaction eﬀects
+within each study, we derived a heterogeneity estimator based on subgroup-level data, which can
+dramatically reduce the number of zero estimates compared to classic estimators; 2) the new data
+structure based on the subgroup-level (three-level) hierarchy allowed to increase the degrees-of-
+freedom in the t-quantile based CIs, which in turn may shorten the length of CIs as shown in
+the numerical study and empirical examples; 3) we introduced Henmi-Copas method to avoid
+the bias potentially introduced through the imbalance (prevalence) of subgroups, and to maintain
+unbiasedness of the overall treatment eﬀect estimates.
+Although the data structure is very similar, there are some distinct diﬀerences between our
+approach and subgroup meta-analysis.[48] Firstly, the estimands are diﬀerent. In our methods, we
+still focus on inference for the overall treatment eﬀect µ, as in a “classical” meta-analysis using
+study-level data (while in a subgroup meta-analysis, the interest commonly is in the estimation of
+the subgroup interaction eﬀect, denoted as ∆above). The subgroup interaction eﬀect(s) considered
+in our methods only contribute to the estimation of between-study heterogeneity, since potential
+18
+
+
+overestimation may be helpful in preventing the notorious zero estimates as we showed in the
+simulation, and hence may altogether improve statistical properties. This introduces the second
+crucial diﬀerence, that is, we utilize the subgroups with the most pronounced diﬀerences for analysis
+in practice (as identiﬁed via p-values or empirical QS-statistics). Therefore, the subgroups are not
+necessarily based on the same patient characteristics for all studies (recall the motivating example
+of sodium/glucose cotransporter 2 Inhibitor studies discussed in Sections 2.2 and 7.2).
+Next, we would like to point out some possible extensions of our method.
+In the present
+investigation, we focused on the DerSimonian-Laird (DL) type heterogeneity estimator, either
+using subgroup-level or study-level data, and observed considerable improvement in contrast to
+the classic DL estimator. Many alternative heterogeneity estimators have been proposed;[49, 24]
+the suggested approach of avoiding zero estimates for the heterogeneity by synthesizing the data at
+the subgroup level rather than the study level could be easily adopted based on other estimators,
+and similar beneﬁts may be expected.
+Recall that our motivation originated from the meta-analytic approach commonly applied in
+the evaluation of surrogate outcomes in clinical trials, which splits a trial into diﬀerent units (e.g.,
+centers, investigators, countries) when the number of trials itself is too small. Hence, any type of
+subpopulation (e.g., subgroups, centers) within a study could generally be utilized in our approach
+for the purpose of estimating the variance components. While here we focused on the common
+situation of two subgroups, scenarios of more than two subgroups could be utilized analogously.
+On the other hand, the common-eﬀect estimator with Henmi-Copas type variance was originally
+introduced with the aim to address publication bias issues in random-eﬀects meta-analyses and
+was considered to be more robust than the standard random-eﬀects model.[16, 50, 51] Recent
+developments showed that using alternative heterogeneity estimators that have fewer zero estimates
+in contrast to the classic DL estimator[50] or replacing their original proposed CI with normal
+quantile based ones can result in better statistical properties in the small meta-analysis case.[51]
+Our proposed method reﬂects both aspects with an improved heterogeneity estimator and a t-
+quantile based conﬁdence interval, and hence it might also have the potential to outperform other
+methods in the presence of publication bias. This idea might be followed up in future investigations.
+Acknowledgment
+Support from the Deutsche Forschungsgemeinschaft (DFG) is gratefully acknowledged (grant num-
+bers FR 3070/3-1 and FR 3070/3-2).
+Conﬂicts of interest
+The authors have declared no conﬂict of interest.
+19
+
+
+References
+[1] E. Kontopantelis, D. A. Springate, and D. Reeves. A re-analysis of the Cochrane Library
+data: The dangers of unobserved heterogeneity in meta-analyses. PLoS ONE, 8(7):e69930,
+July 2013.
+[2] M. Borenstein, L. V. Hedges, J. P. T. Higgins, and H. R. Rothstein. A basic introduction
+to ﬁxed-eﬀect and random-eﬀects models for meta-analysis.
+Research Synthesis Methods,
+1(2):97–111, April 2010.
+[3] J. P. T. Higgins, S. G. Thompson, and D. J. Spiegelhalter. A re-evaluation of random-eﬀects
+meta-analysis. Journal of the Royal Statistical Society A, 172(1):137–159, January 2009.
+[4] R. M. Turner, J. Davey, M. J. Clarke, S. G. Thompson, and J. P. T. Higgins. Predicting the
+extent of heterogeneity in meta-analysis, using empirical data from the Cochrane Database of
+Systematic Reviews. International Journal of Epidemiology, 41(3):818–827, June 2012.
+[5] T. Friede, C. R¨over, S. Wandel, and B. Neuenschwander. Meta-analysis of few small studies
+in orphan diseases. Research Synthesis Methods, 8(1):79–91, March 2017.
+[6] J. Hartung and G. Knapp. On tests of the overall treatment eﬀect in meta-analysis with
+normally distributed responses. Statistics in Medicine, 20(12):1771–1782, June 2001.
+[7] K. Sidik and J. N. Jonkman. On constructing conﬁdence intervals for a standardized mean
+diﬀerence in meta-analysis. Communications in Statistics — Simulation and Computation,
+32(4):1191–1203, 2003.
+[8] Christian R¨over, Guido Knapp, and Tim Friede. Hartung-knapp-sidik-jonkman approach and
+its modiﬁcation for random-eﬀects meta-analysis with few studies. BMC Medical Research
+Methodology, 15(1):1–7, 2015.
+[9] R. Bender, T. Friede, A. Koch, O. Kuss, P. Schlattmann, G. Schwarzer, and G. Skipka.
+Methods for evidence synthesis in the case of very few studies. Research Synthesis Methods,
+9(3):382–392, September 2018.
+[10] Harris Cooper and Erika A Patall.
+The relative beneﬁts of meta-analysis conducted with
+individual participant data versus aggregated data. Psychological Methods, 14(2):165, 2009.
+[11] Richard D Riley, Paul C Lambert, and Ghada Abo-Zaid. Meta-analysis of individual partici-
+pant data: rationale, conduct, and reporting. BMJ, 340, 2010.
+[12] Matthew Ventresca, Holger J Sch¨unemann, Fergus Macbeth, Mike Clarke, Lehana Thabane,
+Gareth Griﬃths, Simon Noble, David Garcia, Maura Marcucci, Alfonso Iorio, et al. Obtaining
+and managing data sets for individual participant data meta-analysis: scoping review and
+practical guide. BMC Medical Research Methodology, 20(1):1–18, 2020.
+20
+
+
+[13] Milos Brankovic, Isabella Kardys, Ewout W Steyerberg, Stanley Lemeshow, Maja Markovic,
+Dimitris Rizopoulos, and Eric Boersma. Understanding of interaction (subgroup) analysis in
+clinical trials. European Journal of Clinical Investigation, 49(8):e13145, 2019.
+[14] Tomasz Burzykowski, Marc Buyse, and Geert Molenberghs.
+The evaluation of surrogate
+endpoints, volume 427. Springer, 2005.
+[15] Marc Buyse, Geert Molenberghs, Xavier Paoletti, Koji Oba, Ariel Alonso, Wim Van der Elst,
+and Tomasz Burzykowski. Statistical evaluation of surrogate endpoints with examples from
+cancer clinical trials. Biometrical Journal, 58(1):104–132, 2016.
+[16] Masayuki Henmi and John B Copas. Conﬁdence intervals for random eﬀects meta-analysis
+and robustness to publication bias. Statistics in Medicine, 29(29):2969–2983, 2010.
+[17] D. A. Follmann and M. A. Proschan. Valid inference in random eﬀects meta-analysis. Bio-
+metrics, 55(3):732–737, September 1999.
+[18] Anthony De Soyza, Timothy Aksamit, Tiemo-Joerg Bandel, Margarita Criollo, J Stuart El-
+born, Elisabeth Operschall, Eva Polverino, Katrin Roth, Kevin L Winthrop, and Robert
+Wilson. Respire 1: a phase iii placebo-controlled randomised trial of ciproﬂoxacin dry powder
+for inhalation in non-cystic ﬁbrosis bronchiectasis. European Respiratory Journal, 51(1), 2018.
+[19] Timothy Aksamit, Anthony De Soyza, Tiemo-Joerg Bandel, Margarita Criollo, J Stuart El-
+born, Elisabeth Operschall, Eva Polverino, Katrin Roth, Kevin L Winthrop, and Robert
+Wilson. Respire 2: a phase iii placebo-controlled randomised trial of ciproﬂoxacin dry powder
+for inhalation in non-cystic ﬁbrosis bronchiectasis. European Respiratory Journal, 51(1), 2018.
+[20] S. H. Chotirmall and J. D. Chalmers.
+RESPIRE: breathing new life into bronchiectasis.
+European Respiratory Journal, 51(1):1702444, January 2018.
+[21] C. R¨over and T. Friede. Investigating the heterogeneity of “study twins”. Biometrical Journal,
+66(6):e202300387, September 2024.
+[22] Clement Lo, Tadashi Toyama, Ying Wang, Jin Lin, Yoichiro Hirakawa, Min Jun, Alan Cass,
+Carmel M Hawley, Helen Pilmore, Sunil V Badve, et al. Insulin and glucose-lowering agents
+for treating people with diabetes and chronic kidney disease. Cochrane Database of Systematic
+Reviews, (9), 2018.
+[23] Brendon L Neuen, Megumi Oshima, Rajiv Agarwal, Clare Arnott, David Z Cherney, Robert
+Edwards, Anna Maria Langkilde, Kenneth W Mahaﬀey, Darren K McGuire, Bruce Neal,
+et al. Sodium-glucose cotransporter 2 inhibitors and risk of hyperkalemia in people with type
+2 diabetes: a meta-analysis of individual participant data from randomized, controlled trials.
+Circulation, 145(19):1460–1470, 2022.
+[24] Maria Petropoulou and Dimitris Mavridis. A comparison of 20 heterogeneity variance estima-
+tors in statistical synthesis of results from studies: a simulation study. Statistics in Medicine,
+36(27):4266–4280, 2017.
+21
+
+
+[25] J. P. T. Higgins and S. G. Thompson. Quantifying heterogeneity in a meta-analysis. Statistics
+in Medicine, 21(11):1539–1558, June 2002.
+[26] William G Cochran. The combination of estimates from diﬀerent experiments. Biometrics,
+10(1):101–129, 1954.
+[27] Rrita Zejnullahi and Larry V Hedges. Robust variance estimation in small meta-analysis with
+the standardized mean diﬀerence. Research Synthesis Methods, 15(1):44–60, 2024.
+[28] Haben Michael, Suzanne Thornton, Minge Xie, and Lu Tian. Exact inference on the random-
+eﬀects model for meta-analyses with few studies. Biometrics, 75(2):485–493, 2019.
+[29] A. Wiksten, G. R¨ucker, and G. Schwarzer. Hartung-knapp method is not always conservative
+compared with ﬁxed-eﬀect meta-analysis. Statistics in Medicine, 35(15):2503–2515, 2016.
+[30] G. Knapp and J. Hartung. Improved tests for a random eﬀects meta-regression with a single
+covariate. Statistics in Medicine, 22(17):2693–2710, September 2003.
+[31] D. Jackson, M. Law, G. R¨ucker, and G. Schwarzer. The Hartung-Knapp modiﬁcation for
+random-eﬀects meta-analysis: A useful reﬁnement but are there any residual concerns? Statis-
+tics in Medicine, 36(25):3923–2934, November 2017.
+[32] Kurex Sidik and Jeﬀrey N Jonkman. Robust variance estimation for random eﬀects meta-
+analysis. Computational Statistics & Data Analysis, 50(12):3681–3701, 2006.
+[33] Keisuke Hanada and Tomoyuki Sugimoto. Inference using an exact distribution of test statistic
+for random-eﬀects meta-analysis. Annals of the Institute of Statistical Mathematics, 75(2):281–
+302, 2023.
+[34] Xin Sun, Matthias Briel, Jason W Busse, John J You, Elie A Akl, Filip Mejza, Malgorzata M
+Bala, Dirk Bassler, Dominik Mertz, Natalia Diaz-Granados, et al. The inﬂuence of study
+characteristics on reporting of subgroup analyses in randomised controlled trials: systematic
+review. BMJ, 342, 2011.
+[35] Nicole B Gabler, Naihua Duan, Diana Liao, Joann G Elmore, Theodore G Ganiats, and
+Richard L Kravitz. Dealing with heterogeneity of treatment eﬀects: is the literature up to the
+challenge? Trials, 10(1):1–12, 2009.
+[36] D. J. Spiegelhalter, K. R. Abrams, and J. P. Myles. Bayesian approaches to clinical trials and
+health-care evaluation. John Wiley & Sons, Chichester, UK, 2004.
+[37] C. R¨over. Bayesian random-eﬀects meta-analysis using the bayesmeta R package. Journal of
+Statistical Software, 93(6):1–51, April 2020.
+[38] C. R¨over, R. Bender, S. Dias, C. H. Schmid, H. Schmidli, S. Sturtz, S. Weber, and T. Friede.
+On weakly informative prior distributions for the heterogeneity parameter in Bayesian random-
+eﬀects meta-analysis. Research Synthesis Methods, 12(4):448–474, July 2021.
+22
+
+
+[39] D. Jackson, M. Law, T. Stijnen, W. Viechtbauer, and I. R. White. A comparison of seven
+random-eﬀects models for meta-analyses that estimate the summary odds ratio. Statistics in
+Medicine, 37(7):1059–1085, March 2018.
+[40] Burak K¨ursad G¨unhan, Christian R¨over, and Tim Friede. Metastan: an r package for bayesian
+(model-based) meta-analysis using stan. arXiv preprint arXiv:2202.00502, 2022.
+[41] Y. Chung, S. Rabe-Hesketh, and I.-H. Choi. Avoiding zero between-study variance estimates
+in random-eﬀects meta-analysis. Statistics in Medicine, 32(23):4071–4089, October 2013.
+[42] Christian R¨over, Ralf Bender, Soﬁa Dias, Christopher H Schmid, Heinz Schmidli, Sibylle
+Sturtz, Sebastian Weber, and Tim Friede.
+On weakly informative prior distributions for
+the heterogeneity parameter in bayesian random-eﬀects meta-analysis.
+Research Synthesis
+Methods, 12(4):448–474, 2021.
+[43] F. Weber, A. Glass, G. Kundt, G. Knapp, and K. Ickstadt. Interval estimation of the overall
+treatment eﬀect in random-eﬀects meta-analyses: recommendations from a simulation study
+comparing frequentist, Bayesian, and bootstrap methods. OSF Preprints, March 2020.
+[44] J. P. T. Higgins, J. Thomas, J. Chandler, M. Cumpston, T. Li, M. J. Page, and V. A. Welch,
+editors. Cochrane handbook for systematic reviews of interventions. Wiley & Sons, Hoboken,
+NJ, USA, 2nd edition, 2019.
+[45] Matthew J Page, Joanne E McKenzie, Patrick M Bossuyt, Isabelle Boutron, Tammy C Hoﬀ-
+mann, Cynthia D Mulrow, Larissa Shamseer, Jennifer M Tetzlaﬀ, Elie A Akl, Sue E Brennan,
+et al. The prisma 2020 statement: an updated guideline for reporting systematic reviews.
+bmj, 372, 2021.
+[46] T. Friede and R. Henderson. Exploring changes in treatment eﬀects across design stages in
+adaptive trials. Pharmaceutical Statistics, 8(1):62–72, 2009.
+[47] U.S. Department of Health and Human Services, Food and Drug Administration (FDA).
+Ciproﬂoxacin dry powder for inhalation (dpi) meeting of the antimicrobial drugs advisory
+committee (amdac).
+FDA Brieﬁng Document, November 2017.
+URL: https://www.fda.
+gov/media/109180/download.
+[48] R. Panaro, C. R¨over, and T. Friede.
+Subgroup comparisons within and across studies in
+meta-analysis. arXiv preprint 2508.15531 [stat.ME], August 2025.
+[49] A. A. Veroniki, D. Jackson, W. Viechtbauer, R. Bender, J. Bowden, G. Knapp, O. Kuß,
+J. P. T. Higgins, D. Langan, and G. Salanti. Methods to estimate the between-study variance
+and its uncertainty in meta-analysis. Research Synthesis Methods, 7(1):55–79, March 2016.
+[50] Masayuki Henmi, Satoshi Hattori, and Tim Friede. A conﬁdence interval robust to publication
+bias for random-eﬀects meta-analysis of few studies. Research Synthesis Methods, 12(5):674–
+679, 2021.
+23
+
+
+[51] Paul Bramley, Jos´e A L´opez-L´opez, and Julian PT Higgins. Examining how meta-analytic
+methods perform in the presence of bias: a simulation study. Research Synthesis Methods,
+12(6):816–830, 2021.
+24
+
+
+∆= 0
+∆= 0.1
+∆= 0.2
+∆= 0.5
+∆= 1
+σ∆= 0
+σ∆= 0.1
+σ∆= 0.2
+σ∆= 0.5
+σ∆= 1
+0
+0.25 0.5 0.75
+1
+0
+0.25 0.5 0.75
+1
+0
+0.25 0.5 0.75
+1
+0
+0.25 0.5 0.75
+1
+0
+0.25 0.5 0.75
+1
+−0.5
+0.0
+0.5
+1.0
+1.5
+2.0
+−0.5
+0.0
+0.5
+1.0
+1.5
+2.0
+−0.5
+0.0
+0.5
+1.0
+1.5
+2.0
+−0.5
+0.0
+0.5
+1.0
+1.5
+2.0
+−0.5
+0.0
+0.5
+1.0
+1.5
+2.0
+τ
+Bias of the τ estimators ( pi = 1 3 , K = 2 )
+Method:
+DL
+DLS
+DLS.adj
+max1
+max2
+Figure 3: Bias in estimating the between-study heterogeneity τ for several study-level estimators as well
+as newly proposed estimators based on subgroup-level data (k = 2 studies, subgroup prevalence pi = 1
+3).
+25
+
+
+∆= 0
+∆= 0.1
+∆= 0.2
+∆= 0.5
+∆= 1
+σ∆= 0
+σ∆= 0.1
+σ∆= 0.2
+σ∆= 0.5
+σ∆= 1
+0
+0.25 0.5 0.75
+1
+0
+0.25 0.5 0.75
+1
+0
+0.25 0.5 0.75
+1
+0
+0.25 0.5 0.75
+1
+0
+0.25 0.5 0.75
+1
+20
+40
+60
+20
+40
+60
+20
+40
+60
+20
+40
+60
+20
+40
+60
+τ
+Fraction of zero τ estimates ( pi = 1 3 , K = 2 )
+Method:
+Study−level
+Subgroup−level
+Hybrid
+(%)
+Figure 4: Propotion of zero estimates for the between-study heterogeneity τ for classic estimators
+using study-level data and proposed estimators using subgroup-level data (k = 2 studies, subgroup
+prevalence pi = 1
+3).
+26
+
+
+∆= 0
+∆= 0.1
+∆= 0.2
+∆= 0.5
+∆= 1
+σ∆= 0
+σ∆= 0.1
+σ∆= 0.2
+σ∆= 0.5
+σ∆= 1
+0
+0.25 0.5 0.75
+1
+0
+0.25 0.5 0.75
+1
+0
+0.25 0.5 0.75
+1
+0
+0.25 0.5 0.75
+1
+0
+0.25 0.5 0.75
+1
+80 85 90 95 100
+80 85 90 95 100
+80 85 90 95 100
+80 85 90 95 100
+80 85 90 95 100
+τ
+Coverage of different confidence intervals for µ ( pi = 1 3 , K = 2 )
+Data:
+Study−level
+Subgroup−level
+Method:
+Normal
+HKSJ
+mKH
+ZH
+MC
+max1
+max2
+(%)
+Figure 5: Coverage percentages for the overall eﬀect µ with 95% conﬁdence intervals based on study-
+level data or based on subgroup-level data (k = 2 studies, subgroup prevalence pi = 1
+3).
+27
+
+
+∆= 0
+∆= 0.1
+∆= 0.2
+∆= 0.5
+∆= 1
+σ∆= 0
+σ∆= 0.1
+σ∆= 0.2
+σ∆= 0.5
+σ∆= 1
+0
+0.25 0.5 0.75
+1
+0
+0.25 0.5 0.75
+1
+0
+0.25 0.5 0.75
+1
+0
+0.25 0.5 0.75
+1
+0
+0.25 0.5 0.75
+1
+97
+98
+99 100
+97
+98
+99 100
+97
+98
+99 100
+97
+98
+99 100
+97
+98
+99 100
+τ
+Coverage of the proposed methods with respect to subgroup prevalence pi
+pi
+1/4
+1/3
+1/2
+Method:
+max1
+max2
+(%)
+Figure 6: Coverage percentages for the overall mean eﬀect µ with 95% conﬁdence intervals based on
+subgroup-level data depending on the subgroup prevalence pi (k = 2 studies).
+28
+
+
+∆= 0
+∆= 0.1
+∆= 0.2
+∆= 0.5
+∆= 1
+σ∆= 0
+σ∆= 0.1
+σ∆= 0.2
+σ∆= 0.5
+σ∆= 1
+0
+0.25 0.5 0.75
+1
+0
+0.25 0.5 0.75
+1
+0
+0.25 0.5 0.75
+1
+0
+0.25 0.5 0.75
+1
+0
+0.25 0.5 0.75
+1
+0
+5
+10
+15
+20
+0
+5
+10
+15
+20
+0
+5
+10
+15
+20
+0
+5
+10
+15
+20
+0
+5
+10
+15
+20
+τ
+Median 95% confidence interval length of µ ( pi = 1 3 , K = 2 )
+Data:
+Study−level
+Subgroup−level
+Method:
+Normal
+HKSJ
+mKH
+ZH
+MC
+max1
+max2
+Figure 7: Median lengths of conﬁdence intervals for the overall mean eﬀect µ (k = 2 studies, subgroup
+prevalence pi = 1
+3).
+29
+
+
+QS
+Frequency
+5
+10
+15
+0
+100
+200
+300
+400
+500
+QS ≥ 2K−1
+Figure 8: Distribution of Q statistics using the 4096 possible diﬀerent subgroup combinations. The
+global maximum QS (18.24) was given by the combination of eGFR for canvas program and declare-
+timi 58, heart failure for credence and vertis cv, diuretic use for dapa-ckd, and HbA1c for empa-
+reg outcome. The local maximum QS (18.194) corresponds to a very similar combination, only the
+“canvas program” study’s patient population is split into subgroups based on diuretic use instead.
+30

@@ -1,0 +1,1641 @@
+Terrestrial Matter Effects on Reactor Antineutrino Oscillations:
+Constant vs. Fluctuated Density Profiles
+Yu-Feng Li1,5 ∗, Andong Wang2 †, Ya Xu3 ‡, Jing-yu Zhu4 §
+1Institute of High Energy Physics, Chinese Academy of Sciences, Beijing 100049, China
+2State Key Laboratory of Nuclear Resources and Environment, East China University of
+Technology, Nanchang, China
+3Institute of Geology and Geophysics, Chinese academy of sciences, Beijing 100029, China
+4Institute of Modern Physics, Chinese Academy of Sciences, Lanzhou, 730000, China
+5School of Physical Sciences, University of Chinese Academy of Sciences, Beijing 100049, China
+Abstract
+The JUNO Collaboration has recently released its first reactor antineutrino oscillation re-
+sult, achieving unprecedented precision in the measurement of ∆m2
+21 and sin2 θ12. We emphasize
+that the accurate determination and modeling of the terrestrial matter density profile are funda-
+mental for extracting the oscillation parameters and probing the neutrino mass ordering. This
+paper presents a realistic piecewise-constant model for the shallow crustal density profile along
+the baselines from Taishan and Yangjiang to the experimental hall, based on geological and
+petrophysical information. The uncertainty in the density profiles arises from variations in the
+density and length of each segment, both of which are conservatively estimated to be 10%. A
+careful comparison of constant and fluctuated density profiles is provided and the implications
+for the precision measurement of oscillation parameters are discussed. Finally, we also discuss
+the possibility of tomography of the shallow Earth’s crust in future reactor neutrino experiments.
+∗liyufeng@ihep.ac.cn
+†adwang2013@ecut.edu.cn
+‡xuya@mail.iggcas.ac.cn
+§zhujingyu@impcas.ac.cn (corresponding author)
+1
+arXiv:2511.15702v1  [hep-ph]  19 Nov 2025
+
+
+1
+Introduction
+The discovery of the neutrino oscillation phenomena [1, 2], which demonstrated that neutrinos have
+masses and that lepton flavors are mixed, marks a significant milestone in particle physics. Over
+the past two decades, numerous solar, atmospheric, reactor, and accelerator neutrino experiments
+have collected a substantial number of neutrino events [3] and established a coherent picture of the
+three-flavor neutrino oscillation framework [4–6], which is described by the 3 × 3 Pontecorvo–Maki–
+Nakagawa–Sakata (PMNS) [7–9] matrix:
+U =
+
+
+
+c12c13
+s12c13
+s13e−iδ
+−s12c23 −c12s13s23eiδ
+c12c23 −s12s13s23eiδ
+c13s23
+s12s23 −c12s13c23eiδ
+−c12s23 −s12s13c23eiδ
+c13c23
+
+
+,
+(1.1)
+with cij ≡cos θij and sij ≡sin θij (ij = 12, 13, 23), and δ the Dirac CP-violating phase, and three
+mass-squared differences:
+∆m2
+ij = m2
+i −m2
+j ,
+(1.2)
+where (i, j = 1, 2, 3, i > j) and mi is the mass of the i-th mass eigenstate νi.
+The three-flavor oscillation framework has been successfully measured and tested to within a few
+percent [4–6]. However, several key scientific questions remain unanswered. Most notably, the ordering
+of the neutrino mass spectrum—normal mass ordering (NMO: m1 < m2 < m3) versus inverted mass
+ordering (IMO: m3 < m1 < m2)—is still unknown, as is the value of the Dirac CP-violating phase δ.
+In addition, the absolute neutrino mass scale and the nature of neutrino masses—specifically, whether
+neutrinos are Dirac or Majorana particles—remain unknown. They can be probed by β decay and
+neutrinoless double-β-decay experiments, as well as cosmological observations [10–13].
+The global neutrino program in the coming decades is organized around these promising frontiers.
+Next-generation long-baseline accelerator experiments such as Hyper-Kamiokande [14] and DUNE [15]
+aim to precisely measure the atmospheric oscillation parameters and the CP-violating phase δ. On the
+reactor side, the Jiangmen Underground Neutrino Observatory (JUNO) [16,17] is a next-generation
+oscillation experiments aiming at the determination of neutrino mass ordering [18,19] and measuring
+oscillation parameters with sub-percent precision [20]. All of these next-generation neutrino oscil-
+lation experiments will operate in an era of high precision and require better control of systematic
+uncertainties on both the theoretical and experimental sides.
+The JUNO experiment, the first of these next-generation flagship experiments to begin operations,
+has published its initial reactor antineutrino oscillation results [21,22]. It achieved unprecedented pre-
+cision in measuring ∆m2
+21 and sin2 θ12, with uncertainties of 1.55% and 2.81%, respectively. With this
+accuracy level, the corrections due to terrestrial matter effects [23,24] on ∆m2
+21 and sin2 θ12 will be at
+the percent level [25,26], and cannot be neglected in the analysis. In the previous analyses, a constant
+density profile, characterized by an average crustal density, was assumed and deemed reasonably ac-
+curate. However, since the majority of the neutrino propagation trajectories are relatively shallow,
+2
+
+
+the density variation may be significant depending on the local geological conditions. Therefore, it
+is important to evaluate the effect of a variable density profile on the survival probability and its
+potential impact on the oscillation parameters.
+In this work, we focus on the impact of realistic crustal density variations along the JUNO baselines.
+By utilizing geological maps and petrophysical data from South China, we construct a piecewise-
+constant matter density model for the density profiles extending from the Taishan and Yangjiang
+nuclear power plants to the experimental hall. We evaluate the uncertainties in the density profiles by
+incorporating detailed local information regarding crustal density and geometric baseline variations
+in each segment. Using an efficient semi-analytical method based on the Cayley-Hamilton theorem,
+we compare the differences in neutrino survival probabilities between the variable density profile
+and its constant density approximation, and discuss the potential impact on future measurements of
+oscillation parameters. Finally, we explore the possibility of shallow Earth crust tomography in future
+reactor neutrino experiments.
+The remainder of this paper is organized as follows: In Sec. 2, we construct the density profile model
+along the Taishan–JUNO and Yangjiang–JUNO baselines using geological information. In Sec. 3, we
+provide a brief recap of three-flavor neutrino oscillations in matter and introduce the semi-analytical
+formalism used to analyze piecewise-constant density profiles. Sec. 4 presents our numerical results for
+the survival probabilities and illustrates the impacts of different choices of density profiles. In Sec. 5,
+we further investigate the impact of possible anomalous density perturbations, such as localized water-
+or air-like structures along the baselines, and discuss their implications for shallow crust tomography
+with reactor antineutrinos. Finally, our conclusions and a brief outlook are provided in Sec. 6.
+2
+Matter density profile along the baselines
+2.1
+Geological model and baseline discretizations
+The JUNO detector is located about 650 m underground, whereas the reactors are slightly above sea
+level. Reactor antineutrinos thus propagate predominantly through the upper crust, over relatively
+shallow depths. In this regime, lateral variations of the density are dominated by changes in outcrop-
+ping strata and lithology rather than by large-scale crust–mantle structures. Under these conditions,
+it is reasonable to approximate each surface geological unit by a representative bulk density; residual
+small-scale variations are expected at the level of a few percent. In the following sections we adopt
+segment-wise fluctuations up to ±10% as a deliberately conservative bound that comfortably covers
+these geophysical uncertainties.
+We briefly summarize the construction of our density profile model. Figure 1 shows the topo-
+graphic and geological maps of the JUNO detector site at Jiangmen and the two reactor complexes,
+Taishan (TS) and Yangjiang (YJ). The topographic map illustrates the surface elevation along the
+two baselines, while the geological map displays the distribution of surface rock units in South China.
+The white lines indicate the straight baselines from the reactor cores to JUNO, which traverse a
+3
+
+
+YangJiang
+TaiShan
+JUNO
+112.0
+112.2
+112.4
+112.6
+112.8
+113.0
+113.2
+Longtitude
+21.4
+21.6
+21.8
+22.0
+22.2
+22.4
+Latitude
+0
+200
+400
+600
+800
+1000
+m
+Figure 1: Topographic (left) and geological (right) maps around the JUNO detector site and the
+Taishan (TS) and Yangjiang (YJ) reactor complexes. The white lines indicate the baselines from the
+reactor cores to JUNO.
+variety of surface geological units. The density structure along each baseline is inferred from these
+mapped geological units together with the petrophysical properties of the corresponding strata and
+rock types [27].
+To model the matter density along these baselines, we extract the strata and lithology units
+intersected by the straight line connecting each reactor complex to the JUNO detector from the
+geological map. Wherever the baseline crosses a boundary between two mapped surface geological
+units, we define a new segment. In this way, the path from Taishan to JUNO is divided into 12 rock
+segments, and the path from Yangjiang to JUNO into 14 rock segments. The length of each segment
+is determined by the distance between consecutive intersections with geological boundaries.
+It is worth noting that the actual oscillation baselines are slightly tilted with respect to the local
+ground surface, since the reactor cores are located about 2 m above ground level, while the JUNO
+detector is situated at a depth of about 750 m underground. Along the straight line connecting a
+reactor core to the JUNO detector, the antineutrinos therefore first propagate over a short distance
+in air before entering the shallow crust. In our piecewise-constant description we account for this by
+adding an initial segment with density ρ = 0 in front of the rock segments listed in Tables 1 and
+2. As a result, although the geological sampling along the TS–JUNO (YJ–JUNO) baseline yields 12
+(14) rock segments, the effective profiles used in the oscillation calculations consist of NTS = 13 and
+NYJ = 15 segments in total, including the initial air segment. This segmented representation of the
+baselines will be used in the following both for the discussion of matter effects and for comparison
+with previous studies based on a constant-density approximation.
+Previous studies have conducted extensive tests and summarized the density characteristics of
+typical strata and rocks in South China, as compiled in Ref. [27]. The densities assigned to each
+segment are based on typical rock densities for the corresponding lithology along the JUNO baselines.
+The resulting segment lengths, densities and rock types for TS–JUNO and YJ–JUNO are summarized
+4
+
+
+in Tables 1 and 2, respectively. The surface elevation and the associated surface density along each
+baseline are plotted in Figs. 2 and 3. These figures illustrate that the density variations are relatively
+modest, typically at the level of a few percent around a mean crustal density of ∼2.5 g/cm3.
+2.2
+Fluctuations of the matter density profile
+In the following we discuss how to model realistic fluctuations of the matter density profile along
+the Taishan–JUNO and Yangjiang–JUNO baselines, and clarify their impact on the effective average
+density that enters the neutrino oscillation probabilities.
+For definiteness, we denote the reference piecewise-constant profile obtained from the geological
+information in Sec. 2.1 by {ρ(0)
+i , L(0)
+i }, where ρ(0)
+i
+and L(0)
+i
+are the density and length of the i-th
+segment, and P
+i L(0)
+i
+= L is the total baseline length. As discussed in Sec. 2.1, the Taishan–JUNO
+baseline is divided into NTS = 13 segments and the Yangjiang–JUNO baseline into NYJ = 15 segments.
+The first segment in both cases corresponds to propagation in air, and thus its matter density is set
+to zero and not allowed to fluctuate.
+Distance
+(km)
+Density
+(g/cm3)
+Rock types
+11.5
+2.61
+Cretaceous: biotite granite
+14.8
+2.49
+Quaternary
+20.6
+2.49
+Quaternary
+25.4
+2.61
+Cretaceous: biotite granite
+27.5
+2.52
+Cambrian: interbedded sandstone–shale or slate, with
+limestone, sandy gravel, and stone coal
+32.6
+2.54
+Paleozoic: plagioclase-rich granite
+39.2
+2.52
+Cambrian: interbedded sandstone–shale or slate, with
+limestone, sandy gravel, and stone coal
+41.7
+2.55
+Paleozoic: rhyolite porphyry
+46.7
+2.53
+Cambrian: interbedded sandstone–shale or slate, with
+limestone, sandy gravel, and stone coal
+48.5
+2.62
+Paleozoic: granodiorite
+52.0
+2.52
+Cambrian: interbedded sandstone–shale or slate, with
+limestone, sandy gravel, and stone coal
+52.7
+2.51
+Ordovician: graptolite shale, siliceous shale, sandstone,
+with interbedded conglomerate
+Table 1:
+Matter density sampling and corresponding rock types along the baseline from Taishan
+(TS) to JUNO. The distances are rounded to one decimal place.
+5
+
+
+Distance
+(km)
+Density
+(g/cm3)
+Rock types
+11.5
+2.60
+Jurassic: biotite granite, monzogranite
+15.0
+2.61
+Paleozoic: granite, gneissic granite
+16.1
+2.55
+Jurassic: biotite granite, monzogranite
+18.9
+2.58
+Jurassic: granite porphyry
+19.8
+2.61
+Cretaceous: quartz syenite
+26.5
+2.52
+Cambrian: interbedded sandstone–shale or slate, with
+limestone, sandy gravel, and stone coal
+29.5
+2.57
+Unmapped area, inferred to be Cambrian or Middle to
+Upper Devonian
+33.3
+2.52
+Cambrian: interbedded sandstone–shale or slate, with
+limestone, sandy gravel, and stone coal
+35.2
+2.57
+Devonian
+40.7
+2.52
+Cambrian: interbedded sandstone–shale or slate, with
+limestone, sandy gravel, and stone coal
+43.7
+2.51
+Ordovician: graptolite shale, siliceous shale, sandstone,
+with interbedded conglomerate
+47.4
+2.57
+Devonian
+48.9
+2.52
+Cambrian: interbedded sandstone–shale or slate, with
+limestone, sandy gravel, and stone coal
+52.5
+2.52
+Ordovician: graptolite shale, siliceous shale, sandstone,
+with interbedded conglomerate
+Table 2:
+Matter density sampling and corresponding rock types along the baseline from Yangjiang
+(YJ) to JUNO. The distances are rounded to one decimal place.
+The baseline-averaged matter density corresponding to the reference profile is defined as
+ρAverage = 1
+L
+N
+X
+i=1
+ρ(0)
+i
+L(0)
+i
+,
+(2.3)
+with N = NTS = 13 or N = NYJ = 15 for the two baselines. Using the segment densities and lengths
+in Tables 1 and 2 we obtain ρAverage
+TS
+≃2.541 g/cm3 and ρAverage
+YJ
+≃2.554 g/cm3, which will be used as
+the benchmark input of the constant-density approximation in Sec. 4.
+In the numerical calculations of Sec. 4, this piecewise-constant profile is used as the reference
+density model. To account for possible uncertainties in the geological interpretation and for local
+heterogeneities that are not resolved by the surface map, we adopt conservative fluctuation ranges
+in both density and segment length.
+Specifically, we allow the density in each segment to vary
+independently within ±10% of its reference value, and the effective lengths of the segments to fluctuate
+within ±10% while keeping the total baseline length fixed, as detailed below.
+6
+
+
+0
+100
+200
+300
+400
+Elevation (m)
+0
+5
+10
+15
+20
+25
+30
+35
+40
+45
+50
+2.5
+2.6
+L (km)
+ρ (g/cm3)
+Figure 2: Geological sampling from Taishan to Jiangmen; the upper panel shows the surface elevation,
+and the lower panel shows the matter density of surface rocks along the TS–JUNO baseline.
+0
+100
+200
+300
+400
+Elevation (m)
+0
+5
+10
+15
+20
+25
+30
+35
+40
+45
+50
+2.5
+2.6
+L (km)
+ρ (g/cm3)
+Figure 3: Geological sampling from Yangjiang to Jiangmen; the upper panel shows the surface eleva-
+tion, and the lower panel shows the matter density of surface rocks along the YJ–JUNO baseline.
+(i) Fluctuations of segment densities. To model the uncertainty of the crustal density itself, we
+allow each segment density to fluctuate around its reference value,
+ρi = ρ(0)
+i
+(1 + δρi) ,
+|δρi| ≤10% ,
+(2.4)
+where δρi are treated as independent random variables uniformly distributed in the interval [−0.1, 0.1].¶
+The total baseline length is kept fixed, Li = L(0)
+i , in this case. For a given realization of {δρi} the
+¶In the numerical analysis of Sec. 4 we include the density fluctuations only for the rock segments. The density of
+the air segment is kept fixed at ρ = 0, although its geometric length is allowed to fluctuate together with the other
+segments, see below.
+7
+
+
+corresponding average density reads
+ρAverage
+ρ
+= 1
+L
+X
+i
+ρiL(0)
+i
+= ρAverage + 1
+L
+X
+i
+ρ(0)
+i L(0)
+i δρi ,
+(2.5)
+so that the relative deviation from the reference value, ∆ρAverage
+ρ
+≡ρAverage
+ρ
+−ρAverage, is directly
+given by a weighted average of the segment fluctuations δρi. In the numerical scan in Sec. 4 we find
+that for |δρi| ≤10% the typical (one-standard-deviation) fluctuation of ρAverage is of order 1.5% for
+both baselines, and 95% of the random realizations lie within about ±3% around the reference value.
+Thus, even if each segment is allowed to vary independently within ±10%, the baseline-averaged
+density remains remarkably stable at the percent level.
+It is also instructive to consider the opposite limiting case in which the density fluctuations of all
+segments are fully correlated. In this case we may write
+δρi ≡δ ,
+|δ| ≤10% ,
+(2.6)
+so that all segment densities are rescaled by the same factor, ρi = ρ(0)
+i (1 + δ). The corresponding
+average density is then given by
+ρAverage
+corr
+= 1
+L
+X
+i
+ρ(0)
+i (1 + δ) L(0)
+i
+= (1 + δ) ρAverage ,
+(2.7)
+and the relative deviation of the average density is simply
+ρAverage
+corr
+−ρAverage
+ρAverage
+= δ .
+(2.8)
+If the common fluctuation δ is assumed to be uniformly distributed in the interval [−0.1, 0.1], the
+associated one-standard-deviation fluctuation is σδ = 0.1/
+√
+3 ≃5.8%, and the full allowed range of
+ρAverage extends up to ±10% around the reference value. This fully correlated scenario corresponds to
+a global mis-normalization of the crustal density scale, rather than to local heterogeneities between
+different segments. In the following we treat it as a conservative upper bound on possible shifts of
+the effective average density; its impact on the oscillation probabilities is effectively illustrated by the
+constant-density variations considered in Sec. 4.
+(ii) Fluctuations of segment lengths. The uncertainties of the segment boundaries correspond
+to uncertainties in the segment lengths. A physically motivated way to describe them is to regard
+the internal interfaces along the baseline as being known only up to a finite longitudinal resolution.
+Denoting the original positions of the interfaces by x(0)
+k
+(k = 1, . . . , N + 1), with x(0)
+1
+= 0, x(0)
+N+1 = L
+and L(0)
+i
+= x(0)
+i+1 −x(0)
+i , we allow each internal point (k = 2, . . . , N) to move independently within a
+small interval around its reference position,
+xk = x(0)
+k
++ ∆xk ,
+−α L(0)
+k−1 ≤∆xk ≤α L(0)
+k
+,
+(2.9)
+where we take α = 0.1 as a conservative estimate. The new segment lengths are then given by
+Li = xi+1 −xi = L(0)
+i
++ δLi ,
+δLi ≡∆xi+1 −∆xi .
+(2.10)
+8
+
+
+By construction the baseline length remains exactly fixed, P
+i Li = xN+1 −x1 = L, and neighbouring
+segments are anti-correlated: if an interface moves to the right, the segment on its left becomes shorter
+and that on its right becomes longer. We stress that this picture corresponds closely to the physical
+origin of the geometric uncertainty, namely the limited knowledge of where exactly the geological
+interfaces intersect the oscillation baseline.
+In this case we keep the segment densities fixed at their reference values, ρi = ρ(0)
+i , and the average
+density becomes
+ρAverage
+L
+= 1
+L
+X
+i
+ρ(0)
+i Li = ρAverage + 1
+L
+X
+i
+ ρ(0)
+i
+−ρAverage
+δLi .
+(2.11)
+Equation (2.11) makes it clear why the impact of the segment-length fluctuations on ρAverage is much
+smaller than that of the density fluctuations in Eq. (2.5). Only the deviations of each segment density
+from the already narrow band around ρAverage enter, and the contributions from the different segments
+tend to cancel because the δLi are constrained by P
+i δLi = 0 and are strongly anti-correlated through
+Eq. (2.10). Numerically we find that for |δLi|/L(0)
+i
+≲10% the typical fluctuation of ρAverage induced
+by the length variations alone is only of order 10−3, i.e. at the level of a few 0.01%, for both baselines.
+Therefore the geometrical uncertainty of the segment lengths has a negligible impact on the effective
+average matter density.‖
+(iii) Combined fluctuations of densities and lengths. Finally, in order to mimic a conservative
+and yet realistic matter profile uncertainty, we allow both the segment densities and the segment
+lengths to fluctuate simultaneously according to Eqs. (2.4), (2.9) and (2.10). To leading order in the
+small quantities δρi and δLi, the deviation of the average density can be written as
+ρAverage
+ρ+L
+≃ρAverage
+ρ
++
+ ρAverage
+L
+−ρAverage
+,
+(2.12)
+so that the variances of the two contributions approximately add. Since the length-induced part is
+suppressed by the small spread of the segment densities around ρAverage and by cancellations between
+neighbouring segments, its variance is much smaller than that induced by the density fluctuations.
+Therefore the distribution of ρAverage
+ρ+L
+is practically indistinguishable from that obtained in the density-
+only case in Eq. (2.5). In particular, the typical size of the fluctuation of the average density for
+|δρi| ≤10% remains at the level of O(1%), while the additional uncertainty from the segment-length
+fluctuations stays at the O(10−3) level.
+As a consequence, in the discussion of matter effects on
+the reactor antineutrino oscillation probabilities in Sec. 4 we will focus on the impact of the density
+fluctuations, and treat the uncertainty due to the geometric segmentation as a subdominant effect.
+‖As a cross-check we have also considered a simpler scheme in which each segment length is independently rescaled
+according to Li →L(0)
+i (1 + δLi) with |δLi| ≤10%, followed by a global rescaling of all Li such that the total baseline
+length L is restored. This alternative model slightly overestimates the effect of length fluctuations, but still yields
+fluctuations of ρAverage at the level of ∼0.05%, fully consistent with the more realistic interface-displacement model
+described by Eqs. (2.9) and (2.10).
+9
+
+
+3
+Neutrino oscillations in matter
+In this section, we recap the fundamental formulas for three-flavor neutrino oscillations in matter
+and introduce an efficient semi-analytical method for exact calculations.
+In vacuum, the neutrino oscillations are governed by a Schr¨odinger-like evolution equation in the
+flavor basis,
+i d
+dxνα(x) = Hvac να(x) ,
+(3.1)
+where να = (νe, νµ, ντ)T denotes the flavor eigenstate vector and x the distance neutrinos have trav-
+elled. The vacuum Hamiltonian reads
+Hvac =
+1
+2Eν
+
+U
+
+
+
+0
+0
+0
+0
+∆m2
+21
+0
+0
+0
+∆m2
+31
+
+
+U †
+
+,
+(3.2)
+where Eν is the neutrino energy.
+For reactor antineutrino experiments, we are interested in the survival probability of electron
+antineutrinos, P(¯νe →¯νe), which can be written in a compact form as [20,28]:
+P(νe →νe) = 1 −sin2 2θ12 cos4 θ13 sin2 ∆m2
+21L
+4Eν
+−1
+2 sin2 2θ13
+
+sin2 ∆m2
+31L
+4Eν
++ sin2 ∆m2
+32L
+4Eν
+
+−1
+2 cos 2θ12 sin2 2θ13 sin ∆m2
+21L
+4Eν
+sin (∆m2
+31 + ∆m2
+32)L
+4Eν
+,
+(3.3)
+where L denotes the baseline length.
+When neutrinos propagate in matter, coherent forward scattering on electrons induces an effective
+potential [23,24] that modifies the Hamiltonian. Therefore, the effective Hamiltonian of antineutrinos
+in the flavor basis reads
+H(x) =
+1
+2Eν
+
+U
+
+
+
+0
+0
+0
+0
+∆m2
+21
+0
+0
+0
+∆m2
+31
+
+
+U † −
+
+
+
+A(x)
+0
+0
+0
+0
+0
+0
+0
+0
+
+
+
+
+,
+(3.4)
+with
+A(x) = 2
+√
+2 GF Ne(x) Eν ≃1.52 × 10−7 eV2 × Ye
+
+ρ(x)
+g · cm−3
+
+×
+ Eν
+MeV
+
+.
+(3.5)
+Here GF is the Fermi constant, Ne(x) the electron number density, ρ(x) the matter density, and Ye
+the electron fraction per nucleon, which is typically Ye ≃0.5 in the crust of the Earth.
+Under the approximation of a constant matter density along the baseline, we have ρ(x) ≃¯ρ
+and A(x) ≃¯A = 2
+√
+2 GF ¯Ne Eν, which leads to an x-independent Hamiltonian HC of Eq. 3.4. The
+evolution operator over a baseline L then takes the simple form SC(L) = exp
+
+−i HC L
+
+, and the
+corresponding ¯νe survival probability can be calculated as P C
+ee(Eν, L) =
+SC
+ee(L)
+2.
+10
+
+
+Approximate analytic expressions for P C
+ee in the three-flavor neutrino oscillation framework, valid
+for reactor experiments, can be found in Ref. [25], where the leading matter corrections were shown to
+be relevant for precision measurements of ∆m2
+21 and sin2 θ12 and mass ordering. The exact three-flavor
+oscillation probabilities in constant-density matter for arbitrary flavor transitions can be written in
+fully analytical form, see for example Refs. [29–37], while a variety of compact approximate formulas
+tailored to different experimental regimes are available in Refs. [25,38–45].
+In a realistic and accurate manner, the crust consists of different geological units with different
+densities, and the baselines from each reactor complex to the detector cross multiple rock formations.
+To take this into account, we consider a position-dependent matter density profile ρ(x) obtained
+from local geological surveys and geophysical data. For practical calculations, it is convenient to
+approximate ρ(x) by a set of N segments with piecewise constant densities,
+ρ(x) ≃ρi ,
+xi−1 < x < xi ,
+i = 1, . . . , N ,
+(3.6)
+with segment lengths Li = xi −xi−1 satisfying PN
+i=1 Li = L.
+In each segment the Hamiltonian Hi is constant, so the evolution operator in the corresponding
+segment is
+Si = exp[−i Hi Li] = exp [−iMiLi/(2Eν)] ,
+(3.7)
+where Mi is the effective mass-squared matrix in matter. According to the Cayley–Hamilton theorem,
+the matrix exponential Si for a 3×3 matrix can be expressed as a quadratic polynomial in Mi [34,46,47],
+Si = s0I + s1Mi + s2M 2
+i ,
+(3.8)
+where I is the 3 × 3 identity matrix, and the coefficients sk (k = 0, 1, 2) are determined by the
+eigenvalues λk of Mi (or equivalently of M ′
+i = U †MiU). Explicitly one has
+s0 = −λ1λ2e−iλ3Li/(2Eν)
+(λ2 −λ3)(λ3 −λ1) −
+λ2λ3e−iλ1Li/(2Eν)
+(λ1 −λ2)(λ3 −λ1) −
+λ1λ3e−iλ2Li/(2Eν)
+(λ1 −λ2)(λ2 −λ3),
+s1 = +(λ1 + λ2)e−iλ3Li/(2Eν)
+(λ2 −λ3)(λ3 −λ1)
++ (λ2 + λ3)e−iλ1Li/(2Eν)
+(λ1 −λ2)(λ3 −λ1)
++ (λ1 + λ3)e−iλ2Li/(2Eν)
+(λ1 −λ2)(λ2 −λ3) ,
+s2 = −
+e−iλ3Li/(2Eν)
+(λ2 −λ3)(λ3 −λ1) −
+e−iλ1Li/(2Eν)
+(λ1 −λ2)(λ3 −λ1) −
+e−iλ2Li/(2Eν)
+(λ1 −λ2)(λ2 −λ3).
+(3.9)
+The eigenvalues λk (k = 1, 2, 3) can be written in analytic form [29,30,33] as
+λ1 = 1
+3x −1
+3
+p
+x2 −3y
+h
+z +
+p
+3 (1 −z2)
+i
+,
+λ2 = 1
+3x + 1
+3
+p
+x2 −3y
+h
+z −
+p
+3 (1 −z2)
+i
+,
+λ3 = 1
+3x + 2
+3z
+p
+x2 −3y .
+(3.10)
+where
+x = ∆m2
+21 + ∆m2
+31 −A ,
+11
+
+
+y = ∆m2
+21∆m2
+31 −A
+
+∆m2
+21(1 −sin2 θ12 cos2 θ13) + ∆m2
+31(1 −sin2 θ13)
+
+,
+z = cos
+1
+3 arccos 2x3 −9xy −27A∆m2
+21∆m2
+31 cos2 θ12 cos2 θ13
+2(x2 −3y)3/2
+
+.
+(3.11)
+The full evolution operator for a baseline L is obtained by multiplying the segment operators in
+the propagation order
+SVari(L) = SNSN−1 · · · S1 ,
+(3.12)
+where the superscript “Vari” refers to the variable density profile. The corresponding survival proba-
+bility is
+P Vari
+ee
+(Eν, L) =
+SVari
+ee (L)
+2 .
+(3.13)
+Note that an arbitrary matter-density profile ρ(x) can be approximated with controllable accuracy by
+choosing a sufficiently large number of segments N, so that this semi-analytical treatment allows one
+to achieve the desired precision for realistic, position-dependent density profiles. This semi-analytical
+approach, in which the realistic crustal profile is represented by a finite number of constant-density
+segments, provides an accurate and efficient way to calculate the oscillation probabilities of neutrinos
+in a non-uniform medium. Note that this framework has been written for antineutrinos, and the
+corresponding expressions for neutrinos can be obtained by changing U →U ∗and A →−A in the
+effective Hamiltonian of Eq. (3.4).
+4
+Numerical results
+In this section we present our numerical results for the matter effects on the ¯νe →¯νe survival proba-
+bility along the TS–JUNO and YJ–JUNO baselines. We first quantify the impact of variable matter
+density on the oscillation probability, and then discuss its implications for the precision measurement
+of oscillation parameters and for the determination of the neutrino mass ordering.
+To start, we shall employ the current global best-fit values of the three-flavor oscillation parameters,
+based on the NuFIT 6.0 (2024) analysis [5]. For the JUNO baselines, we consider the locations of
+the JUNO site as well as the YJ and TS nuclear power plants [16]. The TS–JUNO and YJ–JUNO
+baselines are determined based on the average positions of the individual reactor cores.
+For the
+Taishan complex, we use LTS = 52.695 km, which represents the average distance from the first and
+second cores to JUNO. For the Yangjiang complex, we adopt LYJ = 52.465 km, corresponding to the
+average distance from the third and fourth cores to JUNO.
+The matter density along each baseline is described by the segmented piecewise-constant profiles
+constructed in Sec. 2, specifically utilizing the sets {ρ(0)
+i , L(0)
+i } introduced in Sec. 2.1 and Sec. 2.2,
+including the initial air segment where ρ = 0. The corresponding baseline-averaged densities are
+defined in Eq. (2.11). Using the segment information presented in Tables 1 and 2, we find
+ρAverage
+TS
+≃2.541 g/cm3 ,
+(4.14)
+12
+
+
+and
+ρAverage
+YJ
+≃2.554 g/cm3 ,
+(4.15)
+which will serve as benchmark constant densities for the subsequent analysis. We also specified con-
+servative fluctuation ranges of ±10% for both the segment densities and segment lengths as discussed
+in Sec. 2.2.
+First, we examine the absolute magnitude of variable matter effects on the ¯νe →¯νe survival
+probability. As shown in Fig. 4, the absolute differences between vacuum survival probability P Vac
+ee
+and variable-matter survival probability P Vari
+ee
+are presented for the reference matter density profiles
+along the TS–JUNO and YJ–JUNO baselines. One can observe that they are at the percent level
+and will be comparable to the expected uncertainties of ∆m2
+21 and sin2 θ12. This conclusion is rather
+consistent with Ref. [25] using the constant density approximation.
+NMO
+IMO
+2
+4
+6
+8
+10
+12
+10-6
+10-5
+10-4
+10-3
+10-2
+10-1
+Eν [MeV]
+|Pee
+Matter-Pee
+Vac|
+TS
+NMO
+IMO
+2
+4
+6
+8
+10
+12
+10-6
+10-5
+10-4
+10-3
+10-2
+10-1
+Eν [MeV]
+|Pee
+Matter-Pee
+Vac|
+YJ
+Figure 4: The absolute differences between Pee in matter and in vacuum using the reference matter
+density profiles.
+Next we will discuss the effects of variable density profiles. Considering the potential correlations
+in the density fluctuations of connected or nearby segments, we analyze two extreme scenarios:
+• Scenario A: profiles in which the densities of all rock segments are coherently rescaled within a
+permitted ±10%, corresponding to global upward or downward shifts of the baseline-averaged
+density;
+• Scenario B: profiles in which the densities of all rock segments are randomly rescaled within the
+allowed ±10% band, thus fine structures of the density variations are allowed.
+All these sampled representative profiles satisfy |δρi| ≤10% and |δLi|/L(0)
+i
+≤10% for every segment,
+and their baseline-averaged densities lie within the ∼1–3% band around the reference values quantified
+in Sec. 2.2.
+Using the benchmark constant density profiles in Eqs. (4.14) and Eq. (4.15), we compare the effects
+of variable matter against the corresponding constant approximation in Fig. 5 for both the TS-JUNO
+13
+
+
+and YJ-JUNO baselines. In each panel, the black and gray curves represent Scenario A, where the
+constant reference density is coherently increased or decreased within a 10% range, respectively. These
+curves serve as a simple benchmark for the effect of fully correlated uncertainty in the reference crustal
+density profile, which is on the order of 10−3, in contrast to the total contributions at the percent level.
+In contrast, the colored curves illustrate five representative realizations of fluctuations in Scenario B,
+generated by allowing the density in each rock segment along the baseline to vary independently within
+the 10% range. It is important to note that the differences in survival probability are significantly
+smaller in Scenario B than in Scenario A due to the effects of statistical averaging.
+2
+4
+6
+8
+10
+12
+10-8
+10-7
+10-6
+10-5
+10-4
+10-3
+Eν [MeV]
+|Pee
+C -Pee
+Vari|
+TS, NMO
+2
+4
+6
+8
+10
+12
+10-8
+10-7
+10-6
+10-5
+10-4
+10-3
+Eν [MeV]
+|Pee
+C -Pee
+Vari|
+TS, IMO
+2
+4
+6
+8
+10
+12
+10-8
+10-7
+10-6
+10-5
+10-4
+10-3
+Eν [MeV]
+|Pee
+C -Pee
+Vari|
+YJ, NMO
+2
+4
+6
+8
+10
+12
+10-8
+10-7
+10-6
+10-5
+10-4
+10-3
+Eν [MeV]
+|Pee
+C -Pee
+Vari|
+YJ, IMO
+Figure 5: Variable matter effects on the ¯νe →¯νe survival probability along the TS–JUNO (upper
+panel) and YJ–JUNO (lower panel) baselines for NMO (left panel) and IMO (right panel).
+Now we discuss how the variable matter effects affects the measurement of oscillation parameters
+and mass ordering. From the first reactor antineutrino oscillation result of JUNO [21], the precision of
+∆m2
+21 and sin2 θ12 reached 1.55% and 2.81% respectively. Meanwhile, it will reach to 0.3% and 0.5%
+in 6 yrs and even smaller for the entire lifetime of 20 yrs.
+In Fig. 6, the comparison of the survival probability differences between the oscillation parameter
+variation and the density profile variation is illustrated. As an illustration, Fig. 6 shows the absolute
+differences in the survival probability,
+P X
+ee −P BF
+ee
+ for the TS–JUNO baseline and NMO, where P BF
+ee
+14
+
+
+is the probability calculated with the best-fit values, and P X
+ee with one of the parameters shifted
+according to the expected JUNO precision. For clarity, in each panel only one parameter is varied at
+a time, while the others are fixed at their best-fit values. The black and grey lines are that of variable
+density profile with the uncertainty of Scenario A. From the figures, one can read that the uncertainty
+of matter density profiles is more than one order of magnitude smaller than the current precision of
+oscillation parameters, but will increase to 20% or 50% for longer running time. Therefore a careful
+investigation and modelling of the density profiles is needed in the future.
+We now turn to the impact of variable matter density profiles on mass ordering determination. In
+the upper panels of Fig. 7, we illustrate the differences in survival probabilities between NMO and
+IMO as follows:
+P C,MO
+ee
+(Eν) =
+P C,NMO
+ee
+(Eν) −P C,IMO
+ee
+(Eν)
+ ,
+(4.16)
+for the constant density profiles. Similarly, we can define the differences in survival probabilities for
+variable density profiles as:
+P Vari,MO
+ee
+(Eν) =
+P Vari,NMO
+ee
+(Eν) −P Vari,IMO
+ee
+(Eν)
+ ,
+(4.17)
+and illustrate the absolute differences of these quantities in the lower panels of Fig. 7. Note that the
+black and gray curves represent Scenario A, while the colored curves correspond to Scenario B. By
+comparing the magnitudes of these differences, we conclude that variations in matter density profiles
+contribute only 1% to the mass ordering sensitivity, making them relatively negligible. Therefore,
+we can assert that the additional uncertainty introduced by the imperfect knowledge of the matter
+density profile is insignificant, and the determination of mass ordering remains robust against realistic
+variable matter density effects.
+5
+Impact of anomalous density perturbations
+In previous discussions, we have assumed that the matter density along the TS-JUNO and YJ-JUNO
+baselines can be described by a piecewise-constant profile with moderate segmented fluctuations,
+typically on the order of ±10% around the reference rock densities. This approach is well justified by
+the geological information available along the JUNO baselines.
+In this section, however, we will explore the possibility of shallow crust tomography using reactor
+antineutrinos, considering the potential existence of localized structures that may deviate more signifi-
+cantly from the average crustal rock. These structures could include water-filled regions, underground
+reservoirs, or localized low-density cavities within fractured rocks.
+For definiteness, let us consider a single localized anomaly with length ∆La and density ρa em-
+bedded in an otherwise standard rock profile characterized by an average density ¯ρ0. If the baseline
+length is L, the new baseline-averaged density becomes
+15
+
+
+2
+4
+6
+8
+10
+12
+10-6
+10-5
+10-4
+10-3
+10-2
+10-1
+Eν [MeV]
+|Pee
+60 days-Pee
+BF|
+TS, NMO, 60 days
+Δm21
+BF (1-1.6%)
+Δm21
+BF (1+1.6%)
+θ12
+BF (1-2.8%)
+θ12
+BF (1+2.8%)
+2
+4
+6
+8
+10
+12
+10-6
+10-5
+10-4
+10-3
+10-2
+10-1
+Eν [MeV]
+|Pee
+60 days-Pee
+BF|
+YJ, NMO, 60 days
+Δm21
+BF (1-1.6%)
+Δm21
+BF (1+1.6%)
+θ12
+BF (1-2.8%)
+θ12
+BF (1+2.8%)
+2
+4
+6
+8
+10
+12
+10-6
+10-5
+10-4
+10-3
+10-2
+10-1
+Eν [MeV]
+|Pee
+6 yrs-Pee
+BF|
+TS, NMO, 6 yrs
+Δm21
+BF (1-0.3%)
+Δm21
+BF (1+0.3%)
+θ12
+BF (1-0.5%)
+θ12
+BF (1+0.5%)
+2
+4
+6
+8
+10
+12
+10-6
+10-5
+10-4
+10-3
+10-2
+10-1
+Eν [MeV]
+|Pee
+6 yrs-Pee
+BF|
+YJ, NMO, 6 yrs
+Δm21
+BF (1-0.3%)
+Δm21
+BF (1+0.3%)
+θ12
+BF (1-0.5%)
+θ12
+BF (1+0.5%)
+2
+4
+6
+8
+10
+12
+10-6
+10-5
+10-4
+10-3
+10-2
+10-1
+Eν [MeV]
+|Pee
+20 yrs-Pee
+BF|
+TS, NMO, 20 yrs
+Δm21
+BF (1-0.2%)
+Δm21
+BF (1+0.2%)
+θ12
+BF (1-0.3%)
+θ12
+BF (1+0.3%)
+2
+4
+6
+8
+10
+12
+10-6
+10-5
+10-4
+10-3
+10-2
+10-1
+Eν [MeV]
+|Pee
+20 yrs-Pee
+BF|
+YJ, NMO, 20 yrs
+Δm21
+BF (1-0.2%)
+Δm21
+BF (1+0.2%)
+θ12
+BF (1-0.3%)
+θ12
+BF (1+0.3%)
+Figure 6: Impact of the uncertainties of ∆m2
+21, and θ12 on the ¯νe →¯νe survival probability along
+the TS–JUNO (YJ–JUNO) baseline for normal mass ordering.
+The three panels in each column
+correspond to parameter uncertainties after 60 days , 6 years (6 yrs), 20 years (20 yrs) of data taking.
+In each panel, only one parameter is varied at a time, while the others are fixed to their best-fit values.
+And the black/gray lines denote 10% variation of the benchmark constant density, namely, ρAverage
+TS
+and ρAverage
+YJ
+as shown in Figure 5.
+16
+
+
+2
+4
+6
+8
+10
+12
+10-5
+10-4
+10-3
+10-2
+10-1
+100
+Eν [MeV]
+Pee
+C, NMO - Pee
+C, IMO
+TS
+2
+4
+6
+8
+10
+12
+10-5
+10-4
+10-3
+10-2
+10-1
+100
+Eν [MeV]
+Pee
+C, NMO - Pee
+C, IMO
+YJ
+2
+4
+6
+8
+10
+12
+10-8
+10-7
+10-6
+10-5
+10-4
+10-3
+Eν [MeV]
+|Pee
+Vari, MO-Pee
+C, MO|
+TS
+2
+4
+6
+8
+10
+12
+10-8
+10-7
+10-6
+10-5
+10-4
+10-3
+Eν [MeV]
+|Pee
+Vari, MO-Pee
+C, MO|
+YJ
+Figure 7: Variable matter effects on the mass-ordering determination. Top row: absolute difference
+P C,MO
+ee
+between the constant-density survival probabilities in NMO and IMO for the TS–JUNO (left)
+and YJ–JUNO (right) baselines. Middle row: deviation |P Vari,MO
+ee
+−P C,MO
+ee
+| induced by density fluc-
+tuations. Bottom row: relative deviation |P Vari,MO
+ee
+−P C,MO
+ee
+|/P C,MO
+ee
+.
+¯ρ′ = 1
+L [ρa ∆La + ¯ρ0 (L −∆La)] = ¯ρ0 + δ¯ρ ,
+(5.18)
+with the relative shift of
+δ¯ρ
+¯ρ0
+=
+ρa
+¯ρ0
+−1
+ ∆La
+L
+.
+(5.19)
+This straightforward expression indicates that, even if ρa differs significantly from the typical rock
+density, its impact on the baseline-averaged density is suppressed by the ratio ∆La/L. To quantify
+this effect, we take ¯ρ0 ≃2.6 g/cm3 as a representative crustal density and L ≃53 km as a typical
+baseline. A water-like anomaly corresponds roughly to ρa ≃1.0 g/cm3, while an air-filled cavity has
+ρa ≃0 on the scale relevant for matter effects. For a 1 km-long water anomaly one finds
+δ¯ρ
+¯ρ0
+≃
+1.0
+2.6 −1
+ 1 km
+53 km ≈−1.2% ,
+(5.20)
+17
+
+
+and for an air cavity of the same length,
+δ¯ρ
+¯ρ0
+≃(0 −1) 1 km
+53 km ≈−1.9% .
+(5.21)
+Shorter or more localized structures (e.g., ∆La ≲0.5 km) lead to relative shifts of ≲1%, while more
+extended anomalous regions are disfavored by the available geological information along the baselines.
+The matter potential in the flavor basis is proportional to the electron number density,
+A = 2
+√
+2 GFNeEν ∝ρ ,
+(5.22)
+so that the fractional change of the effective potential is δA/A ≃δ¯ρ/¯ρ0. At the JUNO or future reactor
+antineutrino experiments, the standard matter effect induces only a percent-level modification of the
+¯νe survival probability with respect to vacuum oscillations. Therefore, an additional O(1%) change
+in the average density from a localized water-like or air-like anomaly leads to a further suppression of
+the matter effect by a few ×10−4 in the survival probability.
+To make this conclusion more explicit, Fig. 8 illustrates, for the TS–JUNO baseline and NMO, the
+absolute difference of |P Anomaly
+ee
+−P C
+ee| obtained in a constant-density profile and in profiles containing
+a localized air-like segment. The constant reference probability P C
+ee is computed assuming a uniform
+density ρAverage
+TS
+, and in the anomalous cases we keep the same uniform density ρAverage
+TS
+along the whole
+baseline, except for an additional 1 km air layer (with ρ ≃0) inserted either at the beginning of the
+baseline (red curve, between 0 and 1 km), in the middle (blue curve, around L/2), or close to the
+detector (green curve, near the end of the baseline). Over the full neutrino energy window (Eν ≃2–
+12 MeV), the induced differences remain at the level of a few ×10−4, in excellent agreement with the
+analytical estimate based on Eqs. (5.19)–(5.21). We have also verified that analogous configurations
+for the YJ–JUNO baseline and for IMO lead to very similar corrections. In addition replacing the
+anomalous air layer by a water-like segment with ρa ≃1.0 g/cm3 yields very similar results.
+More generally, we have explicitly examined several extreme configurations in which a rock segment
+in the baseline model is replaced by either water or air, with ∆La extending up to the kilometer
+scale and located at various positions along the baseline. In all these cases, the resulting changes
+in P(¯νe →¯νe) were found to be much smaller than the effects of the typical ±10% segment-wise
+fluctuations discussed in Sec. 4. Therefore, we conclude that potential anomalous density structures,
+such as localized water-filled regions or air cavities, do not undermine the robustness of our conclusions
+regarding matter effects on reactor antineutrino oscillations at JUNO. As a result, an even larger
+detector is necessary for effective shallow crust tomography using reactor antineutrinos.
+6
+Summary
+In this work, we have investigated the impact of realistic matter density variations on reactor antineu-
+trino oscillations. Using geological information along the baselines from reactor nuclear power plants
+to the experimental hall, we constructed a piecewise-constant density model that approximates the
+18
+
+
+2
+4
+6
+8
+10
+12
+10-8
+10-7
+10-6
+10-5
+10-4
+10-3
+Eν [MeV]
+|Pee
+Anomaly-Pee
+C |
+TS, NMO
+Figure 8:
+Absolute difference |P Anomaly
+ee
+−P C
+ee| as a function of antineutrino energy Eν for the TS–
+JUNO baseline in NMO. The constant-density reference probability P C
+ee is computed for a uniform
+matter density ρAverage
+TS
+, equal to the baseline-averaged density defined in Eqs. (4.14) and (4.15). The
+three colored curves correspond to profiles in which an additional 1 km air segment (ρ ≃0) is inserted
+at the beginning (red), in the middle (blue), or at the end (green) of the baseline, while the remaining
+path is kept at density ρAverage
+TS
+. The differences stay at the level of a few ×10−4 or smaller over the
+entire JUNO energy range, illustrating the negligible impact of such localized low-density anomalies
+on the reactor antineutrino survival probability.
+South China crustal structure. We then allowed for conservative fluctuations of ±10% in the density
+of each segment and ±10% in the segment lengths, while keeping the total baseline lengths fixed. The
+resulting average matter densities and the conservative uncertainties are given as
+ρAverage
+TS
+≃(2.541 ± 10%) g/cm3 ,
+and
+ρAverage
+YJ
+≃(2.554 ± 10%) g/cm3 .
+Within the standard three-flavor oscillation framework, we computed the ¯νe →¯νe survival proba-
+bilities for both constant-density and variable-density profiles, and quantified the resulting differences
+for both normal and inverted mass orderings. We further assessed the implications of these differ-
+ences on the precision measurement of the oscillation parameters ∆m2
+21 and sin2 θ12 and neutrino mass
+ordering.
+Our main conclusions can be summarized as follows:
+• The absolute difference |P C
+ee −P Vari
+ee
+| induced by realistic density variations is approximately
+10−3 for the correlated density fluctuations of Scenario A, accounting for about 10% of the total
+19
+
+
+matter effects. While this effect is negligible at the current precision, it should be considered
+and addressed for future measurements aiming at millesimal precision.
+• The mass-ordering discriminant P C,MO
+ee
+= |P C,NMO
+ee
+−P C,IMO
+ee
+| is typically on the order of 10−3–
+10−2, whereas the correction |P Vari,MO
+ee
+−P C,MO
+ee
+| resulting from variable matter density is at
+most on the order of 10−4. Consequently, realistic density variations may statistically alter the
+ordering discriminant by at most a few percent, which is negligible. Thus, the mass-ordering
+determination at JUNO is largely insensitive to the detailed structure of the crustal density
+along the baselines.
+From a broader perspective, the commencement of JUNO’s data collection and the release of the
+first reactor antineutrino oscillation results signify an important advancement in the global neutrino
+program. Alongside Hyper-Kamiokande and DUNE, JUNO will contribute to completing the under-
+standing of three-flavor oscillations by determining the mass ordering and significantly enhancing the
+precision of the mixing angles and mass-squared differences. With the advent of the era of precision
+measurements in neutrino physics, the contributions of sub-leading and subtle effects may need to be
+reconsidered, such as the variable matter density profile considered in this work. Other such efforts
+include studies of indirect unitarity violation effects [48], radiative corrections to neutrino propagation
+in matter and to elastic neutrino-electron scattering [49–51]. Systematically incorporating these effects
+will further increase the reliability of oscillation experiments, enhance their discovery potential [52],
+and support precise measurements of neutrino oscillation parameters and searches for related new
+physics.
+Acknowledgments
+Jing-yu Zhu thanks Wen-jie Wu for helpful discussions. The work of JYZ was supported in part by the
+National Key Research and Development Program of China (under grant number 2021YFA1601300)
+and by the National Natural Science Foundation of China (under grant number 12505134).
+The
+work of YFL was supported in part by the National Natural Science Foundation of China (under
+grant numbers 12075255). The work of ADW was supported in part by the Open Project Program
+of National Key Laboratory of Uranium Resources Exploration-Mining and Nuclear Remote Sensing
+(under grant number NKLUR-2024-QN-005). The work of YX was supported in part by the National
+Natural Science Foundation of China (under grant number 42074092).
+References
+[1] T. Kajita, Nobel Lecture: Discovery of atmospheric neutrino oscillations, Rev. Mod. Phys. 88
+(2016), no. 3 030501.
+20
+
+
+[2] A. B. McDonald, Nobel Lecture: The Sudbury Neutrino Observatory: Observation of flavor
+change for solar neutrinos, Rev. Mod. Phys. 88 (2016), no. 3 030502.
+[3] Particle Data Group, S. Navas et al., Review of particle physics, Phys. Rev. D 110 (2024),
+no. 3 030001.
+[4] F. Capozzi, W. Giar`e, E. Lisi, A. Marrone, A. Melchiorri, et al., Neutrino masses and mixing:
+Entering the era of subpercent precision, Phys. Rev. D 111 (2025), no. 9 093006, [2503.07752].
+[5] I. Esteban, M. C. Gonzalez-Garcia, M. Maltoni, I. Martinez-Soler, J. P. Pinheiro, et al.,
+NuFit-6.0: updated global analysis of three-flavor neutrino oscillations, JHEP 12 (2024) 216,
+[2410.05380].
+[6] P. F. de Salas, D. V. Forero, S. Gariazzo, P. Mart´ınez-Mirav´e, O. Mena, et al., 2020 global
+reassessment of the neutrino oscillation picture, JHEP 02 (2021) 071, [2006.11237].
+[7] B. Pontecorvo, Mesonium and Antimesonium, Sov. Phys. JETP 6 (1958) 429–431.
+[8] Z. Maki, M. Nakagawa, and S. Sakata, Remarks on the unified model of elementary particles,
+Prog. Theor. Phys. 28 (1962) 870–880.
+[9] B. Pontecorvo, Neutrino Experiments and the Problem of Conservation of Leptonic Charge,
+Sov. Phys. JETP 26 (1968) 984–988.
+[10] KATRIN, M. Aker et al., Direct neutrino-mass measurement with sub-electronvolt sensitivity,
+Nature Phys. 18 (2022), no. 2 160–166, [2105.08533].
+[11] M. Agostini, G. Benato, J. A. Detwiler, J. Men´endez, and F. Vissani, Toward the discovery of
+matter creation with neutrinoless ββ decay, Rev. Mod. Phys. 95 (2023), no. 2 025002,
+[2202.01787].
+[12] KamLAND-Zen, S. Abe et al., Search for Majorana Neutrinos with the Complete
+KamLAND-Zen Dataset, 2406.11438.
+[13] Planck, N. Aghanim et al., Planck 2018 results. VI. Cosmological parameters, Astron.
+Astrophys. 641 (2020) A6, [1807.06209]. [Erratum: Astron.Astrophys. 652, C4 (2021)].
+[14] Hyper-Kamiokande proto-collaboration, K. Abe et al., Hyper-kamiokande design report,
+arXiv preprint (2018) [1805.04163].
+[15] DUNE, B. Abi et al., Deep underground neutrino experiment (dune), far detector technical
+design report, J. Instrum. 15 (2020) T08008, [2002.02967].
+[16] JUNO, F. An et al., Neutrino Physics with JUNO, J. Phys. G 43 (2016), no. 3 030401,
+[1507.05613].
+21
+
+
+[17] JUNO, P. Abusleme et al., Juno physics and detector, Prog. Part. Nucl. Phys. 123 (2022)
+103927, [2104.02565].
+[18] Y.-F. Li, J. Cao, Y. Wang, and L. Zhan, Unambiguous Determination of the Neutrino Mass
+Hierarchy Using Reactor Neutrinos, Phys. Rev. D 88 (2013) 013008, [1303.6733].
+[19] JUNO, A. Abusleme et al., Potential to identify neutrino mass ordering with reactor
+antineutrinos at JUNO, Chin. Phys. C 49 (2025), no. 3 033104, [2405.18008].
+[20] JUNO, A. Abusleme et al., Sub-percent precision measurement of neutrino oscillation
+parameters with JUNO, Chin. Phys. C 46 (2022), no. 12 123001, [2204.13249].
+[21] JUNO, A. Abusleme et al., First measurement of reactor neutrino oscillations at JUNO,
+2511.14593.
+[22] JUNO, A. Abusleme et al., Initial performance results of the JUNO detector, 2511.14590.
+[23] L. Wolfenstein, Neutrino Oscillations in Matter, Phys. Rev. D 17 (1978) 2369–2374.
+[24] S. P. Mikheev and A. Y. Smirnov, Resonant amplification of neutrino oscillations in matter and
+solar neutrino spectroscopy, Nuovo Cim. C 9 (1986) 17–26.
+[25] Y.-F. Li, Y. Wang, and Z.-z. Xing, Terrestrial matter effects on reactor antineutrino oscillations
+at JUNO or RENO-50: how small is small?, Chin. Phys. C 40 (2016), no. 9 091001,
+[1605.00900].
+[26] F. Capozzi, E. Lisi, and A. Marrone, Neutrino mass hierarchy and electron neutrino oscillation
+parameters with one hundred thousand reactor events, Phys. Rev. D 89 (2014), no. 1 013001,
+[1309.1638].
+[27] J. Deng, H. Chen, et al., Rock Physical Properties Characteristics of Typical Uranium Deposits
+in China. Science Press, Beijing, China, 2019. (in Chinese), ISBN: 978-7-03-060301-2.
+[28] Z.-Z. Xing, Interference effects in reactor antineutrino oscillations, 1808.02256.
+[29] V. D. Barger, K. Whisnant, S. Pakvasa, and R. J. N. Phillips, Matter Effects on Three-Neutrino
+Oscillations, Phys. Rev. D 22 (1980) 2718.
+[30] H. W. Zaglauer and K. H. Schwarzer, The Mixing Angles in Matter for Three Generations of
+Neutrinos and the Msw Mechanism, Z. Phys. C 40 (1988) 273.
+[31] V. A. Naumov, Three neutrino oscillations in matter, CP violation and topological phases, Int.
+J. Mod. Phys. D 1 (1992) 379–399.
+[32] S. Toshev, On T violation in matter neutrino oscillations, Mod. Phys. Lett. A 6 (1991) 455–460.
+22
+
+
+[33] Z.-z. Xing, New formulation of matter effects on neutrino mixing and CP violation, Phys. Lett.
+B 487 (2000) 327–333, [hep-ph/0002246].
+[34] T. Ohlsson and H. Snellman, Three flavor neutrino oscillations in matter, J. Math. Phys. 41
+(2000) 2768–2788, [hep-ph/9910546]. [Erratum: J.Math.Phys. 42, 2345 (2001)].
+[35] M. Freund, Analytic approximations for three neutrino oscillation parameters and probabilities
+in matter, Phys. Rev. D 64 (2001) 053003, [hep-ph/0103300].
+[36] H. Zhang and Z.-z. Xing, Leptonic unitarity triangles in matter, Eur. Phys. J. C 41 (2005)
+143–152, [hep-ph/0411183].
+[37] Z.-z. Xing, S. Zhou, and Y.-L. Zhou, Renormalization-Group Equations of Neutrino Masses and
+Flavor Mixing Parameters in Matter, JHEP 05 (2018) 015, [1802.00990].
+[38] E. K. Akhmedov, R. Johansson, M. Lindner, T. Ohlsson, and T. Schwetz, Series expansions for
+three flavor neutrino oscillation probabilities in matter, JHEP 04 (2004) 078,
+[hep-ph/0402175].
+[39] Y.-F. Li and S. Luo, Neutrino Oscillation Probabilities in Matter with Direct and Indirect
+Unitarity Violation in the Lepton Mixing Matrix, Phys. Rev. D 93 (2016), no. 3 033008,
+[1508.00052].
+[40] Z.-z. Xing and J.-y. Zhu, Analytical approximations for matter effects on CP violation in the
+accelerator-based neutrino oscillations with E ≲1 GeV, JHEP 07 (2016) 011, [1603.02002].
+[41] S. Luo, Neutrino Oscillation in Dense Matter, Phys. Rev. D 101 (2020), no. 3 033005,
+[1911.06301].
+[42] X. Wang and S. Zhou, On the properties of the effective Jarlskog invariant for three-flavor
+neutrino oscillations in matter, Nucl. Phys. B 950 (2020) 114867, [1908.07304].
+[43] X. Wang and S. Zhou, Analytical solutions to renormalization-group equations of effective
+neutrino masses and mixing parameters in matter, JHEP 05 (2019) 035, [1901.10882].
+[44] Z.-Z. Xing and J.-Y. Zhu, Sum rules and asymptotic behaviors of neutrino mixing in dense
+matter, Nucl. Phys. B 949 (2019) 114803, [1905.08644].
+[45] J.-y. Zhu, Radiative corrections to the lepton flavor mixing in dense matter, JHEP 05 (2020)
+097, [2002.12182].
+[46] C. Moler and C. V. Loan, Nineteen dubious ways to compute the exponential of a matrix, SIAM
+Review 20 (1978) 801.
+[47] Y.-F. Li, J. Zhang, S. Zhou, and J.-y. Zhu, Looking into Analytical Approximations for
+Three-flavor Neutrino Oscillation Probabilities in Matter, JHEP 12 (2016) 109, [1610.04133].
+23
+
+
+[48] Y.-F. Li, Z.-z. Xing, and J.-y. Zhu, Indirect unitarity violation entangled with matter effects in
+reactor antineutrino oscillations, Phys. Lett. B 782 (2018) 578–588, [1802.04964].
+[49] J. Huang, T. Ohlsson, S. Vihonen, and S. Zhou, Effects of the matter potential at one-loop level
+on neutrino oscillations in long-baseline experiments, Phys. Rev. D 111 (2025), no. 11 116024,
+[2504.15998].
+[50] J. Huang, T. Ohlsson, S. Vihonen, and S. Zhou, One-Loop Effects in the Neutrino Matter
+Potential and Implications for Non-Standard Interactions, 2510.04841.
+[51] J. Huang and S. Zhou, Elastic neutrino-electron scattering at the one-loop level in the standard
+model, Phys. Rev. D 111 (2025), no. 3 033005, [2412.17047].
+[52] Y. Wang, Z.-z. Xing, and S. Zhou, Towards a detection of reactor νe →νµ and νe →ντ
+oscillations with possible CP violation, 2509.00422.
+24

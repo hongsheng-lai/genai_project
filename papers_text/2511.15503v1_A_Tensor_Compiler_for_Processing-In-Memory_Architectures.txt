@@ -1,0 +1,2284 @@
+A Tensor Compiler for
+Processing-In-Memory Architectures
+Peiming Yang∗
+Sankeerth Durvasula∗
+Ivan Fernandez†
+Mohammad Sadrosadati‡
+Onur Mutlu‡
+Gennady Pekhimenko∗
+Christina Giannoula∗§
+∗University of Toronto
+†Barcelona Supercomputing Center
+‡ETH Z¨urich
+§Max Planck Institute for Software Systems
+Abstract—Processing-In-Memory
+(PIM)
+devices
+integrated
+with high-performance Host processors (e.g., GPUs) can acceler-
+ate memory-intensive kernels in Machine Learning (ML) models,
+including Large Language Models (LLMs), by leveraging high
+memory bandwidth at PIM cores. However, Host processors and
+PIM cores require different data layouts: Hosts need consecutive
+elements distributed across DRAM banks, while PIM cores need
+them within local banks. This necessitates data rearrangements
+in ML kernel execution that pose significant performance and
+programmability challenges, further exacerbated by the need to
+support diverse PIM backends. Current compilation approaches
+lack systematic optimization for diverse ML kernels across multi-
+ple PIM backends and may largely ignore data rearrangements
+during compute code optimization. We demonstrate that data
+rearrangements and compute code optimization are interde-
+pendent, and need to be jointly optimized during the tuning
+process. To address this, we design DCC, the first data-centric
+ML compiler for PIM systems that jointly co-optimizes data
+rearrangements and compute code in a unified tuning process.
+DCC integrates a multi-layer PIM abstraction that enables various
+data distribution and processing strategies on different PIM
+backends. DCC enables effective co-optimization by mapping data
+partitioning strategies to compute loop partitions, applying PIM-
+specific code optimizations and leveraging a fast and accurate
+performance prediction model to select optimal configurations.
+Our evaluations in various individual ML kernels demonstrate
+that DCC achieves up to 7.68× speedup (2.7× average) on HBM-
+PIM and up to 13.17× speedup (5.75× average) on AttAcc PIM
+backend over GPU-only execution. In end-to-end LLM inference,
+DCC on AttAcc accelerates GPT-3 and LLaMA-2 by up to 7.71×
+(4.88× average) over GPU.
+I. INTRODUCTION
+Machine Learning (ML) models achieve state-of-the-art re-
+sults in various tasks of everyday applications across domains
+including finance [1], [2], retail [3], healthcare [4], [5], and au-
+tonomous systems [6], [7]. These models process increasingly
+large datasets and comprise both compute-intensive kernels
+such as general matrix-matrix multiplication (GEMM) and
+convolutions, as well as memory-intensive kernels such as gen-
+eral matrix-vector multiplication (GEMV) and element-wise
+operations. For instance, Large Language Models (LLMs) [8],
+[9] contain both compute-intensive fully-connected layers with
+GEMM kernels and memory-intensive attention layers with
+GEMV kernels. However, when executed on processor-centric
+CPU/GPU systems, memory-intensive ML kernels are sig-
+nificantly bottlenecked by data movement between off-chip
+memory and processors [10]–[14]. Such memory bottlenecks
+increasingly limit end-to-end ML execution performance.
+Processing-In-Memory (PIM) [15]–[19] has emerged as a
+promising paradigm to alleviate data movement bottlenecks by
+placing low-power processing units (PIM cores) near memory
+arrays. Numerous works [11]–[14], [20]–[31] demonstrate that
+PIM can provide significant performance benefits for memory-
+intensive ML kernels by reducing data movement costs.
+A PIM system includes multiple PIM-enabled memory
+devices connected to a high-performance Host processor (e.g.,
+CPU, GPU, TPU). Near-bank PIM devices tightly couple a
+PIM core with one or few DRAM banks, exploiting bank-
+level parallelism to enable large aggregate memory bandwidth.
+Each PIM core can only access data from its local bank(s).
+PIM cores of a device may not be able to directly com-
+municate with each other, and inter-core communication can
+happen via the Host. Manufacturers have already started to
+commercialize near-bank PIM designs. UPMEM PIM [11],
+[12], [19] is the first commercialized near-bank PIM device,
+and can be integrated with CPUs. Samsung HBM-PIM [18]
+and SK Hynix GDDR6-AiM [16], [17] PIM devices have
+been prototyped and validated, and can be integrated with
+GPUs. These PIM systems can enable heterogeneous ML
+execution, where memory-intensive kernels run on PIM cores
+and compute-intensive kernels run on Host processor.
+Host and PIM cores require fundamentally different data
+layouts to exploit large available memory bandwidth. Host
+distributes consecutive elements across multiple DRAM banks
+to exploit bank-level parallelism, and enables large bandwidth
+when accessing data at cache line granularity. In contrast,
+a PIM core can access data only from its local bank(s),
+thus in PIM consecutive elements must be placed within
+the same bank to enable efficient multi-element accesses and
+maximize local bandwidth. Consequently, the execution of a
+PIM kernel has three steps: (1) input data rearrangements to
+place consecutive elements within the same banks for local
+PIM processing, (2) computation on PIM cores, and (3) output
+data rearrangements to merge partial results produced from
+step (2) on PIM cores or prepare output data for Host access by
+redistributing consecutive elements across banks. These data
+rearrangements are typically performed via the Host memory
+bus (outside PIM devices), and thus incur large data movement
+1
+arXiv:2511.15503v1  [cs.AR]  19 Nov 2025
+
+
+costs that can dominate end-to-end performance [11]–[14].
+Therefore, programming PIM devices is a challenging
+task [11]–[14], [32]. Programmers must manually craft data re-
+arrangement strategies that balance data movement costs with
+computation efficiency, which requires deep understanding of
+both the PIM system and the kernel-specific access patterns of
+each ML operator. This also demands expertise in low-level
+programming across multiple PIM backends [11]–[14], [16]–
+[31], which may expose different programming interfaces and
+optimization capabilities. This complexity necessitates compi-
+lation tools that automatically and intelligently generate and
+optimize data rearrangements and compute code to enhance
+programmability and minimize end-to-end execution time.
+Compilation support with performance optimization capa-
+bilities for PIM systems remains in early stages. Existing
+compilation works for PIM [14], [31]–[34] lack systematic
+optimization and auto-tuning for diverse ML kernels and/or
+support for multiple PIM backends. They largely ignore data
+rearrangement costs or target only UPMEM PIM. However,
+UPMEM PIM is designed for CPU systems using DDR4 in-
+terfaces, has limited hardware multiplication support and lacks
+floating-point arithmetic support, making it unsuitable for ML
+workloads that typically require GPU-PIM co-execution [13],
+[20], [25], [26], [29] and native floating-point operations.
+ATiM [31] is a search-based tensor compiler that optimizes
+diverse ML kernels, but supports only UPMEM PIM, be-
+ing limited to CPU-PIM co-execution. More critically, ATiM
+follows a compute-centric approach: it optimizes compute
+code without accounting for data rearrangement costs during
+the compute generation step. However, as we demonstrate in
+§II-B, compute code transformations and data rearrangements
+are interdependent. Optimizing them in isolation yields sub-
+optimal performance (See Fig. 2): a compute transformation
+that appears efficient in isolation may require expensive data
+rearrangements, while a less efficient compute transformation
+discarded during compute optimization could enable cheaper
+data rearrangements. Achieving optimal performance requires
+balancing both costs during tuning rather than optimizing them
+in isolation.
+To this end, we propose DCC, a data-centric ML compiler
+for PIM systems that elevates data rearrangements at the
+core of the tuning process, jointly co-optimizing them with
+compute code to improve end-to-end ML kernel performance
+and enhance programmability. DCC comprises four key com-
+ponents. First, we propose a generic multi-layer abstraction
+that maps PIM memory hierarchy into a compute hierarchy,
+where PIM cores form PIM groups. This abstraction decouples
+the compiler from backend-specific semantics, enabling DCC
+to support multiple PIM backends and explore diverse data
+distribution and data processing strategies. Second, we design
+a data-centric schedule generator that constructs all candidate
+data tensor partitions of an ML kernel across PIM resources
+and maps them to compute loop partitions. This mapping
+enables comprehensive co-optimization of data rearrangements
+with compute code. Third, we integrate a PIM-specific code
+optimizer that applies data rearrangement and compute code
+optimizations tailored for PIM systems. This optimizer can be
+extended with additional PIM-specific optimizations. Fourth,
+we design a learning-based coupled predictor that jointly
+evaluates data rearrangement and compute code times, and se-
+lects the best-performing end-to-end kernel configuration. This
+predictor provides fast and accurate performance estimates on
+diverse PIM backends and ML kernels.
+We evaluate DCC across diverse ML kernels, tensor sizes,
+and models using two state-of-the-art PIM backends, HBM-
+PIM [18] and AttAcc [20]. In individual ML kernels, DCC
+achieves up to 7.68× speedup (2.7× average) on HBM-PIM
+and up to 13.17× speedup (5.75× average) on AttAcc com-
+pared to GPU-only execution. In end-to-end LLM inference
+on AttAcc, DCC achieves up to 7.71× speedup (4.88× average)
+over GPU and up to 2.74× speedup (1.86× average) over
+AttAcc’s original implementations.
+Overall, we make the following contributions:
+• We demonstrate that data rearrangements and compute code
+must be jointly optimized for ML kernels on PIM architec-
+tures, and propose DCC, the first data-centric ML compiler
+that co-optimizes both in a unified tuning process.
+• We design a multi-layer abstraction that maps PIM memory
+hierarchy into a compute hierarchy, and propose a schedule
+generator that constructs data tensor partitions and maps
+them to compute loop partitions. We integrate PIM-aware
+optimizations for data rearrangements and compute code,
+and employ a learning-based coupled predictor to select
+optimal end-to-end execution time configurations.
+• We evaluate DCC on two state-of-the-art PIM backends, and
+show that DCC achieves significant performance improve-
+ments for diverse ML kernels, tensor sizes, and LLMs.
+II. BACKGROUND AND MOTIVATION
+A. Processing-In-Memory (PIM) Architectures
+Processing-In-Memory (PIM) [12], [16]–[18] places low-
+power processing units near memory arrays, and can alleviate
+data movement bottlenecks in processor-centric CPU/GPU
+systems. Near-bank PIM designs tightly couple each core with
+one (or a few) DRAM banks that can access data from its local
+bank(s). Near-bank PIM provides larger aggregate memory
+bandwidth and parallelism compared to near-rank PIM, where
+cores are placed at DRAM buffer chip. UPMEM PIM [12],
+[19] is the first commercialized PIM system. Samsung HBM-
+PIM [18] and SK Hynix GDDR6-AiM [16], [17] have been
+prototyped and validated in real systems.
+UPMEM PIM is built on DDR4 interfaces for CPU systems,
+has limited hardware multiplication support and no floating-
+point arithmetic units [12]. Due to these limitations, UP-
+MEM PIM with CPU-PIM co-execution in ML workloads
+cannot typically outperform GPU-only execution [12]–[14].
+In contrast, Samsung HBM-PIM [18] and SK Hynix GDDR6-
+AiM [16], [17] are 3D memory devices that integrate with
+a high-performance xPU processor such as GPU and TPU,
+provide hardware multiplication and floating-point units (e.g.,
+FP16), thus making them suitable for ML acceleration. Build-
+ing on these industry products, numerous research works [20]–
+2
+
+
+[30] explore enhanced PIM core microarchitectures to further
+accelerate ML kernels. In this work, we target near-bank PIM
+devices that can be integrated with GPUs/TPUs, have hardware
+multiplication support and/or floating-point arithmetic units.
+We find common characteristics in existing PIM de-
+signs [16]–[30], as shown in Fig. 1. First, a high-performance
+processor, Host xPU (e.g., GPU, TPU) with on-chip cache
+hierarchy and Host memory typically connects to multiple PIM
+devices. Second, each PIM device contains multiple processing
+unit (PIM cores) that can be organized into PIM groups.
+Each PIM core (e.g., a SIMD unit, GEMV unit or other
+specialized processing units) has exclusive access to one or
+few local memory banks, enabling larger aggregate memory
+bandwidth and lower latency than Host cores have. Third,
+PIM cores have register files or scratchpad data memory. They
+may support SIMD execution, hardware multiplication, low-
+precision floating-point units or other specialized units. Fourth,
+the Host sends compute instructions that are stored as PIM
+instructions in register files (or instruction cache) of PIM cores.
+PIM cores execute PIM instructions to move data from/to their
+local banks to/from registers and/or perform computations
+(e.g., MUL, ADD) using data stored in registers. Fifth, PIM
+designs may integrate specialized compute units per PIM core
+group for specific ML kernels. For example, AttAcc [20]
+provides hardware softmax and accumulator support per PIM
+core group, enabling full attention execution on the PIM side.
+Finally, PIM cores may not be able to directly communicate
+with each other, and communication between them typically
+happens via the Host memory bus.
+PIM Device
+PIM Group
+…
+PIM Group
+Core 1
+Core 2
+Core 3
+Bank
+Bank
+Bank
+Specialized compute units per group 
+High-Performance Processor 
+Host xPU
+(e.g., GPU, TPU)
+PIM Device
+…
+data 
+rearrangements
+Host 
+data layout
+PIM 
+data layout
+1
+3
+2
+PIM Core
+Controller
+MUL 
+unit
+Registers
+(or data 
+memory)
+Other specialized units
+Host Memory Space
+Bank
+Bank
+Bank
+Fig. 1: Near-bank PIM architecture and kernel execution
+workflow showing (1) input rearrangement, (2) computation
+execution, and (3) output rearrangement steps.
+Host xPU and PIM cores require different data layouts to
+fully leverage the available memory bandwidth, necessitating
+software-managed data rearrangements (Fig. 1). Host xPU
+distributes consecutive elements across multiple DRAM banks
+to exploit bank-level parallelism for large bandwidth, when
+accessing multiple elements as a cache line. Instead, PIM cores
+require consecutive elements within the same bank: since each
+core accesses data only from its local bank(s), maximizing
+local bandwidth requires placing consecutive elements in the
+same bank to efficiently fetch multiple elements at once as a
+block. Thus, PIM kernel execution has three steps (Fig. 1): (1)
+input data rearrangements to place consecutive elements within
+the same banks for local PIM core processing, (2) computation
+execution on PIM cores, and (3) output data rearrangements to
+either merge partial results from step (2) on PIM cores or pre-
+pare output data for Host access by redistributing consecutive
+elements across multiple banks. Data rearrangements in steps
+(1) and (3) are needed even if data is mapped to the same bank,
+that is used for either Host or PIM access. They are typically
+performed via the Host memory bus (outside PIM devices),
+thus incurring significant data movement overheads.
+B. Need for Data-Centric ML Compiler Support for PIM
+PIM software support remains in early stages, with limited
+automation and compilation frameworks. SimplePIM [32] op-
+timizes only 1D tensor kernels on UPMEM PIM. PIM-DL [14]
+effectively supports only the GEMM kernel. CINM [33]
+integrates multi-level intermediate representations to lower
+abstractions to PIM, again targeting UPMEM. PIMFlow [34]
+supports only convolution kernels, automating kernel offload-
+ing to GPU or PIM, but without kernel-level tuning optimiza-
+tions and largely ignoring data rearrangement costs. These
+works lack systematic optimization and auto-tuning for diverse
+ML kernels and support for multiple PIM backends. Moreover,
+most of them target UPMEM PIM, a CPU-integrated DDR4-
+based device that has no floating-point support. This makes
+UPMEM unsuitable for ML models, where compute-intensive
+kernels typically run on GPUs/TPUs and memory-intensive
+kernels on PIM cores may need floating-point arithmetic.
+ATiM [31] is a search-based tensor compiler designed for
+UPMEM PIM. ATiM optimizes ML workloads on CPU-PIM
+systems, however, CPU-PIM co-execution typically performs
+worse than GPU-only execution [12], [13]. In contrast, GPU-
+PIM co-execution can deliver substantial performance benefits
+in ML [20], [25], [26], [29] over GPU-only. Although ATiM
+considers data rearrangement costs, it could not provide opti-
+mal performance due to its compute-centric tuning approach.
+ATiM has a three-step sequential process: (i) uses TVM [35] to
+find and fix a set of templates for compute code generation, (ii)
+generates data rearrangements needed for each template using
+UPMEM-specific optimizations, and (iii) searches within this
+fixed set of templates to find the best-performing configura-
+tion. This sequential approach is suboptimal because it treats
+compute code generation and data rearrangements as indepen-
+dent problems, while they are fundamentally interdependent.
+A compute schedule that appears efficient in isolation may
+require expensive data rearrangements, while a slightly less
+efficient schedule might enable cheaper data rearrangement
+costs, yielding better end-to-end performance. By fixing com-
+pute templates before generating data rearrangements, ATiM
+explores only a restricted search space and cannot discover
+configurations where alternative compute schedules paired
+with different data layouts could minimize total time.
+Fig. 2 shows the breakdown of compute (step (2) in Fig. 1)
+and data rearrangement (steps (1) and (3) in Fig. 1) time for the
+Reduction and GEMV kernel running on a PIM system [20]
+(detailed in §V) using various matrix sizes, comparing a TVM-
+based [35] compilation approach against a manually-tuned
+best-performing implementation. For the TVM-based point,
+we tune TVM for Reduction and GEMV using performance
+profiling on the evaluated PIM backend. TVM selects the
+3
+
+
+best-performing compute code templates based on its cost
+model. For each template, we generate the optimized data
+rearrangements and measure end-to-end performance (com-
+pute plus data rearrangement). We present the configuration
+with the best performance among TVM’s selected templates.
+For the manually-tuned best-performing implementation, we
+manually selected some promising data partitioning strategies
+across PIM cores, and deploy optimized compute code for
+all of them. Then, we evaluate all of them and present the
+configuration that achieves the minimum total execution time.
+0.00
+0.25
+0.50
+0.75
+1.00
+Normalized Time
+1.40
+1.62
+1.62
+1.04
+1.17
+1.18
+1.12
+1.09
+1.26
+2048
+4096
+2048
+4096
+256x2048 256x4096 256x2048 256x4096 Geomean
+Batch Size = 16
+Batch Size = 28
+Batch Size = 16
+Batch Size = 28
+T
+B
+T
+B
+T
+B
+T
+B
+T
+B
+T
+B
+T
+B
+T
+B
+T
+B
+Reduction
+GEMV
+Compute Time
+Data Rearrangement Time
+Fig. 2: Normalized breakdown of compute and data rearrange-
+ment time in Reduction and GEMV comparing TVM-based
+compilation scheme (T) and a manually-tuned best-performing
+end-to-end implementation (B), at various matrix sizes. The
+numbers on each bar show speedup of B over T.
+We make two observations. First, the TVM-based approach
+has suboptimal performance, being on average 1.26× worse
+than the manually-best implementation. This is because TVM
+approach is compute-centric: it selects compute code templates
+that minimize compute time, while largely ignoring data rear-
+rangement costs. Consequently, data rearrangements contribute
+64.68% of the total kernel time on average. Second, while
+the manually-tuned implementation has 1.09× worse compute
+time than TVM-based approach, it reduces data rearrangement
+costs by 1.62× compared to TVM-based scheme. It provides
+better trade-offs that result in better end-to-end performance.
+Overall, these results demonstrate that compute schedules and
+data rearrangements are interdependent, and optimal perfor-
+mance requires balancing both costs.
+III. DCC: OVERVIEW
+DCC is the first data-centric ML compiler for PIM archi-
+tectures that co-optimizes data rearrangement strategies with
+compute code optimization in a unified tuning process. DCC
+supports diverse ML kernels and multiple PIM backends.
+Fig. 3 presents a high-level overview of DCC components.
+Users develop ML kernels using the DCC API, which enables
+execution on target PIM backends. At compile time, DCC
+analyzes ML kernels in the model and trains its coupled
+predictor. At runtime, once input tensor dimensions are known
+(e.g., token counts in LLMs), DCC uses its pre-trained coupled
+predictor to generate optimized schedules for all PIM-running
+kernels. The schedules orchestrate data loading to the target
+PIM backend, computation on PIM cores, and final output data
+with the appropriate layout. DCC has four components.
+1. Multi-Layer Abstraction. We design a general multi-layer
+abstraction for near-bank PIM systems, where PIM cores
+form PIM groups, that enables DCC to reason about data
+distribution across memory banks and data processing on
+Layer 1
+QKV
+Generation
+Attention
+Projection
+Feed-
+Forward
+QKV
+Generation
+Attention
+Projection
+DCC
+Feed-
+Forward
+…
+Layer 2
+3. PIM-Specific 
+Code Optimizer
+2. Data-Centric 
+Schedule
+Generator
+high-level
+tiling drafts
+4. Coupled Predictor
+1. Multi-Layer Abstraction
+core-level data-tiles and 
+compute-tiles
+predicted best-
+performing schedule
+HBM-PIM
+SK Hynix 
+AiM
+AttAcc
+Other PIM 
+Backend …
+backend & 
+profiling 
+information
+ML Kernel 
+with DCC API
+ML Model
+Fig. 3: DCC overview with multiple PIM backend support.
+PIM groups and cores. Our abstraction (i) enables coarse-
+grained optimizations at the PIM group level and fine-grained
+optimizations at the PIM core level, and (ii) decouples the
+compiler from backend-specific semantics, allowing DCC to
+support multiple current and future PIM backends.
+2. Data-Centric Schedule Generator. We follow a data-first
+scheduling strategy that first generates all candidate tensor
+data partitions across PIM resources, and then maps them to
+corresponding loop partitions in the compute code, creating
+tiling drafts. This approach enables effective co-optimization
+of data rearrangements with compute code.
+3.
+PIM-Specific
+Code
+Optimizer. We further optimize
+data rearrangement and compute code performance of tiling
+drafts through two PIM-specific optimizations. This optimizer
+can be easily extended with additional backend-agnostic
+optimizations or backend-specific passes to create specialized
+compiler variants for particular PIM backends.
+4. Coupled Predictor. We use a learning-based predictor that
+models the interdependence between data rearrangement costs
+and compute efficiency and selects the optimal configuration
+that minimizes end-to-end time. It can provide fast and
+accurate performance predictions on various PIM backends.
+IV. DCC: DETAILED DESIGN
+A. Multi-Layer Abstraction for Near-Bank PIM Architectures
+To efficiently support multiple PIM backends, we introduce
+a general multi-layer abstraction, which maps the traditional
+memory hierarchy into a compute hierarchy, allowing DCC
+to configure where and how each ML tensor is distributed
+and processed, and cover various PIM backends [12], [16]–
+[30]. These PIM devices have similar logical organization:
+they place one PIM core (e.g., specialized acceleration or
+floating point unit) close to one or a few memory banks.
+Multiple PIM cores can form PIM groups (e.g., cores of the
+same memory channel or the same DRAM rank can form
+a group), and the memory bus controller of Host xPU can
+serve as a controller for all PIM groups. PIM devices may
+include specialized compute units for each PIM core group
+(Fig. 1) that can access data from multiple memory banks
+within the same PIM group. Although the PIM core may have
+different compute units across different PIM backends, the
+overall computational model remains consistent across PIM
+backends. Key differences lie primarily in hardware circuitry
+design and compute units placement rather than execution
+4
+
+
+semantics. Any current or future PIM system that satisfies our
+proposed multi-layer abstraction can be seamlessly supported
+by DCC for ML kernel acceleration. Our abstraction has three
+levels. There are two levels within PIM device.
+(1) System Level. Our system-level PIM abstraction consists
+of three major components (see Fig. 1): the Host xPU, Host
+memory space and the PIM devices. The Host xPU (e.g.,
+CPU, GPU, TPU) orchestrates global execution control, data
+rearrangements and kernel scheduling. PIM devices perform
+near-memory computation. The Host memory space is an
+address space that follows the Host-side data layout, accessible
+through standard DRAM commands (e.g., LD/ST). It maps to
+physical addresses in PIM-enabled or normal memory banks.
+(2) PIM Group Level. A PIM group represents multiple
+PIM cores (and their local memory banks) belonging to the
+same memory channel or rank, depending on the device
+architecture. A PIM group may include specialized compute
+units that access data from all banks within the group and/or
+buffers to temporarily store group-wide data. Each group is
+managed by the Host xPU memory controller, which may
+issue group-level instructions. A group-level instruction can be
+a read/write/compute command (i) that broadcasts to all cores
+within the group, typically using identical bank address offsets,
+or (ii) is executed by the specialized compute units of the
+group. In the latter case, the instruction may access data from
+shared group-wide buffers or merge partial results produced by
+PIM cores of the group. Each group has a dedicated memory
+bus to the Host xPU, enabling DCC to schedule parallel
+data rearrangements across multiple PIM groups. Host can
+coordinate global data movements across groups or between
+Host and PIM memory. By scheduling coarse-grained group-
+level instructions broadcast to all cores within a group, DCC
+can reduce instruction traffic on the memory controller, and
+enables parallel operations on the group’s cores.
+(3) PIM Core Level. A PIM core represents the processing
+unit and its local memory bank(s). A core can be a SIMD
+unit or floating-point unit or any specialized compute unit.
+It may have a scratchpad memory or register files to tem-
+porarily store data for processing. If the Host memory space
+is mapped to PIM banks, a portion of each bank serves as
+Host memory, and the PIM backend provides address offsets
+for the PIM mapping. PIM cores are controlled via bank-level
+instructions or broadcast group-level instructions sent by the
+Host memory controller, or instructions stored in dedicated
+instruction memory per core. By scheduling fine-grained bank-
+level instructions that allow independent computation and data
+flow at cores, DCC enables optimizations on individual cores.
+This abstraction enables a PIM device to operate under
+either group-level or bank-level control, providing a unified yet
+flexible interface for near-bank computation. It enables DCC to
+optimize at multiple granularities: coarse-grained at the PIM
+group level (e.g., effectively partitioning data across groups or
+scheduling computation on specialized units of a group) and
+fine-grained at the core level (e.g., optimizing memory access
+within a bank or local data layout and computation). Moreover,
+our abstraction decouples DCC from hardware-specific instruc-
+tion semantics, thus enabling DCC to easily support multiple
+PIM backends that conform to this abstraction.
+B. Data-Centric Schedule Generation
+Traditional ML compilers [35]–[45] use loop transforma-
+tions to divide computation into blocks, and improve data
+locality. DCC adopts a data-first schedule strategy that inverts
+this process: it first generates all candidate partitions of data
+tensors (called data tiles) across PIM groups and cores, then
+maps data tiles to their corresponding loop partitions in the
+compute code (called compute tiles), optimizes each tile’s
+performance, and finally uses its predictor to evaluate all data-
+compute tile mappings and selects the best-performing one.
+To find the optimal data-compute schedule for a given kernel
+and hardware configuration, DCC generates a comprehensive
+set of tiling drafts, each representing a potential mapping
+between tensor sizes, computation loops, and PIM hardware
+resources. The generation process includes four stages shown
+in Fig. 4 for an example ML kernel and explained next.
+Data-Centric Schedule Generator
+1. Dimension Set Construction
+2. Data-Tile Construction
+3. Draft Pruning
+4. Data-Tile to Compute-Tile Mappings
+def PIM_kernel(A[12][16], B[8][16], C[12][16]):
+for b in range(11):
+for i in range(8):
+for k in range(16):
+A[b][i] = A[b+1][i*2] + B[i][k] * C[b][k]
+# 6 tensor dimensions 
+[A0=12, A1=16, B0=8, B1=16, C0=12, C1=16]
+# 3 complex dimension sets
+[(A0={b, b+1}, C0={b}), (A1={i*2}, B0={i}), (B1={k}, C1={k})]
+# Drafts before pruning with 2 groups, 4 cores per group
+1. [[1, 1, A0
+b+1], [1, 1, A1
+i*2],  [1, 1, B1
+k]]
+2. [[2, 1, A0
+b],     [1, 1, A1
+i*2],  [1, 4, B1
+k]] #pruned by rule 2
+3. [[2, 2, A0
+b],     [1, 2, A1
+i*2],  [1, 1, B1
+k]]
+4. [[2, 3, A0
+b],     [1, 1, A1
+i*2],  [1, 1, B1
+k]] 
+5. [[2, 4, C0
+b],     [1, 1, A1
+i*2],  [1, 1, B1
+k]] #pruned by rule 1
+6. [[2, 4, A0
+b],     [1, 1, A1
+i*2],  [1, 1, B1
+k]] #pruned by rule 3
+# Drafts after pruning = {1, 3, 4, …}
+# For draft 3, we explore 2 strategies:
+3.Mapping1:    G0B0: [(A[0:3][0:3], ...), (b ∈{0,1, 2})], ... 
+OR 3.Mapping2: G0B0: [(A[0:3][0], A[0:3][2], ...), (b ∈{0,1, 2})], ... 
+Coupled Predictor
+PIM-Specific Code Optimizer
+tiling drafts
+…
+tensor reference of A
+reference set of A0
+reference set of A1
+A[b][i] or A[b+1][i*2]
+{b, b+1}
+{i, i*2}
+a complex dimension set
+A0
+b+1
+representative mapping of A0
+core-level data-tile
+core-level compute-tile
+A0
+A1
+Fig. 4: Example schedule generation process for GEMV.
+1. Dimension Set Construction. To jointly co-optimize
+compute-data, we need to correlate the data tensors with the
+compute code. For a k-dimensional tensor A, we map its
+dimensions A0, A1, ... Ak to the compute code: we leverage
+loop variables as intermediaries to associate tensor dimensions
+to indexing functions as dimension sets. Specifically, for a
+tensor A with tensor reference A[b+1][i*2], where A0 is the
+first dimension and A1 is the second dimension, we use
+the variables and constants to build mapping functions for
+each dimension: e.g., the mapping functions F(b)=b+1 and
+F(i)=i*2 are for dimensions A0 and A1, respectively. A
+tensor may have multiple tensor references in the compute
+code, e.g., tensor A in Fig. 4 has two references A[b][i] and
+A[b+1][i*2], creating multiple mapping functions for the same
+tensor dimension. The dimension A0 is associated with both
+F(b)=b and F(b)=b+1. We build all mapping functions for
+each tensor dimension and collect them into a reference set.
+The reference set for dimension A0 is {b, b+1}, and for A1 is
+{i, i*2}. The reference set for the tensor dimension C0 is {b},
+and for C1 is {k}. When two or more tensor dimensions share
+the same loop variable in their reference sets, they are grouped
+into a complex dimension set. For example, dimensions A0
+and C0 both contain variable b in their reference sets, so we
+5
+
+
+group them as (A0={b, b+1}, C0={b}) to be processed jointly,
+since these dimensions must share the same data tile and
+compute tiles. Tensor dimensions that do not share variables
+with any other dimension form simpler dimension sets.
+2. Data-Tile Construction. We explore all candidate data
+tile options through exhaustive depth-first search with mem-
+oization to construct data tiles for each dimension set. For
+the i-th dimension set among n dimension sets, given k
+available PIM groups and m available cores per group,
+we try all possible PIM allocations, i.e., [1, k] PIM groups
+and [1, m] cores per group. The available PIM groups and
+cores for the (i+1)-th dimension set are computed recur-
+sively as avail resourcesi+1=
+avail resourcesi
+allocated resourcesi . Memoiza-
+tion caches all valid allocation solutions for each subproblem,
+enabling reuse when the same PIM resource configuration
+recurs during search. Once the allocation of PIM resources
+is done for all dimension sets, we create multiple tiling drafts
+as follows. Each draft has n parts, one for each dimension set.
+Each part includes three parameters: [the number of groups,
+the number of cores, a representative mapping]. The represen-
+tative mapping is an assignment of a mapping function (e.g.,
+b+1) to a tensor dimension (e.g., A0). We create drafts via
+exhaustive search for all possible assignments of representative
+mappings for a given dimension set. For instance, in Fig. 4,
+the first draft has three parts for its three dimension sets. The
+first part is [1, 1, Ab+1
+0
+], which represents 1 PIM group, 1
+core per group, and the representative mapping A0=b+1. The
+second part [1, 1, Ai∗2
+1 ] represents 1 group, 1 core per group,
+and the representative mapping A1=i*2. Similarly, the third
+part is [1, 1, Bk
+1]. When this step finishes, we have generated
+all possible tiling drafts for all possible data tiles.
+3. Draft Pruning. DCC applies pruning rules to eliminate
+unpromising tiling drafts and reduce tuning time, while main-
+taining high performance. Rule 1. We remove redundant tiling
+drafts that have the same data tiles and equivalent representa-
+tive mappings for all dimension sets. In Fig. 4, the 5th draft
+[[2, 4, Cb
+0]...] and the 6th draft [[2, 4, Ab
+0]...] are redundant. In
+their first part (relates to the first dimension set), they have the
+same data tile, i.e., 2 PIM groups and 4 cores per group, and
+equivalent representative mappings, i.e., their representative
+mappings Cb
+0 and Ab
+0 use the same mapping function F(b)=b,
+thus they relate to identical compute tile. The second and
+third parts of these tiling drafts are identical. Thus, one of
+these two drafts, i.e., the 5th draft, is removed. Rule 2. PIM
+backends [18], [20], [25], [27] support multi-data instructions
+(e.g., SIMD-style instructions) that enable PIM cores to fully
+leverage the large memory bandwidth available to their local
+bank(s). For example, HBM-PIM [18] supports 16-way SIMD
+instructions. In a PIM backend with d-way multi-data instruc-
+tion support, the draft pruner speculatively eliminates drafts
+where the length of the dimension set assigned to a PIM core
+is not a multiple of d: these drafts cannot fully utilize the core’s
+local bandwidth and hardware datapaths designed for d-way
+execution. In Fig. 4, let us assume a PIM backend with 16-way
+MUL instructions, and consider the dimension set (B1={k},
+C1={k}) for the computation B[i][k] × C[b][k]. The 2nd draft
+allocates 4 cores to dimensions B1 and C1 that are both of
+size 16, resulting in 4 elements per core. Since 4 elements
+per core are not a multiple of the 16-way MUL instruction
+requirement, this draft is pruned. If all drafts fail to satisfy
+the d-way alignment requirement, or if the PIM backend does
+not support multi-data instructions, DCC skips this pruning
+rule. Rule 3. Within a PIM group, execution performance is
+primarily determined by the core of the group that performs
+worse. Thus, if there are drafts of multiple PIM groups and for
+each group they have the same worst per-core performance,
+only one draft needs to be kept, while others are pruned.
+To detect this, we quickly estimate the per-core performance
+for each PIM group of the tiling draft based on the length
+of the dimension set assigned to each core. Then, we keep
+the core with the largest length for a representative mapping
+as the worst performance for that group. If multiple drafts
+have the same worst performance for all their PIM groups,
+only one of them is kept. In Fig. 4, the 4th and 6th drafts
+have two groups for the first dimension set (A0={b, b+1},
+C0={b}) and the largest length for the representative mapping
+of both groups in both drafts is the same: in the 4th draft
+is round(
+A0
+groups×cores)=round( 12
+2×3)=2 and in the 6th draft is
+round(
+A0
+groups×cores)=round( 12
+2×4)=2. The other dimension sets
+of 4th and 6th drafts also have the same per-core performance
+for all groups. Thus, one draft, i.e., the 6th draft is pruned.
+4. Data-Tile to Compute-Tile Mappings. Once the drafts are
+pruned, DCC constructs core-level data-tiles and maps them
+to core-level compute-tiles. The current drafts include only
+the high-level tiling (number of groups, and cores per group)
+of the representative mapping of all dimension sets, but we
+need to (1) lower the high-level tiling to core-level data-tile,
+and (2) map the core-level data-tile to core-level compute-tile.
+(1) For each dimension set, given the high-level tiling, we
+define the data-tile of a representative mapping for each core
+j of a PIM group i as RGiBj. In Fig. 4, the first part of
+the 3rd draft [2, 2 ,Ab
+0] on the dimension set (A0={b,b+1},
+C0={b}) has tiled size
+A0
+groups×cores= 12
+2×2=3 for the represen-
+tative mapping Ab
+0. Thus, the data-tile on the first dimension
+set for the first PIM core B0 of the group G0 is G0B0=A[0:3].
+We similarly calculate all data-tiles for all dimension sets for
+each core.
+(2) For each dimension set, given the core-level data-tile of
+a representative mapping RGiBj and the assigned mapping
+function F(b), we map the data-tile to compute-tile for each
+core by calculating the loop range of the variable b. The loop
+range is a set that includes all the values of b that satisfy
+F(b) ∈RGiBj. In Fig. 4, for the 3rd draft with the RG0B0
+from step (1) and the mapping function F(b)=b, the loop range
+of the variable b is {0, 1, 2}. Similarly, we calculate all loop
+ranges for all variables as the compute-tiles for all cores.
+Once the compute-tile for each core is determined, DCC
+finds all necessary data indices of all tensors at core-level by
+iterating through loop variable values. When necessary indices
+of a tensor are non-contiguous in a dimension, DCC finalizes
+the necessary tensor data using two alternative strategies:
+6
+
+
+(i) expands the data indices of this dimension to cover a
+contiguous range, adding the missing or straddling values (e.g.,
+in Fig. 4 in 3.Mapping1 the indices of A1 is expanded from {0,
+2} to [0:3]), and (ii) keeps only the necessary indices (e.g., in
+3.Mapping2 the index set of A1 is {0, 2} and is kept as it is).
+These two alternative approaches are two different possible
+distribution strategies for the irregular indices, so that DCC
+selects the best-performing distribution strategy.
+C. PIM-Specific Code Optimizer
+Once tiling drafts are generated, data has been mapped
+across PIM banks and compute loop partitions have been
+mapped to PIM cores. DCC then applies a PIM-specific
+code optimizer for each tiling draft that further optimizes
+data rearrangements and compute code execution, exploiting
+common architectural characteristics of PIM systems.
+I) Data Rearrangement Optimization. Host and PIM devices
+require different data distributions to achieve high perfor-
+mance. In Host memory, contiguous data needs to be dis-
+tributed across multiple memory channels to exploit channel-
+level parallelism. For example, on a two-channel CPU, a 1KB
+block is divided into 16 cache lines (indexed 0-15), with odd-
+indexed lines routed to one channel and even-indexed lines to
+the other channel. This enables parallel sequential reads across
+multiple memory channels. Instead, PIM devices require con-
+tiguous data to be stored in a single memory bank, i.e., using
+one single memory channel for writes, since each PIM core
+can only process data stored in its local bank(s). This creates
+the following data movement challenge: (i) reading contiguous
+data sequentially from Host memory exploits Host channel
+parallelism, but writes to only one PIM memory channel,
+underutilizing PIM bandwidth, while instead (ii) using mul-
+tiple PIM channels for parallel writes requires simultaneous
+reads from non-contiguous Host addresses, potentially causing
+Host channel conflicts and degrading read performance. To
+enable channel parallelism for both Host reads and PIM writes,
+DCC exploits controllable on-chip memory (e.g., GPU shared
+memory) to reorganize data within the Host. For a PIM device
+with N channels, the compiler calculates the data block size
+as B =
+on-chip memory size
+N
+. DCC then serially reads N blocks
+of size B from Host memory to on-chip memory, followed
+by parallel write operations that distribute these blocks across
+all N PIM channels simultaneously. This approach transforms
+data movement into N sequential read operations from Host
+channels and N parallel writes to PIM channels, leveraging
+channel parallelism in both reads and writes. If there is no
+controllable on-chip memory in the system (e.g., on CPUs),
+DCC performs data rearrangement using the PIM backend’s
+default data copy or DMA interfaces. For PIM backends with
+specialized layout constrains (e.g., alignment or interleaving
+requirements), DCC apply additional reorganization passes.
+II) Compute Code Optimization. PIM backends [16]–[18],
+[20] can use specialized DRAM commands to control compu-
+tation. However, when all PIM cores need to perform compu-
+tation in parallel, the Host memory controller must issue sig-
+nificantly more commands than in conventional DRAM. The
+limited memory bus bandwidth and the controller constrain the
+number of commands that can be issued per cycle, creating a
+control bottleneck. To address this, PIM backends [16]–[18],
+[20] introduce group-level commands that provide SIMD-
+style control, issuing a single command to all cores within
+a group. DCC employs a hierarchical command generation
+strategy leveraging both group-level and bank-level control to
+balance efficiency and flexibility. DCC prioritizes group-level
+commands, which broadcast a single command across all PIM
+cores in a group. Since DRAM command formats constrain
+group-level commands to use identical address offsets for all
+cores in the group, DCC pads each core’s tensor data to the
+same size, ensuring consistent local addressing. This way we
+allow the memory controller to issue one command per PIM
+group, significantly reducing command traffic. If the backend
+lacks group-level command support or when cores need to
+access different address offsets, DCC generates parallel bank-
+level commands, achieving fine-grained, bank-level paral-
+lelism. This hierarchical command generation strategy adapts
+to different PIM backends, and minimizes command traffic.
+Our optimizer applies PIM-specific optimizations that accel-
+erate performance, while it remains backend-agnostic. It has
+a modular design that allows easy extension to support addi-
+tional optimizations common across PIM backends. Develop-
+ers can extend DCC with custom optimization passes tailored to
+specific PIM backends, creating specialized compiler variants
+(e.g., DCC +HBM for HBM-PIM-specific optimizations).
+D. Coupled Predictor
+Although pruning substantially reduces the search space, the
+schedule generator can still produce thousands of valid tiling
+drafts. Profiling all drafts on PIM system can be prohibitively
+expensive. To efficiently identify the optimal draft, DCC em-
+ploys a coupled learning-based performance predictor that
+estimates end-to-end execution time. The coupled predictor
+serves two purposes: (i) co-estimating data rearrangement and
+compute costs to find the optimal tiling draft, and (ii) providing
+fast and accurate predictions across multiple PIM backends.
+While analytical models can achieve sufficient accuracy with
+device-specific formulas and parameters, they are difficult
+to maintain as PIM architectures evolve. Instead, learning-
+based models (already effectively adopted by widely-used ML
+compilers [35], [46], [47]) can be easily retrained or fine-tuned
+for new hardware with minimal adaptation, and provide both
+high speed and accuracy. We use an XGBoost model [48] to
+predict end-to-end kernel time, leveraging XGBoost’s proven
+efficiency in compiler cost modeling [35], [46], [47].
+The coupled predictor supports both static and dynamic ten-
+sor sizes. For static sizes, the most common case, where model
+and input dimensions are fixed during inference, DCC trains the
+predictor offline (similarly to prior ML compilers [35], [46],
+[47]) and configures the best-performing draft during model
+initialization. For dynamic inputs, which occur in language
+models, DCC finds and selects optimal drafts at inference time.
+Offline Training: Given model-defined or user-provided tensor
+sizes, DCC samples a diverse subset of drafts across different
+7
+
+
+tensor sizes from the schedule generation step. Each draft is
+profiled on the target PIM backend to measure execution time
+as labels, with drafts’ configurations and backend information
+as inputs to the XGBoost model. After training, DCC predicts
+performance for all drafts at given tensor sizes of ML kernels
+and records the best-performing draft in a lookup table. When
+multiple drafts have identical predicted performance, one is
+selected randomly. This training occurs once per PIM backend
+using given ML models and tensor sizes. Offline training for
+all ML kernels across all tensor sizes, ML models, and PIM
+backends used in our evaluation takes only ∼42 seconds.
+This cost is negligible and is amortized across multiple users’
+inference requests for that ML model. At runtime, DCC directly
+uses the best-performing draft for recorded tensor sizes.
+Dynamic Prediction: When a new tensor size appears during
+inference, DCC generates the corresponding tiling drafts and
+uses the predictor to estimate performance, recording the best-
+performing draft in the lookup table for future use. In ML
+models with dynamic tensor sizes, e.g., evaluation of LLMs
+in Fig. 8, the cost to generate drafts on-the-fly and estimate
+performance is accounted for in total time. Optionally, DCC
+can support training the predictor at inference time: it can
+profile a small batch of new drafts, and use the (updated)
+predictor to estimate performance for remaining drafts.
+E. DCC Integration and Programming Interface
+DCC provides a Python interface with PyTorch to develop,
+integrate and compile PIM-running kernels into ML models,
+as described in Table I. A DCC kernel is defined as a Python
+function with the @DCC
+kernel annotator. All parameters
+and return values must be PyTorch tensors or constants. The
+function body describes the tensor computation using for loops
+with arithmetic operators or backend-supported instructions.
+DCC provides DCC.Tensor() and DCC.Tensor.zero() to create
+and initialize temporary tensors.
+Interface
+Description
+@DCC
+kernel
+Annotator to define PIM-running kernels.
+DCC.Tensor
+Tensor class used in kernel. It can be con-
+verted to torch.Tensor.
+DCC.Layer
+Class to define a new PIM-running layer.
+DCC.Kernel
+Class to represent a PIM-running kernel.
+DCC.init kernel()
+Function to initialize the kernel for given in-
+put sizes. It returns a DCC.Kernel object.
+DCC.Kernel.update()
+Function called when the best tiling draft has
+been determined.
+DCC.Kernel.pre load() Function to load data to PIM devices and
+return a PIM address. It also supports partial
+updates of tensors in PIM memory with
+address offset.
+DCC.Kernel.run()
+Function to execute a PIM-running kernel
+with torch.Tensor or PIM address.
+DCC.set model()
+Function to register the model and extract
+model-level metadata necessary for tuning.
+TABLE I: The DCC Programming Interface.
+To integrate a PIM-running kernel into an ML model, users
+can create ML layers with DCC.Layer to replace existing
+model layers. PIM-running kernels must be initialized with
+given input tensor sizes. After adding PIM layers to the model,
+DCC initializes necessary model metadata, infers all tensor
+sizes, and performs offline training. During inference, when
+a request is received, DCC asynchronously infers tensor sizes
+for all PIM-running kernels and selects their best-performing
+drafts. Users can override the function DCC.Layer.update() to
+pre-load data to PIM devices using DCC.Kernel.pre load()
+before running the kernel. When forward() is called, the
+PIM-running kernel is executed with input data and returns
+the results as a torch.Tensor. DCC synergistically works with
+xPU compilers (e.g., ML compilers [35], [37] for GPUs) via
+PyTorch. During the optimization for xPU, the PIM layer will
+be configured as non-fusible to enable intra- and inter-kernel
+optimizations. Then, DCC will compile and optimize this layer
+for the PIM backend.
+Fig. 5 shows an example of replacing the QKV generation
+layer in GPT-3 13B model with a PIM-running layer. Lines 1-8
+define the PIM-running kernel with for loops. Line 10 creates
+class QKV Layer inheriting from the torch.nn.Module
+and DCC.Layer. In lines 11-14, DCC initializes the kernel
+and model parameters. Lines 16-18 pre-load weights and bias
+to PIM devices after having selected the best-performing draft.
+Line 21 executes the kernel with a given input and pre-loaded
+data. Lines 23-28 replace the original QKV layer in the loaded
+GPT-3 model and handle inference requests.
+@DCC_kernel
+def PIM_kernel(weight, bias, x): # define PIM kernel
+  y = DCC.Tensor.zero([x.size(0), weight.size(0)])
+  for b in range(y.size(0)):
+    for i in range(y.size(1)):
+      for j in range(x.size(1)):
+        y[b][i] += x[b][j] * weight[i][j] + bias[j]
+  return y
+class QKV_Layer(torch.nn.module, DCC.Layer):
+  def __init__(self, layer, input_sizes): # init kernel and weight 
+    self.kernel = DCC.init_Kernel(PIM_kernel, input_sizes)
+    self.weight = layer.weight
+    self.bias = layer.bias
+  def update(self, best_draft): # pre-load data
+    self.PIM_W = self.kernel.pre_load(best_draft, self.weight)
+    self.PIM_b = self.kernel.pre_load(best_draft, self.bias)
+    
+  def forward(self, x): # execute PIM kernel
+    return self.kernel(self.PIM_w, self.PIM_b, x)
+  
+model = torch.load("GPT3-13B.model") #load model
+in_sizes=[[model.qkv_0.weight.sizes(), model.qkv_0.bias.sizes(), 
+          [1, model.hidden_size]]]
+model.qkv_0 = QKV_Layer(model.qkv_0, in_sizes) # replace QKV layer
+model = DCC.set_model(model) # collect model infomation
+output = model(get_request()) # run the inference
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+Fig. 5: An example of adding DCC kernels to a GPT3 model.
+V. EVALUATION
+Simulation Methodology. We modify and use the open-
+sourced AttAcc simulator [20] with Ramulator 2.0 [49]. We
+evaluate data movement costs to/from PIM devices using
+DRAM commands (i.e., LD/ST) simulated in Ramulator 2.0.
+We modified the simulator to support both AttAcc and HBM-
+PIM with its corresponding DRAM compute commands [18].
+We simulate a heterogeneous platform with a NVIDIA A100
+GPU and 5 PIM-enabled HBM devices, corresponding to
+80GB GPU memory. We evaluate HBM3 memory with
+8
+
+
+32x512
+32x4096
+64x512
+64x4096
+32x512
+32x4096
+64x512
+64x4096 Geomean
+01
+5
+10
+15
+Speedup over GPU
+8.71
+12.51
+6.73
+9.42
+6.30
+9.37
+6.22
+9.38
+8.36
+11.35
+13.17
+9.65
+9.98
+9.61
+10.14
+9.79
+9.95
+10.40
+Batch Size = 1
+Batch Size = 4
+ATTN
+AttAcc
+AttAcc + DCC
+32x512
+32x4096
+64x512
+64x4096
+32x512
+32x4096
+64x512
+64x4096 Geomean
+0.0
+1.0
+2.5
+5.0
+7.5
+10.0
+5.86
+9.37
+4.51
+7.09
+4.33
+7.02
+4.26
+7.04
+5.96
+7.50
+9.79
+6.82
+7.59
+6.98
+7.71
+7.36
+7.77
+7.65
+Batch Size = 1
+Batch Size = 4
+GEMV
+AttAcc
+AttAcc + DCC
+1024
+2048
+4096
+1024
+2048
+4096
+Geomean
+0
+1
+2
+3
+4
+0.59
+1.19
+2.37
+0.59
+1.19
+2.37
+1.19
+0.99
+1.97
+3.94
+0.99
+1.66
+2.53
+1.78
+Batch Size = 1
+Batch Size = 4
+RED
+AttAcc
+AttAcc + DCC
+Fig. 6: Speedup of AttAcc and AttAcc+DCC over GPU for ATTN, GEMV and RED kernels, when varying the tensor sizes.
+5.2Gbps per pin and running at 333MHz. Each HBM has 16
+pseudo-channels and 64 banks per pCH. In AttAcc, each bank
+is equipped with a GEMV unit and each channel has a softmax
+unit. In HBM-PIM, every two banks share a 16-way FP16 FPU
+and two 16×256-bit GRF registers (one per bank).
+ML Kernels and Models. We evaluate seven memory-
+intensive ML kernels. In AttAcc, we evaluate the general-
+matrix-vector-multiplication (GEMV), reduction (RED) and
+attention (ATTN) kernels. In HBM-PIM, we evaluate the
+GEMV, RED, vector addition (VA) and RELU kernels. At-
+tention requires a softmax unit which only exists on AttAcc.
+However, AttAcc does not have near-bank compute units that
+could support and run RELU and VA. For GEMV and ATTN,
+we use input size 128, the most common per-head dimension
+in LLMs. We also evaluate end-to-end inference using GPT3-
+13B and LLAMA2-33B models. We evaluate FP16 data type.
+Comparison Points. We evaluate five comparison points. (1)
+GPU: all kernels are running on GPU cores. (2) AttAcc:
+AttAcc’s [20] default open-source implementation that dis-
+tributes different batches or attention heads across 16 channels,
+partitions the first tensor dimension across 16 bank groups per
+channel, and partitions the second tensor dimension across 4
+banks per bank group. (3) AttAcc+DCC: we enable DCC com-
+piler on AttAcc backend. (4) HBM-PIM: we use AttAcc’s data
+distribution and processing assignment. (5) HBM-PIM+DCC:
+we enable DCC compiler on HBM-PIM backend. We trained
+the predictor with 5000 iterations with learning rate of 0.1
+for offline training. The offline draft generation, training and
+prediction for all evaluated kernels take ∼42 seconds in total.
+A. ML Kernel Performance
+Fig. 6 shows the speedup of AttAcc and AttAcc+DCC over
+the GPU baseline in various ML kernels, when varying the
+batch size, number of heads and tensor sizes.
+We make three key observations. First, AttAcc significantly
+outperforms GPU across all kernels, achieving 10.4× speedup
+for ATTN, 7.65× for GEMV, and 1.78× for RED on average.
+AttAcc leverages high aggregate PIM bandwidth and integrates
+specialized units (GEMV, softmax, and accumulator) that
+provide hardware-level support for these operations. Second,
+DCC provides further performance improvements over AttAcc:
+1.24×, 1.28×, and 1.50× average speedup, and up to 1.57×,
+1.73×, and 1.66× peak speedup for ATTN, GEMV, and
+RED kernels, respectively. Notably, for RED with tensor size
+1024, AttAcc underperforms GPU by 0.59×, while with DCC
+achieves almost same performance with GPU. Third, with DCC
+performance scales well in RED as tensor size increases. In
+RED, data rearrangement costs dominate the total time (see
+Fig. 10) and with larger tensor sizes, DCC explores a larger
+search space, allowing it to more effectively optimize data
+rearrangement costs. In RED with batch size 1 and tensor size
+4096, DCC provides a large speedup of 3.94×. Overall, DCC
+significantly accelerates end-to-end time on the state-of-the-
+art AttAcc backend by up to 13.17× (5.75× on average) over
+GPU across diverse ML kernels, batch and tensor sizes, thanks
+to its comprehensive data-compute co-optimization.
+32x512
+32x4096
+64x512
+64x4096
+32x512
+32x4096
+64x512
+64x4096
+Geomean
+0
+1
+2
+4
+6
+8
+Speedup over GPU
+3.80
+5.92
+2.61
+4.33
+2.47
+4.25
+2.45
+4.22
+3.59
+5.29
+7.68
+4.82
+5.55
+5.45
+5.47
+5.77
+5.42
+5.63
+Batch Size = 1
+Batch Size = 4
+GEMV
+HBM-PIM
+HBM-PIM + DCC
+1024
+2048
+4096
+1024
+2048
+4096
+1024
+2048
+4096
+Geomean
+0
+1
+2
+3
+Speedup over GPU
+0.36
+0.71
+1.43
+0.36
+0.71
+1.43
+0.36
+0.71
+1.43
+0.71
+0.84
+1.68
+3.35
+0.84
+1.68
+2.74
+0.84
+1.37
+2.01
+1.51
+Batch Size = 1
+Batch Size = 2
+Batch Size = 4
+RED
+HBM-PIM
+HBM-PIM + DCC
+1024
+2048
+4096
+1024
+2048
+4096
+1024
+2048
+4096
+Geomean
+0
+1
+2
+4
+6
+Speedup over GPU
+0.68
+1.36
+2.71
+0.68
+1.36
+2.71
+0.68
+1.36
+2.71
+1.36
+1.34
+2.68
+5.36
+1.34
+2.68
+3.73
+1.34
+1.86
+2.71
+2.29
+Batch Size = 1
+Batch Size = 2
+Batch Size = 4
+VA
+HBM-PIM
+HBM-PIM + DCC
+1024
+2048
+4096
+1024
+2048
+4096
+1024
+2048
+4096
+Geomean
+0
+1
+2
+4
+6
+Speedup over GPU
+0.94
+1.88
+3.76
+0.94
+1.88
+3.76
+0.94
+1.88
+3.76
+1.88
+1.67
+3.35
+6.69
+1.67
+3.35
+5.17
+1.67
+2.58
+3.76
+2.96
+Batch Size = 1
+Batch Size = 2
+Batch Size = 4
+RELU
+HBM-PIM
+HBM-PIM + DCC
+Fig. 7: Speedup of HBM-PIM and HBM-PIM+DCC over GPU
+for GEMV, RED, VA and RELU, varying the tensor sizes.
+Fig. 7 shows the speedup of HBM-PIM and HBM-
+PIM+DCC over GPU in various ML kernels, when varying the
+batch size and tensor sizes. We make three key observations.
+First, DCC significantly improves HBM-PIM performance by
+1.57×, 2.11×, 1.69×, and 1.58× for GEMV, RED, VA,
+and RELU on average, respectively, enabling HBM-PIM to
+further outperform GPU by 5.63×, 1.51×, 2.29×, and 2.96×,
+respectively. Second, when using the same batch and tensor
+size configurations for both HBM-PIM and AttAcc in GEMV
+and RED, DCC achieves 1.57× and 2.11× average speedup
+over HBM-PIM, respectively, and 1.28× and 1.50× aver-
+age speedup over AttAcc, respectively. DCC provides greater
+performance improvements on HBM-PIM than on AttAcc,
+because HBM-PIM is less optimized in hardware than AttAcc
+for GEMV, i.e., HBM-PIM includes general SIMD units,
+while AttAcc has speciliazed GEMV units. Third, for RED
+with tensor sizes 1024 and 2048, HBM-PIM underperforms
+9
+
+
+GPU
+AttAccBase
+AttAccBase+DCC
+AttAccFull
+AttAccFull+DCC
+GPU
+AttAccBase
+AttAccBase+DCC
+AttAccFull
+AttAccFull+DCC
+GPU
+AttAccBase
+AttAccBase+DCC
+AttAccFull
+AttAccFull+DCC
+0.0
+0.2
+0.4
+0.6
+0.8
+1.0
+Normalized Execution Time
+1.09
+1.47
+2.56
+6.54
+1.16
+1.56
+2.74
+7.00
+1.23
+1.66
+2.92
+7.45
+Lin:128,Lout:2048
+Lin:2048,Lout:128
+Lin:2048,Lout:2048
+GPT3-13B (Batch Size=1)
+GPU
+AttAccBase
+AttAccBase+DCC
+AttAccFull
+AttAccFull+DCC
+GPU
+AttAccBase
+AttAccBase+DCC
+AttAccFull
+AttAccFull+DCC
+GPU
+AttAccBase
+AttAccBase+DCC
+AttAccFull
+AttAccFull+DCC
+1.05
+1.42
+2.59
+7.11
+1.09
+1.47
+2.70
+7.41
+1.13
+1.53
+2.82
+7.71
+Lin:128,Lout:2048
+Lin:2048,Lout:128
+Lin:2048,Lout:2048
+LLAMA2-33B (Batch Size=1)
+GPU
+AttAccBase
+AttAccBase+DCC
+AttAccFull
+AttAccFull+DCC
+GPU
+AttAccBase
+AttAccBase+DCC
+AttAccFull
+AttAccFull+DCC
+GPU
+AttAccBase
+AttAccBase+DCC
+AttAccFull
+AttAccFull+DCC
+1.16
+1.34
+2.30
+3.11
+1.30
+1.50
+2.60
+3.51
+1.43
+1.65
+2.89
+3.90
+Lin:128,Lout:2048
+Lin:2048,Lout:128
+Lin:2048,Lout:2048
+GPT3-13B (Batch Size=4)
+GPU
+AttAccBase
+AttAccBase+DCC
+AttAccFull
+AttAccFull+DCC
+GPU
+AttAccBase
+AttAccBase+DCC
+AttAccFull
+AttAccFull+DCC
+GPU
+AttAccBase
+AttAccBase+DCC
+AttAccFull
+AttAccFull+DCC
+1.09
+1.21
+2.30
+2.92
+1.16
+1.29
+2.47
+3.14
+1.24
+1.37
+2.65
+3.36
+Lin:128,Lout:2048
+Lin:2048,Lout:128
+Lin:2048,Lout:2048
+LLAMA2-33B (Batch Size=4)
+Attention
+QKV Generation
+Projection
+Feed-forward
+Other
+Fig. 8: Normalized time breakdown for GPT3-13B and LLaMA2-33B models for various input, output token and batch sizes.
+GPU by 0.51× averaged across all batch sizes, because the
+combination of small tensor sizes and HBM-PIM’s fixed
+tiling scheme results in poor SIMD utilization: the per-core
+tensor partition size does not align with the 16-way SIMD
+instruction width. However, DCC improves their performance
+by 2.27× on average, enabling HBM-PIM to outperform GPU
+at tensor size 2048. Overall, DCC demonstrates robustness
+across multiple PIM backends through its multi-layer PIM
+abstraction, providing consistent performance improvements
+across diverse ML workloads on both HBM-PIM and AttAcc.
+512
+1024
+2048
+4096
+Output Dimension
+0
+1
+2
+Speedup over Baseline
+1.39
+1.39
+1.25
+1.30
+1.85
+1.59
+1.36
+1.28
+2.20
+1.70
+1.35
+1.29
+2.36
+1.68
+1.35
+1.28
+HBM-PIM
+512
+1024
+2048
+4096
+Output Dimension
+1.28
+1.17
+1.09
+1.04
+1.51
+1.25
+1.14
+1.07
+1.61
+1.32
+1.16
+1.10
+1.73
+1.38
+1.19
+1.10
+AttAcc
+Batch Size=1
+Batch Size=2
+Batch Size=4
+Batch Size=8
+Fig. 9: Speedup of DCC over HBM-PIM (left) and AttAcc
+(right), when increasing the batch size in the GEMV kernel.
+Fig. 9 shows the speedup of DCC over HBM-PIM and
+AttAcc, when increasing the batch size in GEMV, evaluating
+in an attention layer with head count 32, input size 128 and
+various output sizes. In both PIM backends, DCC improves
+performance over the baseline as the batch size increases. On
+average, DCC performance gains increase with batch size, from
+1.33× to 1.61× on HBM-PIM, and from 1.14× to 1.33× on
+AttAcc, as batch size grows from 1 to 8.
+B. End-to-End LLM Inference
+Fig. 8 presents the normalized execution time breakdown
+of AttAcc and AttAcc+DCC over GPU for the main com-
+putational phases in inference of two state-of-the-art models,
+while varying the input and output token sizes and batch sizes.
+We evaluate two variants: AttAccBase runs only attention
+layers on PIM, and AttaccF ull runs attention layers and a
+portion of the Feed-forward on the PIM side (See [20]), while
+the largest portion of Feed-forward runs on GPU. For both
+AttAcc variants, QKV generation, projection and Other run
+on GPU. However, with DCC’s optimizations, we enable QKV
+generation and projection to be also executed on the PIM side,
+achieving performance benefits over running them on GPU. In
+LLM inference, DCC initializes the kernels with few random
+requests, then generates tiling drafts on-the-fly for new tensor
+sizes; this generation time is included in our measurements.
+The numbers in the top of each bar show speedup over GPU.
+We make three key observations. First, DCC provides high
+performance benefits on both AttaccBase and AttaccF ull by
+1.24× and 1.86× on average, respectively, improving per-
+formance over GPU by 1.45× and 4.88× on average, re-
+spectively. DCC significantly strengthens AttAcc, enabling it
+to substantially outperform GPU across different models and
+token sizes. Second, DCC improves performance on Attention
+layers by on average 1.12× and 1.16× over AttAcc for GPT3-
+13B and LAMMA2-33B model, respectively. AttAcc uses a
+fixed tiling strategy across all token counts and batch sizes,
+while DCC adapts tiling strategies to different workload config-
+urations. Third, in QKV generation and projection layers, DCC
+achieves 3.21× and 3.61× speedup over GPU, respectively.
+In both AttAcc variants, these layers run on GPU, because
+AttAcc’s fixed tiling strategy underperforms GPU by 1.25×
+in these layers. In contrast, DCC comprehensively explores the
+data-compute co-optimization space to identify optimal tiling
+configurations, enabling these layers to run efficiently on PIM
+and significantly outperform GPU. Overall, we conclude that
+DCC provides significant performance benefits in various state-
+of-the-art LLMs with different token count and batch sizes.
+These results demonstrate that DCC can serve as a practical
+and effective compiler for heterogeneous ML acceleration on
+high-performance processors (e.g., GPUs) and PIM backends.
+C. ML Kernel Time Breakdown
+Fig. 10 shows the normalized time breakdown split into time
+spent on compute and data rearrangements for various ML
+kernels using two batch sizes, and two different backends with
+and without DCC. The numbers above bars show the speedup
+provided by DCC. The execution time is normalized to that of
+the respective PIM backend with its default implementation.
+We draw two findings. First, DCC co-optimizes both com-
+pute time and data rearrangement time, providing 1.73× and
+1.79× speedup, respectively. DCC comprehensively explores
+a broader joint optimization space, and identifies the optimal
+balance between data movement and computation costs. Sec-
+ond, DCC provides larger performance benefits in ML kernels,
+10
+
+
+GEMV
+VA
+RED
+RELU
+0.0
+0.5
+1.0
+Normalized Time
+1.25
+HBM-PIM
+HBM-PIM+DCC
+1.35
+HBM-PIM
+HBM-PIM+DCC
+1.98
+HBM-PIM
+HBM-PIM+DCC
+1.38
+HBM-PIM
+HBM-PIM+DCC
+2.34
+HBM-PIM
+HBM-PIM+DCC
+1.92
+HBM-PIM
+HBM-PIM+DCC
+1.78
+HBM-PIM
+HBM-PIM+DCC
+1.37
+HBM-PIM
+HBM-PIM+DCC
+B=1
+B=4
+B=1
+B=4
+B=1
+B=4
+B=1
+B=4
+HBM-PIM
+GEMV
+RED
+ATTN
+1.09
+AttAcc
+AttAcc+DCC
+1.16
+AttAcc
+AttAcc+DCC
+1.66
+AttAcc
+AttAcc+DCC
+1.40
+AttAcc
+AttAcc+DCC
+1.10
+AttAcc
+AttAcc+DCC
+1.16
+AttAcc
+AttAcc+DCC
+B=1
+B=4
+B=1
+B=4
+B=1
+B=4
+AttAcc
+Compute Time
+Data Rearrangement Time
+Fig. 10: Normalized time breakdown of compute and data
+rearrangement time in various ML workloads and backends.
+where data rearrangement dominates execution time. The VA,
+RED, RELU kernels exhibit substantial data rearrangement
+overheads, and DCC accelerates them by 1.70× on average,
+while it accelerates the compute-heavy GEMV and ATTN
+kernels by 1.18×. These results indicate that DCC significantly
+alleviates data rearrangement bottlenecks in PIM, while also
+effectively integrating compute-specific optimizations.
+D. Coupled Predictor Accuracy
+We run various ML kernels on HBM-PIM and AttAcc
+with hundreds of different tensor and batch sizes per kernel,
+representative configurations found on real ML models. For
+each workload configuration, we use DCC (pruning disabled)
+to exhaustively generate all tiling drafts, execute all of them
+on the target PIM backend, and identify the actual best-
+performing draft. Table II compares the predictor’s selections
+against the true optimum drafts. The Total column shows
+the number of workload configurations tested per kernel. The
+#Best column shows how many cases the predictor correctly
+identified the true optimum draft. The Suboptimal Performance
+column shows the geometric mean performance degradation
+in cases where the predictor selects a suboptimal draft. Our
+learning-based predictor achieves 89.28% accuracy in cor-
+rectly identifying the true optimum draft. When suboptimal,
+the predictor’s selections achieve 96.25% of true optimal
+performance on average across different kernels, workloads
+and backends. In AttAcc+ATTN, they have relatively lower
+accuracy (74.63%), because ATTN fuses GEMV and softmax
+as a single kernel, however DCC still provides high perfor-
+mance (97.4% of true optimum). Our results demonstrate that
+even when the predictor fails to identify the true optimum, the
+selected configuration has negligible performance degradation.
+Backend+Kernel
+Total
+#Best
+Suboptimal Performance
+AttAcc+ATTN
+272
+203
+97.04% (69 cases)
+AttAcc+GEMV
+304
+290
+97.01% (14 cases)
+AttAcc+RED
+167
+155
+94.01% (12 cases)
+HBM-PIM+GEMV
+304
+265
+95.84% (39 cases)
+HBM-PIM+RED
+167
+154
+96.43% (13 cases)
+HBM-PIM+VA
+167
+158
+94.94% (9 cases)
+HBM-PIM+RELU
+167
+157
+94.48% (10 cases)
+TABLE II: Prediction accuracy and performance slowdown of
+DCC predictor across various ML workloads.
+VI. RELATED WORK
+To our knowledge, this is the first work to (i) consider data
+rearrangement strategies and their associated costs during ML
+kernel tuning for xPU-integrated PIM devices, and (ii) propose
+a compiler that co-optimizes them jointly with compute code
+to minimize end-to-end ML kernel performance.
+Compiler Support for PIM. Prior works [14], [32]–[34]
+design compilation tools for PIM architectures, but lack sys-
+tematic optimization and auto-tuning capabilities: they tar-
+get one single ML kernel or are tailored for a single PIM
+backend. ATiM [31] is a search-based tensor compiler for
+UPMEM PIM. However, UPMEM’s DDR4-based architecture
+targets CPU memory channels, thus preventing GPU-PIM co-
+executions for ML models, and lacks hardware support for
+floating-point arithmetic. Moreover, ATiM has a compute-
+centric tuning approach that generates data rearrangement
+strategies in isolation from compute code generation. Such
+compute-centric process yields sub-optimal performance (See
+§ II-B). Instead, DCC has a unified data-centric approach that
+co-optimizes compute-data to minimize end-to-end time.
+Compiler Support for PUM. OptiPIM [50], MVE [51],
+and TCCIM [52] are compilation approaches for Processing-
+Using-Memory (PUM) architectures. PUM architectures are
+analog-based and have higher hardware design complexity
+than PIM devices (digital-based). Moreover, PUM systems
+may not have full precision accuracy im ML workloads.
+ML Compilers for GPUs. ML compilers [35]–[45] designed
+for GPUs cannot be directly used for PIM systems. They can
+work synergistically with DCC to accelerate ML inference via
+GPU-PIM co-execution.
+PIM Architectures and Accelerators. UPMEM PIM [12],
+[19] DDR4-based device for CPUs lacks a complete 32×32-bit
+integer multiplier and floating-point units, making it unsuitable
+for our target ML workloads. Samsung HBM-PIM [18] and SK
+Hynix GDDR6-AiM [16], [17] are 3D memory devices with
+floating-point units, can be integrated with GPUs, and have
+been validated in real systems. Numerous research works [20]–
+[30] enhance near-bank PIM devices to support critical ML
+primitives (e.g., GEMV, ReLU, Softmax), can be integrated
+with xPUs, and have floating-point capabilities. DCC can be
+directly used on them to automate and accelerate ML kernels.
+Near-rank PIM systems [53]–[56] place cores at the buffer chip
+of the DIMM with access to all banks. Despite different core
+placement, DCC can effectively support near-rank PIM designs
+for ML. Recent works propose hybrid near-rank and near-bank
+designs [57]–[59] and NPU-integrated PIM devices [60]–[65].
+DCC can be easily extended to support them thanks to its multi-
+layer abstraction. Finally, prior works [54], [66]–[76] design
+application-specific PIM devices for graph analytics, sparse
+computations, or data retrieval. While DCC may benefit some
+kernels in these devices, we mainly focus on xPU-integrated
+PIM designs that primarily target ML kernels and models.
+Software for PIM Systems. Prior works [11], [12], [77]–
+[91] propose libraries, frameworks, and benchmark suites for
+the UPMEM PIM spanning linear algebra, graph processing,
+image processing, machine learning, databases, and concurrent
+data structure domains. UPMEM PIM is primarily designed for
+CPUs and has limited hardware multiplication support. DCC is
+designed for PIM devices that efficiently support ML kernels.
+11
+
+
+Communication and System Integration for PIM. Prior
+works [10], [92]–[101] design efficient data transfers, memory
+management, synchronization, virtualization of PIM, and sim-
+ulation tools. PIMCARE [97] is a compiler-assisted scheduler
+to allocate the correct amount of PIM devices for a target
+application.
+VII. CONCLUSION
+We observe that Host xPU processor and PIM cores require
+different data layouts to fully leverage their respective memory
+bandwidth, necessitating data rearrangements that pose signif-
+icant performance and programmability challenges. We also
+find that compute code optimization and data rearrangements
+are interdependent, requiring joint optimization for efficient
+ML kernel execution on PIM devices. To this end, we design
+DCC, a data-centric ML compiler for PIM systems. DCC co-
+optimizes compute code and data rearrangement strategies in a
+unified tuning process to minimize end-to-end execution time.
+Our evaluations across diverse ML kernels demonstrate that
+DCC significantly improves performance on HBM-PIM up to
+7.68× speedup (2.7× average) over GPU and on AttAcc up
+to 13.17× speedup (5.75× average) over GPU in ML kernels.
+DCC on AttAcc accelerates end-to-end LLM inference up to
+7.71× speedup (4.88× average). We hope our work encourages
+further research on compilation tools for ML kernels on PIM
+systems. We hope our work encourages further research on
+compilation and performance tuning tools to improve pro-
+grammability and performance for emerging ML operators and
+models on PIM architectures.
+REFERENCES
+[1] J. B. Heaton, N. G. Polson, and J. H. Witte, “Deep Learning for
+Finance: Deep Portfolios,” Appl. Stoch. Models Bus. Ind., 2017.
+[2] A. M. Ozbayoglu, M. U. Gudelek, and O. B. Sezer, “Deep Learning
+for Financial Applications: A Survey,” Appl. Soft Comput., 2020.
+[3] K. Oosthuizen, E. Botha, J. Robertson, and M. Montecchi, “Artificial
+Intelligence in Retail: The AI-Enabled Value Chain,” Australas. Mark.
+J., 2021.
+[4] D. Rav`ı, C. Wong, F. Deligianni, M. Berthelot, J. Andreu-Perez, B. Lo,
+and G.-Z. Yang, “Deep Learning for Health Informatics,” IEEE JBHI,
+2016.
+[5] R. Miotto, F. Wang, S. Wang, X. Jiang, and J. T. Dudley, “Deep
+Learning for Healthcare: Review, Opportunities, and Challenges,” Brief.
+Bioinform., 2018.
+[6] Y. Tang, C. Zhao, J. Wang, C. Zhang, Q. Sun, W. X. Zheng, W. Du,
+F. Qian, and J. Kurths, “Perception and Navigation in Autonomous
+Systems in the Era of Learning: A Survey,” IEEE TNNLS, 2022.
+[7] M. Cordts, M. Omran, S. Ramos, T. Rehfeld, M. Enzweiler, R. Benen-
+son, U. Franke, S. Roth, and B. Schiele, “The Cityscapes Dataset for
+Semantic Urban Scene Understanding,” in CVPR, 2016.
+[8] Y. Zhong, S. Liu, J. Chen, J. Hu, Y. Zhu, X. Liu, X. Jin, and
+H. Zhang, “{DistServe}: Disaggregating Prefill and Decoding for
+Goodput-Optimized Large Language Model Serving,” in OSDI, 2024.
+[9] Q. Su, W. Zhao, X. Li, M. Andoorveedu, C. Jiang, Z. Zhu, K. Song,
+C. Giannoula, and G. Pekhimenko, “Seesaw: High-Throughput LLM
+Inference via Model Re-Sharding,” MLSys, 2025.
+[10] C. Giannoula, N. Vijaykumar, N. Papadopoulou, V. Karakostas, I. Fer-
+nandez, J. G´omez-Luna, L. Orosa, N. Koziris, G. Goumas, and
+O. Mutlu, “Syncron: Efficient Synchronization Support for Near-Data-
+Processing Architectures,” in HPCA, 2021.
+[11] J. G´omez-Luna, Y. Guo, S. Brocard, J. Legriel, R. Cimadomo, G. F.
+Oliveira, G. Singh, and O. Mutlu, “Evaluating Machine Learning
+Workloads on Memory-Centric Computing Systems,” in ISPASS, 2023.
+[12] J. G´omez-Luna, I. E. Hajj, I. Fernandez, C. Giannoula, G. F. Oliveira,
+and O. Mutlu, “Benchmarking a New Paradigm: Experimental Analysis
+and Characterization of a Real Processing-in-Memory System,” IEEE
+Access, 2022.
+[13] C. Giannoula, P. Yang, I. Fernandez, J. Yang, S. Durvasula, Y. X. Li,
+M. Sadrosadati, J. G. Luna, O. Mutlu, and G. Pekhimenko, “PyGim:
+An Efficient Graph Neural Network Library for Real Processing-In-
+Memory Architectures,” POMACS, 2025.
+[14] C. Li, Z. Zhou, Y. Wang, F. Yang, T. Cao, M. Yang, Y. Liang, and
+G. Sun, “PIM-DL: Expanding the Applicability of Commodity DRAM-
+PIMs for Deep Learning via Algorithm–System Co-Optimization,” in
+ASPLOS, 2024.
+[15] O. Mutlu, S. Ghose, J. G´omez-Luna, and R. Ausavarungnirun, “A
+Modern Primer on Processing in Memory,” in Emerging Computing:
+From Devices to Systems - Looking Beyond Moore and Von Neumann,
+2021.
+[16] S. Lee, K. Kim, S. Oh, J. Park, G. Hong, D. Ka, K. Hwang, J. Park,
+K. Kang, J. Kim et al., “A 1ynm 1.25 V 8GB, 16GB/s/Pin GDDR6-
+Based Accelerator-in-Memory Supporting 1Tflops MAC Operation
+and Various Activation Functions for Deep-Learning Applications,” in
+ISSCC, 2022.
+[17] M. He, C. Song, I. Kim, C. Jeong, S. Kim, I. Park, M. Thottethodi,
+and T. N. Vijaykumar, “Newton: A DRAM-Maker’s Accelerator-in-
+Memory (AiM) Architecture for Machine Learning,” in MICRO, 2020.
+[18] S. Lee, S.-h. Kang, J. Lee, H. Kim, E. Lee, S. Seo, H. Yoon, S. Lee,
+K. Lim, H. Shin, J. Kim, O. Seongil, A. Iyer, D. Wang, K. Sohn,
+and N. S. Kim, “Hardware Architecture and Software Stack for PIM
+Based on Commercial DRAM Technology: Industrial Product,” in
+ISCA, 2021.
+[19] F. Devaux, “The True Processing-in-Memory Accelerator,” in HCS,
+2019.
+[20] J. Park, J. Choi, K. Kyung, M. J. Kim, Y. Kwon, N. S. Kim, and J. H.
+Ahn, “AttAcc!: Unleashing the Power of PIM for Batched Transformer-
+Based Generative Model Inference,” in ASPLOS, 2024.
+[21] B. Kim, C. Lee, G. Kim, and E. Park, “Cost-effective Extension of
+DRAM-PIM for Group-wise LLM Quantization,” IEEE CAL, 2025.
+[22] Z. Li, J. Zhou, X. Li, and N. Sun, “BlockPIM: Optimizing Memory
+Management for PIM-enabled Long-Context LLM Inference,” in DAC,
+2025.
+[23] S. Liu, Z. Huang, J. Yu, Q. Liu, and C. Chen, “McPAL: Scaling Un-
+structured Sparse Inference with Multi-Chiplet HBM-PIM Architecture
+for LLMs,” in DAC, 2025.
+[24] L. Chen, D. Lyu, Z. Li, J. Jiang, Q. Wang, Z. Mao, and N. Jing,
+“AttenPIM: Accelerating LLM Attention with Dual-mode GEMV in
+Processing-in-Memory,” in DAC, 2025.
+[25] Y. He, H. Mao, C. Giannoula, M. Sadrosadati, J. G´omez-Luna, H. Li,
+X. Li, Y. Wang, and O. Mutlu, “PAPI: Exploiting Dynamic Parallelism
+in Large Language Model Decoding With a Processing-in-Memory-
+Enabled Computing System,” in ASPLOS, 2025.
+[26] C. Li, Z. Zhou, S. Zheng, J. Zhang, Y. Liang, and G. Sun, “SpecPIM:
+Accelerating Speculative Inference on PIM-Enabled Systems via Ar-
+chitecture–Dataflow Co-Exploration,” in ASPLOS, 2024.
+[27] Y. Wu, Z. Wang, and W. D. Lu, “PIM-GPT: A Hybrid Processing-in-
+Memory Accelerator for Autoregressive Transformers,” npj Unconven-
+tional Computing, 2024.
+[28] H. Lee, D. Baek, J. Son, J. Choi, K. Moon, and M. Jang, “PAISE:
+PIM-Accelerated Inference Scheduling Engine for Transformer-based
+LLM,” in HPCA, 2025.
+[29] W. Kim, Y. Lee, Y. Kim, J. Hwang, S. Oh, J. Jung, A. Huseynov, W. G.
+Park, C. H. Park, D. Mahajan, and J. Park, “Pimba: A Processing-
+in-Memory Acceleration for Post-Transformer Large Language Model
+Serving,” in MICRO, 2025.
+[30] D. Quinn, E. E. Y¨ucel, J. Kim, J. F. Mart´ınez, and M. Alian,
+“LongSight: Compute-Enabled Memory to Accelerate Large-Context
+LLMs via Sparse Attention,” in MICRO, 2025.
+[31] Y. Shin, D. Kang, and H. Sung, “ATiM: Autotuning Tensor Programs
+for Processing-in-DRAM,” in ISCA, 2025.
+[32] J. Chen, J. G´omez-Luna, I. E. Hajj, Y. Guo, and O. Mutlu, “SimplePIM:
+A Software Framework for Productive and Efficient Programming of
+Real PIM Systems,” in PACT, 2023.
+[33] A. A. Khan, H. Farzaneh, K. F. A. Friebel, C. Fournier, L. Chelini,
+and J. Castrillon, “CINM (Cinnamon): A Compilation Infrastructure
+for Heterogeneous Compute In-Memory and Compute Near-Memory
+Paradigms,” in ASPLOS, 2024.
+12
+
+
+[34] Y. Shin, J. Park, S. Cho, and H. Sung, “PIMFlow: Compiler and
+Runtime Support for CNN Models on Processing-in-Memory DRAM,”
+in CGO, 2023.
+[35] T. Chen, T. Moreau, Z. Jiang, L. Zheng, E. Yan, H. Shen, M. Cowan,
+L. Wang, Y. Hu, L. Ceze, C. Guestrin, and A. Krishnamurthy, “TVM:
+An Automated End-to-End Optimizing Compiler for Deep Learning,”
+in OSDI, 2018.
+[36] S. Feng, B. Hou, H. Jin, W. Lin, J. Shao, R. Lai, Z. Ye, L. Zheng, C. H.
+Yu, Y. Yu et al., “TensorIR: An Abstraction for Automatic Tensorized
+Program Optimization,” in ASPLOS, 2023.
+[37] Y. Ding, C. H. Yu, B. Zheng, Y. Liu, Y. Wang, and G. Pekhimenko,
+“Hidet: Task-Mapping Programming Paradigm for Deep Learning
+Tensor Programs,” in ASPLOS, 2023.
+[38] J. Xing, L. Wang, S. Zhang, J. Chen, A. Chen, and Y. Zhu, “Bolt:
+Bridging the Gap Between Auto-Tuners and Hardware-Native Perfor-
+mance,” MLSys, 2022.
+[39] A. Gupta, Y. Yuan, D. Jain, Y. Ge, D. Aponte, Y. Zhou, and C. Mendis,
+“SPLAT: A Framework for Optimised GPU Code-Generation for
+SParse reguLar ATtention,” Proc. ACM Program. Lang., 2025.
+[40] F. Liu, S. Huang, N. Yang, Z. Wang, H. Li, and L. Jiang, “CROSS:
+Compiler-Driven Optimization of Sparse DNNs Using Sparse/Dense
+Computation Kernels,” in HPCA, 2025.
+[41] W. Ahrens, T. F. Collin, R. Patel, K. Deeds, C. Hong, and S. Amaras-
+inghe, “Finch: Sparse and Structured Tensor Programming with Control
+Flow,” PACMPL, 2025.
+[42] Z. Du, Y. Liu, N. Sun, H. Cui, X. Feng, and J. Li, “SRSparse: Gen-
+erating Codes for High-Performance Sparse Matrix-Vector Semiring
+Computations,” TACO, 2025.
+[43] J. Won, C. Hong, C. Mendis, J. Emer, and S. Amarasinghe, “Unified
+Convolution Framework: A Compiler-Based Approach to Support
+Sparse Convolutions,” MLSys, 2023.
+[44] Z. Ye, R. Lai, J. Shao, T. Chen, and L. Ceze, “SparseTIR: Composable
+Abstractions for Sparse Compilation in Deep Learning,” in ASPLOS,
+2023.
+[45] F. Kjolstad, S. Kamil, S. Chou, D. Lugato, and S. Amarasinghe, “The
+Tensor Algebra Compiler,” Proc. ACM Program. Lang., no. OOPSLA,
+2017.
+[46] L. Zheng, C. Jia, M. Sun, Z. Wu, C. H. Yu, A. Haj-Ali, Y. Wang,
+J. Yang, D. Zhuo, K. Sen et al., “Ansor: Generating {High-
+Performance} Tensor Programs for Deep Learning,” in OSDI, 2020.
+[47] T. Chen, L. Zheng, E. Yan, Z. Jiang, T. Moreau, L. Ceze, C. Guestrin,
+and A. Krishnamurthy, “Learning to Optimize Tensor Programs,”
+NeurIPS, vol. 31, 2018.
+[48] T. Chen and C. Guestrin, “XGBoost: A Scalable Tree Boosting
+System,” in KDD, 2016.
+[49] H. Luo, Y. C. Tu˘grul, F. N. Bostancı, A. Olgun, A. G. Ya˘glıkc¸ı, , and
+O. Mutlu, “Ramulator 2.0: A Modern, Modular, and Extensible DRAM
+Simulator,” 2023.
+[50] J. Liu, M. Zhou, Y. Pan, C.-Y. Yang, L. Josipovi´c, and T. Rosing, “Op-
+tiPIM: Optimizing Processing-in-Memory Acceleration Using Integer
+Linear Programming,” in ISCA, 2025.
+[51] A. Khadem, D. Fujiki, H. Chen, Y. Gu, N. Talati, S. Mahlke, and
+R. Das, “Multi-Dimensional Vector ISA Extension for Mobile In-Cache
+Computing,” in HPCA, 2025.
+[52] A. Drebes, L. Chelini, O. Zinenko, A. Cohen, H. Corporaal, T. Grosser,
+K. Vadivel, and N. Vasilache, “TC-CIM: Empowering Tensor Compre-
+hensions for Computing-In-Memory,” in IMPACT, 2020.
+[53] M. Rhee, J. Sim, T. Ahn, S. Lee, D. Yoon, E. Kim, K. Park, Y. Joo,
+and H. Kim, “HPU: High-Bandwidth Processing Unit for Scalable,
+Cost-effective LLM Inference via GPU Co-processing,” arXiv preprint
+arXiv:2504.16112, 2025.
+[54] Y. Kwon, Y. Lee, and M. Rhu, “TensorDIMM: A Practical Near-
+Memory Processing Architecture for Embeddings and Tensor Oper-
+ations in Deep Learning,” in MICRO, 2019.
+[55] L. Liu, S. Zhao, B. Li, H. Ren, Z. Xu, M. Wang, X. Li, Y. Han, and
+Y. Wang, “Make LLM Inference Affordable to Everyone: Augmenting
+GPU Memory With NDP-DIMM,” in HPCA, 2025.
+[56] Y. Gu, A. Khadem, S. Umesh, N. Liang, X. Servot, O. Mutlu, R. Iyer,
+and R. Das, “PIM Is All You Need: A CXL-Enabled GPU-Free System
+for Large Language Model Inference,” in ASPLOS, 2025.
+[57] J.-W. Jang, J. Oh, Y. Kong, J.-Y. Hong, S.-H. Cho, J. Lee, H. Yang,
+and J.-S. Yang, “Accelerating Retrieval Augmented Language Model
+via PIM and PNM Integration,” in MICRO, 2025.
+[58] D. Quinn, E. E. Y¨ucel, M. Prammer, Z. Fan, K. Skadron, J. M. Patel,
+J. F. Mart´ınez, and M. Alian, “DReX: Accurate and Scalable Dense
+Retrieval Acceleration via Algorithmic-Hardware Codesign,” in ISCA,
+2025.
+[59] D. Kim, J.-Y. Kim, W. Han, J. Won, H. Choi, Y. Kwon, and J.-Y.
+Kim, “Darwin: A DRAM-Based Multi-Level Processing-in-Memory
+Architecture for Column-Oriented Database,” IEEE TETC, 2024.
+[60] S. He, Z. Zhu, Y. He, and T. Jia, “LP-Spec: Leveraging LPDDR PIM
+for Efficient LLM Mobile Speculative Inference with Architecture-
+Dataflow Co-Optimization,” arXiv preprint arXiv:2508.07227, 2025.
+[61] S. Han, B. Yoon, G. Park, C. Song, D. Kim, and J.-J. Kim, “Near-
+Memory LLM Inference Processor based on 3D DRAM-to-logic Hy-
+brid Bonding,” in DAC, 2025.
+[62] L. Wu, H. Zhu, S. He, X. Lin, X. Zeng, and C. Chen, “PIMoE: Towards
+efficient MoE transformer deployment on NPU-PIM system through
+throttle-aware task offloading,” in DAC, 2025.
+[63] M. Seo, X. T. Nguyen, S. J. Hwang, Y. Kwon, G. Kim, C. Park, I. Kim,
+J. Park, J. Kim, W. Shin et al., “IANUS: Integrated Accelerator Based
+on an NPU-PIM Unified Memory System,” in ASPLOS, 2024.
+[64] G. Heo, S. Lee, J. Cho, H. Choi, S. Lee, H. Ham, G. Kim, D. Mahajan,
+and J. Park, “NeuPIMs: NPU-PIM Heterogeneous Acceleration for
+Batched LLM Inferencing,” in ASPLOS, 2024.
+[65] Chen, Ruiyang and Song, Zhuoran and Zheng, Yicheng and Zhu, Zeyu
+and Li, Gang and Jing, Naifeng and Liang, Xiaoyao and Guan, Haibing,
+“Heat: Npu-ndp heterogeneous architecture for transformer-empowered
+graph neural networks,” in MICRO, 2025.
+[66] J. Ahn, S. Hong, S. Yoo, O. Mutlu, and K. Choi, “A Scalable
+Processing-in-Memory Accelerator for Parallel Graph Processing,” in
+ISCA, 2015.
+[67] G. Dai, T. Huang, Y. Chi, J. Zhao, G. Sun, Y. Liu, Y. Wang, Y. Xie, and
+H. Yang, “GraphH: A Processing-in-Memory Architecture for Large-
+Scale Graph Processing,” IEEE TCAD, 2018.
+[68] T. Kang, G. Choi, T. Suh, and G. Koo, “SparsePIM: An Efficient HBM-
+Based PIM Architecture for Sparse Matrix-Vector Multiplications,” in
+ICS, 2025.
+[69] C. Giannoula, I. Fernandez, J. G. Luna, N. Koziris, G. Goumas, and
+O. Mutlu, “SparseP: Towards Efficient Sparse Matrix–Vector Multipli-
+cation on Real Processing-in-Memory Architectures,” POMACS, 2022.
+[70] D. Lee, B. Hyun, T. Kim, and M. Rhu, “PIM-MMU: A Memory
+Management Unit for Accelerating Data Transfers in Commercial PIM
+Systems,” in MICRO, 2024.
+[71] Z. Zhou, C. Li, X. Wei, X. Wang, and G. Sun, “Gnnear: Accelerating
+Full-Batch Training of Graph Neural Networks with Near-Memory
+Processing,” in PACT, 2022.
+[72] T. Tian, X. Wang, L. Zhao, W. Wu, X. Zhang, F. Lu, T. Wang, and
+X. Jin, “G-NMP: Accelerating Graph Neural Networks with DIMM-
+Based Near-Memory Processing,” JSA, 2022.
+[73] S. Yun, H. Nam, J. Park, B. Kim, J. H. Ahn, and E. Lee, “GraNDe: Ef-
+ficient Near-Data Processing Architecture for Graph Neural Networks,”
+IEEE TC, 2023.
+[74] D. Chen, H. He, H. Jin, L. Zheng, Y. Huang, X. Shen, and X. Liao,
+“MetaNMP: Leveraging Cartesian-Like Product to Accelerate HGNNs
+with Near-Memory Processing,” in ISCA, 2023.
+[75] M. Saed, P. J. Nair, and T. M. Aamodt, “RayN: Ray Tracing Acceler-
+ation with Near-memory Computing,” in MICRO, 2025.
+[76] L. Yan, M. Zhang, R. Wang, X. Chen, X. Zou, X. Lu, Y. Han, and
+X.-H. Sun, “CoPIM: A Concurrency-Aware PIM Workload Offloading
+Architecture for Graph Applications,” in ISLPED, 2021.
+[77] C. Giannoula, I. Fernandez, J. G. Luna, N. Koziris, G. Goumas, and
+O. Mutlu, “SparseP: Towards Efficient Sparse Matrix Vector Multipli-
+cation on Real Processing-in-Memory Architectures,” POMACS, 2022.
+[78] S. Diab, A. Nassereldine, M. Alser, J. G´omez Luna, O. Mutlu, and
+I. El Hajj, “A Framework for High-Throughput Sequence Alignment
+Using Real Processing-in-Memory Systems,” Bioinformatics, 2023.
+[79] C. Lim, S. Lee, J. Choi, J. Lee, S. Park, H. Kim, J. Lee, and Y. Kim,
+“Design and Analysis of a Processing-in-DIMM Join Algorithm: A
+Case Study with UPMEM DIMMs,” PACMMOD, 2023.
+[80] M. Item, G. F. Oliveira, J. G´omez-Luna, M. Sadrosadati, Y. Guo,
+and O. Mutlu, “TransPimLib: Efficient Transcendental Functions for
+Processing-in-Memory Systems,” in ISPASS, 2023.
+[81] P. Das, P. R. Sutradhar, M. Indovina, S. M. P. Dinakarrao, and A. Gan-
+guly, “Implementation and Evaluation of Deep Neural Networks in
+Commercially Available Processing in Memory Hardware,” in SOCC,
+2022.
+13
+
+
+[82] M. A. Jibril, H. Al-Sayeh, and K.-U. Sattler, “Accelerating Aggregation
+Using a Real Processing-in-Memory System,” in ICDE, 2024.
+[83] J. Chen, J. G´omez-Luna, I. El Hajj, Y. Guo, and O. Mutlu, “SimplePIM:
+A Software Framework for Productive and Efficient Processing-in-
+Memory,” in PACT, 2023.
+[84] S. Rhyner, H. Luo, J. G´omez-Luna, M. Sadrosadati, J. Jiang, A. Olgun,
+H. Gupta, C. Zhang, and O. Mutlu, “Analysis of Distributed Optimiza-
+tion Algorithms on a Real Processing-In-Memory System,” in PACT,
+2024.
+[85] C. Giannoula, I. Fernandez, J. G´omez-Luna, N. Koziris, G. Goumas,
+and O. Mutlu, “Towards Efficient Sparse Matrix Vector Multiplication
+on Real Processing-In-Memory Architectures,” in SIGMETRICS, 2022.
+[86] C. Lim, S. Lee, J. Choi, J. Lee, S. Park, H. Kim, J. Lee, and Y. Kim,
+“Design and Analysis of a Processing-in-DIMM Join Algorithm: A
+Case Study With UPMEM DIMMs,” PACMMOD, 2023.
+[87] S. Cai, B. Tian, H. Zhang, and M. Gao, “PimPam: Efficient Graph Pat-
+tern Matching on Real Processing-in-Memory Hardware,” PACMMOD,
+2024.
+[88] J. Nider, C. Mustard, A. Zoltan, J. Ramsden, L. Liu, J. Grossbard,
+M. Dashti, R. Jodin, A. Ghiti, J. Chauzi et al., “A Case Study
+of {Processing-in-Memory} in {Off-the-Shelf} Systems,” in USENIX
+ATC, 2021.
+[89] H. Kang, Y. Zhao, G. E. Blelloch, L. Dhulipala, Y. Gu, C. McGuffey,
+and P. B. Gibbons, “PIM-tree: A Skew-resistant Index for Processing-
+in-Memory,” VLDB, 2025.
+[90] H. Kim, Y. Zhao, A. Pavlo, and P. B. Gibbons, “No Cap, This Memory
+Slaps: Breaking Through the Memory Wall of Transactional Database
+Systems with Processing-in-Memory,” VLDB, 2025.
+[91] W. Kong, S. Zheng, Y. Hua, R. Ma, Y. Wen, G. Wang, C. Zhou,
+and L. Huang, “PimBeam: Efficient Regular Path Queries Over Graph
+Database Using Processing-in-Memory,” IEEE TPDS, 2025.
+[92] S. Yu, H. Kim, K. Jeun, S. Hwang, S. Cho, and E. Lee, “ComPASS:
+A Compatible PIM Protocol Architecture and Scheduling Solution for
+Processor-PIM Collaboration,” in MICRO, 2025.
+[93] S. U. Noh, J. Hong, C. Lim, S. Park, J. Kim, H. Kim, Y. Kim, and
+J. Lee, “PID-Comm: A Fast and Flexible Collective Communication
+Framework for Commodity Processing-in-DIMM Devices,” in ISCA,
+2024.
+[94] D. Lee, B. Hyun, T. Kim, and M. Rhu, “PIM-MMU: A Memory
+Management Unit for Accelerating Data Transfers in Commercial PIM
+Systems,” in MICRO, 2024.
+[95] Y. Zhao, M. Gao, F. Liu, Y. Hu, Z. Wang, H. Lin, J. Li, H. Xian,
+H. Dong, T. Yang et al., “UM-PIM: DRAM-Based PIM With Uniform
+& Shared Memory Space,” in ISCA, 2024.
+[96] D. Teguia, J. Chen, S. Bitchebe, O. Balmau, and A. Tchana, “vPIM:
+Processing-in-Memory Virtualization,” in Middleware, 2024.
+[97] I. Hwang, D. Kim, S. Kang, T. Park, T. Kim, J. Seo, H. Kim, Y. Kim,
+and Y. Park, “PIM-CARE: A Compiler-Assisted Dynamic Resource
+Allocation Framework for Real-world DRAM PIM,” in ICS, 2025.
+[98] J. Shin, S. An, S. Lee, and S. E. Lee, “PIMCoSim: Hardware/Software
+Co-Simulator for Exploring Processing-in-Memory Architectures,”
+Electronics, 2024.
+[99] B. Hyun, T. Kim, D. Lee, and M. Rhu, “Pathfinding Future PIM
+Architectures by Demystifying a Commercial PIM Technology,” in
+HPCA, 2024.
+[100] J. Heo, Y. Shin, S. Choi, S. Yune, J.-H. Kim, H. Sung, Y. Kwon,
+and J.-Y. Kim, “Primo: A Full-Stack Processing-in-DRAM Emulation
+Framework for Machine Learning Workloads,” in ICCAD, 2023.
+[101] J. Kim, D. Kim, S. Kang, B. Hyun, I. Lee, and Y. Park, “PIM-CCA: An
+Efficient PIM Architecture with Optimized Integration of Configurable
+Functional Units,” in MICRO, 2025.
+14

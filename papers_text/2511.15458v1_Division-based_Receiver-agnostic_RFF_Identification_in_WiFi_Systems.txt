@@ -1,0 +1,1566 @@
+1
+Division-based Receiver-agnostic RFF Identification
+in WiFi Systems
+Xuan Yang, Graduate Student Member, IEEE, Dongming Li, Member, IEEE, Dong Wei, Meng Zhang
+Abstract—In physical-layer security schemes, radio frequency
+fingerprint (RFF) identification of WiFi devices is susceptible to
+receiver differences, which can significantly degrade classification
+performance when a model is trained on one receiver but tested
+on another. Consequently, the receiver-agnostic physical-layer
+identification of WiFi devices remains an important research
+challenge. Recent studies have addressed this issue by either
+training on signals collected from multiple receivers to extract
+receiver-agnostic RFF features, or by employing calibration
+processes to enhance classification accuracy. However, these
+approaches introduce substantial computational overhead. In
+this paper, we propose a division-based receiver-agnostic RFF
+extraction method for WiFi systems, which removes the receivers’
+effects by dividing different preambles in the frequency domain.
+The proposed method requires only a single receiver for training
+and does not rely on additional calibration or stacking processes.
+First, for flat fading channel scenarios, the legacy short training
+field (L-STF) and legacy long training field (L-LTF) of the
+unknown device are divided by those of the reference device
+in the frequency domain. The receiver-dependent effects can be
+eliminated with the requirement of only a single receiver for
+training, and the higher-dimensional RFF features can be ex-
+tracted. Second, for frequency-selective fading channel scenarios,
+the high-throughput long training field (HT-LTF) is divided by
+the L-LTF in the frequency domain. Only a single receiver is re-
+quired for training and the higher-dimensional RFF features that
+are both channel-invariant and receiver-agnostic are extracted.
+Finally, simulation and experimental results demonstrate that
+the proposed method effectively mitigate the impacts of channel
+variations and receiver differences. The classification results
+show that, even when training on a single receiver and testing
+on a different one, the proposed method achieves classification
+accuracy improvements of 15.5% and 28.45% over the state-
+of-the-art approach in flat fading and frequency-selective fading
+channel scenarios, respectively.
+Index Terms—WiFi, RF fingerprint, channel robust, receiver-
+agnostic, reference device, division, deep learning
+I. INTRODUCTION
+O
+VER the past several decades, the rapid development
+of WiFi devices has changed various aspects of daily
+life. As the number of WiFi devices continues growing,
+ensuring secure WiFi communications has become increas-
+ingly important [1]. Traditionally, wireless system security is
+This work has been submitted to the IEEE for possible publication.
+Copyright may be transferred without notice, after which this version may
+no longer be accessible. This work was partially supported by the Natural
+Science Funding of Jiangsu Province under Grant No. BK20252011, and the
+Big Data Computing Center of Southeast University (Corresponding author:
+Dongming Li.)
+X.
+Yang
+and
+D.
+Li
+are
+with
+School
+of
+Cyber
+Science
+and
+Engineering,
+Southeast
+University,
+Nanjing,
+211189,
+China.
+(email:
+xuan yang@seu.edu.cn; lidm@seu.edu.cn)
+D. Wei and M. Zhang are with the Institute of Information Engineer-
+ing, Chinese Academy of Sciences, Beijing 100085, China (e-mail: wei-
+dong@iie.ac.cn; zhangmeng@iie.ac.cn).
+achieved through encryption algorithms and security protocols.
+However, with the rise of computational power and the advent
+of quantum computing, security architectures that are based on
+computational complexity face growing threats [2], because
+such systems can be easily cracked by quantum computing.
+Radio frequency fingerprint (RFF) identification is a promis-
+ing technology for device identification, which does not rely
+on computational complexity and can enhance authentica-
+tion security. The transmitted signal of a device is inher-
+ently affected by various hardware imperfections, such as in-
+phase/quadrature (IQ) direct current (DC) offset, IQ imbal-
+ance, imperfect low-pass filtering, and power amplifier (PA)
+nonlinearity, all of which result in a distorted signal [3]. These
+unique hardware impairments, collectively referred to as RFF,
+can be extracted from the distorted signal. Similar to a human
+fingerprint, the RFF is extractable, unique, and invariant, mak-
+ing it a reliable feature for achieving authentication security
+[4].
+Several key challenges must be addressed to enable the
+practical deployment of RFF identification systems. First,
+wireless channel effects can distort the transmitted signal.
+When the training and test sets are collected from different
+locations or at different times, classification accuracy can
+degrade substantially. To mitigate this issue, researchers have
+proposed methods to extract inherent RFF features [5]–[9],
+which are independent of channel effects. Additionally, chan-
+nel estimation and compensation techniques [10], [11], as well
+as filtering based approaches [3], [12]–[14], have been devel-
+oped to directly counteract channel effects. However, channel
+estimation and compensation may inevitably alter the original
+RFF, while the filtering based approaches face difficulties in
+accurately determining the passband and stopband. Moreover,
+by leveraging the properties of channel coherence time [15]–
+[18] and coherence bandwidth [19]–[21], signal processing
+techniques based on the convolution model can be applied to
+mitigate channel distortions. Furthermore, data augmentation
+methods [16], [22]–[24] can enhance classification accuracy,
+although they typically incur increased training overhead.
+Second, the transmitted signal is also influenced by the re-
+ceiver’s RFF, leading to degraded classification accuracy when
+the receiver changes. Several neural network based methods
+[25]–[35] have been proposed to extract receiver-agnostic RFF
+features. However, training a receiver-agnostic RFF feature
+extractor typically requires either collecting training samples
+from multiple receivers or performing a calibration process
+when deploying on a new receiver. Both approaches are time-
+consuming. To address this issue, the authors in [15], [16] pro-
+posed a division-based RFF extraction method that separates
+arXiv:2511.15458v1  [eess.SP]  19 Nov 2025
+
+
+2
+the short and long preambles in the frequency domain to obtain
+receiver-agnostic features. However, this method can extract
+only 12-dimensional RFF features, as the short preamble
+in WiFi and dedicated short-range communication (DSRC)
+frames occupies just 12 subcarriers, which limits classification
+performance. Additionally, the method in [15], [16] relies on a
+stacking process [36], where adjacent frames are combined for
+denoising and improved classification accuracy. As adjacent
+frames may originate from different devices, the stacking
+process is difficult to implement reliably in practice. Therefore,
+achieving high classification accuracy with training on only a
+single receiver while eliminating the requirements of stacking
+and calibration processes deserves further investigation.
+Although the afore-mentioned research progress, the ex-
+isting studies on receiver-agnostic RFF identification have
+the following drawbacks: (1) The training process typically
+requires multiple receivers, making both data collection and
+classifier training time-consuming. (2) A calibration process
+is needed when deploying on a new receiver, introducing
+additional overhead. (3) Only low dimensional RFF features
+are extracted, leading to reduced classification accuracy. (4)
+A stacking process is often required, which causes delays
+in delivering the final identification results. To address these
+limitations and mitigate the adverse receiver effects, we model
+the adverse receiver effects and propose a division-based
+receiver-agnostic RFF identification method. To the best of our
+knowledge, this is the first work that eliminates the need for
+multiple receivers, the calibration process, and the stacking
+process, while enabling the extraction of high dimensional
+RFF features to improve classification accuracy. The main
+contributions of this paper are summarized as follows:
+1. For flat fading channel scenarios, the legacy short training
+field (L-STF) and legacy long training field (L-LTF) of the
+unknown device are divided by those of the reference device
+in the frequency domain. The receiver-dependent effects can
+be eliminated with the requirement of only a single receiver
+for training, and the higher-dimensional RFF features can be
+extracted.
+2. For frequency-selective fading channel scenarios, the
+aforementioned reference device based approach fails to fully
+mitigate channel effects. To address this issue, the high-
+throughput long training field (HT-LTF) is divided by the
+L-LTF in the frequency domain. This approach operates
+without a reference device, requires only a single receiver
+for training, extracts higher-dimensional RFF features that
+are both channel-invariant and receiver-agnostic, and achieves
+high classification accuracy.
+3. Extensive experiments are conducted on commercial
+WiFi devices, demonstrating that by dividing different pream-
+bles in the frequency domain, the adverse receiver effects can
+be removed, without requiring multiple receivers, stacking,
+or calibration processes. Specifically, the proposed method
+achieves classification accuracies of up to 98.47% in the flat
+fading channel scenario and 94.91% in the frequency-selective
+fading channel scenario, even when the receiver changes.
+Similar to existing works such as [15], [16], [32], [37], [38],
+this paper primarily focuses on closed-set classification, where
+all test devices are known during the training stage. For open-
+set classification, in which rogue devices may appear during
+the testing stage, readers are recommended to refer to [39],
+[40].
+The remainder of this paper is structured as follows: Section
+II provides an overview of the related work in this field.
+Section III elaborates on WiFi signal preprocessing. Section IV
+presents the proposed receiver-agnostic RFF feature extraction
+and identification methods. Section V evaluates the proposed
+methods through experimental analysis. Finally, Section VI
+concludes the paper.
+II. RELATED WORK
+Since channel variations and receiver differences are the two
+main challenges in RFF identification, this section primarily
+focuses on addressing these two issues.
+A. Channel Robust RFF identification
+Since wireless signals propagate through open-air envi-
+ronments, removing channel effects is essential to obtain
+environment-independent RFF features. The inherent RFF,
+such as carrier frequency offset (CFO) [5]–[7], is assumed to
+be channel-independent and can be extracted for classification
+purposes. However, long-term experiments have shown that
+the CFO characteristic is unstable over time, and the CFO
+characteristic is also prone to be affected by the temperature
+of the crystal oscillator [41]. Channel estimation and com-
+pensation methods [10], [11] have been employed to mitigate
+channel effects and derive channel-robust RFF. However, the
+channel estimation and compensation process may uninten-
+tionally impair the RFF features, leading to lower classification
+accuracy. Under the assumption that multipath signals have
+higher energy in the taps with smaller delay, some filtering
+based methods are designed to extract RFF features [3], [12]–
+[14]. Additionally, division-based RFF extraction methods,
+exploiting the characteristics of channel coherent time [15]–
+[18] and channel coherent bandwidth [19]–[21], have been
+proposed to extract channel-independent RFF. Moreover, the
+authors in [42], [43] compensated channel effects by op-
+timizing the digital finite impulse response (FIR) filter on
+the transmitter side. Furthermore, data augmentation methods
+can be utilized to achieve higher classification accuracy [16],
+[22]–[24], though they lead to significantly increased training
+overhead.
+B. Receiver-agnostic RFF Identification
+After the transmitted signal is received by the receiver,
+the transmitter’s RFF features are also influenced by the
+receiver’s characteristics. Since receiver differences decrease
+classification accuracy [44], [45], handling receiver impacts
+is crucial, and has been explored in several studies. Var-
+ious neural network based methods, such as convolutional
+neural networks (CNN) [27], [34], Siamese networks [29],
+simple Siamese [30], generative adversarial networks (GAN)
+[31], [35], adversarial training [32], deep adversarial neural
+networks (DANN) [28], [33], transfer learning [25], and
+deep metric learning [26], have been utilized to tackle this
+
+
+3
+t1
+t10
+t2
+t7 t8
+t3
+t5
+t4
+t6
+t9
+CP
+L-STF1
+Data
+L-LTF2
+L-STF2
+Short Preamble
+Long Preamble
+L-LTF1
+Preamble
+10灤1.6μs=16μs
+3.2μs+2灤6.4μs=16μs
+Fig. 1: Non-HT PPDU structure.
+…
+Legacy Preamble
+8μs
+L-STF
+HT Preamble
+L-SIG
+L-LTF
+HT-
+SIG1
+HT-
+SIG2
+HT-
+STF
+HT-
+LTF1
+HT-
+LTFN
+HT Data
+4μs
+8μs
+4μs
+4μs
+4μs
+4μs
+4μs
+Fig. 2: HT-MF PPDU structure.
+problem. To enable the neural network to extract receiver-
+agnostic RFF features, many studies require signals received
+from multiple receivers [30]–[33], [46], which increases the
+overhead in the signal collection process. Furthermore, for
+domain adaptation and enhancing classification accuracy, a
+calibration process involving labeled or unlabeled data from
+the new receiver is required in [25]–[30], [32]–[35], [47], [48].
+Since the neural network needs to be recalibrated for each
+new receiver, calibration-based methods are time consuming.
+Alternatively, instead of using neural networks, the authors in
+[49] proposed a joint channel and RFF estimation method that
+accounts for receiver effects by exploiting wave propagation
+theory and a compressive sensing linear solution. However,
+this approach requires receiver calibration and prior knowledge
+of the transmitter’s precise location, limiting its universality.
+The division-based RFF extraction methods [15], [16], [18],
+which do not require training data collected from multiple re-
+ceivers or a calibration process, have been theoretically proven
+to mitigate the adverse receiver effects [15]. However, since
+the adjacent L-LTF parts are similar, the features extracted
+by dividing these two parts are susceptible to noise effects.
+These adverse effects are also observed in [18], where a mul-
+tiple discriminant analysis/maximum likelihood (MDA/ML)
+classifier is employed for classification. By dividing the short
+preamble from the long preamble in the frequency domain,
+the channel and receiver impacts can be eliminated [15], [16].
+Nevertheless, since the short preambles in WiFi [16] and
+DSRC [15] systems occupy only 12 subcarriers, the extracted
+RFF features are limited to just 12 dimensions, which leads to
+lower classification accuracy. Moreover, as the RFF features
+of the short preamble and long preamble are similar, the
+extracted features in [15], [16] are unstable and vulnerable
+to noise, with the stacking process being required to improve
+accuracy. However, the stacking process is challenging to
+implement since adjacent frames may originate from different
+devices. Furthermore, while the effectiveness of the receiver-
+agnostic RFF extraction method in [15] has been demonstrated
+theoretically, its performance in real-world scenarios deserves
+verification.
+The related works in the receiver-agnostic research field
+TABLE I: Related Work
+Paper
+Need Multiple
+Receivers?
+Need Calibration
+Process?
+Method
+[33]
+Yes
+Yes
+DANN
+[30]
+Yes
+Yes
+SimSiam
+[32]
+Yes
+Yes
+Adversarial Training
+[46]
+Yes
+No
+Loss Function Design
+[31]
+Yes
+No
+GAN
+[47]
+No
+Yes
+Transform Network
+[25]
+No
+Yes
+Transfer Learning
+[26]
+No
+Yes
+Deep Metric Learning
+[28]
+No
+Yes
+DANN
+[27]
+No
+Yes
+CNN
+[29]
+No
+Yes
+Siamese
+[34]
+No
+Yes
+CNN
+[48]
+No
+Yes
+Adaptive Pseudo-labeling
+[35]
+No
+Yes
+Dual Transfer GAN
+[49]
+No
+Yes
+Compressive Sensing
+[15]
+No
+No
+Division, Random Forest
+[16]
+No
+No
+Division, CNN
+[18]
+No
+No
+Division, MDA/ML
+Ours
+No
+No
+Division, InceptionTime
+are summarized in Table I. It can be found that most of the
+existing works need either multiple receivers or the calibration
+process, or both simultaneously. Only a few works [15],
+[16], [18] require neither multiple receivers nor calibration
+process. Most of these existing works [16], [18] are de-
+signed to remove channel effects and mitigate the receiver’s
+effects inadvertently. Only one of these existing works [15]
+theoretically demonstrated a division-based receiver-agnostic
+RFF extraction method, the real-world performance is under
+verification.
+III. WIFI FRAME STRUCTURE AND SIGNAL
+PREPROCESSING
+To obtain receiver-agnostic RFF features, signal preprocess-
+ing is essential. In this section, WiFi frame structure and signal
+preprocessing are introduced in detail, while the signal prepro-
+cessing involves signal detection, frame synchronization, and
+CFO compensation.
+A. WiFi Frame Structure
+The physical layer protocol data unit (PPDU) formats
+of non-high-throughput (non-HT) and high-throughput mixed
+
+
+4
+format (HT-MF), shown in Fig. 1 and Fig. 2, are primarily
+utilized for RFF extraction in this work. In Fig. 1, the non-HT
+frame consists of a preamble and a data portion. The preamble,
+which is invariant and can be used for RFF extraction, includes
+ten repeated short training symbols, i.e., the legacy short train-
+ing field (L-STF) part, a cyclic prefix (CP), and two repeated
+long training symbols, i.e., the L-LTF part. The preamble is
+mainly used for signal synchronization and channel estimation.
+The L-STF part occupies 12 subcarriers and lasts 8 µs in the
+time domain, corresponding to 160 samples at a sampling rate
+of 20 Msps. The L-LTF part occupies 52 subcarriers, and the
+CP lasts 1.6 µs, while each of the replicated symbols lasts
+3.2 µs. Thus, at a sampling rate of 20 Msps, the CP part
+contains 32 samples, and each long training symbol contains
+64 samples. The signal duration used for fast Fourier transform
+(FFT) is 3.2 µs or 64 samples at the 20 Msps sampling rate.
+We define the 17th to the 80th samples and the 81st to the
+144th samples of the L-STF part as L-STF1 and L-STF2,
+respectively. Similarly, the 33rd to the 96th samples and the
+97th to the 160th samples of the L-LTF part are denoted as L-
+LTF1 and L-LTF2, respectively. Since L-STF1 and L-STF2 are
+identical, and L-LTF1 and L-LTF2 are also identical, L-STF1
+and L-STF2 can be combined to reduce the adverse effects of
+noise. The same operation is applied to L-LTF1 and L-LTF2.
+In Fig. 2, the HT-MF frame consists of a legacy preamble,
+an HT preamble, and a data portion. The legacy preamble of
+the HT-MF frame is identical to that of the non-HT frame.
+In the HT preamble, the number of HT-LTF may vary. Each
+HT-LTF occupies 54 subcarriers and contains 80 samples at a
+sampling rate of 20 Msps. Since the HT-LTF part is invariant,
+it can be used for RFF extraction. To avoid inter-symbol
+interference, the 17th to the 80th samples of the HT-LTF part,
+denoted as HT-LTF1, are used for RFF extraction.
+B. Signal Detection
+In this procedure, the signal’s energy is compared with a
+threshold T, which should be set according to real world
+conditions. The equivalent baseband signal can be denoted as
+y (n), where n = 1, 2, ..., N, with N representing the length of
+samples. The number of samples utilized for the signal energy
+calculation is denoted as W. In the k-th detection round, the
+coarse signal starting point is detected when the following
+condition is met
+E =
+W
+X
+w=1
+|y ((k −1) W + w)| > T.
+(1)
+It can be obtained that the starting point is approximate n0 =
+(k −1) W, since the beginning of the signal causes the value
+of E to exceed the threshold T.
+C. Frame Synchronization
+The correlation-based method is used for frame synchro-
+nization. The ideal signal of the L-LTF part is generated offline
+and can be represented as L (n), n = 1, ..., LL, with LL
+denoting the length of the L-LTF part. The starting point of
+the L-LTF part can be obtained as
+k0 = arg max
+k
+k+LL−1
+X
+n=k
+y (n0 + n)L∗(n −k + 1) , k = 1, ..., K,
+(2)
+where (·)∗denotes the conjugate operation and K is the search
+length. Then, the starting point of the frame can be obtained
+according to the frame structure as n1 = k0 −160 under a
+sampling rate of 20 Msps, since there are 160 samples between
+the starting point of the frame and the starting point of the L-
+LTF part.
+D. CFO Compensation
+The discrepancy between the transmitter’s and receiver’s
+central carrier frequencies results in the CFO. Ignoring channel
+effects and additive noise, the signal affected by the CFO can
+be expressed as
+y(n) = x (n) ej2π(f1−f2)t = x(n)ej2π∆fnTs,
+(3)
+where x (n) is the transmitted baseband signal, and f1 and
+f2 are the carrier frequencies of the transmitter and receiver,
+respectively. The CFO can be estimated using the duplicate
+symbols of the L-STF part as
+ˆf =
+1
+2πTSD∠
+8D+nS−1
+X
+n=nS
+y∗(n1 + n) y (n1 + n + D),
+(4)
+where D is the symbol length of L-STF, and nS is the starting
+point used for the CFO estimation process, where 0 ≤nS ≤
+D. TS is the sampling rate, and ∠· represents taking the phase
+of a complex number. There are totally eight repeated short
+training symbols utilized for CFO estimation. The signal after
+CFO compensation can be expressed as
+y1 (n) = y (n) e−j2π b
+fnTS ≈x (n) .
+(5)
+To compensate for the CFO more effectively, a fine CFO
+compensation method can be adopted using the duplicated
+structure of the L-LTF. This process is similar to the CFO
+compensation process with the L-STF part, and the detailed
+description is omitted for brevity.
+IV. RFF EXTRACTION AND IDENTIFICATION
+The RFF extraction method for flat fading channel and
+frequency-selective fading channel scenarios is proposed.
+For flat fading channel scenarios, a reference device based,
+receiver-agnostic RFF identification method, referred to as the
+RD method, is designed to mitigate the receiver’s RFF effects.
+For frequency-selective fading channel scenarios, a division-
+based receiver-agnostic RFF identification method, referred to
+as the HL method, is proposed to remove both the channel and
+the receiver’s RFF effects, without the need for a reference
+device.
+
+
+5
+Step 1
+Step 2
+Step 1
+Step 2
+Training
+Testing
+Training  Neural 
+Network
+Trained Neural 
+Network
+Reference Device
+Device 1
+…
+Device i
+…
+Device 1
+Device i
+Signal 
+Collection
+Signal 
+Preprocessing
+RFF 
+Extraction
+Signal 
+Collection
+Signal 
+Preprocessing
+RFF 
+Extraction
+Signal 
+Collection
+Signal 
+Preprocessing
+Model Signal 
+Gathering
+Signal 
+Collection
+Signal 
+Preprocessing
+Model Signal 
+Gathering
+Trained Neural 
+Network
+Devices 
+Classification
+Receiver Rx1
+Receiver Rx1
+Receiver Rx2
+Receiver Rx2
+Reference Device
+(a)
+Training
+Testing
+Training  Neural 
+Network
+Trained Neural 
+Network
+Signal 
+Collection
+Signal 
+Preprocessing
+RFF 
+Extraction
+Signal 
+Collection
+Signal 
+Preprocessing
+RFF 
+Extraction
+Trained Neural 
+Network
+Devices 
+Classification
+Receiver Rx1
+Receiver Rx2
+…
+Device i
+Device 1
+…
+Device i
+Device 1
+(b)
+Fig. 3: Diagrams illustrating the proposed receiver-agnostic RFF extraction and classification method: (a) Under flat fading
+channel scenarios and (b) under frequency-selective fading channel scenarios.
+A. System Overview
+The system diagrams of the proposed method are shown
+in Fig. 3. Fig. 3(a) illustrates the RFF extraction process
+for flat fading channel scenarios. During the training stage,
+receiver Rx1 first receives the signal from the reference device,
+referred to as the model signal. Then, Rx1 collects signals from
+various devices and extracts receiver-agnostic RFF features
+with the aid of the model signal. These extracted RFF features
+are then used to train a neural network. In the test stage, a
+new receiver, Rx2, first gathers the model signal from the
+reference device. Next, Rx2 collects signals from different
+devices and extracts receiver-agnostic RFF features with the
+help of the model signal. These extracted RFF features are
+then input into the trained neural network for classification.
+The RFF extraction process for frequency-selective fading
+channel scenarios is shown in Fig. 3(b). In the training stage,
+Rx1 collects signals from various devices and directly extracts
+the receiver-agnostic RFF features to train a neural network.
+During the test stage, Rx2 receives signals from different
+devices, extracts the receiver-agnostic RFF features, and uses
+the trained neural network for classification.
+B. RFF Extraction under Flat Fading Channel Scenarios
+1) RFF and Channel Effects on the Signal: Without con-
+sidering the additive noise, the transmitted signal affected by
+the transmitter’s RFF can be expressed as
+x′ = fT ⊗x,
+(6)
+where ⊗represents the convolution operation and fT is the
+transmitter’s RFF effect. In flat fading channel scenarios, the
+channel fading is constant across different subcarriers. After
+being affected by the channel effects, the received signal can
+be expressed as
+y1
+′ = α · x′ = α · fT ⊗x,
+(7)
+where α represents the flat fading channel effects. The re-
+ceiver’s RFF can also influence the received signal. The signal
+affected by the receiver’s RFF can be expressed as
+y1 = fR ⊗y1
+′ = α · fR ⊗fT ⊗x,
+(8)
+where fR is the receiver’s RFF effects. After being trans-
+formed into the frequency domain, the final received signal
+is
+Y1 = α · FR · FT · X,
+(9)
+where FR, FT , and X are the Fourier transforms (FTs) of fR,
+ft, and x, respectively.
+2) RFF Extraction: To obtain the receiver-agnostic RFF
+features, a reference device based method is proposed for RFF
+feature extraction. It is assumed that there is one reference
+device TM, I transmitters, and J receivers. Since the preamble
+remains unchanged, the L-STF and L-LTF parts can be utilized
+to extract RFF features. Here, we use the L-LTF part to
+demonstrate the RFF extraction process of the RD method.
+The signal transmitted by the reference device and received
+
+
+6
+Fig. 4: The CSI without RFF effects and the extracted RFF
+features from different WiFi devices, captured by different
+receivers in the L-LTF part under flat fading channel scenarios
+in simulations: (a) The CSI without RFF effects and (b) the
+extracted RFF features.
+by the j-th receiver in the frequency domain can be expressed
+as
+Y1,TM,Rj = αM,j · FRj,L · FTM,L · XLLT F ,
+(10)
+where αM,j is the channel effect between the reference device
+TM and the j-th receiver Rj. FTM,L and FRj,L are the
+frequency domain RFF effects in the L-LTF part of TM and
+Rj, respectively. XLLT F is the FT of a symbol in the L-LTF
+part.
+The signal transmitted by the i-th transmitter and received
+by the j-th receiver in the frequency domain can be expressed
+as
+Y1,Ti,Rj = αi,j · FRj,L · FTi,L · XLLT F ,
+(11)
+where αi,j represents the channel effect between the i-th
+transmitter Ti and the j-th receiver Rj, and FTi,L denotes
+the frequency domain RFF effects in the L-LTF part of Ti.
+By dividing the signal in (11) by the signal in (10), the
+receiver-agnostic RFF of the i-th device is obtained as
+RFFi1 = Y1,Ti,Rj
+Y1,TM,Rj
+=
+αi,jFTi,L
+αM,jFTM,L
+= βi,j,M
+FTi,L
+FTM,L
+.
+(12)
+The influence of the parameter βi,j,M can be removed through
+the normalization process, as it is a constant across different
+subcarriers.
+To obtain additional dimensions of RFF features, the
+receiver-agnostic RFF features can also be extracted from
+the L-STF part using the same method. The receiver-agnostic
+RFF of the i-th device extracted from the L-STF part can be
+expressed as
+RFFi2 = βi,j,M
+FTi,S
+FTM,S
+,
+(13)
+where FTM,S and FTi,S represent the frequency domain RFF
+effects in the L-STF part of the reference device TM and the i-
+th device Ti, respectively. The training and classification strat-
+egy using both the L-STF and L-LTF parts will be discussed in
+Section V-A. Note that the extracted RFF features are from the
+estimated frequency-domain channel state information (CSI),
+also known as the channel frequency response (CFR). The
+original CFR contains contributions from the transmitter, the
+channel, and the receiver. By applying the proposed method
+to the original CFR, the channel and receiver effects can
+be removed, allowing the transmitter’s RFF features to be
+extracted.
+TABLE II: WiFi Modules
+Devices
+Dev1
+Dev2
+Dev3
+Dev4
+Dev5
+Modules
+TL-WDR
+4310
+TL-WDR
+4310
+TL-WDR
+4310
+RT-AC66U
+RT-N66U
+Devices
+Dev6
+Dev7
+Dev8
+Dev9
+Dev10
+Modules
+RT-N66U
+LG-D300
+MAN1K-
+3113NA
+NETGEAR-
+R6700
+MOAP
+1200D
+Devices
+Dev11
+Dev12
+Dev13
+Dev14
+Modules
+LG-
+N595
+UTT-
+750W
+GDGEN
+20
+TL-C2-
+AC750
+TABLE III: USRP Modules
+Receivers
+Rx1
+Rx2
+Rx3
+Rx4
+Rx5
+Modules
+USRP
+N210
+LW
+B210
+LW B205
+mini-i
+LW B205
+mini-i
+USRP B205
+mini-i
+3) Evaluation:
+Fig. 4 illustrates the extracted RFF of
+devices T1 and T2, captured by different receivers after
+energy normalization, with a signal-to-noise ratio (SNR) of
+40 dB under flat fading channel scenarios in simulations.
+The distances between different transmitters and receivers are
+both set to 10 meters in the simulation. Different random
+seeds are used for the realizations of each transmitter-receiver
+link. Thus, the channels of different links can be regarded
+as spatially independent. The CSI of different transmitter-
+receiver links is shown in Fig. 4(a), where the CSI amplitudes
+vary across links. As illustrated in Fig. 4, the extracted
+RFF features of each transmitter remain consistent despite
+spatial channel variations and receiver differences. Therefore,
+the proposed RD method demonstrates robustness to spatial
+channel variations and receiver differences.
+Table II presents the types of WiFi modules, while Table
+III shows the types of USRP modules employed for signal
+receiving. Fig. 5 shows the normalized RFF features of Dev5
+and Dev11, obtained by Rx3 and Rx5 from the L-LTF part
+in a wired scenario [26], [29]. It can be observed that the
+extracted RFF features of different devices vary. However, for
+Fig. 5: Normalized RFF features of different devices, obtained
+by different receivers in the L-LTF part under the flat fading
+channel scenario during experiments: (a) Dev5, Rx3; (b)
+Dev11, Rx3; (c) Dev5, Rx5; and (d) Dev11, Rx5.
+
+
+7
+Fig. 6: The CSI without RFF effects and the extracted RFF
+features from different devices, captured by different receivers
+using the HL method under frequency-selective fading channel
+scenarios in simulations: (a) The CSI without RFF effects and
+(b) the extracted RFF features.
+each individual device, the RFF features extracted by different
+receivers remain similar. Therefore, the proposed RD method
+can extract receiver-agnostic RFF features under the flat fading
+channel scenario.
+C. RFF Extraction under Frequency-selective Fading Channel
+Scenarios
+1) RFF
+and
+Channel
+Effects
+on
+the
+Signal:
+Under
+frequency-selective fading channel scenarios, the transmitted
+signal has the same form as in (6). The received signal, af-
+fected by frequency-selective channel effects, can be expressed
+as
+y2
+′ = h ⊗x′ = h ⊗fT ⊗x,
+(14)
+where h denotes the frequency-selective channel effects. The
+signal y2′, affected by the receiver’s RFF, can be expressed as
+y2 = fR ⊗y2
+′ = h ⊗fR ⊗fT ⊗x.
+(15)
+The signal y2 can be transformed into the frequency domain
+as
+Y2 = H · FR · FT · X,
+(16)
+where H is the FT of h.
+2) RFF Extraction: A division-based receiver-agnostic RFF
+identification method is proposed to eliminate both the channel
+effects and the receiver’s RFF effects. In the L-LTF part, the
+signal transmitted by the i-th transmitter Ti and received by
+the j-th receiver Rj in the frequency domain can be expressed
+as
+Y2L,Ti,Rj = H · FRj,L · FTi,L · XL.
+(17)
+In the HT-LTF part, the signal transmitted by Ti and received
+by Rj in the frequency domain can be expressed as
+Y2H,Ti,Rj = H · FRj,H · FTi,H · XH.
+(18)
+In this paper, we assumed that the RFFs across HT-LTF and
+L-LTF parts are different of the device to be classified, while
+the RFFs across HT-LTF and L-LTF parts are similar of the
+receivers. Therefore, we have
+FRj,H = FRj,L,
+(19)
+FTi,H ̸= FTi,L.
+(20)
+Fig. 7: Normalized RFF features of different devices, ob-
+tained by different receivers using the HL method under
+the frequency-selective fading channel scenario during exper-
+iments: (a) Dev6, Rx3; (b) Dev13, Rx3; (c) Dev6, Rx5; and
+(d) Dev13, Rx5.
+The receiver-agnostic RFF of Ti can be obtained by dividing
+the signal in (18) by the signal in (17) in the frequency domain
+as
+RFFi2 =
+Y2H ,Ti,Rj
+Y2L,Ti,Rj =
+H·FRj ,H·FTi,H·XH
+H·FRj ,L·FTi,L·XL = γHL
+FTi,H
+FTi,L ,
+(21)
+where γHL is constant across different transmissions because
+XH and XL are invariant.
+3) Evaluation: Fig. 6 illustrates the extracted RFFs of T1
+and T2, obtained by different receivers after energy normaliza-
+tion, under frequency-selective fading channel scenarios with
+an SNR of 40 dB in simulations. Similar to the simulation
+setup in Fig. 4, the distances between different transmitters
+and receivers are both set to 10 meters. Different random
+seeds are used for the realizations of different transmitter-
+receiver links. The CSI of different transmitter-receiver links is
+shown in Fig. 6(a), where the CSI amplitudes also differ across
+links. As shown in Fig. 6(b), despite spatial channel variations
+and receiver differences, the extracted RFF features of each
+transmitter remain consistent. Thus, the proposed HL method
+can mitigate the adverse effects of spatial channel variations
+and receiver differences.
+Fig. 7 shows the normalized RFF features of Dev6 and
+Dev13, obtained by receivers Rx3 and Rx5 during exper-
+iments. As shown in Fig. 7, the extracted RFF features
+of different devices are distinguishable. Moreover, the RFF
+features of each device, extracted by different receivers, remain
+similar. Thus, the proposed HL method can extract receiver-
+agnostic RFF features under frequency-selective fading chan-
+nel scenarios.
+V. EXPERIMENTAL EVALUATION
+A. Experimental Setting
+1) Signal Collection:
+First, the cable wire is used to
+connect the WiFi module directly to the universal software
+
+
+8
+TABLE IV: WiFi Modules in Different Evaluation Sets
+Devices
+WiFi Module
+Evaluation Set S1
+Evaluation Set S2
+Dev1
+TL-WDR4310
+!
+Dev2
+TL-WDR4310
+"(Reference Device)
+!
+Dev3
+TL-WDR4310
+!
+Dev4
+RT-AC66U
+!
+Dev5
+RT-N66U
+!
+Dev6
+RT-N66U
+!
+!
+Dev7
+LG-D300
+!
+!
+Dev8
+MAN1K-3113NA
+!
+!
+Dev9
+NETGEAR-R6700
+!
+Dev10
+MOAP1200D
+!
+Dev11
+LG-N595
+!
+Dev12
+UTT-750W
+!
+!
+Dev13
+GDGEN20
+!
+!
+Dev14
+TL-C2-AC750
+!
+!
+TABLE V: Training Set
+Training Set
+USRP
+Set1
+Rx2, Rx3
+Set2
+Rx2, Rx3, Rx4
+Set3
+Rx2, Rx3, Rx4, Rx5
+Set4
+Rx1, Rx2
+Set5
+Rx1, Rx2, Rx4
+Set6
+Rx1, Rx2, Rx4, Rx5
+radio peripheral (USRP) for evaluating the performance of the
+proposed method in the flat fading channel scenario [26], [29].
+The sampling rate of the USRP is set to 20 Msps. A radio
+frequency attenuator with 30 dB attenuation is employed to
+protect the USRP. The carrier frequency of the WiFi devices
+is set to 5.745 GHz, corresponding to the 149th WiFi channel.
+Second, to evaluate the performance of the proposed method
+under the frequency-selective fading channel scenarios, exper-
+iments are conducted in a typical packed indoor office and a
+corridor with dynamic passersby. Signals are collected in the
+packed indoor office under static line-of-sight (LOS), static
+non-line-of-sight (NLOS), and mobile scenarios, and in the
+corridor under the static LOS scenario. Table IV presents the
+types of WiFi modules used in the different experiments, and
+Table III shows the types of USRP modules employed for
+signal receiving.
+As illustrate in Table IV, evaluation set S1 consist of
+one reference device and ten WiFi devices for classification.
+Evaluation set S2 also employs ten WiFi devices for classifica-
+tion, but without a reference device. To train neural networks
+with signals received from multiple transmitters, six distinct
+training sets are defined, as shown in Table V.
+2) Neural Network for Classification: Since neural net-
+works are widely used in RFF identification, we utilize the
+InceptionTime neural network [50], which has been shown
+to achieve high classification accuracy [3]. Similar to the ap-
+proach in [3], soft labeling is employed to prevent overfitting,
+and L2 regularization is incorporated to improve the model’s
+generalization performance.
+3) Training of Neural Network: To train the neural network,
+the label smoothing factor, number of epochs, batch size,
+learning rate, and L2 regularization are set to 0.1, 50, 64,
+0.001, and 0.1, respectively. The model with the lowest loss
+value on the validation set is saved as the best model. The
+classification accuracy is averaged using the Monte Carlo
+multiple validation method. Under the flat fading channel
+Fig. 8: Classification accuracy with training on a single re-
+ceiver under the flat fading channel scenario: (a) Tested on
+Rx1 and (b) tested on Rx3.
+scenario, the RFF features extracted from the L-STF and L-
+LTF parts are used to train two separate neural networks during
+the training process. In the testing process, the softmax outputs
+of the two individual networks are combined, and the category
+with the highest value is considered the predicted result [51].
+4) The Evaluation Metric: We use classification accuracy
+as the evaluation metric to compare the classification perfor-
+mance of different methods. Classification accuracy is defined
+as the ratio of correctly classified samples to the total number
+of testing samples. To assess the classification performance,
+the existing division-based RFF extraction method, denoted
+as the DV method [15], [16], and the GAN-based two-stage
+supervised learning framework, denoted as the GAN-RXA
+method [31], are utilized as benchmarks in experiments.
+B. Classification under the Flat Fading Channel Scenario
+In this subsection, we evaluate the classification perfor-
+mance of different methods across varying receivers in the
+flat fading channel scenario using evaluation set S1.
+1) Single Receiver Condition: Fig. 8 shows the classifica-
+tion accuracy using only one receiver for training. The test
+sets are collected by Rx1 and Rx3, as shown in Fig. 8(a) and
+Fig. 8(b), respectively. The GAN-RXA method, which will be
+evaluated in the multiple receivers condition, is not included
+here, as it requires the training set to be sourced from multiple
+receivers. In Fig. 8, the L-STF and L-LTF methods represent
+the RFF features extracted solely from the L-STF or L-LTF
+part, respectively, used for device classification.
+It can be observed from Fig. 8 that the accuracy of all evalu-
+ated methods decreases when the training and testing receivers
+differ. Meanwhile, the proposed RD method achieves higher
+classification accuracy compared to the L-STF method, L-LTF
+method, and the DV method in most cases. The classification
+
+
+9
+Fig. 9: Normalized RFF features of Dev5 obtained by different
+receivers using the DV method [15], [16]: (a) Rx3 and (b) Rx5.
+Fig. 10: The confusion matrix for the proposed RD method,
+with training and test sets collected by Rx4 and Rx3, respec-
+tively.
+accuracies exceed 80% in most cases, indicating that the
+proposed method is practical for use. In contrast, the change
+in receivers significantly impacts the classification accuracy of
+the DV method, especially when training on Rx5 and testing
+on Rx1, where the classification accuracy drops to merely
+35.25%. This is because the RFF features in the L-STF and L-
+LTF parts are similar, and thus, the RFF features extracted by
+dividing the L-STF part from the L-LTF part in the frequency
+domain are more susceptible to noise.
+The noise sensitive RFF features extracted by the DV
+method are illustrated in Fig. 9, which shows the RFF features
+of Dev5 received by different receivers. By comparing Fig.
+9(a) and Fig. 9(b) with Fig. 5(a) and Fig. 5(c), it can be
+observed that the RFF features extracted by the DV method
+are less stable than those extracted by the RD method. This
+is because the proposed RD method extracts RFF features
+by dividing the preamble of the device to be classified from
+that of the reference device. Since the RFFs of the reference
+device and the device to be classified are different, the RFF
+features extracted by the RD method are more stable, which
+is beneficial for classification. Therefore, the stacking process
+required in [15], [16] for denoising is not necessary in the
+proposed RD method.
+The neural network structures of LSTM and Transformer
+used in [32] are adopted for the RFF identification task,
+and the corresponding classification accuracies are shown in
+Fig. 8. As illustrated in Fig. 8, the classification accuracy of
+InceptionTime is consistently higher than that of LSTM and
+Transformer when the receiver changes. One plausible reason
+for this is that because CSI-based feature classification resem-
+Fig. 11: Classification accuracy with training on multiple
+transmitters under the flat fading channel scenario: (a) Tested
+on Rx1 and (b) tested on Rx3.
+Fig. 12: Classification accuracies with training on Rx3 using
+different reference devices and testing on various receivers
+under the flat fading channel scenario.
+bles a time-series classification task, for which InceptionTime
+serves as a more suitable and powerful time-series classifier.
+Fig. 10 shows the confusion matrix for the proposed RD
+method. The training and test sets are collected by Rx4 and
+Rx3, respectively. It can be observed from Fig. 10 that most
+devices achieve 100% classification accuracy. This is because
+the RFF features extracted by the RD method are resilient to
+the impacts of receivers.
+2) Multiple Receivers Condition: The classification per-
+formance is evaluated when signals collected by multiple
+receivers are used for training, and the results are shown in
+Fig. 11. It can be observed from Fig. 11 that the proposed
+RD method consistently achieves the highest classification
+accuracy among all the methods. The classification accuracy
+of the RD method exceeds that of the GAN-RXA method by
+3.11% to 24.66%.
+3) The Influence of the Reference Device Selection: To
+evaluate the impact of reference device selection, different
+reference devices are employed, and the corresponding clas-
+sification performance is illustrated in Fig. 12. The evaluation
+set is still S1. Dev2, Dev6, and Dev13 are selected as refer-
+ence devices, while the remaining eight devices are used for
+classification. As shown in Fig. 12, the classification accuracy
+remains above 90% when training on Rx3, testing on different
+receivers, and using Dev2 as the reference device. In contrast,
+when Dev6 or Dev13 are selected as the reference device, the
+classification accuracy is low in some cases, such as training
+on Rx5 and testing on Rx1.
+Since the classification accuracy depends on the reference
+device, a metric should be designed for reference device
+selection. After normalization, the amplitude of CSI is decom-
+posed using the Daubechies order-4 (db4) wavelet into four
+
+
+10
+Fig. 13: The CSI from the L-LTF part of different reference
+devices before and after wavelet filtering: (a) Dev2, (b) Dev6,
+and (c) Dev13.
+Fig. 14: The correlation between the metric ηLF and classifi-
+cation accuracy when the receiver changes.
+layers and reconstructed from the approximation coefficients
+in the fourth layer to obtain the low-frequency component
+of the normalized CSI. The energies of the normalized CSI
+before and after wavelet filtering are denoted by EB and EA,
+respectively. Then, a metric for selecting the reference device
+can be expressed as
+ηLF = EA
+EB
+.
+(22)
+The normalized CSI of different reference devices collected
+by Rx3, both before and after wavelet filtering, and the
+corresponding ηLF are shown in Fig. 13. As illustrated in Fig.
+13, the reference device Dev2, which achieves the highest
+classification accuracy on average, also exhibits the highest
+ηLF.
+Fig. 14 shows the ηLF values of different reference de-
+vices and the corresponding classification accuracies when
+tested on different receivers. Based on these two-dimensional
+samples, the p-value between ηLF and classification accuracy
+is calculated as 0.0034. Since the p-value is much smaller
+than 0.05, there is a strong correlation between ηLF and
+classification accuracy. By applying least-squares (LS) fitting
+to these samples, it can be observed that and classification
+accuracy are positively correlated. Therefore, ηLF can be
+utilized as a metric for reference device selection.
+Fig. 15: Classification accuracy with training on the evaluation
+set S2 under the flat fading channel scenario: (a) Tested on Rx1
+and (b) tested on Rx3.
+Fig. 16: Classification accuracy with training on a single
+receiver under the static LOS scenario: (a) Tested on Rx1 and
+(b) tested on Rx3.
+4) Comparison between the RD and HL Methods: Since
+the HL method is based on the HT-MF frame, we evaluate the
+classification performance using test set S2, where the HT-
+MF frame appears more frequently. As shown in Fig. 15, the
+classification accuracies of the proposed RD and HL methods
+are similar. However, since HT-MF signals, which are rare in
+some devices, are required in the HL method, the RD method
+is more universal, as both non-HT and HT-MF signals are
+suitable for RFF feature extraction in the RD method.
+C. Classification under Frequency-selective Fading Channel
+Scenarios
+In this subsection, we evaluate the classification perfor-
+mance of different methods under receiver differences in
+frequency-selective fading channel scenarios using evaluation
+set S2. All devices in evaluation set S2, except Dev2 and Dev3,
+are used in the experiments conducted under the static corridor
+scenario.
+1) Classification under the Same Channel Scenario: Fig.
+16, Fig. 17, and Fig. 18 show the classification accuracy of the
+DV method and the proposed HL method when the training set
+
+
+11
+Fig. 17: Classification accuracy with training on a single
+receiver in the static NLOS scenario: (a) Tested on Rx1 and
+(b) tested on Rx3.
+Fig. 18: Classification accuracy with training on a single
+receiver in the mobile scenario: (a) Tested on Rx1 and (b)
+tested on Rx3.
+is collected from a single receiver in the packed indoor office
+under the static LOS, static NLOS, and mobile scenarios,
+respectively. As shown in these figures, classification accuracy
+decreases when the receiver changes. However, the classifi-
+cation accuracy of the proposed HL method is consistently
+higher than that of the DV method by 2.44% to 37.95%
+when the training and test sets are collected from different
+receivers, demonstrating a significant classification accuracy
+improvement in most cases. This is because the proposed
+HL method extracts higher-dimensional RFF features, i.e., 52
+subcarriers, compared to the DV method, i.e., 12 subcarriers
+[15], [16].
+The classification accuracies of InceptionTime, LSTM, and
+Transformer are compared under the static LOS scenario, as
+shown in Fig. 16. As illustrated in Fig. 16, the classification
+accuracies of InceptionTime and Transformer are comparable,
+whereas LSTM achieves the lowest accuracy. Therefore, as
+a strong time-series classifier, InceptionTime is well suited
+for radio frequency fingerprint identification based on features
+Fig. 19: Classification accuracy with training on a single
+receiver under the static corridor scenario: (a) Tested on Rx1
+and (b) tested on Rx3.
+extracted from CSI amplitude.
+Fig. 20: Normalized RFF features of Dev13 obtained by
+different receivers using the DV method [15], [16]: (a) Rx3
+and (b) Rx5.
+The classification accuracy in the static corridor scenario,
+when trained on a single receiver and tested on Rx1 and Rx3,
+is shown in Fig. 19. As illustrated in Fig. 19, the classification
+accuracy of the proposed HL method exceeds 75% even
+under receiver changes. Moreover, the proposed HL method
+outperforms the existing DV method by 14.25% to 54.97%
+under receiver differences.
+Fig. 20 shows the RFF features of Dev13 received by
+different receivers using the DV method. Comparing Fig. 20(a)
+and Fig. 20(b) with Fig. 7(b) and Fig. 7(d), it is evident that
+the RFF features extracted by the DV method are less stable
+than those extracted by the HL method.
+We combine the features by dividing the L-STF part with
+the L-LTF part and dividing the HT-LTF part with the L-
+LTF part. Then, the classification accuracy is compared with
+the HL method. As shown in Fig. 16, Fig. 17, and Fig.
+18, the classification accuracies of the combined features are
+similar to those of the HL method. This is because the RFF
+features extracted by the HL method already possess sufficient
+representational ability to achieve high classification accuracy.
+Fig. 21 shows the confusion matrix of the proposed HL
+method. The training and test sets were collected by Rx2
+and Rx3, respectively. As shown in Fig. 21, most devices
+achieve 100% classification accuracy. However, Dev2 is often
+misclassified as Dev1 due to both devices having the same
+module. Similarly, Dev12 and Dev14 are frequently misclas-
+sified as each other. This is because the RFF features of these
+Fig. 21: The confusion matrix for the proposed HL method
+under the static LOS scenario, with training and test sets
+collected by Rx2 and Rx3, respectively.
+
+
+12
+Fig. 22: RFF features of different devices extracted by Rx2
+using the HL method under the static LOS scenario: (a) Dev12
+and (b) Dev14.
+Fig. 23: Classification accuracy with training on multiple
+transmitters under the frequency-selective channel scenario:
+(a) The static LOS scenario, (b) the static NLOS scenario,
+and (c) the mobile scenario.
+two devices in both the L-LTF and HT-LTF parts are similar,
+leading the HL method to extract noise-like RFF features, as
+shown in Fig. 22, which causes misclassification.
+Fig. 23(a), Fig. 23(b), and Fig. 23(c) show the classification
+accuracy of different methods in the packed indoor office when
+multiple receivers are used under the static LOS, static NLOS,
+and mobile scenarios, respectively. The test set comes from
+Rx1. As illustrated in Fig. 23, the classification accuracy of
+the proposed HL method is consistently higher than that of
+the DV method, since the HL method can extract a higher
+dimension of receiver-agnostic RFF features. As the number
+of training receivers increases, the classification accuracy of
+the GAN-RXA method improves and exceeds that of the HL
+method when Set3 is used as the training set. However, when
+the number of training receivers is small, e.g., two training
+receivers, the classification accuracy of the HL method is
+higher than that of the GAN-RXA method. Moreover, the
+training process of the neural network in the GAN-RXA
+method is time-consuming and prone to convergence issues,
+making the method less practical.
+2) Classification under Different Channel Scenarios: Fig.
+24 shows the classification accuracies of different methods in
+the packed indoor office when the training and testing scenar-
+ios differ, with the training set from Set1 and the test set from
+Rx1. As shown in Fig. 24, the changes in scenarios results in
+Fig. 24: Classification accuracy tested under different scenar-
+ios: (a) The static LOS scenario, (b) the static NLOS scenario,
+and (c) the mobile scenario.
+Fig. 25: Classification accuracy with training under the static
+corridor scenario and testing under various scenarios: (a)
+Under the same receiver and (b) under different receivers.
+a decrease in the classification accuracy of the proposed HL
+method. This is because a small amount of channel component
+remains in the extracted RFF features, leading to the decrease
+of classification accuracy under different channel scenarios.
+The classification accuracy is consistently high when training
+in the mobile scenario, as signals collected in such scenario ex-
+perience a broader range of channel conditions, which makes
+the trained neural network more robust to channel variations.
+Meanwhile, the HL method achieves the highest classification
+accuracy when testing on the static LOS scenario. Although
+the classification accuracy of the HL method is somewhat
+lower than that of the GAN-RXA method in certain cases,
+such as testing on the static NLOS and mobile scenarios, the
+HL method only requires one receiver for training, making it
+more time-efficient in signal collection and more practical for
+deployment. On the other hand, the RD method consistently
+yields lower classification accuracy, as it fails to mitigate
+the frequency-selective fading channel effects. In particular,
+as shown in Fig. 24(c), the proposed HL method achieves
+higher classification accuracy than the existing DV method
+when trained in the LOS or NLOS scenarios and tested in the
+mobile scenario. Therefore, the proposed HL method is more
+robust to channel variations than the existing DV method.
+
+
+13
+Classification accuracies trained under the static corridor
+scenario and tested under various scenarios are shown in
+Fig. 25. As illustrated in Fig. 25, the proposed HL method
+consistently achieves higher classification accuracy than the
+existing DV method under scenario changes. Furthermore, by
+comparing Fig. 25(a) with Fig. 25(b), it can be observed that
+the classification accuracy of the proposed method slightly
+decreases when different receivers are used for training and
+testing. In contrast, the decrease in the classification accuracy
+of the existing DV method is more pronounced under receiver
+changes. Therefore, the proposed HL method is more robust
+to receiver changes and spatial channel variations than the DV
+method.
+VI. CONCLUSION
+In this paper, we proposed a division-based receiver-
+agnostic RFF extraction method in WiFi systems with only one
+receiver used for training while the calibration and stacking
+processes were not needed. In flat fading channel scenarios,
+a reference device based receiver-agnostic RFF identification
+method was designed for RFF extraction and identification.
+By dividing the preamble of the device to be classified and
+the reference device in the frequency domain, the receiver-
+dependent effects can be removed, and high-dimensional RFF
+features can be extracted. By combining the RFF features
+extracted from the L-STF and L-LTF parts, the proposed
+RD method can achieve high classification accuracy. Mean-
+while, to achieve high classification accuracy under receiver
+differences, the device with a high ηLF value under the
+training receiver should be chosen as the reference device.
+In frequency-selective fading channel scenarios, a division-
+based receiver-agnostic HL method for RFF identification is
+put forward without the reference device. By dividing the HT-
+LTF part by the L-LTF part in the frequency domain, high
+dimensions of channel irrelevant and receiver-agnostic RFF
+features can be extracted. The simulation and experimental
+results demonstrated that the proposed method can extract
+receiver-agnostic RFF features effectively and can achieve
+high classification accuracy under receiver differences. As a
+powerful time-series classifier, InceptionTime is well suited
+for radio frequency fingerprint identification using features
+extracted from CSI.
+REFERENCES
+[1] L. Babun, K. Denney, Z. B. Celik et al., “A survey on IoT platforms:
+Communication, security, and privacy perspectives,” Comput. Networks,
+vol. 192, p. 108040, June 2021.
+[2] M. Stoyanova, Y. Nikoloudakis, S. Panagiotakis et al., “A survey on the
+Internet of Things (IoT) forensics: Challenges, approaches, and open
+issues,” IEEE Commun. Surv. Tutorials, vol. 22, no. 2, pp. 1191–1221,
+Jan. 2020.
+[3] X. Yang and D. Li, “LED-RFF: LTE DMRS based channel robust radio
+frequency fingerprint identification scheme,” IEEE Trans. Inf. Forensics
+Secur., vol. 19, pp. 1855–1869, Dec. 2023.
+[4] S. Abbas, M. Abu Talib, Q. Nasir et al., “Radio frequency fingerprinting
+techniques for device identification: a survey,” Int. J. Inf. Secur., vol. 23,
+no. 2, pp. 1389–1427, 2024.
+[5] W. Hou, X. Wang, J.-Y. Chouinard et al., “Physical layer authentication
+for mobile systems with time-varying carrier frequency offsets,” IEEE
+Trans. Commun., vol. 62, no. 5, pp. 1658–1667, Apr. 2014.
+[6] T. D. Vo-Huu, T. D. Vo-Huu, and G. Noubir, “Fingerprinting Wi-Fi
+devices using software defined radios,” in Proc. ACM WiSec 2016,
+Darmstadt, Germany, July 2016.
+[7] J. Hua, H. Sun, Z. Shen et al., “Accurate and efficient wireless device
+fingerprinting using channel state information,” in Proc. IEEE INFO-
+COM 2018, Honolulu, HI, USA, Apr. 2018.
+[8] P. Liu, P. Yang, W.-Z. Song et al., “Real-time identification of rogue
+WiFi connections using environment-independent physical features,” in
+Proc. IEEE INFOCOM 2019, Paris, France, Apr. 2019.
+[9] L. N. Kandel, Z. Zhang, and S. Yu, “Exploiting CSI-MIMO for accurate
+and efficient device identification,” in Proc. IEEE GLOBECOM 2019,
+Waikoloa, HI, USA, Dec. 2019.
+[10] T. Jian, B. C. Rendon, E. Ojuba et al., “Deep learning for RF finger-
+printing: A massive experimental study,” IEEE Internet Things Mag.,
+vol. 3, no. 1, pp. 50–57, Mar. 2020.
+[11] T. Jian, Y. Gong, Z. Zhan et al., “Radio frequency fingerprinting on the
+edge,” IEEE Trans. Mob. Comput., vol. 21, no. 11, pp. 4078–4093, Mar.
+2021.
+[12] T. Chen, H. Shen, A. Hu et al., “Radio frequency fingerprints extraction
+for LTE-V2X: A channel estimation based methodology,” in Proc. IEEE
+VTC2022-Fall, London, UK, Sept. 2022.
+[13] Y. Chen, J. Yu, H. Chen et al., “A channel robust radio frequency finger-
+print authentication method based on hadamard product comparison,” in
+Proc. IEEE WCSP 2023, Hangzhou, China, Nov. 2023.
+[14] R. Kong and H. Chen, “CSI-RFF: Leveraging micro-signals on CSI
+for RF fingerprinting of commodity WiFi,” IEEE Trans. Inf. Forensics
+Secur., vol. 19, pp. 5301–5315, May 2024.
+[15] T. Chen, A. Hu, and Y. Jiang, “Radio frequency fingerprint-based DSRC
+intelligent vehicle networking identification mechanism in high mobility
+environment,” Sustainability, vol. 14, no. 9, p. 5037, Apr. 2022.
+[16] Y. Xing, A. Hu, J. Zhang et al., “Design of a channel robust radio
+frequency fingerprint identification scheme,” IEEE Internet Things J.,
+vol. 10, no. 8, pp. 6946–6959, Dec. 2022.
+[17] L. Yang, S. Camtepe, Y. Gao et al., “On the use of power amplifier
+nonlinearity quotient to improve radio frequency fingerprint identifica-
+tion in time-varying channels,” in Proc. IEEE PIMRC 2023, Toronto,
+ON, Canada, Sept. 2023.
+[18] Z. Zhang, A. Hu, X. Qi et al., “A channel resilient RFF extraction
+scheme for cyclic prefix contained systems,” Phys. Commun., p. 102444,
+Oct. 2024.
+[19] J. He, S. Huang, S. Chang et al., “Radio frequency fingerprint iden-
+tification with hybrid time-varying distortions,” IEEE Trans. Wireless
+Commun., vol. 22, no. 10, pp. 6724–6736, Feb. 2023.
+[20] J. He, S. Huang, Z. Yang et al., “Channel-agnostic radio frequency
+fingerprint identification using spectral quotient constellation errors,”
+IEEE Trans. Wireless Commun., vol. 23, no. 1, pp. 158–170, May 2023.
+[21] J. He, S. Huang, Y. Chen et al., “Radio frequency fingerprint identifica-
+tion for OFDM system considering unknown multipath fading channel,”
+IEEE Trans. Cognit. Commun. Networking, vol. 10, no. 6, pp. 2076–
+2087, May 2024.
+[22] N. Soltani, K. Sankhe, J. Dy et al., “More is better: Data augmentation
+for channel-resilient RF fingerprinting,” IEEE Commun. Mag., vol. 58,
+no. 10, pp. 66–72, Oct. 2020.
+[23] A. Al-Shawabka, P. Pietraski, S. B. Pattar et al., “DeepLoRa: Fin-
+gerprinting LoRa devices at scale through deep learning and data
+augmentation,” in Proc. ACM MobiHoc 2021, Shanghai, China, July
+2021.
+[24] C. Comert, M. Kulhandjian, O. M. Gul et al., “Analysis of augmentation
+methods for RF fingerprinting under impaired channels,” in Proc. ACM
+WiseML Workshop 2022, San Antonio, TX, USA, May 2022.
+[25] L. Chen, C. Zhao, Y. Zheng et al., “Radio frequency fingerprint
+identification based on transfer learning,” in Proc. IEEE ICCC 2021,
+Xiamen, China, July 2021.
+[26] J. Gaskin, B. Hamdaoui, and W.-K. Wong, “Tweak: Towards portable
+deep learning models for domain-agnostic LoRa device authentication,”
+in Proc. IEEE CNS 2022, Austin, TX, USA, Oct. 2022.
+[27] Y. Zheng, W. Ying, S. Hong et al., “A method for cross-receiver
+specific emitter identification based on CBAM-CNN-BDA,” in Proc.
+IEEE ICCASIT 2022, Dali, China, Oct. 2022.
+[28] K. Huang, B. Jiang, J. Yang et al., “Cross-receiver specific emitter
+identification based on a deep adversarial neural network with separated
+batch normalization,” in Proc. SPIE ICCSCT 2022, Beijing, China, July
+2022.
+[29] J. Gaskin, A. Elmaghbub, B. Hamdaoui et al., “Deep learning model
+portability for domain-agnostic device fingerprinting,” IEEE Access,
+vol. 11, pp. 86 801–86 823, Aug. 2023.
+
+
+14
+[30] X. Zha, T. Li, Z. Qiu et al., “Cross-receiver radio frequency fingerprint
+identification based on contrastive learning and subdomain adaptation,”
+IEEE Signal Process Lett., vol. 30, pp. 70–74, Feb. 2023.
+[31] T. Zhao, S. Sarkar, E. Krijestorac et al., “GAN-RXA: A practical
+scalable solution to receiver-agnostic transmitter fingerprinting,” IEEE
+Trans. Cognit. Commun. Networking, vol. 10, no. 2, pp. 403–416, Nov.
+2023.
+[32] G. Shen, J. Zhang, A. Marshall et al., “Towards receiver-agnostic and
+collaborative radio frequency fingerprint identification,” IEEE Trans.
+Mob. Comput., vol. 23, no. 7, pp. 7618–7634, Dec. 2023.
+[33] J. Bao, X. Xie, Z. Lu et al., “Receiver-agnostic radio frequency finger-
+printing based on two-stage unsupervised domain adaptation and fine-
+tuning,” in Proc. IEEE GLOBECOM 2023, Kuala Lumpur, Malaysia,
+Dec. 2023.
+[34] Z. Chen, Z. Pang, W. Hou et al., “Cross-device radio frequency
+fingerprinting identification based on domain adaptation,” IEEE Trans.
+Consum. Electron., vol. 70, no. 1, pp. 2391–2400, Jan. 2024.
+[35] J. Yu, C. Zhao, X. Huang et al., “RF fingerprint recognition for different
+receiving devices using transfer learning,” in Proc. IEEE CSCWD 2024,
+Tianjin, China, May 2024.
+[36] Y. Xing, A. Hu, J. Zhang et al., “On radio frequency fingerprint
+identification for DSSS systems in low SNR scenarios,” IEEE Commun.
+Lett., vol. 22, no. 11, pp. 2326–2329, Sept. 2018.
+[37] G. Shen, J. Zhang, A. Marshall et al., “Toward length-versatile and
+noise-robust radio frequency fingerprint identification,” IEEE Trans. Inf.
+Forensics Secur., vol. 18, pp. 2355–2367, Apr. 2023.
+[38] L. Xie, L. Peng, and J. Zhang, “Towards robust RF fingerprint identi-
+fication using spectral regrowth and carrier frequency offset,” in Proc.
+IEEE INFOCOM 2025, London, UK, May 2025.
+[39] R. Xie, W. Xu, Y. Chen et al., “A generalizable model-and-data driven
+approach for open-set RFF authentication,” IEEE Trans. Inf. Forensics
+Secur., vol. 16, pp. 4435–4450, Aug. 2021.
+[40] T. Li, Z. Wen, C. Jin et al., “Meta-RFF: Meta-task adaptive based few-
+shot open-set incremental learning for RF fingerprint recognition,” IEEE
+Trans. Cognit. Commun. Networking (Early Access), July 2025.
+[41] X. Gu, W. Wu, N. Guo et al., “TeRFF: Temperature-aware radio
+frequency fingerprinting for smartphones,” in Proc. IEEE SECON 2022,
+Stockholm, Sweden, Sept. 2022.
+[42] F. Restuccia, S. D’Oro, A. Al-Shawabka et al., “DeepRadioID: Real-
+time channel-resilient optimization of deep learning-based radio finger-
+printing algorithms,” in Proc. ACM MobiHoc 2019, Catania, Italy, July
+2019.
+[43] F. Restuccia, S. D’ Oro, A. Al-Shawabka et al., “DeepFIR: Channel-
+robust physical-layer deep learning through adaptive waveform filtering,”
+IEEE Trans. Wireless Commun., vol. 20, no. 12, pp. 8054–8066, July
+2021.
+[44] A. Elmaghbub and B. Hamdaoui, “LoRa device fingerprinting in the
+wild: Disclosing RF data-driven fingerprint sensitivity to deployment
+variability,” IEEE Access, vol. 9, pp. 142 893–142 909, Oct. 2021.
+[45] S. Hanna, S. Karunaratne, and D. Cabric, “WiSig: A large-scale WiFi
+signal dataset for receiver and channel agnostic RF fingerprinting,” IEEE
+Access, vol. 10, pp. 22 808–22 818, Feb. 2022.
+[46] H. Liu, S. Zhu, L. Yang et al., “Receiver-agnostic radio frequency
+fingerprint identification via feature disentanglement,” in Proc. IEEE
+SPAWC Workshop 2023, Shanghai, China, Sept. 2023.
+[47] K. Merchant and B. Nousain, “Toward receiver-agnostic RF fingerprint
+verification,” in Proc. IEEE Globecom Workshops 2019, Waikoloa, HI,
+USA, Dec. 2019.
+[48] L. Yang, Q. Li, X. Ren et al., “Mitigating receiver impact on radio fre-
+quency fingerprint identification via domain adaptation,” IEEE Internet
+Things J., vol. 11, no. 13, pp. 24 024–24 034, Apr. 2024.
+[49] R. Abdollahi, H. R. Amindavar, R. K. Shokooh et al., “A novel
+sparse-based approach for joint radio frequency fingerprint and channel
+estimation,” Phys. Commun., vol. 66, p. 102399, Oct. 2024.
+[50] H. Ismail Fawaz, B. Lucas, G. Forestier et al., “InceptionTime: Finding
+AlexNet for time series classification,” Data Min. Knowl. Discovery,
+vol. 34, no. 6, pp. 1936–1962, Sept. 2020.
+[51] Y. Qiu, L. Peng, J. Zhang et al., “Signal-independent RFF identification
+for LTE mobile devices via ensemble deep learning,” in Proc. IEEE
+GLOBECOM 2022, Rio de Janeiro, Brazil, Dec. 2022.

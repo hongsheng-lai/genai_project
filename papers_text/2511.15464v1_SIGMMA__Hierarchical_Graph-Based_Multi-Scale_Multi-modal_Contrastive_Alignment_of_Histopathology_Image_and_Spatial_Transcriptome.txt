@@ -1,0 +1,1502 @@
+SIGMMA: Hierarchical Graph-Based Multi-Scale Multi-modal Contrastive
+Alignment of Histopathology Image and Spatial Transcriptome
+Dabin Jeong1, Amirhossein Vahidi1,2, Ciro Ram´ırez-Su´astegui1, Marie Moullet1,2, Kevin Ly1,2,
+Mohammad Vali Sanian1, Sebastian Birk1,2, Yinshui Chang1, Adam Boxall1, Daniyal Jafree1,
+Lloyd Steele1, Vijaya Baskar MS1, Muzlifah Haniffa1*, Mohammad Lotfollahi1,2,4*
+Wellcome Sanger Institute, Wellcome Genome Campus, Cambridge, UK1
+Cambridge Centre for AI in Medicine, University of Cambridge, Cambridge, UK2
+Institute of AI for Health, Helmholtz Center Munich, Neuherberg, Germany3
+Cambridge Stem Cell Institute, University of Cambridge, Cambridge, UK4
+{mh32,ml19}@sanger.ac.uk
+Abstract
+Recent advances in computational pathology have lever-
+aged vision–language models to learn joint representations
+of Hematoxylin and Eosin (HE) images with spatial tran-
+scriptomic (ST) profiles. However, existing approaches typ-
+ically align HE tiles with their corresponding ST profiles at
+a single scale, overlooking fine-grained cellular structures
+and their spatial organization. To address this, we propose
+SIGMMA, a multi-modal contrastive alignment framework
+for learning hierarchical representations of HE images and
+spatial transcriptome profiles across multiple scales. SIG-
+MMA introduces multi-scale contrastive alignment, ensur-
+ing that representations learned at different scales remain
+coherent across modalities. Furthermore, by representing
+cell interactions as a graph and integrating inter- and intra-
+subgraph relationships, our approach effectively captures
+cell–cell interactions, ranging from fine to coarse, within
+the tissue microenvironment. We demonstrate that SIGMMA
+learns representations that better capture cross-modal cor-
+respondences, leading to an improvement of avg. 9.78% in
+the gene-expression prediction task and avg. 26.93% in the
+cross-modal retrieval task across datasets. We further show
+that it learns meaningful multi-tissue organization in down-
+stream analyses.
+1. Introduction
+Tissue architecture is hierarchically organized across mul-
+tiple spatial scales, from the micro environment (Fig.
+1
+blue) comprising small clusters of interacting cells within
+*Corresponding authors
+Micro Env.
+Meso Env.
+Macro Env.
+c.
+a.
+gene A, gene C,
+gene B, gene F,
+gene D, … 
+HE  encoder 
+𝑓(#)
+(2) Cell graph 𝐺 = (𝑉, 𝐸)
+b.
+Contrastive 
+Loss
+HE encoder 
+𝑓(#)
+Contrastive 
+Loss
+HE encoder 
+𝑓(#)
+Contrastive 
+Loss
+HE encoder 
+𝑓(#)
+𝑔(#)
+ST encoder 
+Contrastive 
+Loss
+Text
+𝑔(#)
+ST encoder 
+𝑔(#)
+ST encoder 
+𝑔(#)
+ST encoder 
+(1) Multi-scale alignment
+Macro Env.
+Meso Env.
+Micro Env.
+Heterogeneity in CC
+Cell cluster
+Cell type
+Figure 1. Motivation. (a) Limitations of previous vision-language
+model-based HE-ST alignment.
+(b) How SIGMMA addresses
+these limitations by (1) multi-scale alignment and (2) adopting a
+cell graph structure that preserves 2D coordinates and cell-cell re-
+lationships. (c) SIGMMA captures multi-scale information, with
+ST representations of each cell becoming more heterogeneous at
+larger scales. CC,connected component.
+local regions, to the meso environment (Fig. 1 green) en-
+compassing cellular neighborhoods of dozens of cells, and
+up to the macro environment (Fig. 1 red) characterized by
+1
+arXiv:2511.15464v1  [cs.CV]  19 Nov 2025
+
+
+macroscopic structures, e.g., tertiary lymphoid structures
+[36].
+Understanding these hierarchical contexts requires
+both morphological and molecular views of tissue.
+Computational histopathology has been advanced by
+large-scale analysis of cellular morphology, tissue composi-
+tion, and spatial organization, most commonly Hematoxylin
+Eosin (HE) images. In parallel, single-cell spatial transcrip-
+tomics (ST) enables the molecular profiling of individual
+cells with 2D spatial coordinates, providing direct links be-
+tween morphology and gene expression profiles. Together,
+these technologies allow researchers to map how individ-
+ual cell types, cell-cell interactions, and spatial organiza-
+tion of cells contribute to physiological and pathological
+processes [43]. Multi-modal learning of HE images with
+ST profiles provides a unified representation of tissue mor-
+phology and molecular state, enabling the identification of
+molecular heterogeneity that is not discernible from HE im-
+ages alone (Fig. 1c).
+Why do we need a graph structure for ST modeling?
+Recent contrastive learning approaches learn joint repre-
+sentations of HE images and ST in a shared space to
+support cross-modal tasks, including image-to-expression
+retrieval and image-to-expression prediction.
+Notably,
+vision–language (VL) models originally developed for
+HE–biomedical text (e.g., caption, scientific papers, clini-
+cal notes) have been adapted for ST [8, 13, 44]. However,
+current VL-based HE–ST contrastive alignment approaches
+represent ST as a 1D gene sequence aggregated across cells
+[8, 13, 44], thereby inevitably discarding the original 2D
+spatial organization and cell–cell interactions within the tis-
+sue (Fig. 1a, bottom). In contrast, graph representations
+inherently encode spatial topology and relational structure,
+enabling explicit modeling of cell–cell interactions and the
+surrounding tissue context (Fig. 1b bottom).
+Why do we need hierarchical multi-scale HE-ST con-
+trastive alignment?
+The hierarchical organization of tis-
+sue makes multi-scale HE–ST alignment inherently chal-
+lenging.
+Multi-scale alignment implicitly requires cor-
+respondence across region-of-interest (ROI) granularities.
+Embeddings learned from contrastive loss (e.g., InfoNCE
+loss) maximize the lower bound of mutual information be-
+tween two pairs [28], which tends to emphasize salient fea-
+tures at the expense of finer details [42]. Specifically, graph-
+structured ST data complicates multi-scale alignment be-
+cause message passing expands the receptive field based on
+graph connectivity rather than image ROI scales, leading to
+mismatched spatial scopes across modalities. To overcome
+this limitation, multi-scale contrast alignment methods in-
+corporate multiple ROI sizes, thus capturing both coarse-
+and fine-grained tissue features. (Fig. 1b).
+Our contribution.
+We propose SIGMMA, a hierarchical,
+graph-based, multi-scale alignment framework for HE–ST.
+• Graph-structured representation of ST. We represent
+ST as a cell graph that preserves spatial topology and the
+structure of cell-cell relationships. A hierarchical graph
+module integrates intra- and inter-subgraph relationships
+to capture local neighborhoods and long-range dependen-
+cies that are lost in sequence-based ST representations.
+• Multi-scale cross-modal alignment.
+We introduce a
+multi-scale HE–ST alignment framework that enforces
+alignment consistency across multiple spatial resolutions.
+Our multi-scale contrastive objective aligns representa-
+tions from micro, meso, and macro contexts, improving
+fine-grained and coarse-grained correspondence.
+• ST graph–HE image scale reconciliation. We progres-
+sively expand the graph receptive field through hierarchi-
+cal graph learning, matching it to the image ROI size and
+enabling consistent correspondence between modalities
+across scales.
+• Performance improvements and interpretability. SIG-
+MMA yields improvements in downstream tasks, includ-
+ing gene-expression prediction and image–expression re-
+trieval, across five datasets and produces embeddings that
+reveal biologically meaningful tissue organization.
+2. Related Work
+ST at single-cell resolution.
+ST has emerged as a pow-
+erful approach to map gene expression within the spatial
+context of tissues. Specifically, it measures gene expression
+together with 2D spatial coordinates, indicating the location
+and level of expression of specific genes. There are two
+main techniques for measuring ST: Visium [39] and Xe-
+nium [21]. Visium is a sequencing-based platform which
+captures transcriptomic signals at the spot level, where each
+spot typically aggregates the expression profiles of multiple
+neighboring cells. In contrast, the Xenium platform utilizes
+high-resolution in situ hybridization and imaging to mea-
+sure gene expression at the cellular/subcellular levels, of-
+fering deeper insights into cell–cell interactions.
+In this work, we use Xenium rather than Visium be-
+cause Xenium provides cell-level spatial transcriptomics,
+enabling alignment with HE images while explicitly mod-
+eling each cell’s 2D spatial context.
+Tiling of HE WSI image.
+Whole-slide images (WSIs)
+are gigapixel-scale, making direct application of vision
+models computationally prohibitive and forcing heavy
+down-sampling that removes critical cellular-level signals
+[18]. Since discriminative patterns are small, sparse, and
+spatially scattered, tile-level modeling enables vision mod-
+els to learn high-resolution local features by training on
+small image tiles, and leads to WSI-level tasks by aggregat-
+2
+
+
+ing tile-level embeddings [2, 7, 23, 24, 34]. As molecular
+phenotypes and cellular contexts vary across localized re-
+gions, tile-level alignment can provide a more fine-grained
+correspondence between image features and transcriptomic
+signals than slide-level alignment.
+Motivated by this, our work focuses on tile-level align-
+ment between HE and ST features, enabling cross-modal
+learning at a spatially-resolved and fine-grained level.
+Foundation models for HE and ST.
+Foundation mod-
+els have recently emerged in computational histopathology
+for both HE images and ST. For HE image, DINO[29]-
+based vision foundation models enable scalable learning
+of morphology-rich representations that generalize across
+slides [7, 34, 37], . Extending this line of work, hierar-
+chical transformers leverage the intrinsic multi-scale struc-
+ture of WSIs and learn representations across cellular, tis-
+sue, and slide levels [6]. In parallel, ST foundation models,
+inspired by large language models, learn cell-level repre-
+sentations by treating gene expression profiles as sequences
+using transformer architectures [3–5, 38].
+These uni-modal foundation models provide generaliz-
+able representations for HE and ST, serving as building
+blocks for downstream multi-modal alignment.
+In this
+work, we build upon these foundation models to learn a uni-
+fied cross-modal representation between HE and ST.
+HE-ST contrastive alignment.
+Early attempts to predict
+ST profile directly regressed spot-level expression from HE
+image using convolutional neural networks or transformer
+backbones [9, 10].
+Recent methods introduced spatial
+graphs, representing spots as nodes connected by proxim-
+ity and formulated the ST prediction problem as node-level
+regression task [10]. With the advent of high-resolution ST,
+the paradigm has shifted from spot to cellular/subcellular-
+level modeling, leading to cell-graph approach [11] and
+diffusion-based image-to-expression generation at subcel-
+lular resolution [41]. In parallel, contrastive learning–based
+approaches have emerged that align HE and ST modalities
+rather than predicting one from the other, enriching cross-
+modal representations and improving downstream predic-
+tion [33, 40].
+VL frameworks extend contrastive align-
+ment, pairing HE tiles with biomedical text or gene-token
+sequences to learn joint representations [1, 20, 27]. Recent
+works leverage ST to perform spatially resolved alignment
+between image regions and Visium spot-level expression
+[8, 12, 14], with subsequent studies extending this to cell-
+level alignment with Xenium data [13].
+In contrast, our framework introduces graph-based
+multi-scale alignment between HE and ST. We represent
+each ST tile as a cell graph constructed from cell coordi-
+nates and perform alignment with HE tile at multiple spatial
+scales, maintaining spatial consistency and enabling fine-
+grained cell-level correspondence across modalities.
+3. Problem Definition
+We consider paired HE images and ST profiles obtained
+from the same tissue section k, denoted by (Ik, Sk), where
+each spans Hk × Wk pixels, with Hk and Wk representing
+height and width of the section. For simplicity, we omit the
+section index k. I and S are tessellated into m × m pixel
+sized tiles, {(Ii, Si)}n
+i=1, where n =
+ H
+m
+
+×
+ W
+m
+
+is the
+number of tiles extracted in a WSI. We train an HE image
+encoder f(·) and an ST encoder g(·), each parameterized by
+a neural network, where the encoders yield latent HE em-
+bedding zI
+i = f(Ii) and latent ST embedding zS
+i = g(Si),
+respectively. The objective is to jointly optimize the HE
+image and ST encoders such that paired HE and ST embed-
+dings, (zI
+i , zS
+i ), are aligned in a shared latent space, thereby
+capturing the cross-modal correspondence between HE and
+ST.
+4. Preliminaries
+Graph neural network.
+Let G = (V, E) be a graph
+where V
+denotes the set of nodes and E the set of
+edges.
+Graph neural networks (GNN) learn node repre-
+sentations through iterative message passing between con-
+nected nodes. We denote the embedding of node v ∈V
+at layer l as h(l)
+v , and define N(v) as the set of neighbor-
+ing nodes of v determined by the edge set E. At the l-th
+iteration, each node updates its embedding by aggregating
+information from N(v) as follows [16]:
+h(l)
+N (v) = Aggregate
+
+{ h(l)
+u , ∀u ∈N(v) }
+
+h(l+1)
+v
+= σ
+
+W (l) · Concat
+
+h(l)
+v , h(l)
+N (v)
+
+where W denotes a learnable weight matrix and σ denotes
+a non-linear activation function.
+Stochastic edge addition for GNN.
+Stochastic edge ad-
+dition enables adaptive graph sparsification and has been
+applied to document graphs [30] and chemical graphs [31].
+Given node embeddings hu and hv learned via GNN, a
+probability distribution function ϕ(·) for edge selection is
+defined as follows:
+suv = ϕ(hu, hv) = σ
+ MLP([hu, hv])
+
+where [·, ·] denotes the concatenation operator, σ denotes a
+non-linear activation function. Here, suv is the score indi-
+cating the likelihood of forming an edge between nodes u
+and v.
+To create a stochastic edge selector from the score, a bi-
+nary variable puv ∈{0, 1} is drawn from the Bernoulli dis-
+tribution puv ∼{ π1 := suv, π0 := 1 −suv}. The Gumbel
+3
+
+
+256 x 256
+WSI
+128 x 128
+64 x 64
+Hematoxylin and Eosin (HE) image
+``
+Image
+FM
+Mean Pool.
+``
+GNN
+Attn. Aggr.
+crop
+Spatial transcriptome (ST) profile
+Stochastic 
+edge addition
+crop
+Tile
+extraction
+``
+Image
+FM
+Mean Pool.
+``
+Image
+FM
+Mean Pool.
+``
+GNN
+Attn. Aggr.
+``
+GNN
+Attn. Aggr.
+Stochastic 
+edge addition
+a.
+c. Hierarchical graph structure learning
+ℒ!"#$%
+Edge weights
+STEP2. Edge sampling
+STEP1. Edge scoring
+Stochastic 
+edge addition
+Multi-scale HE encoder
+Multi-scale ST encoder
+Macro 
+Env.
+Meso
+Env.
+Micro
+Env.
+b.
+ℒ!&'%
+ℒ!(#$%
+Contrastive 
+alignment
+d.
+Figure 2. Schematic overview of SIGMMA. Given a tessellated tile of HE and ST, SIGMMA aligns HE-ST tiles at multi-scale. (a) For HE
+side, multi-crop strategy is applied (Sec. 5.1). (b) hierarchical graph structure learning is applied for ST side (Sec. 5.2). (c) Hierarchical
+graph structure learning consists of stochastic edge addition with a neighbor-patch constraint. (d) Multi-modal multi-scale contrastive
+alignment of HE and ST (Sec. 5.3). FM,foundation model;GNN,graph neural network.
+softmax relaxation [22] is applied to make edge selection
+differentiable. The differentiable edge selection probability
+is thus defined as follows:
+ˆpuv =
+exp((log π1 + g1)/τ)
+P
+i∈{0,1} exp((log πi + gi)/τ)
+where g1 and g0 are i.i.d. variables sampled from the Gum-
+bel distribution, and τ denotes the temperature hyperparam-
+eter that controls the spikiness of the relaxed Bernoulli dis-
+tribution.
+5. Proposed Method: SIGMMA
+Here, we present SIGMMA, a framework for Spatial tran-
+scriptome–histology Image representation learning via hi-
+erarchical Graph-based Multi-scale Multi-modal Alignment
+(Fig. 2). SIGMMA consists of three components: a multi-
+scale HE encoder (Sec. 5.1), a multi-scale ST encoder (Sec.
+5.2), and a multi-modal multi-scale contrastive alignment
+component (Sec. 5.3).
+5.1. Multi-scale HE encoder
+To capture the hierarchical spatial contexts of an HE tile,
+which is an RGB image Ii ∈Rm×m×3, we adopt a multi-
+crop strategy [15, 26] using pretrained image encoders f(·)
+(Fig. 2a). For simplicity, we omit the tile index i in this
+section and the following section. Each HE image tile I is
+partitioned into a varying grid size that captures various ROI
+scales (Fig. 2 red, green, blue box): 4×4 grid micro patches
+{Imicro,j}16
+j=1 , 2 × 2 grid meso patches {Imeso,j}4
+j=1 , and
+a macro patch {Imacro,j}1
+j=1, where j enumerates patches
+within each grid in this section.
+After extracting patch features from each ROI scale, we
+resize and interpolate each patch to a unified scale, match-
+ing the training resolution of the HE foundation model [7].
+At each micro, meso, and macro scale, the resulting patch
+embeddings are then mean-pooled to obtain tile-level im-
+age embeddings, zmicro, zmeso, zmacro, which capture local to
+broader spatial contexts, respectively.
+zI
+micro = PoolI(f(Imicro))
+zI
+meso = PoolI(f(Imeso))
+zI
+macro = PoolI(f(Imacro))
+where PoolI(·) is a grid-wise mean pooling operator.
+5.2. Multi-scale ST encoder
+Graph Representation of ST.
+Given an m × m pixel-
+sized ST tile, S, we can detect 2D coordinates of individual
+cells within the tile. Then, S can be represented as a cell
+graph G = (V, E), where V denotes cells, and E denotes
+edges that capture cell-cell interactions. Node embeddings
+are initialized by the ST foundation model [3].
+Hierarchical graph structure learning.
+We adapted a
+stochastic edge addition algorithm (Sec. 4) to reconcile the
+4
+
+
+difference in granularity between HE and ST. To this end,
+we hierarchically expand a small subgraph by linking its
+neighbors (Fig. 2c).
+Specifically, we first extract a subgraph Gmicro
+=
+(Vmicro, Emicro), where Vmicro ⊆V and Emicro ⊆E, such
+that cells within the corresponding image tile Imicro are
+connected by edges defined based on spatial proximity
+[35]. Edges are stochastically added by a stochastic edge-
+addition layer ψ(l)(·) followed by GNN layers.
+In each
+layer ψ(l)(·), given each node u, neighbor nodes are up-
+dated by sampling from the candidate set, and edges are
+connected to the selected nodes as follows:
+Nmeso(u)(l−1) = N (l−2)
+micro (u) ∪{ v | ∀v →p(l−1)
+uv
+= 1 }
+Nmacro(u)(l) = N (l−1)
+meso (u) ∪{ v | ∀v →p(l)
+uv = 1 }
+where v ∈N∗(v) denotes a neighbor of node v connected
+through edges defined at each scale, and puv denotes edge
+selection probability (Sec. 4). Here, instead of treating all
+nodes as candidates, we enforce a neighbor-patch constraint
+that allows edges to form only between nodes in adjacent
+patches. This yields distinct graph topologies at each scale:
+Gmicro, Gmeso, Gmacro.
+These steps above describe how the ST encoder g(·)
+learns node embeddings from each scale-specific graph
+(Fig. 2b). Given the node embeddings learned from graph
+topology, we obtain graph-level representations as follows,
+zS
+micro = PoolS(g(Gmicro))
+zS
+meso = PoolS(g(Gmeso))
+zS
+macro = PoolS(g(Gmacro))
+where PoolS(·) is global attention pooling operator [25]
+over nodes.
+Neighbor-patch constrained edge addition.
+Here, we
+elaborate on how spatial constraints restrict edge addition
+to neighboring subgraphs. Given cell coordinates (xp, yq)
+on a 2D grid, we divide the grid into local blocks of size
+b × b. Each node p belongs to a block indexed as follows:
+bx(p) =
+jxp
+b
+k
+,
+by(q) =
+jyq
+b
+k
+.
+An edge (p, q) is allowed only if both nodes lie within the
+same block, i.e.,
+1intra(p, q) =
+(
+1,
+if bx(p) = bx(q) and by(p) = by(q),
+0,
+otherwise.
+This constraint enforces edge connectivity only within each
+b × b local grid, preventing cross-block edges. b=1, 2, 4 for
+macro, meso, and micro scale, respectively.
+5.3. Multi-modal multi-scale contrastive alignment
+Contrastive learning, a mainstream of self-supervised learn-
+ing, has been extended to multi-modal domains [27, 32]. In
+our framework, the objective of contrastive learning is to
+train the two encoders f(·) and g(·) jointly that maximizes
+alignment of the latent representations of paired HE and ST
+tiles (Ii, Si) while minimizing similarity across unmatched
+pairs. We utilized InfoNCE loss [28] to achieve this objec-
+tive:
+LI→S = −1
+N
+N
+X
+i=1
+log
+exp
+ sim(zI
+i , zS
+i )/τ
+
+P
+j exp
+ sim(zI
+i , zS
+j )/τ
+
+LS→I = −1
+N
+N
+X
+i=1
+log
+exp
+ sim(zS
+i , zI
+i )/τ
+
+P
+j exp
+ sim(zS
+i , zI
+j )/τ
+
+LALIGN(zI, zS) = 1
+2[LI→S + LS→I]
+where N is the number of samples within a batch, the in-
+dex j runs over all samples in the batch, sim(·, ·) denotes
+the cosine similarity between embeddings, τ is a temper-
+ature parameter controlling the sharpness of the similarity
+distribution.
+At each scale, we compute a contrastive loss between
+the HE and ST tile embeddings (Fig. 2d). The micro-level
+loss LMICRO is computed between the micro-scale embed-
+dings, i.e., LMICRO = LALIGN(zI
+micro, zS
+micro), Similarly, the
+meso-level loss LMESO aligns the meso-scale embeddings
+(zI
+meso, zS
+meso), and the macro-level loss LMACRO aligns the
+macro-scale embeddings, (zI
+macro, zS
+macro), respectively. The
+total objective function is as follows:
+L = LMICRO + LMESO + LMACRO
+6. Experiments
+Datasets.
+We conduct extensive benchmarking on the
+HEST-1k dataset [23], the largest publicly available dataset
+of paired HE and ST data.
+Four subsets of the dataset
+provide paired HE–Xenium ST data, covering four can-
+cer types:
+Invasive Ductal Carcinoma (IDC), Pancre-
+atic Adenocarcinoma (PAAD), Skin Cutaneous Melanoma
+(SKCM), and Lung Adenocarcinoma (LUAD). In addition
+to the public datasets, we include an in-house skin dataset.
+Following the tiling scheme in multiple histopathology im-
+age foundation models [7, 34, 37], we tessellate each WSI
+into 256 × 256 pixel-sized tiles at 20x magnification level,
+which corresponds to 0.5µm/pixel resolution. For more de-
+tails on data preprocessing/data splits, see Supplementary
+Material.
+Baselines and Evaluation metrics.
+We comprehensively
+compare SIGMMA against three categories of baselines: (1)
+5
+
+
+Table 1. Gene expression prediction performance across HEST1k and in-house datasets.
+Dataset
+HEST1k-LUAD
+HEST1k-PAAD
+HEST1k-SKCM
+HEST1k-IDC
+in-house skin
+Model
+MSE (↓)
+PCC (↑)
+MSE (↓)
+PCC (↑)
+MSE (↓)
+PCC (↑)
+MSE (↓)
+PCC (↑)
+MSE (↓)
+PCC (↑)
+UNI
+0.046±0.041
+0.476±0.064
+0.008±0.008
+0.470±0.064
+0.073±0.080
+0.666±0.032
+0.046±0.041
+0.476±0.064
+0.094±0.072
+0.418±0.014
+CLIP
+0.052±0.052
+0.467±0.088
+0.009±0.010
+0.245±0.081
+0.080±0.066
+0.541±0.018
+0.052±0.052
+0.467±0.088
+0.103±0.084
+0.330±0.022
+PLIP
+0.027±0.016
+0.561±0.059
+0.011±0.012
+0.432±0.032
+0.060±0.055
+0.612±0.058
+0.053±0.050
+0.465±0.089
+0.107±0.084
+0.331±0.015
+BLEEP
+0.011±0.011
+0.252±0.082
+0.004±0.008
+0.124±0.137
+0.012±0.006
+0.594±0.232
+0.004±0.003
+0.443±0.159
+0.035±0.008
+0.292±0.034
+OmiCLIP
+0.022±0.013
+0.613±0.034
+0.018±0.016
+0.480±0.026
+0.083±0.057
+0.481±0.061
+0.053±0.044
+0.472±0.055
+0.118±0.093
+0.230±0.025
+SIGMMA
+0.015±0.007
+0.741±0.023
+0.015±0.015
+0.485±0.036
+0.051±0.048
+0.744±0.052
+0.051±0.043
+0.510±0.072
+0.060±0.032
+0.452±0.025
+Table 2. Cross-modal retrieval performance across HEST1k and in-house datasets. R,recall.
+HE →ST
+Dataset
+HEST1k-LUAD
+HEST1k-PAAD
+HEST1k-SKCM
+HEST1k-IDC
+in-house skin
+Model
+R@5%
+R@10%
+R@15%
+R@5%
+R@10%
+R@15%
+R@5%
+R@10%
+R@15%
+R@5%
+R@10%
+R@15%
+R@5%
+R@10%
+R@15%
+CLIP
+0.278
+0.452
+0.566
+0.195
+0.338
+0.471
+0.290
+0.495
+0.586
+0.342
+0.532
+0.668
+0.347
+0.503
+0.617
+PLIP
+0.367
+0.526
+0.621
+0.187
+0.336
+0.469
+0.253
+0.414
+0.527
+0.356
+0.536
+0.665
+0.370
+0.539
+0.650
+BLEEP
+0.419
+0.554
+0.630
+0.152
+0.182
+0.212
+0.318
+0.500
+0.614
+0.443
+0.603
+0.704
+0.426
+0.550
+0.623
+OmiCLIP
+0.281
+0.453
+0.596
+0.177
+0.320
+0.485
+0.231
+0.382
+0.532
+0.342
+0.520
+0.636
+0.329
+0.502
+0.605
+SIGMMA
+0.590
+0.728
+0.826
+0.402
+0.630
+0.813
+0.333
+0.559
+0.731
+0.394
+0.570
+0.687
+0.472
+0.591
+0.687
+ST →HE
+Dataset
+HEST1k-LUAD
+HEST1k-PAAD
+HEST1k-SKCM
+HEST1k-IDC
+in-house skin
+Model
+R@5%
+R@10%
+R@15%
+R@5%
+R@10%
+R@15%
+R@5%
+R@10%
+R@15%
+R@5%
+R@10%
+R@15%
+R@5%
+R@1%0
+R@15%
+CLIP
+0.297
+0.413
+0.526
+0.141
+0.284
+0.390
+0.285
+0.473
+0.591
+0.445
+0.675
+0.798
+0.354
+0.513
+0.619
+PLIP
+0.330
+0.483
+0.618
+0.213
+0.358
+0.475
+0.274
+0.435
+0.543
+0.440
+0.639
+0.767
+0.371
+0.552
+0.665
+BLEEP
+0.415
+0.568
+0.654
+0.030
+0.121
+0.212
+0.330
+0.494
+0.580
+0.502
+0.655
+0.754
+0.419
+0.561
+0.634
+OmiCLIP
+0.281
+0.501
+0.599
+0.165
+0.318
+0.435
+0.242
+0.403
+0.495
+0.412
+0.612
+0.742
+0.335
+0.514
+0.632
+SIGMMA
+0.602
+0.768
+0.813
+0.304
+0.505
+0.652
+0.333
+0.500
+0.602
+0.399
+0.611
+0.750
+0.459
+0.620
+0.708
+Uni-modal HE image encoder, UNI [7]; (2) Multi-modal
+vision–language (VL) models pre-trained on natural im-
+age–caption pairs, CLIP [32], or medical text, PLIP [20];
+(3) HE–ST contrastive alignment models, including Omi-
+CLIP [8], which uses a text encoder by representing ST
+as a 1D sequence of gene names, and BLEEP [40], a sim-
+ple MLP operating on batch corrected ST principal com-
+ponents. To ensure fair comparison, all baselines are fine-
+tuned on the datasets used in this study. For each method,
+we adopt the hyperparameters reported in the original pa-
+per; when unavailable, we determine them through grid
+search. For more details on the experiment setting, see Sup-
+plementary Material.
+• Task 1. Gene expression prediction. We perform lin-
+ear probing on HE tile embeddings extracted from image
+encoders trained with SIGMMA and baseline models, fol-
+lowing the HEST-1k benchmarking protocol [23]. To pre-
+vent information leakage, the linear probe is trained and
+evaluated strictly on the training and test splits used dur-
+ing model training. Each HE tile embedding is reduced to
+256 dimensions using PCA, followed by a simple ridge
+regression model trained to predict the expression levels
+of the top 50 highly variable genes. We report tile-level
+prediction performance as the mean ± standard deviation
+across tiles, using Pearson Correlation Coefficient (PCC)
+and Mean Squared Error (MSE) as evaluation metrics.
+• Task 2. Cross-modal retrieval We report Recall@p%,
+defined as the fraction of queries whose true counterpart,
+i.e., the HE–ST tile pair obtained from the same spatial
+location, appears within the top p% (p=5, 10, 15) of re-
+trieved candidates. The metric quantifies how accurately
+the model aligns HE and ST modalities at the tile level.
+The metric is evaluated on test tiles that were excluded
+during model training, ensuring a fair assessment.
+6.1. Task 1. Gene expression prediction
+Here, our focus is to evaluate the quality of the learned im-
+age representation for gene expression prediction. There-
+fore, to avoid introducing biases from different methods’
+gene expression decoders, we use the image embedding out-
+put by each method and apply a ridge regression for gene
+expression prediction for each method. Multi-modal align-
+ment consistently enriches HE image embeddings by in-
+corporating ST information (Tab. 3). When applying SIG-
+MMA on top of ResNet50 [17], H-Optimus-0 [34], or UNI
+[7], SIGMMA improves representations across backbones,
+achieving up to 67% lower MSE and 56% higher PCC with
+UNI. Given its strong gains, we used UNI as the HE encoder
+6
+
+
+backbone for all subsequent experiments.
+Table 3. Ablation of vision backbone in HEST1k-LUAD dataset.
+Task 1. Gene expression prediction.
+Model
+MSE (↓)
+PCC (↑)
+ResNet50 [17]
+0.052±0.047
+0.365±0.079
+SIGMMA (ResNet50)
+0.031± 0.035
+0.389±0.064
+H-Optimus-0 [34]
+0.035±0.034
+0.512±0.078
+SIGMMA (H-Optimus-0)
+0.020±0.018
+0.673±0.030
+UNI [7]
+0.046±0.041
+0.476±0.064
+SIGMMA (UNI)
+0.015±0.007
+0.741 ±0.023
+We then compared SIGMMA with existing baselines
+across five datasets (Tab. 1). Across all datasets, SIGMMA
+achieves the highest PCC. While SIGMMA does not always
+obtain the lowest MSE, SIGMMA consistently ranks among
+the top-performing models, highlighting its stable and ro-
+bust performance across diverse tissue types.
+6.2. Task 2. Cross-modal retrieval
+Tab. 2 summarizes the cross-modal retrieval performance
+for both HE→ST and ST→HE. SIGMMA delivers strong
+and consistent gains over existing baselines across most
+datasets, while overall performance on IDC remains rel-
+atively weak.
+Overall, SIGMMA achieves strong bi-
+directional alignment on most of the benchmark datasets.
+6.3. Qualitative evaluation
+Cell-aware attention via SIGMMA
+We analyzed the at-
+tention map of image encoders from SIGMMA.
+In HE,
+the white areas within tissue correspond to adipose regions
+where lipids get washed out during processing, so they ap-
+pear as cell-sparse empty spaces (Fig. 3, row 1, Input).
+With SIGMMA, the attention clearly focuses on nuclei-rich,
+SIGMMA
+Baseline
+SIGMMA
+Baseline
+Input
+Head1
+Head2
+Head3
+Head4
+Head5
+Head6
+Figure 3.
+Attention maps from six attention heads in the last
+encoder layer (L = 24) of the UNI image encoder backbone
+fine-tuned with SIGMMA, illustrating class-token–to-patch atten-
+tion distributions. Blue contour overlaid on the input images indi-
+cates the cell-segmentation mask, marking the boundaries of cell-
+rich regions.
+Table 4. Ablation of core components of SIGMMA on HEST1k-
+LUAD dataset for gene expression prediction task.
+Components
+Task 1.
+Cell graph
+Multi-scale
+loss
+Graph
+sparsification
+MSE (↓)
+PCC (↑)
+0.032±0.018
+0.345±0.035
+✓
+0.039±0.018
+0.268±0.032
+✓
+✓
+0.020±0.014
+0.645±0.046
+✓
+✓
+✓
+0.015±0.007
+0.741±0.023
+cell-dense regions, showing sharp and localized activations
+around individual cells, which means it actually captures
+fine-grained cell morphology (Fig. 3 row 1, Head 5-6). On
+the other hand, the baseline image foundation model, UNI,
+tends to put more attention on tissue boundaries and adipose
+regions, which are cell-sparse areas (Fig. 3 row 2, Head 5-
+6). Even though these regions don’t contain cells, they still
+stand out morphologically, so UNI attends to these coarse
+structural cues rather than true cell-level features. Similarly,
+SIGMMA shows low attention scores in the out-of-tissue re-
+gions (Fig. 3, row 3–4, Head 2, 4, 6). Overall, these results
+demonstrate that SIGMMA effectively shifts the model’s fo-
+cus from coarse tissue structures to biologically meaningful,
+cell-level morphology.
+6.4. Ablation study
+As shown in Tab. 4, we analyze the impact of the core com-
+ponents of SIGMMA: (1) cell graph, (2) multi-scale loss,
+and (3) graph sparsification via stochastic edge addition.
+For the ablation of the cell graph, we replaced the spatial
+graph representation with a 1D sequence of genes. For the
+ablation of multi-scale loss, we removed the micro- and
+meso-scale objectives and trained only with the macro-scale
+(single-scale) alignment loss.
+For the ablation of graph
+sparsification module, instead of selectively sampling edges
+through stochastic addition, we connected all nodes within
+neighboring patches, resulting in a fully connected local
+graph. Tab. 4 shows that each component contributes to
+performance gains: adding the multi-scale loss and graph
+sparsification progressively improves prediction accuracy,
+with all components combined achieving the lowest MSE
+and highest PCC. The ablation study for Task 2 is pro-
+vided in the Supplementary Material.
+Overall, the abla-
+tion study shows that each component contributes to perfor-
+mance, with multi-scale loss and graph sparsification hav-
+ing the largest impact.
+6.5. Biological application
+Multi-scale cell embeddings from SIGMMA to the pan-
+creatic tumor microenvironment
+We next evaluated
+whether the multiscale cell-level embeddings learned by
+SIGMMA capture meaningful biological structure in a pub-
+7
+
+
+Macro Env.
+Meso Env.
+Micro Env.
+Cell types
+Lymphatic endothelial cells
+Fibroblasts
+B cells
+CXCL9/10 cells
+T cells
+Mast cells
+Macrophages
+Endothelial
+Endocrine
+Tumor cells
+Smooth muscle cells
+Acinar
+Ductal
+2. Gene-level analysis
+CXCL6
+CXCL2
+CXCL6
+CXCL2
+Non-tumor Tumor
+Median expression in group
+1.0
+0.8
+0.6
+0.4
+0.2
+0.0
+a.
+c1: Tumor
+c4: Perivascular
+Tumor cells
+T cells
+Smooth muscle cells
+Metaplastic cells
+Mast cells
+Macrophages
+Lymphatic endothelial cells
+Fibroblasts
+Endothelial
+Endocrine2
+Endocrine1
+Ductal
+CXCL9/10 cells
+CFTR-Tumor cells
+B cells
+Acinar
+c0: Immune
+c2: Exocrine
+c3: Endocrine
+c5: Tumor
+c6: NA
+b.
+Lymphatic endothelial cells
+Fibroblasts
+B cells
+CXCL9/10 cells
+T cells
+Mast cells
+Macrophages
+Endothelial
+Endocrine
+Tumor cells
+Smooth muscle cells
+Acinar
+Ductal
+Lymphatic endothelial cells
+Fibroblasts
+B cells
+CXCL9/10 cells
+T cells
+Mast cells
+Macrophages
+Endothelial
+Endocrine
+Tumor cells
+Smooth muscle cells
+Acinar
+Ductal
+1. Cell-level analysis
+c.
+Figure 4. Biological interpretation of SIGMMA cell-level based embeddings. (a) Left: Microenvironment clusters projected onto the
+2D spatial map across scales for the whole slide. Middle: Close-up view of the tissue boundary highlighting separation between tumor
+and non-tumor regions. Right: Ground-truth cell-type annotation for comparison. (b) Heatmap showing cell-type proportions for each
+microenvironment at the micro scale (x-axis: cell clusters, y-axis: cell types). (c) Left: Violin plots of tumor-promoting genes (CXCL2,
+CXCL6) illustrating their expression distributions in aggregated tumor versus non-tumor microenvironments. Right: Spatial projection of
+these gene expression patterns onto the 2D map for the region of interest shown in (a, middle).
+licly available section from PAAD tissue. For more details
+on the section, see Supplementary Material, which includes
+a full description of the dataset composition and sources.
+We performed clustering of SIGMMA embeddings at the
+micro, meso, and macro-scale and projected these clusters
+back onto a PAAD tissue section, comparing them with ref-
+erence cell labels (Fig. 4a). Across all three scales, the
+inferred microenvironments formed coherent and spatially
+contiguous domains. Most notably at the micro- and meso-
+scales, SIGMMA cleanly delineated tumor nests from sur-
+rounding non-tumor tissue, despite the absence of any su-
+pervision from cell-type labels. To characterize the cellu-
+lar context represented by these embeddings, we quantified
+the cell-type composition of each microenvironment clus-
+ter, focusing on the micro-scale (Fig. 4b). We identified
+six resolvable microenvironments. Two microenvironments
+were composed predominantly of tumor cells.
+A third
+represented an inflammatory infiltrate enriched for multi-
+ple immune cell types, including T cells and B cells, that
+were spatially excluded from the tumor region. Three addi-
+tional microenvironments corresponding to known pancre-
+atic structures, including perivascular, endocrine, and ex-
+ocrine compartments. These patterns are consistent with
+the expected organization of pancreatic tumor tissue and in-
+dicate that SIGMMA learns fine-grained microenvironmen-
+tal structure directly from spatial molecular context. Fi-
+nally, we asked whether the learned embeddings capture rel-
+evant molecular signatures. Differential expression analysis
+between tumor-associated microenvironments and the im-
+mune microenvironment excluded from the tumor identified
+two chemokines, CXCL2 and CXCL6, both implicated in
+the recruitment of anti-inflammatory and immunosuppres-
+sive myeloid cells that can mediate T cell and B cell ex-
+clusion in other cancer contexts [19]. Spatial projection of
+CXCL2 and CXCL6 expression confirmed that both signals
+localize sharply to tumor regions in the PAAD section, con-
+sistent with a tumor-specific chemokine program (Fig. 4c),
+Overall, these results show that SIGMMA not only recov-
+8
+
+
+ers structural hallmarks of immune exclusion in PAAD but
+also resolves molecular features that may contribute to the
+establishment of immunosuppressive cell states within the
+tumor microenvironment. Thus, SIGMMA captures biologi-
+cally interpretable tissue organization across scales and re-
+veals spatially coherent molecular programs that align with
+the underlying architecture of pancreatic cancer.
+7. Conclusion
+In this work, we presented SIGMMA, a hierarchical multi-
+modal alignment framework that learns joint representa-
+tions of HE and ST across micro, meso, and macro scales.
+Although multi-scale contrastive learning has been explored
+in other domains, SIGMMA is the first to address the
+graph receptive field–ROI mismatch that uniquely arises in
+cell-resolution ST. SIGMMA effectively captures both fine-
+grained cellular structure and broader tissue context.
+References
+[1] Shahad Albastaki, Anabia Sohail, Iyyakutti Iyappan Gana-
+pathi, Basit Alawode, Asim Khan, Sajid Javed, Naoufel
+Werghi, Mohammed Bennamoun, and Arif Mahmood.
+Multi-resolution
+pathology-language
+pre-training
+model
+with text-guided visual representation. In Proceedings of the
+Computer Vision and Pattern Recognition Conference, pages
+25907–25919, 2025. 3
+[2] Shekoofeh Azizi, Laura Culp, Jan Freyberg, Basil Mustafa,
+Sebastien Baur, Simon Kornblith, Ting Chen, Nenad Toma-
+sev, Jovana Mitrovi´c, Patricia Strachan, et al.
+Robust
+and data-efficient generalization of self-supervised ma-
+chine learning for diagnostic imaging. Nature Biomedical
+Engineering, 7(6):756–779, 2023. 3
+[3] Sebastian Birk.
+Stemo.
+https://github.com/
+Lotfollahi-lab/stemo, 2025. 3, 4
+[4] Sebastian Birk, Irene Bonafonte-Pard`as, Adib Miraki Feriz,
+Adam Boxall, Eneritz Agirre, Fani Memi, Anna Maguza,
+Anamika Yadav, Erick Armingol, Rong Fan, et al. Quan-
+titative characterization of cell niches in spatially resolved
+omics data. Nature Genetics, pages 1–13, 2025.
+[5] Quentin Blampey, Hakim Benkirane, Nadege Bercovici,
+Fabrice Andre, and Paul-Henry Cournede. Novae: A graph-
+based foundation model for spatial transcriptomics data.
+page 2024.09.09.612009, 2024. 3
+[6] Richard J Chen, Chengkuan Chen, Yicong Li, Tiffany Y
+Chen, Andrew D Trister, Rahul G Krishnan, and Faisal
+Mahmood. Scaling vision transformers to gigapixel images
+via hierarchical self-supervised learning. In Proceedings of
+the IEEE/CVF conference on computer vision and pattern
+recognition, pages 16144–16155, 2022. 3
+[7] Richard J Chen, Tong Ding, Ming Y Lu, Drew FK
+Williamson, Guillaume Jaume, Andrew H Song, Bowen
+Chen, Andrew Zhang, Daniel Shao, Muhammad Shaban,
+et al.
+Towards a general-purpose foundation model for
+computational pathology. Nature medicine, 30(3):850–862,
+2024. 3, 4, 5, 6, 7
+[8] Weiqing Chen, Pengzhi Zhang, Tu N Tran, Yiwei Xiao,
+Shengyu Li, Vrutant V Shah, Hao Cheng, Kristopher W
+Brannan, Keith Youker, Li Lai, et al. A visual–omics foun-
+dation model to bridge histopathology with spatial transcrip-
+tomics. Nature Methods, pages 1–15, 2025. 2, 3, 6
+[9] Youngmin Chung, Ji Hun Ha, Kyeong Chan Im, and
+Joo Sang Lee. Accurate spatial gene expression prediction
+by integrating multi-resolution features. In Proceedings of
+the IEEE/CVF Conference on Computer Vision and Pattern
+Recognition, pages 11591–11600, 2024. 3
+[10] Aniruddha Ganguly, Debolina Chatterjee, Wentao Huang,
+Jie Zhang, Alisa Yurovsky, Travis Steele Johnson, and Chao
+Chen. Merge: Multi-faceted hierarchical graph-based gnn
+for gene expression prediction from whole slide histopathol-
+ogy images.
+In Proceedings of the Computer Vision and
+Pattern Recognition Conference, pages 15611–15620, 2025.
+3
+[11] Yongxin Ge, Jiake Leng, Ziyang Tang, Kanran Wang,
+Kaicheng U, Sophia Meixuan Zhang, Sen Han, Yiyan Zhang,
+Jinxi Xiang, Sen Yang, et al. Deep learning-enabled integra-
+tion of histology and transcriptomics for tissue spatial profile
+analysis. Research, 8:0568, 2025. 3
+[12] Rushin H Gindra, Giovanni Palla, Mathias Nguyen, Sophia J
+Wagner, Manuel Tran, Fabian J Theis, Dieter Saur, Lorin
+Crawford, and Tingying Peng. A large-scale benchmark of
+cross-modal learning for histology and gene expression in
+spatial transcriptomics.
+arXiv preprint arXiv:2508.01490,
+2025. 3
+[13] Marc Glettig, Tim Ehrensperger, Josephine Yates, and
+Valentina Boeva. H&enium, applying foundation models to
+computational pathology and spatial transcriptomics to learn
+an aligned latent space. bioRxiv, pages 2025–07, 2025. 2, 3
+[14] Yuanchuan Guo, Jun S Liu, Huimin Cheng, and Ying
+Ma. Jade: Joint alignment and deep embedding for multi-
+slice spatial transcriptomics.
+In The Thirty-ninth Annual
+Conference on Neural Information Processing Systems,
+2025. 3
+[15] Zonghao Guo, Ruyi Xu, Yuan Yao, Junbo Cui, Zanlin Ni,
+Chunjiang Ge, Tat-Seng Chua, Zhiyuan Liu, and Gao Huang.
+Llava-uhd: an lmm perceiving any aspect ratio and high-
+resolution images.
+In European Conference on Computer
+Vision, pages 390–406. Springer, 2024. 4
+[16] Will Hamilton, Zhitao Ying, and Jure Leskovec. Inductive
+representation learning on large graphs. Advances in neural
+information processing systems, 30, 2017. 3
+[17] Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun.
+Deep residual learning for image recognition. In Proceedings
+of the IEEE conference on computer vision and pattern
+recognition, pages 770–778, 2016. 6, 7
+[18] Le Hou, Dimitris Samaras, Tahsin M Kurc, Yi Gao, James E
+Davis, and Joel H Saltz.
+Patch-based convolutional neu-
+ral network for whole slide tissue image classification. In
+Proceedings of the IEEE conference on computer vision and
+pattern recognition, pages 2424–2433, 2016. 2
+[19] Jiemiao Hu, Qingnan Zhao, Ling-Yuan Kong, Jian Wang,
+Jun Yan, Xueqing Xia, Zhiliang Jia, Amy B Heimberger, and
+Shulin Li. Regulation of tumor immune suppression and can-
+9
+
+
+cer cell survival by cxcl1/2 elevation in glioblastoma multi-
+forme. Science advances, 7(5):eabc2511, 2021. 8
+[20] Zhi Huang, Federico Bianchi, Mert Yuksekgonul, Thomas J
+Montine, and James Zou.
+A visual–language foundation
+model for pathology image analysis using medical twitter.
+Nature medicine, 29(9):2307–2316, 2023. 3, 6
+[21] Amanda Janesick, Robert Shelansky, Andrew D Gottscho,
+Florian Wagner, Stephen R Williams, Morgane Rouault,
+Ghezal Beliakoff, Carolyn A Morrison, Michelli F Oliveira,
+Jordan T Sicherman, et al. High resolution mapping of the
+tumor microenvironment using integrated single-cell, spatial
+and in situ analysis. Nature communications, 14(1):8353,
+2023. 2
+[22] Eric Jang, Shixiang Gu, and Ben Poole.
+Categorical
+reparameterization with gumbel-softmax.
+arXiv preprint
+arXiv:1611.01144, 2016. 4
+[23] Guillaume Jaume, Paul Doucet, Andrew Song, Ming Yang
+Lu, Cristina Almagro P´erez, Sophia Wagner, Anurag Vaidya,
+Richard Chen, Drew Williamson, Ahrong Kim, et al. Hest-
+1k: A dataset for spatial transcriptomics and histology im-
+age analysis.
+Advances in Neural Information Processing
+Systems, 37:53798–53833, 2024. 3, 5, 6
+[24] Guillaume Jaume,
+Lukas Oldenburg,
+Anurag Vaidya,
+Richard J Chen, Drew FK Williamson, Thomas Peeters, An-
+drew H Song, and Faisal Mahmood. Transcriptomics-guided
+slide representation learning in computational pathology.
+In Proceedings of the IEEE/CVF Conference on Computer
+Vision and Pattern Recognition, pages 9632–9644, 2024. 3
+[25] Yujia Li, Daniel Tarlow, Marc Brockschmidt, and Richard
+Zemel.
+Gated graph sequence neural networks.
+arXiv
+preprint arXiv:1511.05493, 2015. 5
+[26] Haotian Liu, Chunyuan Li, Yuheng Li, and Yong Jae
+Lee.
+Improved baselines with visual instruction tuning.
+In Proceedings of the IEEE/CVF conference on computer
+vision and pattern recognition, pages 26296–26306, 2024. 4
+[27] Ming Y Lu, Bowen Chen, Drew FK Williamson, Richard J
+Chen, Ivy Liang, Tong Ding, Guillaume Jaume, Igor
+Odintsov, Long Phi Le, Georg Gerber, et al.
+A visual-
+language foundation model for computational pathology.
+Nature medicine, 30(3):863–874, 2024. 3, 5
+[28] Aaron van den Oord, Yazhe Li, and Oriol Vinyals. Repre-
+sentation learning with contrastive predictive coding. arXiv
+preprint arXiv:1807.03748, 2018. 2, 5
+[29] Maxime Oquab, Timoth´ee Darcet, Th´eo Moutakanni, Huy
+Vo, Marc Szafraniec, Vasil Khalidov, Pierre Fernandez,
+Daniel Haziza, Francisco Massa, Alaaeldin El-Nouby, et al.
+Dinov2: Learning robust visual features without supervision.
+arXiv preprint arXiv:2304.07193, 2023. 3
+[30] Yinhua Piao, Sangseon Lee, Dohoon Lee, and Sun Kim.
+Sparse structure learning via graph neural networks for in-
+ductive document classification. In Proceedings of the AAAI
+conference on artificial intelligence, pages 11165–11173,
+2022. 3
+[31] Yinhua Piao, Sangseon Lee, Yijingxiu Lu, and Sun Kim. Im-
+proving out-of-distribution generalization in graphs via hi-
+erarchical semantic environments.
+In Proceedings of the
+IEEE/CVF Conference on Computer Vision and Pattern
+Recognition, pages 27631–27640, 2024. 3
+[32] Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya
+Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sastry,
+Amanda Askell, Pamela Mishkin, Jack Clark, et al. Learning
+transferable visual models from natural language supervi-
+sion. In International conference on machine learning, pages
+8748–8763. PmLR, 2021. 5, 6
+[33] Ekaterina Redekop, Mara Pleasure, Zichen Wang, Kimberly
+Flores, Anthony Sisk, William Speier, and Corey W Arnold.
+Spade: Spatial transcriptomics and pathology alignment us-
+ing a mixture of data experts for an expressive latent space.
+arXiv preprint arXiv:2506.21857, 2025. 3
+[34] Charlie Saillard, Rodolphe Jenatton, Felipe Llinares-L´opez,
+Zelda Mariet, David Cahan´e, Eric Durand, and Jean-Philippe
+Vert. H-optimus-0, 2024. 3, 5, 6, 7
+[35] Squidpy Development Team. squidpy.gr.spatial neighbors:
+Spatial neighbor graph construction in squidpy.
+https:
+//squidpy.readthedocs.io/en/stable/api/
+squidpy.gr.spatial_neighbors.html, 2025.
+Accessed: 2025-10-23. 5
+[36] Jean-Luc
+Teillaud,
+Ana
+Houel,
+Marylou
+Panouillot,
+Cl´emence Riffard, and Marie-Caroline Dieu-Nosjean. Ter-
+tiary lymphoid structures in anticancer immunity.
+Nature
+Reviews Cancer, 24(9):629–646, 2024. 2
+[37] Eugene Vorontsov, Alican Bozkurt, Adam Casson, George
+Shaikovski, Michal Zelechowski, Kristen Severson, Eric
+Zimmermann, James Hall, Neil Tenenholtz, Nicolo Fusi,
+et al. A foundation model for clinical-grade computational
+pathology and rare cancers detection. Nature medicine, 30
+(10):2924–2935, 2024. 3, 5
+[38] Chloe Wang, Haotian Cui, Andrew Zhang, Ronald Xie, Hani
+Goodarzi, and Bo Wang. scgpt-spatial: Continual pretraining
+of single-cell foundation model for spatial transcriptomics.
+bioRxiv, pages 2025–02, 2025. 3
+[39] Cameron G Williams, Hyun Jae Lee, Takahiro Asatsuma,
+Roser Vento-Tormo, and Ashraful Haque. An introduction
+to spatial transcriptomics for biomedical research. Genome
+medicine, 14(1):68, 2022. 2
+[40] Ronald Xie, Kuan Pang, Sai Chung, Catia Perciani, Sonya
+MacParland, Bo Wang, and Gary Bader. Spatially resolved
+gene expression prediction from histology images via bi-
+modal contrastive learning. Advances in Neural Information
+Processing Systems, 36:70626–70637, 2023. 3, 6
+[41] Meilong Xu, Saumya Gupta, Xiaoling Hu, Chen Li, Shahira
+Abousamra, Dimitris Samaras, Prateek Prasanna, and Chao
+Chen. Topocellgen: Generating histopathology cell topol-
+ogy with a diffusion model. In Proceedings of the Computer
+Vision and Pattern Recognition Conference, pages 20979–
+20989, 2025. 3
+[42] Jinyu Yang, Jiali Duan, Son Tran, Yi Xu, Sampath Chanda,
+Liqun Chen, Belinda Zeng, Trishul Chilimbi, and Junzhou
+Huang. Vision-language pre-training with triple contrastive
+learning.
+In Proceedings of the IEEE/CVF conference
+on computer vision and pattern recognition, pages 15671–
+15680, 2022. 2
+[43] Pengzhi Zhang, Weiqing Chen, Tu N Tran, Minghao Zhou,
+Kaylee N Carter, Ibrahem Kandel, Shengyu Li, Xen Ping
+Hoi, Yuxing Sun, Li Lai, et al. Thor: a platform for cell-
+10
+
+
+level investigation of spatial transcriptomics and histology.
+Nature Communications, 16(1):7178, 2025. 2
+[44] Jiawei Zou, Kai Xiao, Zexi Chen, Jiazheng Pei, Jing Xu,
+Tao Chen, Likun Hou, Chunyan Wu, Yunlang She, Zhiyuan
+Yuan, et al. Predicting spatial transcriptomics from h&e im-
+age by pretrained contrastive alignment learning. bioRxiv,
+pages 2025–06, 2025. 2
+11

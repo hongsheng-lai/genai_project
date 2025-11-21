@@ -1,0 +1,2825 @@
+A REVIEW OF MACHINE LEARNING FOR CAVITATION INTENSITY
+RECOGNITION IN COMPLEX INDUSTRIAL SYSTEMS
+Yu Sha1,8, Ningtao Liu2, Haofeng Liu4, Junqi Tao1,3, Zhenxing Niu5, Guojun Huang1, Yao Yao6, Jiaqi Liang7, Moxian
+Qian1, Horst Stoecker8,9,10, Domagoj Vnucec10, Andreas Widl11, and Kai Zhou1,8,†
+1School of Science and Engineering, The Chinese University of Hong Kong, Shenzhen 518172, China
+2School of Computer, Luoyang Institute of Science and Technology, Luoyang 471023, China
+3Key Laboratory of Quark & Lepton Physics (MOE) and Institute of Particle Physics, Central China Normal University,
+Wuhan 430079, China
+4School of Artificial Intelligence, Xidian University, Xi’an 710126, China
+5School of Computer Science and Technology, Xidian University, Xi’an 710126, China
+6School of Information Engineering, HangZhou Polytechnic University, HangZhou 310018, China
+7School of Business, China University of Political Science and Law, Beijing 102249, China
+8Frankfurt Institute for Advanced Studies, Frankfurt am Main 60438, Germany
+9Institut für Theoretische Physik, Goethe Universität Frankfurt, Frankfurt am Main 60438, Germany
+10GSI Helmholtzzentrum für Schwerionenforschung GmbH, Darmstadt 64291, Germany
+11SAMSON AG, Frankfurt am Main 60314, Germany
+ABSTRACT
+Cavitation intensity recognition (CIR) is a critical technology for detecting and evaluating cavitation
+phenomena in hydraulic machinery, with significant implications for operational safety, performance
+optimization, and maintenance cost reduction in complex industrial systems. Despite substantial
+research progress, a comprehensive review that systematically traces the development trajectory
+and provides explicit guidance for future research is still lacking. To bridge this gap, this paper
+presents a thorough review and analysis of hundreds of publications on intelligent CIR across various
+types of mechanical equipment from 2002 to 2025, summarizing its technological evolution and
+offering insights for future development. The early stages are dominated by traditional machine
+learning approaches that relied on manually engineered features under the guidance of domain expert
+knowledge. The advent of deep learning has driven the development of end-to-end models capable
+of automatically extracting features from multi-source signals, thereby significantly improving
+recognition performance and robustness. Recently, physical informed diagnostic models have been
+proposed to embed domain knowledge into deep learning models, which can enhance interpretability
+and cross-condition generalization. In the future, transfer learning, multi-modal fusion, lightweight
+network architectures, and the deployment of industrial agents are expected to propel CIR technology
+into a new stage, addressing challenges in multi-source data acquisition, standardized evaluation, and
+industrial implementation. The paper aims to systematically outline the evolution of CIR technology
+and highlight the emerging trend of integrating deep learning with physical knowledge. This provides
+a significant reference for researchers and practitioners in the field of intelligent cavitation diagnosis
+in complex industrial systems.
+Keywords Cavitation Detection · Cavitation Intensity Recognition · Complex Industrial System · Machine Learning ·
+Deep Learning · Physical informed Deep Learning
+Emails: {yusha, zhoukai}@cuhk.edu.cn
+†Corresponding author: Kai Zhou
+arXiv:2511.15497v1  [eess.SP]  19 Nov 2025
+
+
+Running Title for Header
+1
+Introduction
+Cavitation intensity recognition (CIR) is a critical technology for quantitatively evaluating cavitation phenomena
+occurring during the operation of hydraulic machinery [1]. Cavitation not only generates intense noise and vibration,
+but can also cause erosion on equipment component surfaces, performance degradation and structural failure, posing
+severe threats to the safety, stability and cost-effectiveness of industrial systems [2]. The high performance of CIR
+enables timely implementation of control measures, optimization of operating conditions, extension of equipment
+service lift and reduction of maintenance and downtime costs. Therefore, CIR holds significant engineering importance
+and practical relevance across sectors including energy, shipping, aerospace and chemical industrial, where pumps,
+turbines, propellers and valves serve as critical components [3]. With the advancement of sensing technology and
+the improvement of data acquisition capabilities, multi-source signals (e.g. acoustic, vibration, pressure, high-speed
+imaging, etc.) provide abundant diagnostic information for CIR, which has driven increasing attention from both
+academic and industry over the past two decades.
+Intelligent cavitation intensity recognition (ICIR) represents a methodology that applies machine learning and deep
+learning from modern artificial intelligence techniques to cavitation intensity recognition [4]. Unlike traditional
+diagnostic approaches reliant on manual feature extraction and expert experience, ICIR can adaptively learn from
+complex multi-source sensor data. It can automatically capture cavitation features and establish a mapping between
+signals and cavitation intensity, which significantly reduces dependence on human intervention [5]. Firstly, it can process
+multi-modal information, enabling comprehensive cross-signal-type analysis and improving diagnostic performance
+and robustness. Secondly, it holds the capability to handle non-linear, multi-scale and high-noise signals, adapting to
+recognition requirements across various equipment types and operating condition. Thirdly, it achieves an automated
+workflow from raw data to recognition results through an end-to-end model, reducing diagnostic time and enhancing
+real-time monitoring capabilities. Fourthly, it can incorporate physical knowledge embedding and constraint loss
+methods to improve model interpretability and cross-condition generalization, which provides technical support for
+sustainable monitoring and predictive maintenance in industrial scenarios.
+In recent years, ICIR has attracted increasing attention from both academic and industry, a trend closely related to the
+rapid development of machine learning technologies. To gain a comprehensive understanding of the technological
+evolution and research dynamics in this field, we have conducted a systematic statistical analysis of several hundred
+relevant publications from 2002 to 2025, as shown in Figure 1. This analysis aims to reveal the principal technical
+characteristics and developmental trends of each stage, which provides a basis for the division of subsequent research
+phases. Based on the observed changes in publication with technological advancement characteristics, we roughly
+divide the research of CIR into three periods as follows.
+In the past, traditional machine learning (TML) methods served as the primary technical approach in CIR. These
+methods typically relied on manually engineered features extracted from acoustic, vibration or pressure signals by
+domain experts. These features are classified using classical algorithms such as support vector machines (SVM) [6],
+decision trees (DT) [7], artificial neural networks (ANN) [8], k-Nearest Neighbours (KNN) [9] and expert systems
+(ES) [10]. This stage of development reduced reliance on purely manual judgement, but feature construction remains
+time-consuming and labor-intensive and heavily dependent on expert experience. This leads to limited generalization
+capabilities across different operating conditions.
+In the present, the rise of deep learning has driven ICIR into the era of end-to-end modeling. The deep learning models
+can automatically capture cavitation features directly from multi-source raw signals (e.g. acoustic, vibration, pressure,
+high-speed imaging, etc.) and also perform multi-modal information fusion to enhance recognition performance
+and robustness. The application of deep belief networks (DBN) [11], convolutional neural networks (CNN) [12],
+residual neural networks (ResNet) [13], dense convolutional networks (DenseNet) [14], MobileNet [15], ShuffleNet
+[16], recurrent neural networks (RNN) [17], long short-term memory (LSTM) [18], gated recurrent neural networks
+(GRU) [19] and Transformer [20] architectures has significantly improved the real-time performance and stability of
+CIR under complex operating conditions.
+In the future, the development of ICIR will depend on standardized high-quality multi-source data acquisition and the
+design of physical informed deep learning diagnostic models. Through incorporating physical mechanisms, physical
+knowledge embedding and physical constraint losses into end-to-end data-driven deep learning, which can enhance the
+physical consistency of the model [21]. This approach not only helps improve the model’s generalization capabilities
+under small-sample, high-noise and cross-operating conditions, but also significantly enhances the interpretability
+and engineering credibility of the diagnostic results [22, 23]. Compared to purely data-driven methods, physical-
+informed diagnostic models can better capture the non-linear, multi-scale characteristics of cavitation processes,
+ensuring diagnostic outputs are closely aligned with practical physical mechanisms [24]. In addition, in future industrial
+applications, the combination of real-time data acquisition by the industrial internet of things and edge computing
+2
+
+
+Running Title for Header
+2002
+2010
+2015
+2020
+2025
+2035
+500
+200
+80
+30
+10
+8
+20
+65
+172
+17
+47
+58
+95
+19
+15
+3
+3
+Traditional machine learning-based CIR
+Data-driven deep learning-based CIR
+Data-knowledge driven deep learning-based CIR
+SVM
+DT
+DT
+DT
+ANN
+ANN
+SVM
+DT
+ANN
+KNN
+KNN
+ES
+ES
+DBN
+DBN
+CNN
+CNN
+RNN
+RNN
+Transformer
+Transformer
+PKN
+PKN
+PKE
+PKE
+PKCL
+PKCL
+150
+DBN
+Past
+Present
+Future
+Figure 1: Development path and significant milestones of cavitation intensity recognition using machine learning.
+3
+
+
+Running Title for Header
+deployment will enable physical informed deep learning diagnostic models to provide robust support for ICIR across
+equipment and operating conditions [25, 26].
+To summarize the research of CIR, Wu at al. [1] discussed various methods for characterizing cavitation intensity
+and emphasizes three acoustic approaches. Liu et al. [27] analyzed pump cavitation detection methods based various
+signals and discussed future trends with intelligent algorithms and advanced sensing. Adil et al. [28] examined
+experimental methods and control systems for diagnosing and managing cavitation in centrifugal pumps, and proposed
+future improvements using more sensors, advanced data processing and artificial intelligence for early detection to
+enhance reliability and extend service life. Fernández et al. [29] outlined acoustic emission techniques for cavitation
+and fracture detection in hydraulic turbines and emphasized artificial intelligent as a key future direction for condition
+monitoring. Mousmoulis et al. [30] discussed cavitation monitoring tools for centrifugal pumps and advocated for
+developing reliable, low-cost and easy-to-install multi-sensor setups. Folden et al. [31] categorized cavitation models,
+analyzed key examples and outlined future improvements in flow simulation. Existing reviews on CIR have the
+following shortcomings. Firstly, the previous reviews just focus on a single technical approach or specific equipment
+type (e.g. pumps, turbines, acoustic detection, modeling methods, etc.) and lacks a systematic and integrated framework
+across different methods and devices, which makes it difficult to comprehensively compare their feasibility and cost-
+effectiveness. Secondly, these reviews typically cover only specific stage of CIR development, lacking a systematic
+overview that integrates past, present and future progress. Thirdly, the current reviews generally do not provide a
+roadmap for the future development of CIR, while potential research trends over the next five to ten years are of great
+interest to review readers. Fourthly, the present reviews provide limited coverage of emerging technologies such as
+deep learning and physical informed deep learning.
+In order to overcome the above shortcomings, this paper systematically examines hundreds of studies across various
+hydraulic machinery from 2002 to 2025 and outlines a technological roadmap for this field. The contributions of this
+review are summarized as follows:
+• The development of CIR is organized into three stages: past traditional machine learning, present deep learning
+and future physical informed deep learning, which helps systematically trace the technological evolution,
+clarify the key characteristics of each stage and provide guidance for future research directions.
+• A future roadmap for CIR is proposed, highlighting physical-informed diagnostic models, multi-modal fusion,
+lightweight network architectures and industrial agents deployment as promising directions to overcome
+challenges in multi-source data acquisition, standardized evaluation and industrial implementation.
+• A systemic view of CIR’s technological evolution is presented and the trend of integrating deep learning
+with physical knowledge is emphasized, providing a valuable reference for intelligent cavitation diagnosis in
+complex industrial systems.
+The rest of this review is organized as follows. Section 2 examines the past development of CIR, focusing on the
+applications of traditional machine learning theories. Section 3 reviews the applications of deep learning theories,
+representing the present period in the development of CIR. Section 4 argues applications of physical informed deep
+learning to CIR. In Section 5, a roadmap is outlined in conjunction with the challenges of CIR. Conclusions are provided
+in Section 6.
+2
+Traditional Machine Learning
+Traditionally, cavitation intensity recognition (CIR) has primarily relied on operators’ experience-based judgment of
+equipment operating conditions and on-site inspections [27, 30]. It not only increase maintenance workload but also
+affects the performance and consistency of diagnostic results. In recent years, with the continuous development of sensor
+technology and signal processing methods, researchers have gradually introduced traditional machine learning (TML)
+into CIR tasks, achieving automated prediction and recognition of cavitation states [32, 33]. A typical TML-based
+CIR includes four key steps: data acquisition, feature extraction, feature selection and intelligent intensity recognition
+[34, 35], see Figure 2. Each step will be discussed in the following subsections.
+2.1
+Data Acquisition
+During the data acquisition phase, sensors are typically installed at critical locations on equipment (e.g. valves
+[36, 37], pipes [38, 39], pumps [40, 41], turbines [42, 43] and propellers [44, 45]) to enable continuous monitoring of
+operational conditions. Researchers employ various types of sensors to effectively capture the formation, development
+and associated physical changes of cavitation bubbles. Different types of sensors have their own advantages in terms
+of adaptability, sensitivity, resolution and anti-interference capability [30, 46], see Table 1. In general, pumps, valves,
+4
+
+
+Running Title for Header
+Valve
+Pump
+Propeller
+Turbine
+Apply sensors to collect
+signals:
+• Vibration
+• Acoustic
+• Pressure
+• Current
+• …
+Data Acquisition
+Feature Extraction
+Extract some commonly features
+from the collected signals by
+using:
+Time-Frequency-
+domain
+t/s
+! "
+! "
+Time-domain
+Frequency-domain
+• Time-domain analysis
+• Frequency-domain analysis
+• Time-frequency-domain
+analysis
+Extracted features
+!"#
+!
+!"#
+!
+!
+!
+"
+!
+"
+!"#
+!
+!"#
+!
+Feature Selection
+Intelligent Intensity Recognition
+Sensitive features
+Insensitive features
+Select
+sensitive
+features
+from the extracted features
+by:
+• Filter-based methods
+• Wrapper-based mehtods
+• Embedded-based methods
+• Reduction-based Methods
+Decision boundary
+Decision boundary
+Input sensitive features to the traditional
+machine learning-based methods, such as:
+• Expert system-based approaches
+• SVM-based approaches
+• DT-based approaches
+• ANN-based approaches
+• …
+Figure 2: Diagnosis procedure of cavitation intensity recognition using traditional machine learning methods, which
+consists of data acquisition, feature extraction, feature selection and intelligent intensity recognition.
+pipes and turbines commonly utilize vibration, acoustic and pressure sensors [47, 48, 49, 50, 51, 52], while propellers
+mainly use acoustic, pressure, current and high-speed sensors [53, 54]. By appropriately selecting and integrating
+multi-source sensor data, the performance and robustness of CIR can be significantly improved.
+Table 1: Comparison of different sensors in data acquisition stage of cavitation intensity recognition.
+Type
+Principle
+Characteristics
+Ultrasonic Sensor Analyzes variations in high-frequency
+High resolution, sensitive to medium
+High-speed Camera Captures bubble flashing frequency High temporal resolution, requires transparent medium, high cost
+Energy Sensor
+Measurement of energy changes
+Quantitative, requires high-precision devices, high cost
+Pressure Sensor
+Detects local pressure pulsations
+High sensitivity, real-time, vulnerable to corrosion and impact
+Vibration Sensor
+Monitors surface micro-vibrations
+Flexible installation, low cost, source interference possible
+Acoustic Sensor
+Monitors sound wave changes
+Remote monitoring, strong penetration, needs noise suppression
+2.2
+Feature Extraction
+Feature extraction serves as a crucial bridge between raw sensor signals and TML models in CIR. By analysing the
+time-domain, frequency-domain and time-frequency-domain characteristics of the signals, multi-dimensional features
+that effectively represent the cavitation state can be extracted [55, 56, 57], as detailed below.
+• Time-domain features: These are statistical quantities directly derived from the raw signal, including mean,
+variance, kurtosis, skewness, maximum value, minimum value, shape factor, peak factor, clearance factor,
+impulse factor, etc., reflecting the overall fluctuation characteristics of the signal [58, 59].
+• Frequency-domain features: These are obtained from the frequency spectrum, including mean frequency,
+frequency center, frequency standard deviation, root mean square frequency, spectral entropy, energy spectral
+density, etc., which help capture frequency variations caused by cavitation [60].
+• Time-frequency-domain features: These are suitable for non-stationary signal analysis, common methods
+include wavelet transform, wavelet packet transform, short-time Fourier transform and empirical model
+decomposition [61, 62, 63]. These approaches enable the characteristics of the dynamic evolution of cavitation
+across different time scales.
+5
+
+
+Running Title for Header
+2.3
+Feature Selection
+Feature selection aims to filter out a discriminative and sensitive feature subset from high-dimensional features, reducing
+computational complexity, alleviating the dimension diaster and improving recognition performance [64, 65]. For CIR
+task, commonly used feature selection methods include filter-based, wrapper-based, embedded-based and reduction-
+based approaches, each of which has its own advantages and is suitable for different data scenarios and modeling
+requirements.
+2.3.1
+Filter-based Methods
+Filter-based methods evaluate the correlation or statistical properties between each feature and the target variable,
+performing feature selection independently before the model training [66]. The following briefly introduces several
+commonly used filters.
+• Variance threshold [67]: Remove features with low variance and low information content to enhance general-
+ization ability of the model.
+• Correlation coefficient analysis [68]: Calculate the linear or non-linear correlation between features and target
+variable (e.g. Pearson, Spearman or Kendall coefficients, etc.)
+• Mutual information [69]: Measure the non-linear dependency between features and target variable, which is
+suitable for feature selection under complex distribution structures.
+• Distance Evaluation [70]: Based on the principle of minimizing intra-class distance and maximizing inter-class
+distance, features with strong class discrimination capabilities are selected.
+• Information gain and gain ratio [71]: Evaluate the effective amount of information carried by a feature. Features
+with higher information gain and gain ratio are generally more advantageous in enhancing the performance of
+diagnostic models.
+• Minimum redundancy maximum relevance [72]: Select the most representative feature subset by maximizing
+the relevance between features and the target variable and minimizing redundancy among features.
+• Relevant features [73]: Construct relevance metrics to evaluate the sensitivity of features to the target variable,
+and then select key features that are highly correlated with the target variable and exhibit significant class
+discrimination capabilities.
+• Chi-square test [74]: Evaluate the independence between features and the target variable to determine the most
+relevant and sensitive features for the diagnostic model.
+2.3.2
+Wrapper-based Methods
+Wrapper-based methods select optimal feature subsets by relying on the performance of TML models. The core idea of
+these methods is to convert the feature selection issue into a feature subset search task, i.e. guiding the selection of the
+feature subset based on the model’s performance [65]. The following are common wrapper-based methods.
+• Sequential selection [75]: Features are gradually added or remove features via forward selection or backward
+elimination to optimize model performance, which is suitable for high-dimensional feature spaces.
+• Recursive feature elimination [76]: Iteratively remove features with lower contributions based on the model’s
+assessment of feature importance, ultimately retaining the subset of features that most significantly improves
+model performance.
+• Heuristic search [77]: Utilise heuristic strategies (e.g. genetic algorithms, simulated annealing, ant colony
+algorithms, etc.) to perform a global search in the feature space to find the optimal or near-optimal feature
+subset. This approach is effective for complex feature combinations and large search spaces.
+2.3.3
+Embedded-based Methods
+Embedded-based methods integrate the feature selection process into the model training, leveraging the model’s own
+parameter learning and optimization mechanisms to automatically identify and retain sensitive features for prediction
+results [78]. The following are common embedded-based methods.
+• Regularization [79]: Introduce L1 or L2 regularization terms during model training to constrain feature
+coefficients, achieving automatically selecting and retaining the most influential sensitive features for prediction
+results.
+6
+
+
+Running Title for Header
+• Tree models [80]: Evaluate information gain, gini impurity reduction or purity improvement during node
+splitting to quantify the contribution of each feature to model decisions (e.g. decision tree, random forest,
+gradient boosting decision tree, etc.) and identify highly important and sensitive features.
+2.3.4
+Reduction-based Methods
+Reduction-based methods transform the original high dimensional feature space into a low dimensional representation
+through mathematical mapping, effectively compressing the number of features and eliminating redundancy while
+preserving as much critical information as possible [81]. The following are common reduction-based methods.
+• Linear reduction [82]: Utilize linear techniques (e.g. rthogonal transformations or matrix decomposition,
+etc.) to project high-dimensional feature space onto low dimensional linear subspaces. This approach can
+effectively eliminate features linear correlations while retaining the global structure of the original feature (e.g.
+principal component analysis, linear discriminant analysis, non-negative matrix factorization, etc.).
+• Non-linear reduction [83]: Employ non-linear transformation techniques (e.g. manifold learning, kernel
+methods, etc.) to embed features into a low dimensional non-linear space. This method can effectively capture
+the local neighborhood relationships and manifold structures in the original feature space (e.g. kernel principal
+component analysis, t-distributed stochastic neighbor embedding, isometric mapping etc.).
+2.4
+Intelligent Intensity Recognition
+Intelligent intensity recognition establishes a mapping between selected features and cavitation intensity through a
+recognition model based on TML. To achieve this goal, the recognition model needs to be trained and learned on labeled
+cavitation samples. According to current research progress, we briefly introduce five commonly used TML methods for
+CIR in the following sections.
+2.4.1
+SVM-based Approaches
+Support vector machine (SVM) is a supervised learning method based on statistical learning theory, which is widely
+used in classification, regression and anomaly detection tasks [6]. Its fundamental idea is to find an optimal hyperplane
+in the feature space to maximize the interclass margin, achieving effective separation of samples. Given a training
+dataset {X, Y} = (xi, yi) with N samples, xi ∈Rd represents the feature vector of the i-th sample and yi ∈{+1, −1}
+denotes its corresponding class label, the basic optimization objective of SVM can be expressed as:
+min
+w,b
+1
+2∥w∥2
+s.t. yi(wTxi + b) ≥1, i = 1, 2, . . . , N
+,
+(1)
+where w is the normal vector of the hyperplane and b is the bias term. In practical applications, due to noise interference
+and overlapping class boundaries, it is difficult for samples to satisfy the strict linear separability assumption. Therefore,
+SVM introduces slack variable ξi to construct a soft-margin classifier, as shown in Figure 3. The optimization objective
+is adjusted as follows:
+min
+w,b,ξ
+1
+2∥w∥2 + C
+N
+P
+i=1
+ξi
+s.t. yi(wTxi + b) ≥1 −ξi, ξi ≥0
+,
+(2)
+where C is the penalty factor used to control the balance between margin maximization and classification error
+minimization. In addition, SVM also introduces kernel methods to implicitly map the original features to a high-
+dimensional feature space. The typical kernel functions include radial basis kernel, polynomial kernel and sigmoid
+kernel, which are crucial role in accurately modeling complex patterns.
+The application of SVM to CIR are systematically summarized in Table 2. According to the research results, the SVM
+have exhibited excellent performance in CIR for equipment such as pumps, turbine and pipes. For the above diagnostic
+objects, the SVM-based methods need to able to recognize multiple flow cavitation states, not only limited to the binary
+classification of cavitation and non-cavitation. Therefore, one-versus-rest (OVR) and one-versus-one (OVO) strategies
+have become solutions for SVM [84]. In addition, the researchers improved the diagnostic accuracy of modifying the
+SVM and optimizing the SVM parameters. For the former, researchers applied the modified SVM to CIR, such as
+least square SVM [85], proximal SVM [58], wavelet SVM [85] and one-class SVM [86], which all achieved better
+diagnostic performance than the traditional SVM. For algorithm optimization, researchers focused on simplifying the
+complex solution process and optimizing parameter selection of SVM, such as particle swarm optimization-based SVM
+[62], cuckoo search algorithm-based SVM [87] and butterfly optimization algorithm-based SVM [57].
+7
+
+
+Running Title for Header
+!
+!
+!
+ξ
+!
+!
+ξ
+!
+!
+ξ
+!
+!
+ξ
+!
+!
+!
+!
+ξ
+!
+! "
+#
+⋅+
+=
+Feature 1
+Feature 2
+Figure 3: Schematic diagram of a SVM. The red solid line and the gray dashed line represent the separating hyperplane
+and the margin boundaries, respectively.
+Table 2: Summary of applications of SVM-based methods in cavitation intensity recognition.
+Objects
+References
+Signals
+Pump
+[34], [57], [58], [59], [62], [84], [88], [89], [90], [91],
+Vibration, Pressure, Current, Acoustic
+[92], [93], [94], [95], [96], [97], [98], [99], [100], [101],
+[102], [103], [104], [105], [106], [107], [108], [109], [110],
+[111], [112], [113], [114], [115]
+Turbine
+[94], [116], [117], [118], [119]
+Vibration, Acoustic
+Pipe
+[85], [87], [120], [121], [122], [123]
+Ultrasonic, Pressure, Acoustic
+Propeller
+[86], [124]
+Vibration
+2.4.2
+DT-based Approaches
+Decision tree (DT) is a supervised learning method for classification and regression tasks, which makes decisions at
+each internal node by partitioning the feature space into distinct subregions based on feature values [7]. The decision at
+each node is made by evaluating a specific feature and splitting the data into subsets according to a threshold value.
+Given a training dataset {X, Y} = (xi, yi) with N samples, xi ∈Rd represents the feature vector of the i-th sample
+and yi denotes its corresponding class label, the objective of DT is to recursively split the data at each node in order to
+create a tree structure that minimizes a measure of impurity, as shown in Figure 4. The basic optimization objective of
+DT is as follows:
+min
+S
+N
+P
+i=1
+I(yi|S)
+s.t.
+
+
+
+
+
+
+
+G(S) = 1 −
+CP
+c=1
+p(c|S)
+E(S) = −
+CP
+c=1
+p(c|S)logp(c|S)
+,
+(3)
+where I(yi|S) is a measure of impurity, e.g. Gini impurity G(S) or entropy E(S), S represents the current subset of
+the data at given node and p(c|S) is the proportion of class c sample in subset S. To prevent overfitting, the DT are
+often pruned by setting a maximum depth or by requiring a minimum number of samples in each leaf node. In addition,
+the DT can be enhanced by ensemble methods, such as random forests (RF) [125], gradient boosting machines (GBM)
+[126], extreme gradient boosting (XGBoost) [127], light gradient boosting machine (LightGBM) [128] and extremely
+randomized trees (ERT) [129], which combine multiple DTs to improve performance and reduce overfitting.
+The application of DT and its derived methods to CIR are comprehensively summarized in Table 3. Based on the
+research results, the DT and its its derivatives have also been widely applied in CIR for equipment such as pumps,
+turbines, pipelines and valves. For the above diagnostic objects, DT-based methods are able to deal with both binary
+classification of cavitation and non-cavitation and multi-class recognition of different cavitation states. In addition,
+researchers have proposed a variety of improved DT methods, such as RF [91, 130] and XGBoost [48], which effectively
+8
+
+
+Running Title for Header
+Root
+Feature 1
+Feature 2
+Health
+Feature 3
+Feature 4
+Cavitation A
+Cavitation B
+Cavitation C
+Cavitation D
+4th level 
+2nd level
+0th level 
+Root node
+Inner node
+Leaf node
+1st level 
+3rd level 
+Figure 4: Schematic diagram of a DT. In general, the root node represents the entire sample set.
+overcome the shortcomings of traditional DTs by ensemble learning and gradient boosting mechanisms. Furthermore,
+Kamali et al. [131] employed a combination of bayesian optimization with DT to automatically select hyperparameters.
+Compared to SVM-based approaches, DT-based methods have natural interpretability and can automatically generate
+explicit diagnostic rules without relying on additional expert interpretation. In addition, DT-based methods are able to
+perform effective diagnosis even in the presence of missing data, which exhibits strong robustness. However, DT-based
+methods are often prone to suffer from overfitting, leading to weak generalization and compromising their effectiveness
+in complex diagnostic tasks. It is also worth noting that the design of many DT-based models still depends on expert
+knowledge, which restricts their universality and flexibility in certain application scenarios.
+Table 3: Summary of applications of DT-based methods in cavitation intensity recognition.
+Objects
+References
+Signals
+Pump
+[35], [84], [91], [130], [131], [132], [133], [134],
+Vibration, Current, Acoustic, Ultrasonic, Pressure
+[135], [136], [137], [138], [139], [140], [141]
+Turbine
+[117], [142], [143], [144], [145], [146], [147]
+Acoustic, Vibration, Pressure, Ultrasonic
+Pipe
+[48], [121], [148], [149]
+Acoustic, Vibration
+Valve
+[48], [150], [151]
+Acoustic, Vibration
+2.4.3
+ANN-based Approaches
+Artificial neural network (ANN) is a traditional supervised learning method based on multilayer perceptrons (MLP),
+which is commonly applied to classification and regression tasks [8]. Its basic structure consists of an input layer,
+several hidden layers and an output layer, which achieves feature mapping through forward propagation and parameter
+updating using back propagation, as shown in Figure 5. Given a training dataset {X, Y} = (xi, yi) with N samples,
+xi ∈Rd represents the feature vector of the i-th sample and yi ∈Rl denotes its corresponding class label. During the
+forward propagation process, the input data xi are sequentially transmitted through each layer. Each layer receives
+the output of the previous layer as input, first calculates the weighted sum of that input, then performs a nonlinear
+transformation and passes the result to the next layer. The specific process is as follows:
+(xh
+i )j = σ(
+nh−1
+X
+i=1
+wh
+j · xh−1
+i
++ bh
+j ),
+(4)
+where (xh
+i )j is the output of the j-th neuron in the h-th hidden layer, wh
+j is the weight between the neurons in the
+previous layer, bh
+j is the bias of the j-th neuron in the h-th hidden layer, σ represents the activation function (e.g.
+Sigmoid, ReLU, Tanh, etc.). The predicted output of ANN is:
+(ˆyi)k = σout(
+nH
+X
+i=1
+wout
+j
+· xH
+i + bout
+j
+),
+(5)
+where (ˆyi)k is the predicted output of the k-th neuron in the output layer, σout represents the activation function
+(Sigmoid and Softmax), wout
+j
+and bout
+j
+are the weights and bias of the output layer, respectively. The optimization
+objective of ANN minimizes the error between the predicted output and the groundtruth:
+min
+θ
+N
+X
+i=1
+L(yi, ˆyi),
+(6)
+9
+
+
+Running Title for Header
+To achieve the above objective, the training parameters w and b are updated by gradient descent during the back
+propagation, as detailed below:
+w∗←w −η · ∂L
+∂w,
+b∗←b −η · ∂L
+∂b ,
+(7)
+where η is the learning rate, ∂L/∂w and ∂L/∂b are the gradients with respect to parameter w and b, respectively. In
+general, ANN consists of MLP, radial basis function neural network (RBFNN) [152], self-organizing map (SOM) [153]
+and hopfield neural network (HNN) [154], adaptive resonance theory network (ARTN) and so on [155].
+Input 
+layer
+Hidden 
+layer
+Output 
+layer
+Figure 5: Schematic diagram of a ANN with two hidden layers.
+The application of ANN to CIR are systematically reviewed in Table 4. As shown in Table 4, ANN-based methods
+have been widely applied to CIR in various hydraulic machinery and fluid systems, such as pumps, turbines, pipes and
+propeller. In particular, pump-related research focused on the variety of signal types, which reflects their comprehensive
+employment of multi-source information in cavitation monitoring. For pipelines and valves, acoustic, pressure and
+vibration measurements are commonly used for effective detection of local cavitation. In general, ANN-based methods
+is widely used on different objects and multiple signal sources, which demonstrates the universality and adaptability of
+ANN to CIR task.
+Table 4: Summary of applications of ANN-based methods in cavitation intensity recognition.
+Objects
+References
+Signals
+Pump
+[47], [60], [61], [91], [94], [111], [112], [113], [114], [115],
+Current, Pressure, Vibration, Acoustic, High-speed images
+[117], [156], [157], [158], [159], [160], [161], [162], [163],
+[164], [165], [166], [167], [168], [169], [170], [171], [172],
+[173], [174], [175], [176], [177], [178]
+Turbine
+[94], [179], [180], [181], [182], [183], [184], [185]
+Vibration, Pressure, Ultrasonic, High-speed images
+Pipe
+[85], [186], [187], [188]
+Acoustic, Pressure
+Valve
+[189], [190]
+Acoustic, Vibration
+Propeller [191]
+Vibration
+Compared to SVM and DT-based methods, ANN-based CIR methods can effectively capture potential features in multi-
+source monitoring signals to achieve high performance of different equipment cavitation states. However, ANN-based
+method still faces two challenges in engineering applications. First, the parameter size and complexity of the model
+dramatically increase with the dimension of the input data, which reduces the training efficiency and result in overfitting.
+Second, the ANN-based models show a typical black-box nature without theoretical foundation, making its diagnostic
+results difficult to support operation and maintenance decisions.
+10
+
+
+Running Title for Header
+2.4.4
+Other Approaches
+In addition, other methods are also widely employed in FIR, such as k-nearest neighbours (KNN), expert system (ES).
+We will briefly introduce them in this subsection.
+KNN-based Approaches. K-nearest neighbours (KNN) is a distance-based supervised learning method, which is
+typically used for classification and regression tasks [9]. The core idea is that given a predicted sample, the distance is
+firstly calculated between this sample and all labelled samples in the taring set. Then, the k nearest neighbours are
+found. Finally, the output of the sample is predicted based on the class or value of these k neighbours, as shown in
+Figure 6.
+?
+𝑘= 1
+𝑘= 3
+𝑘= 5
+is classified as
+is classified as
+is classified as
+Figure 6: Illustration of a KNN algorithm.
+KNN has received much attention in intelligent CIR research, especially in pumps [84, 89, 192], turbines [117] and
+valves [150]. Han et al. [84] proposed a KNN-based method for detection cavitation in centrifugal pumps using
+vibration and current signals. Paolo et al. [91] attempted a KNN-based model based on vibration signal for a hydraulic
+axial piston pump. Sousa et al. [117] developed a method for identifying incipient cavitation in wind turbines by
+extracting statical features of vibration signals and applying a KNN-based model. In addition, some researchers
+investigated the modified KNN models to enhance cavitation intensity diagnostic effects. Kermani et al. [193] presented
+a fuzzy KNN-based method for recognizing the cavitation intensity of dam spillway utilising pressure signals. Zeng et
+al . [194] proposed a method integrating dual-tree complex wavelet transform with variational mode decomposition
+and Bayesian optimized locally weighted KNN algorithm for intelligent recoignition of multi-state cavitation in vortex
+pumps based on current signals.
+Although KNN has simplicity and effectiveness, it has several limitations in practical applications. First, the model is
+very sensitive to the choice of distance metric and parameter k, and inappropriate settings can significantly affect the
+final performance. Second, it has high computational complexity during the inference stage since it needs to calculate
+the distance between the test sample and all the training samples, resulting in extremely low efficiency in large-scale
+datasets. Third, it is very sensitive to irrelevant or redundant features. Finally, the basic KNN connot automatically
+perform feature weighting or learn the importance of features, causing it to depend on feature preprocessing to obtain
+the desired performance.
+ES-based Approaches. Expert system (ES) is a rule-based artificial intelligence models that emulate the decision
+making process of human experts by encoding domain knowledge into a knowledge base and inference engine, which
+is widely used in condition monitoring of fluid machinery [10]. The core of ES is to utilise predefined logic rules
+extracted from practical experience and expert knowledge to parse the sensor signals and identify different cavitation
+states, as shown in Figure 7. Sakthivel et al. [41] proposed a combination of rough set rule extraction and a fuzzy
+inference system to achieve cavitation detection and intensity diagnosis in centrifugal pump using vibration signals.
+Saeid et al. [195] presented a vibration signal diagnosis method based on the combination of FFT feature extraction and
+adaptive fuzzy inference system for intelligent fault diagnosis of centrifugal pumps. Azadeh et al. [196] developed a
+fuzzy rule-based inference system approach to realise timely diagnosis of cavitation states in centrifugal pumps.
+Although ES has a strong interpretability, it faces several limitations in practical applications. First, the construction of
+ES is heavily relies on a priori knowledge of domain experts, resulting in time-consuming and labor-intensive process
+of knowledge acquisition. Second, ES cannot update knowledge base or optimize inference rules online, making it
+difficult to adapt to new fault patterns. Third, ES typically relys on deterministic logical reference, resulting in weakly
+11
+
+
+Running Title for Header
+Knowledge Base
+User Interface
+Inference
+engines
+Dynamic
+Database
+Explanation
+System
+Expert Knowledge
+Decision
+Knowledge
+Consultation
+Explanation
+Response
+Recognition Results
+Problem 
+Definition
+Collected
+Data
+Fault Features
+Health 
+Information
+Reasoning
+Knowledge
+Interaction
+Figure 7: Schematic diagram of an ES.
+Data Collection
+Data Driven Deep Learning Intensity Recognition
+Construct end-to-end diagnostic models to directly learn features from
+collected signals and recognize cavitation states by using deep learning
+theories, such as:
+The integration of the internet of things and
+cloud computing drives the proliferation:
+• Large volume
+• Low value density
+• Multi  source
+and
+heterogeneous
+formats
+• Data stream characteristics
+Output
+Recognition results
+• Deep belief network-based approaches
+• Convolutional neural network-based approaches
+• Recurrent neural network-based approaches
+• Transformer-based approaches
+Deep learning models
+Figure 8: Diagnosis procedure of cavitation intensity recognition using deep learning methods, which consists of data
+acquisition and data-driven deep learning intensity recognition.
+handling noise and incomplete information in signals. Finally, ES adds new fault types or modifies new rules to require
+redesigning the rule base, resulting in system inflexibility.
+3
+Data Driven Deep Learning
+In contrast to TML approaches, data-driven deep learning (DL) methods have gained attention in CIR since their
+powerful end-to-end feature learning and representation capabilities. Instead of relying on manually extracted features,
+DL models can automatically extract multi-level features directly from original sensor signals, which can reduce the
+dependence on expert experience and complex signal preprocessing [197]. A typical DL-based CIR pipeline normally
+consists of data collection and end-to-end intensity recognition, as shown in Figure 8, which will be detailed in the
+following subsections.
+3.1
+Data Collection
+In modern industrial monitoring systems, data collection is the basis for CIR and other equipment health diagnostics. The
+process typically relies on a variety of sensors and control system to continuously acquire signals from the equipment
+12
+
+
+Running Title for Header
+under a wide range of operating conditions. The collected data not only presents the classical characteristics of volume,
+velocity, variety and veracity, but also exhibits domain-specific attributes determined by industrial environment [198].
+• Large volume: Over long-term operation, monitoring systems for equipment continuously record multiple
+channel signals. High-frequency measurement (e.g. vibration signals from gearboxes, acoustic emission
+signals from cavitation-prone pipelines segments) can significantly increase the data volume.
+• Low value density: Although a large amount of sensor data is collected, only a small portion is directly related
+to cavitation events or fault states. The vast majority of the records correspond to the normal operating cditions
+of the equipments and some of data may be of poor quality due to transmission interruptions, environmental
+disturbances or sensor failures.
+• Multi-source and heterogeneous formats: Multiple sensors (e.g. vibration, pressure, acoustic, etc.) are often
+integrated in industrial monitoring, resulting in heterogeneous data in both structure and sampling rate.
+• Data stream characteristics: The development of technologies (e.g. internet of things, high-speed networks,
+GPU computing, edge computing, etc.) make it possible to acquire real-time, high-frequency monitoring data
+streams, enabling immediate access to machine health information.
+Cavitation-related monitoring data are collected from the target system across different operating conditions. The
+acquisition devices include acoustic emission sensors, energy sensors, pressure sensors, vibration accelerometers,
+ultrasonic sensors and high-speed camera (more detailed see Table 1), which are placed at key locations to capture
+the entire "occurrence-development-collapse" process of cavitation. All signals are recorded simultaneously by the
+industrial data acquisition unit and stored in original waveforms and lightly preprocessed forms, ensuring the data
+covers a wide range of cavitation intensities, which satisfies the training requirements of DL models.
+3.2
+End-to-end intensity recognition
+The DL model directly performs feature learning and cavitation intensity prediction simultaneously from raw monitoring
+data, eliminating manual feature extraction and feature selection. In general, its architecture includes an automatic
+feature learning module and a prediction module. The DL model training is based on end-to-end error backpropagation,
+while optimizing the parameters of both the feature and prediction layers to highly match the learned representation
+with the recognized target. According to current research progress, we briefly introduce four typical DL structures for
+CIR in the following sections.
+3.2.1
+DBN-based Approaches
+Deep belief network (DBN) is a class of generative graphical models stacked with multiple layers of restricted boltzmann
+machine (RBM) [11]. It is able to learn hierarchical abstract features of the input data in an unsupervised learning
+manner and achieve classification or regression by supervised fine-tuning, as shown in Figure 9. The RBM is an
+undirected bipartite graph consisting of a visible layer v and a hidden layer h, which are fully connected between the
+layers and unconnected within the same layer. Its energy function is:
+Traing 
+samples
+Visible
+layers
+Hidden
+layers
+RBM training algorithm
+Fine
+tuning
+Softmax
+Figure 9: Schematic diagram of a DBN.
+13
+
+
+Running Title for Header
+E(v, h) = −
+m
+X
+i=1
+aivi −
+n
+X
+j=1
+bihj −
+m
+X
+i=1
+n
+X
+j=1
+viwijhj,
+(8)
+where wij is the weight matrix, a and b are the bias terms of the visible and hidden layers, respectively. Based on the
+Equation 8, the marginal distribution of the visible units can be calculated as:
+P(v, h) = 1
+Z e−E(v,h),
+(9)
+where Z = P
+v,h
+e−E(v,h) represents partition function. The activation conditions for visible and hidden units are defined
+as follows:
+
+
+
+
+
+
+
+P(vi = 1|h) = σ(
+m
+P
+j=1
+wijhj + ai)
+P(hj = 1|v) = σ(
+nP
+i=1
+wijvi + bj)
+,
+(10)
+where σ denotes the Sigmoid function. Based on contrastive divergence (CD), the weight matrix wij is updated as
+follows:
+∆wij = η(< vihj>data−< vihj>recon),
+(11)
+where, η is the learning rete, < vihj>data and < vihj>recon represent the expected values of the product vihj under
+the data distribution and reconstructed distributions, respectively.
+DBN has been widely applied in CIR due to its strong capability in learning hierarchical and discriminative features
+from raw, high-dimensional and noisy monitoring signals. Wang et al. [199] proposed a fast and effective cavitation
+diagnosis approach for hydraulic system vibration signals based on a DBN with sliding window spectrum feature.
+Huang et al. [200] presented an automatic weak cavitation recognition method for hydraulic systems based on the
+combination of multi-scale entropy feature extraction of fault-sensitive intrinsic mode function and DBN. Liu et al.
+[201] developed a method to improve the cavitation diagnosis performance of gear vibration signals by optimizing the
+number of hidden layer neurons and learning rate of DBN. Yan et al. [202] devised an improved data preprocessing
+method combined with a genetic algorithm optimized DBN to enhance cavitation diagnosis performance for actual gas
+turbine.
+Although DBN exhibits strong capability in automatic feature learning, it also encounters several limitations in practical
+applications. First, the performance of DBN is highly dependent on the setting of hyperparameters, which typically
+require repeated tuning for different datasets. Second, DBN training involves layer-wise pretraining and fine-tuning,
+leading to relatively high computational cost and long training time.
+3.2.2
+CNN-based Approaches
+Convolutional neural network (CNN) is a type of deep feedforward neural network inspired by the receptive field
+mechanism of the visual cortex, which is widely applied in computer vision [203, 204, 205, 206], speech recognition
+[207, 208, 209], natural language processing [210, 211, 212, 213], time-frequency signal analysis [214, 215, 216, 217]
+and so on [218, 219, 220, 221, 222]. Its basic structure typically consists of an input layer, several convolutional layers,
+pooling layers, fully connected layers and an output layer. The CNN achieves hierarchical automatic feature extraction
+through convolution and pooling operations, as shown in Figure 10, followed by nonlinear transformations via activation
+functions and finally performs classification or regression through fully connected layers. Given a training dataset
+{X, Y} = (xi, yi) with N samples, xi ∈Rd represents i-th sample and yi ∈{+1, −1} is the corresponding label. For
+a one dimensional convolutional network, the operation for the k-th feature map in the h-th layer can be expressed as:
+xh
+ik = σ(
+X
+j
+xh−1
+j
+· wh
+jk + bh
+k),
+(12)
+where xh
+ik represents the output of the k-th feature map in the h-th layer, xh−1
+j
+is the j-th input feature map from the
+(h −1)-th layer, σ(·) is the activation function (e.g. ReLU, Sigmoid, Tanh, etc.), wh
+jk and bh
+k are the convolution kernel
+and bias corresponding to input channel j and output channel k, respectively. Pooling layers are used to reduce the
+spatial or temporal resolution of the feature maps and enhance invariance to translation and noise. For example, the
+max pooling can be formulated as:
+p(h)
+k (u) = max
+s∈Ωu(xh
+ik)(s),
+(13)
+14
+
+
+Running Title for Header
+Width
+Height
+⋮
+Starting position
+Ending 
+position
+1,1
+x
+1,2
+x
+2,1
+x
+2,2
+x
+Input
+,i j
+x
+,
+1
+i j
+x
+−
+1,
+i
+j
+x −
+1,
+1
+i
+j
+x −
+−
+1,1
+w
+1,2
+w
+2,1
+w
+2,2
+w
+Convolution
+*
+Filter
+Output
+⋮
+1,1
+s
+1,1
+1,1 1,1
+2,1
+2,1
+1,2 1,2
+2,2
+2,2
+     
+s
+w x
+w x
+w x
+w
+x
+=
++
++
++
+⋮
+1,
+1
+1,1
+1,
+1
+2,1
+,
+1
+1,2
+,
+1
+2,2
+,
+         
+i
+j
+i
+j
+i j
+i j
+i j
+s
+w x
+w x
+w x
+w
+x
+−
+−
+−
+−
+−
+−
+=
++
++
++
+Output
+Starting
+position
+Ending
+position
+Time sequence
+Convolution
+Height
+*
+Width
+Filter
+1,1
+x
+2,1
+x
+3,1
+x
+1,1
+ix −
+,1
+ix
+⋮
+⋮
+1,1
+s
+1,1
+w
+2,1
+w
+2,1
+ix −
+⋮
+1,1
+1,1 1,1
+2,1
+2,1
+     
+s
+w x
+w x
+=
++
+1,1
+1,1
+1,1
+2,1
+,1
+       
+i
+i
+i
+s
+w x
+w x
+−
+−
+=
++
+Input
+4,1
+x
+(a)
+(b)
+Image
+Figure 10: Schematic diagram of convolution operation. (a) and (b) show the working principle of 1D and 2D
+convolution, respectively.
+where Ωu denotes the pooling region centered at position u. After several convolution and pooling layers, the high level
+features are flattened and passed into fully connected layers. The predicted output of the k-th neuron in the output layer
+is computed as:
+ˆyik = σout(
+X
+j
+wout
+jk · zj + bout
+k ),
+(14)
+where zj denotes the j-th neuron output in the fully connected layer, σout(·) is typically Sigmoid or Softmax function,
+wout
+jk and bout
+k
+are the weights and biases of the output layer, respectively. The objective of CNN is to minimize the
+between the predicted output and the ground truth:
+min
+θ
+N
+X
+i=1
+L(yi, ˆyi),
+(15)
+where θ represents the model parameters and are optimized using stochastic gradient descent (SGD) or its variants
+(Adam, RMSprop, etc.), with the update formulas:
+w∗←w −η · ∂L
+∂w,
+b∗←b −η · ∂L
+∂b ,
+(16)
+where η is the learning rate, ∂L/∂w and ∂L/∂b are the gradients with respect to w and b, respectively. In general,
+CNN can be classified into 1D CNN, 2D CNN and 3D CNN. Based on the above, researchers have developed various
+architectures, such as LeNet [12], AlexNet [223], VGGNet [224], DenseNet [14], ResNet [13], MobileNet [15],
+ShuffleNet [16].
+The application of CNN to CIR are systematically reviewed in Table 5. As shown in Table 5, CNN-based methods have
+been widely applied to CIR in various hydraulic machinery and fluid systems, such as pumps, turbines, pipes, valve
+and propellers. Among these, pumps are the most extensively studied, with both 1D CNN and 2D CNN architectures
+being applied. Specifically, 1D CNN is mainly used for processing time series signals (e.g. acoustic, vibration, prsssure,
+current, etc.), while 2D CNN often relies on time-frequency representations or high-speed images to capture spatial
+features of cavitation. Research on turbines, pipes, propellers and valves is relatively limited, which indicates potential
+for further expansion. Many CNN-based studies directly employ established network architectures, which makes it
+challenging to fully tailor the models to the unique characteristics of CIR. In general, CNN-based CIR studies show
+a trend toward integrating multiple signal types and network structures, though the maturity varies across different
+objects.
+Compared with DBNs, CNNs offer advantages in CIR, including automatic extraction of local features, reduced reliance
+on manual feature design and higher computational efficiency. In addition, CNNs also demonstrate higher performance
+and robustness when processing images and time-frequency two-dimensional features. However, CNNs have limited
+capability in capturing strong nonlinear and long-term dependency features and their performance is sensitive to the
+quantity and quality of training data.
+15
+
+
+Running Title for Header
+Table 5: Summary of applications of CNN-based methods in cavitation intensity recognition.
+Objects
+Types
+References
+Signals
+pump
+1D CNN
+[167], [225], [226], [227], [228], [229], [230], [231], [232],
+Acoustic,
+Vibration,
+Pressure,
+Current,
+High-speed images
+[233], [234], [235], [236], [237], [238], [239], [240], [241],
+[242], [243], [244]
+2D CNN
+[245], [246], [247], [248], [249], [250], [251], [252], [253],
+[254], [255], [256], [257], [258], [259], [260], [261], [262],
+[263], [264], [265], [266], [267], [268], [269], [270], [271],
+[272], [273], [274]
+Turbine
+1D CNN
+[239], [243], [275], [276], [277], [278], [279], [280], [281],
+Acoustic, Vibration,
+Pressure, Current
+[282]
+2D CNN
+[52], [283], [284], [285], [286], [287], [288]
+Pipe
+1D CNN
+[188], [289], [290], [291], [292], [293]
+Acoustic
+2D CNN
+[294], [295], [296]
+Propeller
+1D CNN
+[54], [297], [298]
+Acoustic, Current,
+High-speed images
+2D CNN
+[299], [300], [301], [302], [303], [304], [305], [306], [307]
+Valve
+1D CNN
+[289], [290], [291]
+Acoustic,
+Vibration
+2D CNN
+[295], [308]
+3.2.3
+RNN-based Approaches
+Recurrent neural network (RNN) is class of neural network models designed to capture temporal dependencies and
+sequential correlations in data [17]. Unlike CNNs, RNN introduce recurrent connections in hidden layer, allowing
+information from previous time steps to influence the current output, as shown in Figure 11. The basic operation of a
+vanilla RNN for a sequence {x1, x2, · · · , xT } can be expressed as:
+ht = σ(Wxhxt + Whhht−1 + bh),
+(17)
+yt = σout(Whyht + by),
+(18)
+where ht is the hidden state at time t, Wxh, Whh, Why are the input-to-hidden, hidden-to-hidden and hidden-to-output
+weight matrices, respectively. bh and by are biases, σ(·) is typically a nonlinear activation function and σout(·) is the
+output activation function. The objective function is to minimize the sequence prediction loss over all time steps:
+min
+θ
+N
+X
+i=1
+T
+X
+t=1
+L(y(i)
+t , ˆy(i)
+t ),
+(19)
+where θ = {Wxh, Whh, Why, bh, by} and are updated through backpropagation through time. To address the vanishing
+and exploding gradient issues in vanilla RNN, researchers have developed various architectures, such as LSTM [18],
+BiLSTM [309] and GRU [19].
+RNN
+Figure 11: Schematic diagram of a RNN.
+RNN-based approaches have been effectively applied to CIR. For instance, some research [150, 174, 310] directly
+applied LSTM to CIR of valves and pumps, respectively. Lee et al. [261] and Zhu et al. [311] proposed combining
+16
+
+
+Running Title for Header
+CNN and RNN methods to achieve CIR in pumps using high-speed images and vibration time-frequency images,
+respectively. Zhang et al. [312] developed a multi-dimensional feature fusion method based on a convolutional gated
+recurrent unit to achieve CIR in centrifugal pumps. Liu et al. [313] designed a GRU-based method using vibration data
+to a realize CIR of firefighting pumps. Zhao et al. [314] presented a VMD-dung bettle optimization-GRU-attention
+model using pressure data to achieve CIR in pumps and turbines.
+Compared to DBNs and CNNs, RNN-based models have superior capabilities in modeling temporal dependencies and
+capturing highly time-correlated signal patterns. However, their training process is often time-consuming and they are
+more susceptible to gradient vanishing and exploding issues. Moreover, their performance can degrade when data are
+insufficient or noisy.
+3.2.4
+Transformer-based Approaches
+Transformer is a deep learning architecture entirely based on the attention mechanism, which has become the in-
+frastructure for large language models [20, 315]. Unlike CNNs and RNNS, the Transformer discards recurrent and
+convolutional structures, instead of employing a fully parallelizable multi-head self-attention mechanism to model
+global dependencies, significantly improving training speed and long sequence modeling capability [316, 317]. A
+standard Transformer consists of an encoder and a decoder stack. The encoder comprises multi-head self-attention
+layers, positional encoding, feed forward network, residual connections and layer normalization, see Figure 12. The
+decoder adds masked self-attention and encoder-decoder attention mechanisms to the encoder. Given an input sequence
+X = [x1, x2, · · · , xN], linear projections are applied to obtain the Query, Key and Value matrices:
+Q = XWQ,
+K = XWK,
+V = XWV ,
+(20)
+where WQ, WK, WV are learnable weight matrices. The self-attention computation is defined as:
+Attention(Q, K, V ) = softmax
+QK⊤
+√dk
+
+V,
+(21)
+where dk is the dimension of the key vectors. The multi-head self-attention mechanism computes h parallel attention
+heads and concatenates results:
+MultiHead(Q, K, V ) = Concat(h1, . . . , hh)WO,
+(22)
+hi = Attention(QW i
+Q, KW i
+K, V W i
+V ),
+(23)
+where WO is the output projection matrix. Based on the above theories, researchers present a variety of improved
+architectures for different tasks, such as ViT [318], SwinT [319], BERT [320], Linformer [321] and CLIP [322].
+Transformer as an emerging deep learning architecture that has also has been introduced into the field of CIR. For
+example, He et al. [285] proposed a model that combines Short-time Fourier Transform, generative adversarial network
+and Swin-Transformer to achieve CIR using vibration signal spectrograms. Jiang et al. [323] presented a combination
+of continuous wavelet transform and Swin Transformer method for CIR in centrifugal pumps. Shang et al. [324]
+developed a lightweight vision transformer model combining adaptive convolution and mobile vision transformer blocks
+to achieve early-stage CIR under complex and noisy conditions. Zhang et al. [325] designed a deep learning approach
+using mel-spectrogram representations combined with self-attention mechanisms to realise CIR from hydrofoil acoustic
+signals. Yu et al. [295] proposed a hierarchical knowledge-guided acoustic CIR method based on graph convolutional
+networks and reweighted hierarchical knowledge correlation matrices using various Transformer architectures.
+Compared to CNNs, the application of Transformer is constrained by multiple factors, including the requirement
+for large-scale and high-quality labeled datasets, higher computational cost due to complex self-attention operations
+and the challenge of effectively modeling domain-specific features when applied to relatively small or noisy datasets.
+Transformer offers strong capabilities in capturing long-term dependencies and global contextual information, making
+it well suited for tasks with strong spatial and temporal correlations of signals. In addition, it has high flexibility in
+addressing multi-modal data. However, Transformer typically requires more computational resources and careful
+parameter tuning, which can make it less efficient for on-site or real-time monitoring scenarios. Furthermore, it is prone
+to overfitting and may struggle to generalize well compared to more lightweight structures in the case of insufficient
+training data.
+4
+Data-Knowledge Driven Deep Learning
+In contrast to data-driven deep learning approaches, data-knowledge driven deep learning (DKDL) methods have
+attracted growing attention in CIR because they integrate physical knowledge with the strong feature learning capability
+17
+
+
+Running Title for Header
+Input
+Embedding
+Multi-head Attention
+Add & Norm
+Feed Forward
+Add & Norm
+Positional
+Encoding
+Encoder
+Multi-head Attention
+Output
+Embedding
+Add & Norm
+Multi-head Attention
+Add & Norm
+Feed Forward
+Add & Norm
+Linear
+Softmax
+Decoder
+N×
+×N
+Inputs
+Outputs
+Output 
+Probabilities
+Sefl-Attention
+Q
+K
+V
+MatMul
+Scale
+Softmax
+MatMul
+Positional
+Encoding
+Figure 12: Schematic diagram of a Transformer.
+of deep models. By embedding domain-specific physics, governing equations or expert heuristics into the learning
+process, DKDL not only can enhance model interpretability, but also ensure the predictions comply with fundamental
+physical principle. This hybrid paradigm effectively bridges the gap between data-driven inference and physics-based
+modeling. A typical DKDL pipeline for CIR generally includes data and knowledge collection, deep feature learning
+and physical knowledge learning, as shown in Figure 13, which will be detailed in the following subsections.
+4.1
+Data and Knowledge Collection
+For DKDL framework, the data component utilises various signals acquired from different sensors described previously,
+which characterize the operating states of hydraulic machinery under various work conditions. On this basis, the model
+incorporates multiple types of physical knowledge from the hydraulic machinery domain, which are structured and
+formalized to support feature learning and recognition tasks [326]. These knowledge types include:
+• Physical equations knowledge [327]: Includes fluid mechanics governing equations (e.g. Navier-Stokes
+equations), bubble dynamics equations (e.g. Rayleigh-Plesset equation) and cavitation inception criteria (e.g.
+cavitation coefficient), which describe the fundamental principle of liquid flow and cavitation formation.
+• Domain expert knowledge [328]: Derived from the long-term practical experience and diagnostic heuristics
+of engineers (e.g. abnormal vibration patterns, acoustic characteristics, pressure variation rules, historical
+cases, fault mechanism analysis, determination rules, etc.), provides diagnostic basis and domain background
+information.
+• Physical parameters knowledge [329]: Key physical quantities obtained during the operation or experimental
+monitoring of hydraulic machinery (e.g. flow rate, rotational speed, pressure values, temperature, etc.). These
+parameters reflect the operational state and cavitation occurrence conditions of the equipment, providing highly
+relevant physical information for models.
+• Physical structure knowledge [31]: Covers the hierarchical and dependency relationships among target classes,
+the mutual exclusion or inclusion constraints between classes, the coupling and constraint relationships
+among physical variables and the structural layout and functional dependencies among hydraulic machinery
+components. This type of knowledge enables the model to incorporate multi-level correlation information
+during the learning process.
+18
+
+
+Running Title for Header
+Data Collection
+Deep Feature Learning
+Feature extraction using deep
+learning:
+The integration of the internet of things and
+cloud computing drives the proliferation:
+• Large volume
+• Low value density
+• Multi source & heterogeneous formats
+• Data stream characteristics
+• Deep belief network
+• Convolutional neural network
+• Recurrent neural network
+• Transformer
+Deep learning models
+Knowledge Collection
+Various types of knowledge
+from hydraulic machinery:
+• Physical equations knowledge
+• Domain expert knowledge
+• Physical parameters knowledge
+• Physical structure knowledge
+Equation
+Expert
+Parameter
+Structure
+Physical Knowledge Learning
+Physcial vector
+𝜃
+Physical parameters
+Physical  knowledge
+intergrated
+into
+training and inference of deep learning:
+• Physical knowledge networks
+• Physical knowledge embedded
+• Physical knowledge constraint losses
+• ...
+Figure 13: Diagnosis procedure of cavitation intensity recognition using data and knowledge driven deep learning
+methods, which consists of data acquisition, knowledge collection, deep feature learning and physical knowledge
+learning.
+These knowledge can be used to construct physical constraints, enhance feature representations or directly construct
+physical knowledge networks, which effectively guides the model to learn discriminative patterns matching practical
+operating conditions and physical principle. The DKDL framework not only retains the automatic feature learning
+advantages of data-driven methods, but also significantly improves the physical consistency and generalization capability
+of recognition results.
+4.2
+Deep Feature Learning
+Deep feature learning aims to utilize deep neural networks to automatically extract high-level feature representations
+from raw multi-source sensor data, supporting subsequent fusion with physical knowledge. The input data typically
+includes acoustic signals, vibration signals, pressure pulsation signals, current signals and cavitation flow field images
+captured by high-speed imaging, which are preprocessed and directly fed into the deep learning model to perform
+end-to-end feature extraction. The deep learning architectures employed are consistent with data-driven deep learning
+approaches.
+4.3
+Physical Knowledge Learning
+Physical knowledge learning aims to seamlessly integrate fundamental physical principle, domain experience, key
+physical parameters and structural relationships information into both the training and inference processes of deep
+models, which can enhance the physical consistency, cross-condition generalization capability and interpretability of
+CIR results. In view of current research progress, three representative physical knowledge learning approaches are
+briefly introduced in the following sections.
+4.3.1
+Physical Knowledge Network
+The physical knowledge network (PKN) is an essential component of the DKDL framework. Its core principle involves
+explicitly incorporating the physical principle and characteristics of hydraulic machinery through customized network
+architectures, enhancing the physical consistency and interpretability of CIR. Unlike generic data-driven deep learning
+architectures, the PKNs incorporate specific physical mechanisms into their hierarchical design, connection patterns
+and kernel construction, enabling a better capture of intrinsic relationships among multidimensional physical variables,
+equipment structures and signal features, as shown in Figure 14. In current research, typical PKN architectures include:
+• Hierarchical neural networks [291, 330]: Design network architectures based on hierarchical relationships
+among cavitation intensity labels or physical variables, enhancing the ability to discriminate multi-level
+cavitation states.
+19
+
+
+Running Title for Header
+• GCN-based hybrid networks [295, 331]: Leverage graph convolutional netwotk (GCN) to model the correlation
+relationships between physical variables or cavitation intensity labels and integrate them with other feature
+learning networks (e.g. CNNs, RNNs, Transformer, etc.), enabling effective guidance and constraint of deep
+features.
+• Transformation-domain neural works [332, 333]: Directly replace or modify certain components of traditional
+data-driven neural networks (e.g. activation functions, kernel function, inter-layer weights, etc.) with signal
+transformation methods (e.g. wavelet transform, Fourier transform, etc.), enabling the model to acquire
+time-frequency domain or frequency domain feature extraction capabilities at the structural level.
+Input 
+layer
+Hidden 
+layer
+Output 
+layer
+: specific physical mechanisms 
+Figure 14: Schematic diagram of a PKN with two physical mechanism hidden layers.
+Compared to data-driven deep learning approaches for CIR, the application of PKNs in this field remains in its infancy
+and the current research is relatively limited. For hierarchical neural networks, Gou et al. [291] proposed a two-stage
+sub-master transition hierarchical network for CIR using acoustic signals from valve and pipeline systems. Wen et al.
+[334] presented a hierarchical convolutional neural network method to achieve bearing fault diagnosis using vibration
+signals. Guo et al. [335] developed a hierarchical learning rate adaptive deep convolutional neural network to implement
+bearing fault diagnosis using vibration signals. For GCN-based hybrid networks, Sha et al. [295] proposed a hierarchical
+knowledge-guided acoustic CIR method based on graph convolutional networks and reweighted hierarchical knowledge
+correlation matrices. Li et al. [331] presented a graph isomorphic network with a spatio-temporal attention mechanism
+to achieve fault diagnosis of hydraulic axial piston pumps using weighted graph data constructed from univariate
+signals. Hua et al. [336] designed a graph convolutional transformer network method to perform fault diagnosis of
+slurry circulating equipment using frequency-domain graph data constructed from high-frequency vibration signals.
+For transformation-domain networks, Gao [337] presented a neural-wavelet network to achieve process diagnostics
+based on magnetic flowmeter data and power load demand prediction using electrical load signals. Won et al. [338]
+proposed a method combining wavelet coefficient variance features with neural networks to realise cavitation detection
+in pumps using pressure signals. Wang et al. [339] suggested a method combining wavelet transform, rough sets and a
+partially linearized neural network to achieve centrifugal pump system fault diagnosis. Rani et al. [340] introduced a
+probabilistic Fourier neural operator method to conduct process fault detection using multivariate historical process
+data. Tan [341] proposed a Fourier neural network and generalized single hidden layer network method to perform
+multi-fault diagnosis. Yu et al. [342] developed a fast Fourier convolutional gated current unit method to perform fault
+prediction using remaining useful life data.
+Compared to data-driven deep learning approaches, the PHN exhibits higher physical consistency and interpretability in
+CIR and demonstrate better generalization under small-sample or noisy conditions. However, the design of PKNs relies
+heavily on domain expert knowledge and involves complex construction. In addition, the training process requires
+simultaneous optimization of data features and knowledge constraints, resulting in relatively high computational costs.
+4.3.2
+Physical Knowledge Embedded
+The core concept of physical knowledge embedded (PKE) is to explicitly integrate domain-specific knowledge into
+data-driven deep learning models, enabling feature extraction and physical constraints to operate simultaneously. Unlike
+20
+
+
+Running Title for Header
+purely data-driven feature learning, this approach injects physical information directly into the structural design or
+feature stream of the model, which balances data representation capability with physical consistency and enhances
+generalization and interpretability in CIR [343], as shown in Figure 15. Given a dataset {X, K} = {(xi, ki)}N
+i=1 with
+xi represents i-th sample and ki represents the corresponding physical knowledge, the embedding process can be
+expressed as:
+Fembed = Φ(fdata(X), fknow(K)),
+(24)
+where fdata(·) is the operator for data-driven feature extraction, fknow(·) is the mapping operator for physical knowledge
+and Φ(·, ·) denotes the fusion strategy. The common forms of physical knowledge embedding include:
+• Feature-level fusion [344]: At the model input layer, raw sensor data and physical parameters are concatenated
+or fused, and uniformly encoded into the network so that both data features and physical information are
+provided from the outset.
+• Intermediate embedding [345]: Domain specific prior knowledge calculated from physical principle are
+introduced into intermediate layers as additional channels, allowing alongside data-driven features toward
+subsequent layers.
+• Knowledge-guided attention [346]: Physical knowledge is generated as attention weights or masked areas
+to guide the model to focus on physically significant regions or variables during feature learning, enhancing
+discriminative and physical interpretability of features.
+Input data
+Knowledge
+Physical
+vector
+Output results
+Features
+Feed forward
+: Embedded operation
+: Deep learning models
+Figure 15: Schematic diagram of a PKE.
+In contrast to data-driven deep learning approaches for CIR, the use of PKEs in this domain is still at an early
+developmental stage and the current research is relatively limited. For example, Sha et al. [295] developed target
+classes hierarchical knowledge embedding representation learning based on convolutional neural network and word
+embedding technique for CIR. Miglianti [347] proposed a method combining semi-empirical approaches and hybrid
+machine learning models to perform propeller cavitation noise prediction. Chen et al. [304] presented a hierarchical
+transformer method to achieve ship fault recognition using acoustic noise signals. Qiao et al. [348] designed a prior
+knowledge embedding contrastive attention learning network method to conduct rolling bearing fault diagnosis using
+vibration signals. Du et al. [349] suggested a knowledge-embedded deep belief network to achieve fault diagnosis of
+building chillers.
+Compared to PHNs, PKEs directly embeds domain physical knowledge into the input layer or intermediate feature
+layers, offering flexible modification and low implementation cost, which allows for rapid application to existing deep
+neural networks. However, the physical knowledge embedded by PKE primarily consists of local parameters or prior
+features, making it difficult to construct complex global physical relationships. When the knowledge is incomplete
+or biased, it is susceptible to noise and variations in distribution. Therefore, PKE is more suitable for providing
+lightweight physical information enhancement to existing models, whereas PHN is better suited for tasks requiring
+in-depth characterization of multi-level physical mechanisms.
+4.3.3
+Physical Knowledge Constraint Loss
+Physical knowledge constraint loss (PKCL) aims to explicitly incorporate physical principle, empirical rules or
+operational boundaries into the optimization objective of data-driven deep learning models [350], as shown in Figure
+16. The PKCL can guide the neural network to produce outputs consistent with know physical mechanisms and domain
+constraints by penalizing predictions violating physical feasibility, improving the reliability and interpretability of the
+deep learning model [21]. Given a dataset {X, Y, K} = {(xi, yi, ki)}N
+i=1, where xi denotes the i-th input sample, yi is
+the ground truth label and ki represents the corresponding physical knowledge. The total loss function can be expressed
+as:
+Ltotal = Ldata(fθ(X), Y) + λLphy(fθ(X), K),
+(25)
+21
+
+
+Running Title for Header
+where Ldata is the primary task data loss, Lphy is the physical knowledge constraint loss to measure the degree of
+violation of physical principle or constraints, λ is a weighting factor controlling the balance between task performance
+and physical consistency, fθ(·) denotes the deep model represented by the parameter θ. The common forms of PKCL
+include:
+• Boundary condition penalty: Restrict the output prediction values within predefined physical ranges.
+• Physical principle penalty: Measure the deviation between predicted values and calculated values derived from
+physical equations or empirical models.
+• Trend consistency penalty: Enforce the output of prediction results to remain consistent with the inherent
+properties of physical processes.
+Backpropagation
+Data loss
+Physical loss
+Total loss
+Input
+Output
+Deep learning models
+Figure 16: Schematic diagram of a PKCL.
+The PKCL has attracted significant attention and been widely applied in solving ordinary differential equations and
+other physical-related modeling tasks, but its research in CIR is still in the early developmental stage. For instance,
+Wang et al. [351] proposed a physical informed neural network method to achieve fault severity identification in axial
+piston pumps using pressure signals. Keshun et al. [352] presented a dynamic physical with a data-driven quadratic
+neural network and bidirectional LSTM to conduct rolling bearing damage assessment using vibration signals. Keshun
+et al. [353] developed a sound-vibration physical-information fusion constraint-guided deep learning method to perform
+bearing fault diagnosis using acoustic and vibration signals. Pan et al. [354] designed a physics-guided neural network
+to deliver condenser fault diagnosis using key physical indicator signals. Li et al. [355] proposed a physical-guided
+multi-teacher knowledge distillation network method to achieve external gear pump fault diagnosis using multimodal
+signals.
+Compared with PKE, the PKCL introduces physical constraints into the loss function, synchronizing the data-driven
+learning process with physical consistency optimization. Its advantages lie in the ability to continuously impose the
+supervision from physical principle on the model outputs during the training phase, which enhances the interpretability
+and physical credibility without modifying the network structure. However, PKCL is sensitive to the design of constraint
+terms and weight selection, which may lead to difficulties in model optimization when the physical knowledge is
+incomplete or noisy.
+5
+Discussions
+With the continuous development of cavitation intensity recognition (CIR) technology, research has evolved from
+traditional machine learning reliant on manually extracted features to deep learning with end-to-end feature extraction,
+which develops physics-guided diagnostic models incorporating physical knowledge. At the end of this review, we
+attempt to describe a roadmap and discuss challenges of CIR based on a systematic analysis of relevant literature from
+2004 to 2025, as shown in Figure 17, aiming to inspire readers to understand potential research trends and directions in
+this field over the next five to ten years.
+5.1
+High-Quality Multi-Source Data
+High-quality multi-source data is the foundation for reliable cavitation intensity recognition (CIR) and related industrial
+equipment fault diagnosis. Current datasets generally suffer from insufficient sample size, imbalanced fault categories,
+disproportionate distribution between normal and fault conditions and incomplete operational condition coverage. These
+issues not only hinder comprehensive feature learning during the training phase, but also reduce diagnostic performance
+and stability in practical applications. In addition, multi-source data (e.g. acoustic signals, vibration signals, pressure
+22
+
+
+Running Title for Header
+Insufficient sample
+High-quality multi-source big data for deep learning-based cavitation intensity diagnosis models
+Imbalanced fault catgories
+Incomplete operation states
+Issues
+Solutions
+Targets
+High-precision sensor
+Real-time monitoring
+Remote acquisition
+Domain adaption
+Transfer learning
+Sufficient data sample
+Data quality improvement
+Standardised multi-source database
+Incomplete physical knowledge
+Physical informed diagnosis model enhances the physical consistency and interpretability
+Complex dynamic processes
+Balance of physical and data loss 
+Issues
+Solutions
+Targets
+Physical information neural network
+Cross-condition universality
+Diagnostic result interpretability
+Physical consistency
+Physical knowledge libraries
+Symbolic learning
+Physical loss
+Excessive model parameters
+Lightweight diagnosis model offers real-time monitoring with robust performance on edge devices
+Online respone latency
+Real-time deployment difficulties 
+Issues
+Solutions
+Targets
+Compact network model
+Low latency and power consumption
+Real-time diagnosis 
+Model pruning
+Parameter quantization
+Low-rank decomposition
+Knowledge distillation
+Embedded chip
+Unidentified fault inference mechanism
+Interpretability of diagnosis model enhance the model of turstworthiness and transparency
+Unclear fault physical correlation analysis
+Issues
+Solutions
+Targets
+Enhanced explainability
+Explicit fault inference mechanism
+Reliable deep learning model
+Visualisation of attention distribution
+Causal learning
+Cross-modal information fusion
+Knowledge embedding
+Multi-source data stream management
+Industrial agent enhances knowledge comprehension, cross-task reasoning and adaptive CIR
+Data security and privacy
+Issues
+Solutions
+Targets
+Enhanced explainability
+Human-machine interaction
+Large model technology
+Cross-system interoperability
+Migratable and adaptive architecture
+Prompt engineering learning
+Intelligent manufacturing system
+2025
+2030
+2035
+Figure 17: A roadmap outlining the application of machine learning to intelligent cavitation intensity recognition.
+23
+
+
+Running Title for Header
+pulsations, current signals, high-speed imaging, etc.) are seldom acquired synchronously, which can lead to temporal
+misalignment and feature distortion during multimodal fusion.
+In the future, the focus should be on establishing standardized multi-modal data collection protocols to ensure
+comparability and interoperability of data collected from different experimental platforms. At the same time, low-cost
+and high-accuracy sensing technologies should be explored to enhance the feasibility of data acquisition and large-
+scale cavitation status database should be established using real-time monitoring and remote acquisition technologies.
+Meanwhile, the integration of data augmentation techniques (e.g. signal simulation, noise modeling, signal mixing,
+etc.), domain adaptation and transfer learning can be employed to migrate knowledge from similar operating conditions
+or related equipment to expand the training sample space. In addition, hybrid modeling frameworks integrating
+simulated and experimental data can also effectively alleviate sample insufficiency and enhance the model robustness
+and cross-scenario adaptability.
+5.2
+Physics Informed Diagnostic Model
+Physics informed diagnostic models can enhance the physical consistency and interpretability of fault diagnostic results
+by fusing data-driven learning with domain physical knowledge, which can strengthen the credibility of decision
+credibility and engineering applicability. Although physical information neural networks (PINNs), physical knowledge
+embedding (PKE) and physical knowledge constraint loss (PKCL) have achieved success in science and engineering
+fields (e.g. fluid mechanics, structural health monitoring, energy systems, etc.), they are still in infancy in cavitation
+intensity recognition. In addition, the existing studies mainly focus on embedding individual physical laws or simplified
+models and lacks a unified deep integration framework. In practice, this class of methods mainly face challenges
+including the difficulty of translating multi-scale coupled dynamic equations of the cavitation process into directly
+usable constraints, the the incompleteness or noise in physical knowledge of industrial systems and the difficulty of
+balancing physical constraints with the flexibility of data-driven models.
+Future research should explore automated and adaptive knowledge integration by leveraging machine-readable physical
+formula libraries, symbolic learning and graph-based knowledge representations to enable the automatic extraction and
+dynamic embedding of physical knowledge. In addition, physics-oriented interpretable tools should be developed to
+allow engineers to intuitively understand the model’s decision process.
+5.3
+Lightweight Diagnostic Model
+In industrial embedded monitoring systems, computational efficiency and hardware resource limitations create an urgent
+demand for lightweight diagnostic models, while requiring the model complexity be reduced without significantly
+compromising performance. However, many current deep learning models contain millions or even hundreds of millions
+of parameters, which not only increases storage and computational burdens but also makes real-time deployment difficult
+and limits adaptability to low-power edge devices. Furthermore, in multi-source data scenarios, models usually need to
+simultaneously process multimodal signals, resulting in traditional large-scale models are more prone to overfitting or
+response delays for on-line applications.
+Future research should focus on designing task-specific compact network architectures for multi-source inputs, incorpo-
+rating multimodal feature fusion and knowledge guidance into the architecture. In terms of compression techniques,
+model pruning, parameter quantization, low-rank decomposition and knowledge distillation can be explored. In
+particular, multi-teacher distillation strategies for handing missing modalities, which can retain critical feature extraction
+capabilities while reducing computational costs. In addition, hardware optimization algorithms should be integrated,
+such as operator acceleration for embedded chips and FPGA or ASIC deployment schemes. At the same time, explo-
+ration of neuromorphic computing and event-driven neural networks is also warranted to further lower latency and
+power consumption. Furthermore, lightweight models must also incorporate stability design in noisy environments,
+ensuring they maintain high reliability and performance in real-world industrial conditions.
+5.4
+Interpretability of Diagnostic Model
+In safety-critical domains (e.g. aerospace, marine, energy, etc.), interpretability is a core factor in establishing
+trust in intelligent diagnostic systems. However, current deep learning models lack explicit reasoning about fault
+mechanisms and physical correlation analysis, making it difficult for maintenance personnel to fully trust the diagnostic
+conclusions of models. Existing studies aimed at improving interpretability primarily include visualizing attention
+weight distributions to reveal regions of interest for the model, conducting sensitivity analysis on multimodal inputs
+to evaluate feature contributions and embedding physical knowledge to link decision processes with fault evolution
+mechanisms. Nevertheless, there are still significant technical challenges in enhancing interpretability while maintaining
+diagnostic performance under complex multi-source data and non-linear feature scenarios.
+24
+
+
+Running Title for Header
+Future research should focus on constructing diagnostic model architectures with interpretability as a core design
+principle, taking interpretability requirements into account during the network structure design stage. Causality-driven
+feature learning methods should be introduced to model the relationships between input features and fault causal
+chains, enhancing the scientific rigor and credibility of inferences. In addition, visualization and explanation tools
+based on domain expert decision logic should be developed, enabling model outputs to be presented in an intuitive
+manner. Moreover, research into explainability should incorporate cross-modal information fusion strategies, enabling
+complementary insights from different types of sensor data. This approach enhances trustworthiness and transparency
+while preserving the model’s high performance and robustness in real-world industrial applications.
+5.5
+Industrial Agents
+Industrial agents as an autonomous fault monitoring and decision control unit, which exhibit significant potential for
+intelligent cavitation intensity recognition in complex manufacturing systems. These agents integrated with industrial
+internet of things platforms, which can manage real-time multi-source data streams, perform distributed diagnostics and
+coordinate maintenance task. With the maturation of large model technology, its vertical applications have endowed
+industrial agents with enhanced knowledge comprehension and cross-task reasoning capabilities, enabling more
+precise feature extraction, complex pattern recognition and natural human-machine interaction in CIR. The industrial
+agent ensures interoperability across heterogeneous systems, safeguarding data exchange security and privacy during
+industrial data exchange. Furthermore, the transferable agent architecture adapts to diverse operational conditions.
+Future research should explore integrating large model prompt engineering with reinforcement learning, adaptive
+diagnostic strategies and cloud-edge-end collaborative frameworks, which can significantly enhance fault diagnosis
+performance interpretability and real-time performance in industrial operations.
+6
+Conclusions
+In this paper, we systematically review of the development of cavitation intensity recognition (CIR), focusing on the
+evolution from traditional machine learning methods to physical-informed deep learning frameworks. In general, the
+development of CIR can be divided into three stages. In the past, CIR was implemented through step of data collection,
+manual feature extraction and intensity recognition. In this stage, traditional machine learning models were able to
+accomplish the recognition tasks, which are heavily depended on expert domain knowledge. With the rapid progression
+deep learning in recent years, end-to-end deep learning models have been extensively applied to automatically learn
+features from multi-modal cavitation data, significantly enhancing recognition performance and robustness. However,
+data-driven learning models cannot guarantee physical consistency, rendering them unsuitable for practical engineering
+applications. To address this limitation, physical-informed diagnostic models integrate domain knowledge into the
+deep learning process, enhancing the model interpretability and generalization capabilities under complex operating
+conditions. Finally, we discuss the challenges of CIR including multi-source data standardization, model lightweighting,
+interpretability and engineering deployment. In addition, we outline a roadmap for future studies. This review aims to
+systematically summarize the development of CIR technologies, providing valuable references for intelligent cavitation
+diagnosis in industrial applications.
+Acknowledgements
+This research is supported by the the CUHK-Shenzhen University Development Fund under No. UDF01003041 and
+UDF03003041, by Shenzhen Peacock Fund under No. 2023TC0007 (Y. S, K. Z), by AI grant at FIAS through SAMSON
+AG (K. Z.), by the BMBF funded KISS consortium (05D23RI1) in the ErUM-Data action plan (K. Z.), by SAMSON
+AG (D. V., A. W.), by the Walter GreinerGesellschaft zur Förderung der physikalischen Grundla - genforschung e.V.
+through the Judah M. Eisenberg Lau-reatus Chair at Goethe Universität Frankfurt am Main (H. S.) and by the NVIDIA
+GPU grant through NVIDIA Corporation (K. Z.).
+References
+[1] Pengfei Wu, Xiuming Wang, Weijun Lin, and Lixin Bai. Acoustic characterization of cavitation intensity: A
+review. Ultrasonics Sonochemistry, 82:105878, 2022.
+[2] Ziyang Kang, Jiayu Zhou, Yandong Wang, Kai Teng, and Zhiliang Liu. Research on improving classification
+accuracy of cavitation intensity by sensor fusion. Sensor Review, 2025.
+[3] Frédéric Caupin and Eric Herbert. Cavitation in water: a review. Comptes Rendus Physique, 7(9-10):1000–1017,
+2006.
+25
+
+
+Running Title for Header
+[4] Ricardo Silva Peres, Xiaodong Jia, Jay Lee, Keyi Sun, Armando Walter Colombo, and Jose Barata. Industrial
+artificial intelligence in industry 4.0-systematic review, challenges and outlook. IEEE access, 8:220121–220139,
+2020.
+[5] Zohaib Jan, Farhad Ahamed, Wolfgang Mayer, Niki Patel, Georg Grossmann, Markus Stumptner, and Ana
+Kuusk. Artificial intelligence for industry 4.0: Systematic review of applications, challenges, and opportunities.
+Expert Systems with Applications, 216:119456, 2023.
+[6] Corinna Cortes and Vladimir Vapnik. Support-vector networks. Machine learning, 20(3):273–297, 1995.
+[7] J. Ross Quinlan. Induction of decision trees. Machine learning, 1(1):81–106, 1986.
+[8] David E Rumelhart, Geoffrey E Hinton, and Ronald J Williams. Learning representations by back-propagating
+errors. nature, 323(6088):533–536, 1986.
+[9] Keinosuke Fukunaga. Introduction to statistical pattern recognition. Elsevier, 2013.
+[10] Peter Jackson. Introduction to expert systems. 1986.
+[11] Geoffrey E Hinton, Simon Osindero, and Yee-Whye Teh. A fast learning algorithm for deep belief nets. Neural
+computation, 18(7):1527–1554, 2006.
+[12] Yann LeCun, Léon Bottou, Yoshua Bengio, and Patrick Haffner. Gradient-based learning applied to document
+recognition. Proceedings of the IEEE, 86(11):2278–2324, 2002.
+[13] Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. Deep residual learning for image recognition. In
+Proceedings of the IEEE conference on computer vision and pattern recognition, pages 770–778, 2016.
+[14] Gao Huang, Zhuang Liu, Laurens Van Der Maaten, and Kilian Q Weinberger. Densely connected convolutional
+networks. In Proceedings of the IEEE conference on computer vision and pattern recognition, pages 4700–4708,
+2017.
+[15] Andrew G Howard, Menglong Zhu, Bo Chen, Dmitry Kalenichenko, Weijun Wang, Tobias Weyand, Marco
+Andreetto, and Hartwig Adam. Mobilenets: Efficient convolutional neural networks for mobile vision applications.
+arXiv preprint arXiv:1704.04861, 2017.
+[16] Xiangyu Zhang, Xinyu Zhou, Mengxiao Lin, and Jian Sun. Shufflenet: An extremely efficient convolutional
+neural network for mobile devices. In Proceedings of the IEEE conference on computer vision and pattern
+recognition, pages 6848–6856, 2018.
+[17] Wojciech Zaremba, Ilya Sutskever, and Oriol Vinyals. Recurrent neural network regularization. arXiv preprint
+arXiv:1409.2329, 2014.
+[18] Sepp Hochreiter and Jürgen Schmidhuber. Long short-term memory. Neural computation, 9(8):1735–1780,
+1997.
+[19] Kyunghyun Cho, B van Merrienboer, Caglar Gulcehre, F Bougares, H Schwenk, and Yoshua Bengio. Learning
+phrase representations using rnn encoder-decoder for statistical machine translation. In Conference on Empirical
+Methods in Natural Language Processing (EMNLP 2014), 2014.
+[20] Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N Gomez, Łukasz Kaiser,
+and Illia Polosukhin. Attention is all you need. Advances in neural information processing systems, 30, 2017.
+[21] George Em Karniadakis, Ioannis G Kevrekidis, Lu Lu, Paris Perdikaris, Sifan Wang, and Liu Yang. Physics-
+informed machine learning. Nature Reviews Physics, 3(6):422–440, 2021.
+[22] Salvatore Cuomo, Vincenzo Schiano Di Cola, Fabio Giampaolo, Gianluigi Rozza, Maziar Raissi, and Francesco
+Piccialli. Scientific machine learning through physics–informed neural networks: Where we are and what’s next.
+Journal of Scientific Computing, 92(3):88, 2022.
+[23] Benjamin Moseley. Physics-informed machine learning: from concepts to real-world applications. PhD thesis,
+University of Oxford, 2022.
+[24] Sai Ganga and Ziya Uddin. Exploring physics-informed neural networks: From fundamentals to applications in
+complex systems. arXiv preprint arXiv:2410.00422, 2024.
+[25] Haochen Hua, Yutong Li, Tonghe Wang, Nanqing Dong, Wei Li, and Junwei Cao. Edge computing with artificial
+intelligence: A machine learning perspective. ACM Computing Surveys, 55(9):1–35, 2023.
+[26] Emiliano Sisinni, Abusayeed Saifullah, Song Han, Ulf Jennehag, and Mikael Gidlund. Industrial internet of
+things: Challenges, opportunities, and directions. IEEE transactions on industrial informatics, 14(11):4724–4734,
+2018.
+26
+
+
+Running Title for Header
+[27] Xiaohui Liu, Jiegang Mou, Xin Xu, Zhi Qiu, and Buyu Dong. A review of pump cavitation fault detection
+methods based on different signals. Processes, 11(7):2007, 2023.
+[28] Saba Adil, Hashim A Hussien, and Saba Adil Othman. Detect cavitation in centrifugal hydraulic pumps: A
+review. Iraqi Journal of Oil and Gas Research (IJOGR), 5(1):1–19, 2025.
+[29] Ismael Fernández-Osete, David Bermejo, Xavier Ayneto-Gubert, and Xavier Escaler. Review of the uses of
+acoustic emissions in monitoring cavitation erosion and crack propagation. Foundations, 4(1):114–133, 2024.
+[30] Georgios Mousmoulis, John Anagnostopoulos, and Dimitrios Papantonis. A review of experimental detection
+methods of cavitation in centrifugal pumps and inducers. International Journal of Fluid Machinery and Systems,
+12(1):71–88, 2019.
+[31] Tobias Simonsen Folden and Fynn Jerome Aschmoneit. A classification and review of cavitation models with an
+emphasis on physical aspects of cavitation. Physics of Fluids, 35(8):081301, 2023.
+[32] B. K. Sreedhar, S. K. Albert, and A. B. Pandit. Cavitation damage: Theory and measurements – a review. Wear,
+2017.
+[33] Pardeep Kumar and RP Saini. Study of cavitation in hydro turbines—a review. Renewable and Sustainable
+Energy Reviews, 14(1):374–383, 2010.
+[34] Mohammad Amin Hasanpour, Rasmus Engholm, and Xenofon Fafoutis. Pump cavitation detection with machine
+learning: A comparative study of svm and deep learning. In 2024 IEEE Annual Congress on Artificial Intelligence
+of Things (AIoT), pages 219–225. IEEE, 2024.
+[35] Nabanita Dutta, S Umashankar, VK Arun Shankar, Sanjeevikumar Padmanaban, Zbigniew Leonowicz, and
+Patrick Wheeler. Centrifugal pump cavitation detection using machine learning algorithm technique. In 2018
+IEEE International Conference on Environment and Electrical Engineering and 2018 IEEE Industrial and
+Commercial Power Systems Europe (EEEIC/I&CPS Europe), pages 1–6. IEEE, 2018.
+[36] Rad Ali Mahdavi. Performance characterisation and cavitation detection of variably angled V-shaped opening
+ball valves. PhD thesis, 2014.
+[37] A Masjedian Jazi and H Rahimzadeh. Detecting cavitation in globe valves by two methods: Characteristic
+diagrams and acoustic analysis. Applied Acoustics, 70(11-12):1440–1445, 2009.
+[38] Yumei Wen and Manus Henry. Time frequency characteristics of the vibroacoustic signal of hydrodynamic
+cavitation. J. Vib. Acoust., 124(4):469–475, 2002.
+[39] Maria Grazia De Giorgi, Antonio Ficarella, and Aime Lay-Ekuakille. Monitoring cavitation regime from pressure
+and optical sensors: Comparing methods using wavelet decomposition for signal processing. IEEE Sensors
+Journal, 15(8):4684–4691, 2015.
+[40] HA Tash, M Sadeghi, MT Shervanitabar, and MM Ettefagh. The application of laser velocity meter in detecting
+incipient cavitation and measurement its intensity, inside axial flow pumps. Journal of Applied Sciences,
+9(7):1317–1323, 2009.
+[41] NR Sakthivel, V Sugumaran, and Binoy B Nair. Automatic rule learning using roughset for fuzzy classifier in
+fault categorization of mono-block centrifugal pump. Applied Soft Computing, 12(1):196–203, 2012.
+[42] Xavier Escaler, Eduard Egusquiza, Mohamed Farhat, Francois Avellan, and Miguel Coussirat. Detection of
+cavitation in hydraulic turbines. Mechanical systems and signal processing, 20(4):983–1007, 2006.
+[43] Xavier Escaler, Eduard Egusquiza, Mohamed Farhat, and François Avellan. Cavitation erosion prediction in
+hydro turbines from onboard vibrations. In Proceedings of the 22nd IAHR Symposium on Hydraulic Machinery
+and Systems, Stockholm, Sweden, volume 1, pages 1–10. International Association For Hydraulic Research,
+2004.
+[44] Said Jamal, Jawad Lakziz, Yahya Benremdane, and Said Ouaskit. Passive sonar detection and classification
+based on demon-lofar analysis and neural network algorithms.
+[45] Michel Grenié. Acoustic detection of propeller cavitation. In International Conference on Acoustics, Speech,
+and Signal Processing, pages 2907–2910. IEEE, 1990.
+[46] Xavier Escaler, Eduard Egusquiza, Toufik Mebarki, François Avellan, and Mohamed Farhat. Field assessment of
+cavitation detection methods in hydropower plants. In Proceedings of the 21st IAHR Symposium on Hydraulic
+Machinery and Systems, Lausanne, Switzerland, volume 1, pages 483–490. International Association For
+Hydraulic Research, 2002.
+[47] Dhiraj Kumar, Aakash Dewangan, Rajiv Tiwari, and DJ Bordoloi. Identification of inlet pipe blockage level
+in centrifugal pump over a range of speeds by deep learning algorithm using multi-source data. Measurement,
+186:110146, 2021.
+27
+
+
+Running Title for Header
+[48] Yu Sha, Johannes Faber, Shuiping Gou, Bo Liu, Wei Li, Stefan Schramm, Horst Stoecker, Thomas Steckenreiter,
+Domagoj Vnucec, Nadine Wetzstein, et al. An acoustic signal cavitation detection framework based on xgboost
+with adaptive selection feature engineering. Measurement, 192:110897, 2022.
+[49] Shengzhuo Zhang, Hongguang Xu, and Songjing Li. Applicability of principle components analysis (pca) to
+evaluate the dynamic characteristics of cavitation from captured images. In 2015 International Conference on
+Fluid Power and Mechatronics (FPM), pages 307–311. IEEE, 2015.
+[50] R Mahmoodi, M Shahriari, and A Zolfaghari. Determination of loss of coolant accident (loca) in nuclear power
+plants using signal processing method. Engineering Letters, 17(4):305, 2009.
+[51] Jianjun Feng, Nannan Zhao, Guojun Zhu, Guangkuan Wu, Yunzhe Li, and Xingqi Luo. Cavitation identification
+in a hydraulic bulb turbine based on vibration and pressure fluctuation measurements. Mechanical Systems and
+Signal Processing, 208:111042, 2024.
+[52] O Kirschner, S Riedelbauch, et al. Cavitation detection in hydraulic machinery by analyzing acoustic emissions
+under strong domain shifts using neural networks. Physics of Fluids, 35(2), 2023.
+[53] Francisco Pereira, Francesco Salvatore, Fabio Di Felice, and Massimo Soave. Experimental investigation of a
+cavitating propeller in non-uniform inflow. In Proceedings of the 25th Symposium on Naval Hydrodynamics, St.
+John’s, Canada, 2004.
+[54] Chia-Ming Tsai, Chiao-Sheng Wang, Yu-Jen Chung, Yung-Da Sun, and Jau-Woei Perng. Multi-sensor fault
+diagnosis of underwater thruster propeller based on deep learning. Sensors, 21(21):7187, 2021.
+[55] Pouya Samanipour, Javad Poshtan, and Hamed Sadeghi. Cavitation detection in centrifugal pumps using pressure
+time-domain features. Turkish Journal of Electrical Engineering and Computer Sciences, 25(5):4287–4298,
+2017.
+[56] Ahmed Ramadhan Al-Obaidi. Detection of cavitation phenomenon within a centrifugal pump based on vibration
+analysis technique in both time and frequency domains. Experimental Techniques, 44(3):329–347, 2020.
+[57] Peijian Zhou, Weitao Zeng, Wenwu Zhang, Chengui Zhou, and Zhifeng Yao. Multi-cavitation states identification
+of a sewage pump using ceemdan and boa-svm. Journal of Water Process Engineering, 61:105299, 2024.
+[58] Mohammad Taghi Shervani-Tabar, Mir Mohammad Ettefagh, Saeed Lotfan, and Hamed Safarzadeh. Cavitation
+intensity monitoring in an axial flow pump based on vibration signals using multi-class support vector machine.
+Proceedings of the Institution of Mechanical Engineers, Part C: Journal of Mechanical Engineering Science,
+232(17):3013–3026, 2018.
+[59] Asish Kumar Panda, Janani Shruti Rapur, and Rajiv Tiwari. Prediction of flow blockages and impending
+cavitation in centrifugal pumps using support vector machine (svm) algorithms based on vibration measurements.
+Measurement, 130:44–56, 2018.
+[60] Yan Liu, Denghao Wu, Minghao Fei, Jiaqi Deng, Qi Li, Zhenxing Wu, Yunqing Gu, and Jiegang Mou. Cavitation
+diagnosis method of centrifugal pump based on characteristic frequency and kurtosis. AIP Advances, 14(2),
+2024.
+[61] Liang Dong, Kan Wu, Jian-cheng Zhu, Cui Dai, Li-xin Zhang, and Jin-nan Guo. Cavitation detection in
+centrifugal pump based on interior flow-borne noise using wpd-pca-rbf. Shock and Vibration, 2019(1):8768043,
+2019.
+[62] Xiaojun Li, Haitao Yang, Jie Ge, Shuai Zhu, and Zuchao Zhu. Intelligent cavitation recognition of a canned
+motor pump based on a ceemdan-kpca and pso-svm method. IEEE Sensors Journal, 24(4):5324–5334, 2024.
+[63] Ziyang Kang, Chi Feng, Zhiliang Liu, Yan Cang, and Shan Gao. Analysis of the incipient cavitation noise signal
+characteristics of hydroturbine. Applied Acoustics, 127:118–125, 2017.
+[64] Jundong Li, Kewei Cheng, Suhang Wang, Fred Morstatter, Robert P Trevino, Jiliang Tang, and Huan Liu. Feature
+selection: A data perspective. ACM computing surveys (CSUR), 50(6):1–45, 2017.
+[65] Alan Jovi´c, Karla Brki´c, and Nikola Bogunovi´c. A review of feature selection methods with applications. In 2015
+38th international convention on information and communication technology, electronics and microelectronics
+(MIPRO), pages 1200–1205. Ieee, 2015.
+[66] R Porkodi. Comparison of filter based feature selection algorithms: an overview. International journal of
+Innovative Research in Technology & Science, 2(2):108–113, 2014.
+[67] Huanjing Wang, Taghi M Khoshgoftaar, and Jason Van Hulse. A comparative study of threshold-based feature
+selection techniques. In 2010 IEEE International Conference on Granular Computing, pages 499–504. IEEE,
+2010.
+28
+
+
+Running Title for Header
+[68] Mark A Hall. Correlation-based feature selection for machine learning. PhD thesis, The University of Waikato,
+1999.
+[69] Jorge R Vergara and Pablo A Estévez. A review of feature selection methods based on mutual information.
+Neural computing and applications, 24:175–186, 2014.
+[70] Sachin P Patel and Sanjay H Upadhyay. Euclidean distance based feature ranking and subset selection for bearing
+fault diagnosis. Expert Systems with Applications, 154:113400, 2020.
+[71] Asha Gowda Karegowda, AS Manjunath, and MA Jayaram. Comparative study of attribute selection using gain
+ratio and correlation based feature selection. International Journal of Information Technology and Knowledge
+Management, 2(2):271–277, 2010.
+[72] Hanchuan Peng, Fuhui Long, and Chris Ding. Feature selection based on mutual information criteria of
+max-dependency, max-relevance, and min-redundancy. IEEE Transactions on pattern analysis and machine
+intelligence, 27(8):1226–1238, 2005.
+[73] Witold R Rudnicki, Mariusz Wrzesie´n, and Wiesław Paja. All relevant feature selection methods and applications.
+In Feature selection for data and pattern recognition, pages 11–28. Springer, 2014.
+[74] Solichin Mochammad, Young-Jin Kang, Yoojeong Noh, Sunhwa Park, and Byeongha Ahn. Stable hybrid feature
+selection method for compressor fault diagnosis. IEEE Access, 9:97415–97429, 2021.
+[75] Pablo Bermejo, Jose A Gamez, and Jose M Puerta. Incremental wrapper-based subset selection with replacement:
+An advantageous alternative to sequential forward selection. In 2009 IEEE symposium on computational
+intelligence and data mining, pages 367–374. IEEE, 2009.
+[76] Hyelynn Jeon and Sejong Oh. Hybrid-recursive feature elimination for efficient feature selection. Applied
+Sciences, 10(9):3211, 2020.
+[77] Zohre Sadeghian, Ebrahim Akbari, Hossein Nematzadeh, and Homayun Motameni. A review of feature selection
+methods based on meta-heuristic algorithms. Journal of Experimental & Theoretical Artificial Intelligence,
+37(1):1–51, 2025.
+[78] Akil Siham, Sekkate Sara, and Adib Abdellah. Feature selection based on machine learning for credit scoring:
+An evaluation of filter and embedded methods. In 2021 International conference on innovations in intelligent
+systems and applications (INISTA), pages 1–6. IEEE, 2021.
+[79] Amir Moslemi.
+A tutorial-based survey on feature selection: Recent advancements on feature selection.
+Engineering Applications of Artificial Intelligence, 126:107136, 2023.
+[80] Gopi Manikandan and S Abirami. Feature selection is important: state-of-the-art methods and application
+domains of feature selection on high-dimensional data. Applications in Ubiquitous Computing, pages 177–196,
+2021.
+[81] Mahdokht Masaeli, Jennifer G Dy, and Glenn M Fung. From transformation-based dimensionality reduction to
+feature selection. In Proceedings of the 27th international conference on machine learning (ICML-10), pages
+751–758, 2010.
+[82] V Sumithra and Subu Surendran. A review of various linear and non linear dimensionality reduction techniques.
+Int J Comput Sci Inf Technol, 6(3):2354–60, 2015.
+[83] Imola K Fodor. A survey of dimension reduction techniques. Technical report, Lawrence Livermore National
+Lab.(LLNL), Livermore, CA (United States), 2002.
+[84] Yuejiang Han, Jiamin Zou, Alexandre Presas, Yin Luo, and Jianping Yuan. Off-design operation and cavitation
+detection in centrifugal pumps using vibration and motor stator current analyses. Sensors, 24(11):3410, 2024.
+[85] Maria Grazia De Giorgi, Antonio Ficarella, and Aime Lay-Ekuakille. Cavitation regime detection by ls-svm and
+ann with wavelet decomposition based on pressure sensor signals. IEEE Sensors Journal, 15(10):5701–5708,
+2015.
+[86] Sungmoon Jeong, Sang-Woo Ban, Sangmoon Choi, Donghun Lee, and Minho Lee. Surface ship-wake detection
+using active sonar and one-class support vector machine. IEEE Journal of Oceanic Engineering, 37(3):456–466,
+2012.
+[87] Yanran Chen, Shugen Ma, Longchuan Li, Zhiqing Li, and Yulin Yang. Csa-svm method for internal cavitation
+defects detection and its application of district heating pipes. In 2022 IEEE/RSJ International Conference on
+Intelligent Robots and Systems (IROS), pages 6242–6249. IEEE, 2022.
+[88] Xiaoke He, Yu Song, Kaipeng Wu, Asad Ali, Chunhao Shen, and Qiaorui Si. Intelligent identification of
+cavitation state of centrifugal pump based on support vector machine. Energies, 15(23):8907, 2022.
+29
+
+
+Running Title for Header
+[89] Nabanita Dutta, Umashankar Subramaniam, P Sanjeevikumar, Sai Charan Bharadwaj, Zbigniew Leonowicz, and
+Jens Bo Holm-Nielsen. Comparative study of cavitation problem detection in pumping system using svm and
+k-nearest neighbour method. In 2020 IEEE International Conference on Environment and Electrical Engineering
+and 2020 IEEE Industrial and Commercial Power Systems Europe (EEEIC/I&CPS Europe), pages 1–6. IEEE,
+2020.
+[90] Janani Shruti Rapur and Rajiv Tiwari. Multifault diagnosis of combined hydraulic and mechanical centrifugal
+pump faults using continuous wavelet transform and support vector machines. Journal of Dynamic Systems,
+Measurement, and Control, 141(11):111013, 2019.
+[91] Paolo Casoli, Mirko Pastori, and Fabio Scolari. A multi-fault diagnostic method based on acceleration signal for
+a hydraulic axial piston pump. In AIP Conference Proceedings, volume 2191, page 020037. AIP Publishing
+LLC, 2019.
+[92] Guangqi Qiu, Si Huang, and Yingkui Gu. Experimental investigation and multi-conditions identification method
+of centrifugal pump using fisher discriminant ratio and support vector machine. Advances in Mechanical
+Engineering, 11(9):1687814019878041, 2019.
+[93] Ming Tingfeng and Su Yongsheng. Ls-svc based recognition method of the centrifugal pump cavitation intensity.
+In 2011 International Conference on Electric Information and Control Engineering, pages 3335–3338. IEEE,
+2011.
+[94] Calvin Stephen, Biswajit Basu, and Aonghus McNabola. Evaluation of supervised machine learning techniques
+for cavitation detection and diagnosis in a pump-as-turbine system. Expert Systems with Applications, page
+129167, 2025.
+[95] Siyuan Hu, Liang Dong, Honggang Li, Runan Hua, Houlin Liu, Cui Dai, et al. Cavitation identification based on
+feature extraction. Nuclear Engineering and Technology, page 103745, 2025.
+[96] Nagendra Singh Ranawat, Ankur Miglani, and Pavan Kumar Kankar. Blockage detection in centrifugal pump
+using semi-supervised machine learning based on svm and lstm.
+Measurement Science and Technology,
+36(3):036215, 2025.
+[97] Andre Luis Dias, Marcio Rafael Buzoli, Vinicius Rodrigues da Silva, Jean Carlos Rodrigues da Silva,
+Afonso Celso Turcato, and Guilherme Serpa Sestito. Edge-based intelligent fault diagnosis for centrifugal
+pumps in microbreweries. Flow Measurement and Instrumentation, 101:102730, 2025.
+[98] Zahra Araste, Ali Sadighi, and Mohammad Jamimoghaddam. Fault diagnosis of a centrifugal pump using
+electrical signature analysis and support vector machine. Journal of Vibration Engineering & Technologies,
+11(5):2057–2067, 2023.
+[99] Xueying Huang, Hong Xia, Yongkuo Liu, Wenzhe Yin, and Wenhao Ran. Condition monitoring of centrifugal
+pump in nuclear power plant based on improved vmd and svm. In The Proceedings of the International
+Conference on Nuclear Engineering (ICONE) 2023.30, page 1747. The Japan Society of Mechanical Engineers,
+2023.
+[100] Xingxin Xiao, Hui Chen, Liang Dong, Houlin Liu, and Chuanhan Fan. Research on common fault diagnosis and
+classification method of centrifugal pump based on relieff and svm. International Journal of Fluid Machinery
+and Systems, 15(2):287–296, 2022.
+[101] Soud Al-Toubi, Babakalli Alkali, Amit Kumar, Sudhir CV, Maamar Al-Tobi, and Varghese Manappallil. Incipient
+fault diagnosis of centrifugal pumps using support vector machine with continuous wavelet transform. Available
+at SSRN 4615504.
+[102] Berli Kamiel, Taufiq Akbar, Sudarisman, and Krisdiyanto. Cavitation detection of centrifugal pumps using svm
+and statistical features. In Recent Advances in Mechanical Engineering: Select Proceedings of ICOME 2021,
+pages 1–9. Springer, 2022.
+[103] DJ Bordoloi and Rajiv Tiwari. Identification of suction flow blockages and casing cavitations in centrifugal
+pumps by optimal support vector machine techniques. Journal of the Brazilian Society of Mechanical Sciences
+and Engineering, 39(8):2957–2968, 2017.
+[104] Nabanita Dutta, Palanisamy Kaliannan, and Paramasivam Shanmugam. Svm algorithm for vibration fault
+diagnosis in centrifugal pump. Intelligent Automation & Soft Computing, 35(3), 2023.
+[105] Zahra Araste, Ali Sadighi, and Mohammad Jami Moghaddam. Support vector machine-based fault diagnosis of
+a centrifugal pump using electrical signature analysis. In 2020 6th Iranian Conference on Signal Processing and
+Intelligent Systems (ICSPIS), pages 1–5. IEEE, 2020.
+30
+
+
+Running Title for Header
+[106] Xu Youlin, Xiong Ling, Yao Zhigang, and Guo Jingjia. Wavelet analysis-application of pca-svm in state
+identification method of marine centrifugal pump. In 2017 13th IEEE International Conference on Electronic
+Measurement & Instruments (ICEMI), pages 560–564. IEEE, 2017.
+[107] Hongtao Xue, Zhongxing Li, Huaqing Wang, and Peng Chen. Intelligent diagnosis method for centrifugal pump
+system using vibration signal and support vector machine. Shock and Vibration, 2014(1):407570, 2014.
+[108] Lihua Wang, Xiao-qiang Wu, Chunyou Zhang, and Hongyan Shi. Hydraulic system fault diagnosis method
+based on a multi-feature fusion support vector machine. The Journal of Engineering, 2019(13):215–218, 2019.
+[109] V Muralidharan, V Sugumaran, and V Indira. Fault diagnosis of monoblock centrifugal pump using svm.
+Engineering Science and Technology, an International Journal, 17(3):152–157, 2014.
+[110] NR Sakthivel, V Sugumaran, and Binoy B Nair. Application of support vector machine (svm) and proximal
+support vector machine (psvm) for fault classification of monoblock centrifugal pump. International Journal of
+Data Analysis Techniques and Strategies, 2(1):38–61, 2010.
+[111] Seyed Mostafa Matloobi, Mohammad Riahi, and Hamed Sadeghi. Identification of cavitation phenomenon
+in centrifugal pump by artificial immune network method. Amirkabir Journal of Mechanical Engineering,
+52(3):717–730, 2018.
+[112] Maamar Al Tobi, Geraint Bevan, Peter Wallace, David Harrison, and Kenneth Eloghene Okedu. Faults diagnosis
+of a centrifugal pump using multilayer perceptron genetic algorithm back propagation and support vector machine
+with discrete wavelet transform-based feature extraction. Computational Intelligence, 37(1):21–46, 2021.
+[113] Maamar Ali Saud ALTobi, Geraint Bevan, Peter Wallace, David Harrison, and KP Ramachandran. Fault diagnosis
+of a centrifugal pump using mlp-gabp and svm with cwt. Engineering Science and Technology, an International
+Journal, 22(3):854–861, 2019.
+[114] Pier Francesco Orrù, Andrea Zoccheddu, Lorenzo Sassu, Carmine Mattia, Riccardo Cozza, and Simone Arena.
+Machine learning approach using mlp and svm algorithms for the fault prediction of a centrifugal pump in the oil
+and gas industry. Sustainability, 12(11):4776, 2020.
+[115] Mengbin Song, Yifan Zhi, Mengdong An, Wei Xu, Guohui Li, and Xiuli Wang. Centrifugal pump cavitation
+fault diagnosis based on feature-level multi-source information fusion. Processes, 12(1):196, 2024.
+[116] Seth W Gregg, John PH Steele, and Douglas L Van Bossuyt. A method for automated cavitation detection with
+adaptive thresholds. 2018.
+[117] Pedro H Feijo De Sousa, M Navar de Medeiros, Jefferson S Almeida, Pedro P Reboucas Filho, Victor Hugo C
+de Albuquerque, et al. Intelligent incipient fault detection in wind turbines based on industrial iot environment.
+Journal of Artificial Intelligence and Systems, 1(1):1–19, 2019.
+[118] Jian Liu, Yang He, Zhong Liu, and Ying Xiong. Underwater target recognition based on line spectrum and
+support vector machine. In 2014 International Conference on Mechatronics, Control and Electronic Engineering
+(MCE-14), pages 79–84. Atlantis Press, 2014.
+[119] Ziyang Kang, Zhiliang Liu, Xinnian Guo, and Liu Liu. Cavitation noise signal classification of hydroturbine
+based on improved multi-scale symbol dynamic entropy. Int. J. Acoust. Vib., 27(4):326–333, 2022.
+[120] Saghi Bagherzadeh, Mahnaz Ghaeini-Hessaroeyeh, and Ehsan Fadaei-Kermani. Prediction of cavitation damage
+using svm model based on air–water two-phase flow over dam spillway. Applied Water Science, 15(4):70, 2025.
+[121] Teng Liu, Weibin You, Sivakumar Manickam, Wenlong Wang, Benlong Wang, and Xun Sun. Machine learning-
+based cavitation stage identification in an axisymmetric venturi under bubbly shock dominance. Physics of
+Fluids, 37(6), 2025.
+[122] Zhou Hong, Dan Zhao, Liqiang Dong, Shaogang Liu, Feng Qiu, and Yanji Jin. Improving pipeline leak detection
+accuracy by constructing a multistate leakage sounds training set. Journal of Pipeline Systems Engineering and
+Practice, 16(4):04025056, 2025.
+[123] Andre Luis Dias, Afonso Celso Turcato, and Guilherme Serpa Sestito. A soft sensor edge-based approach to
+fault diagnosis for piping systems. Flow Measurement and Instrumentation, 97:102618, 2024.
+[124] Ioli Gypa, Marcus Jansson, Krister Wolff, and Rickard Bensow. Propeller optimization by interactive genetic
+algorithms and machine learning. Ship Technology Research, 70(1):56–71, 2023.
+[125] Leo Breiman. Random forests. Machine learning, 45(1):5–32, 2001.
+[126] Jerome H Friedman. Greedy function approximation: a gradient boosting machine. Annals of statistics, pages
+1189–1232, 2001.
+31
+
+
+Running Title for Header
+[127] Tianqi Chen and Carlos Guestrin. Xgboost: A scalable tree boosting system. In Proceedings of the 22nd acm
+sigkdd international conference on knowledge discovery and data mining, pages 785–794, 2016.
+[128] Guolin Ke, Qi Meng, Thomas Finley, Taifeng Wang, Wei Chen, Weidong Ma, Qiwei Ye, and Tie-Yan Liu.
+Lightgbm: A highly efficient gradient boosting decision tree. Advances in neural information processing systems,
+30, 2017.
+[129] Pierre Geurts, Damien Ernst, and Louis Wehenkel. Extremely randomized trees. Machine learning, 63(1):3–42,
+2006.
+[130] Kyuchang Chang and Seung Hwan Park. Random forest-based multi-faults classification modeling and analysis
+for intelligent centrifugal pump system. Journal of Mechanical Science and Technology, 38(1):11–20, 2024.
+[131] HosseinAli Kamali and Mohammad-Reza Erfanian. Characterization of ventilated supercavitation regimes using
+bayesian optimized random forest models. Physics of Fluids, 37(1), 2025.
+[132] Fangfang Zhang, Ran Tao, Di Zhu, Yanzhao Wu, Faye Jin, and Ruofu Xiao. Anti-cavitation leading-edge profile
+design of centrifugal pump impeller blade based on genetic algorithm and decision tree. Journal of the Brazilian
+Society of Mechanical Sciences and Engineering, 44(7):279, 2022.
+[133] Trinidad Gatica, Reza Haqshenas, et al. Classifying acoustic cavitation with machine learning trained on multiple
+physical models. Physics of Fluids, 37(3), 2025.
+[134] Nuri Orhan, Mehmet Kurt, Hasan Kırılmaz, and Murat Ertu˘grul. Machine learning-based prediction of npsh,
+noise, and vibration levels in radial pumps under cavitation conditions. Tekirda˘g Ziraat Fakültesi Dergisi,
+21(2):533–546, 2024.
+[135] Marios Karagiovanidis, Xanthoula Eirini Pantazi, Dimitrios Papamichail, and Vassilios Fragos. Early detection
+of cavitation in centrifugal pumps using low-cost vibration and sound sensors. Agriculture, 13(8):1544, 2023.
+[136] NR Sakthivel, V Sugumaran, and SJESwA Babudevasenapati. Vibration based fault diagnosis of monoblock
+centrifugal pump using decision tree. Expert Systems with Applications, 37(6):4040–4049, 2010.
+[137] V Muralidharan and V Sugumaran. Feature extraction using wavelets and classification through decision tree
+algorithm for fault diagnosis of mono-block centrifugal pump. Measurement, 46(1):353–359, 2013.
+[138] Saeid Farokhzad, Hojjat Ahmadi, and Ali Jafary. Fault classification of centrifugal water pump based on decision
+tree and regression model. J. Sci. today’s world, 2(2):170–176, 2013.
+[139] NR Sakthivel, V Indira, Binoy B Nair, and V Sugumaran. Use of histogram features for decision tree-based
+fault diagnosis of monoblock centrifugal pump. International Journal of Granular Computing, Rough Sets and
+Intelligent Systems, 2(1):23–36, 2011.
+[140] Christopher Stephen, Vivek Guguloth, Kumaraswamy Sivasailam, Yandong Gu, Richa Parmar, and Chandan
+Banerjee. Prediction of cavitation using machine learning techniques on centrifugal pump. In Journal of Physics:
+Conference Series, volume 2854, page 012014. IOP Publishing, 2024.
+[141] S Manikandan and K Duraivelu. Vibration based predictive fault analysis of bearing seal failure and cavitation on
+industrial monoblock centrifugal pump using deep learning algorithm. Jurnal Teknologi (Sciences & Engineering),
+85(5):151–162, 2023.
+[142] Ziyang Kang, Chi Feng, Xiaoqing Wan, Zhiliang Liu, and Liwei Chen. Stacked sparse autoencoder in cavitation
+noise signal data classification of hydro turbine based on power spectrum. Journal of Low Frequency Noise,
+Vibration and Active Control, 39(2):233–245, 2020.
+[143] P Gruber, R Agner, and S Deniz. Detection of cavitating states (swirls) in a francis test pump-turbine using
+ultrasonic and transient pressure measurements. Proceedings of the 2018 12th International Group for Hydraulic
+Efficiency Measurements (IGHEM), Beijing, China, pages 10–13, 2018.
+[144] P Gruber, P Odermatt, M Etterlin, Th Lerch, M Frei, and M Farhat. The detection of cavitation in hydraulic
+machines by use of ultrasonic signal analysis. In IOP Conference Series: Earth and Environmental Science,
+volume 22, page 052005. IOP Publishing, 2014.
+[145] Ziyang Kang and Zhiliang Liu. Analysis of optimal parameters for discriminating cavitation types by ssae-rf. In
+Journal of Physics: Conference Series, volume 2242, page 012025. IOP Publishing, 2022.
+[146] Ido Amihai, Ralf Gitzel, Arzam Muzaffar Kotriwala, Diego Pareschi, Subanataranjan Subbiah, and Guruprasad
+Sosale. An industrial case study using vibration data and machine learning to predict asset health. In 2018 IEEE
+20th Conference on Business Informatics (CBI), volume 1, pages 178–185. IEEE, 2018.
+[147] Juhamatti Saari, Jan Lundberg, Johan Odelius, and Matti Rantatalo. Selection of features for fault diagnosis on
+rotating machines using random forest and wavelet analysis. Insight-Non-Destructive Testing and Condition
+Monitoring, 60(8):434–442, 2018.
+32
+
+
+Running Title for Header
+[148] Weinan Xu, Shidong Fan, Chunping Wang, Jie Wu, Yunan Yao, and JunChen Wu. Leakage identification in
+water pipes using explainable ensemble tree model of vibration signals. Measurement, 194:110996, 2022.
+[149] Yongxin Shen and Weiping Cheng. A tree-based machine learning method for pipeline leakage detection. Water,
+14(18):2833, 2022.
+[150] Marisa Ehemann, Frank Tränkle, and Nicolaj C Stache. Ai-based cavitation detection in process valves. In 2023
+IEEE 21st International Conference on Industrial Informatics (INDIN), pages 1–6. IEEE, 2023.
+[151] Bulat Yakupov and Ivan Smirnov. Application of machine learning to predict the acoustic cavitation threshold of
+fluids. Fluids, 8(6):168, 2023.
+[152] Mark JL Orr et al. Introduction to radial basis function networks, 1996.
+[153] Teuvo Kohonen. Self-organizing maps, volume 30. Springer Science & Business Media, 2012.
+[154] John J Hopfield. Neural networks and physical systems with emergent collective computational abilities.
+Proceedings of the national academy of sciences, 79(8):2554–2558, 1982.
+[155] Simon Haykin. Neural networks and learning machines, 3/E. Pearson Education India, 2009.
+[156] Eugene Lavretsky and Bala Chidambaram. Health monitoring of an electro-hydraulic system using ordered
+neural networks. In Proceedings of the 2002 International Joint Conference on Neural Networks. IJCNN’02
+(Cat. No. 02CH37290), volume 3, pages 2893–2898. IEEE, 2002.
+[157] Flavia Cristina Bernardini, Ana Cristina Bicharra Garcia, and Inhaúma Neves Ferraz. An expert system based on
+parametric net to support motor pump multi-failure diagnostic. In IFIP International Conference on Artificial
+Intelligence Applications and Innovations, pages 13–20. Springer, 2009.
+[158] Ramadevi Rathinasabapathy, Sheela Rani Balasubramaniam, Prakash Vasudevan, and Kalyanasundaram Perumal.
+Development of neural network model for classification of cavitation signals.
+[159] PV Kane and AB Andhare. Application of psychoacoustics for gear fault diagnosis using artificial neural network.
+Journal of Low Frequency Noise, Vibration and Active Control, 35(3):207–220, 2016.
+[160] Bilal Kamal Hussain. Condition-based monitoring system for diagnostics and prognostics of centrifugal pumps.
+PhD thesis, University of Missouri–Columbia, 2016.
+[161] Hassan A Babikir, Mohamed Abd Elaziz, Ammar H Elsheikh, Ezzat A Showaib, M Elhadary, Defa Wu, and
+Yinshui Liu. Noise prediction of axial piston pump based on different valve materials using a modified artificial
+neural network model. Alexandria Engineering Journal, 58(3):1077–1087, 2019.
+[162] Jessica Gissella Maradey Lázaro and Carlos Borrás Pinilla. A methodology for detection of wear in hydraulic
+axial piston pumps. International Journal on Interactive Design and Manufacturing (IJIDeM), 14(3):1103–1119,
+2020.
+[163] Eslam Sayed, Ahmed A Abdelsamee, and Nouby M Ghazaly. Classification model using neural network for
+centrifugal pump fault detection. International Journal, 13(4), 2020.
+[164] Adefemi Adeodu, Ilesanmi Daniyan, Olusegun Omitola, Chinoyelum Ejimuda, Esoso Agbor, and Oluwole
+Akinola. An adaptive industrial internet of things (iiots) based technology for prediction and control of cavitation
+in centrifugal pumps. Procedia CIRP, 91:927–934, 2020.
+[165] Seyed M Matloobi and Mohammad Riahi. Identification of cavitation in centrifugal pump by artificial immune
+network. Proceedings of the Institution of Mechanical Engineers, Part E: Journal of Process Mechanical
+Engineering, 235(6):2271–2280, 2021.
+[166] Yuan Lan, Zhijie Li, Shengzheng Liu, Jiahai Huang, Linkai Niu, Xiaoyan Xiong, Chenguang Niu, Bing Wu,
+Xu Zhou, Jinbao Yan, et al. Experimental investigation on cavitation and cavitation detection of axial piston
+pump based on mlp-mixer. Measurement, 200:111582, 2022.
+[167] Zheming Tong, Hao Liu, Xiangkun Elvis Cao, Dane Westerdahld, and Xiaofeng Jin. Cavitation diagnosis
+for water distribution pumps: An early-stage approach combing vibration signal-based neural network with
+high-speed photography. Sustainable Energy Technologies and Assessments, 55:102919, 2023.
+[168] MR Nasiri, MJ Mahjoob, and H Vahid-Alizadeh. Vibration signature analysis for detecting cavitation in
+centrifugal pumps using neural networks. In 2011 IEEE International Conference on Mechatronics, pages
+632–635. IEEE, 2011.
+[169] D Siano and MA Panza. Diagnostic method by using vibration analysis for pump fault detection. Energy
+Procedia, 148:10–17, 2018.
+33
+
+
+Running Title for Header
+[170] Saeid Farokhzad, Hojjat Ahmadi, Ali Jaefari, MRAA Abad, and Mohammad Ranjbar Kohan. Artificial neural
+network based classification of faults in centrifugal water pump. Journal of Vibroengineering, 14(4):1734–1744,
+2012.
+[171] Shuwei Zhang, Renhui Zhang, Sidai Zhang, and Junhu Yang. Effect of impeller inlet geometry on cavitation
+performance of centrifugal pumps based on radial basis function. International Journal of Rotating Machinery,
+2016(1):6048263, 2016.
+[172] Maamar Al Tobi, Geraint Bevan, Peter Wallace, David Harrison, and Kenneth Eloghene Okedu. Using mlp-gabp
+and svm with wavelet packet transform-based feature extraction for fault diagnosis of a centrifugal pump. Energy
+Science & Engineering, 10(6):1826–1839, 2022.
+[173] Rafik Zouari, Sophie Sieg-Zieba, and Menad Sidahmed. Fault detection system for centrifugal pumps using
+neural networks and neuro-fuzzy techniques. Surveillance, 5:11–13, 2004.
+[174] Yangyang Tan, Guoying Wu, Yanlin Qiu, Honggang Fan, and Jun Wan. Fault diagnosis of a mixed-flow pump
+under cavitation condition based on deep learning techniques. Frontiers in Energy Research, 10:1109214, 2023.
+[175] Yuqin Wang, Jiale Shao, Fan Yang, Qingzhuo Zhu, and Mengqiang Zuo. Optimization design of centrifugal
+pump cavitation performance based on the improved bp neural network algorithm. Measurement, 245:116553,
+2025.
+[176] Raziyeh Azizi, Behrooz Attaran, Ali Hajnayeb, Afshin Ghanbarzadeh, and Maziar Changizian. Improving
+accuracy of cavitation severity detection in centrifugal pumps using a hybrid feature selection technique.
+Measurement, 108:9–17, 2017.
+[177] Anis Arendra, Sabarudin Akhmad, Kukuh Winarso, et al. Investigating pump cavitation based on audio sound
+signature recognition using artificial neural network. In Journal of Physics: Conference Series, volume 1569,
+page 032044. IOP Publishing, 2020.
+[178] Kai Xu, Gang Wang, Luyao Zhang, Liquan Wang, Feihong Yun, Wenhao Sun, Xiangyu Wang, and Xi Chen.
+Multi-objective optimization of jet pump based on rbf neural network model. Journal of Marine Science and
+Engineering, 9(2):236, 2021.
+[179] Marko Hoˇcevar, Brane Širok, and Bogdan Blagojeviˇc. Prediction of cavitation vortex dynamics in the draft tube
+of a francis turbine using radial basis neural networks. Neural Computing & Applications, 14(3):229–234, 2005.
+[180] RA Saeed, AN Galybin, and V Popov. 3d fluid–structure modelling and vibration analysis for fault diagnosis of
+francis turbine using multiple ann and multiple anfis. Mechanical Systems and Signal Processing, 34(1-2):259–
+276, 2013.
+[181] Weiqiang Zhao, Mònica Egusquiza, Carme Valero, David Valentín, Alexandre Presas, and Eduard Egusquiza.
+On the use of artificial neural networks for condition monitoring of pump-turbines with extended operation.
+Measurement, 163:107952, 2020.
+[182] Júlio César Silva de Souza, Oswaldo Honorato Júnior, Geraldo Lúcio Tiago Filho, Otávio Augusto Salgado
+Carpinteiro, Hailton Silveira Domingues Biancardine Júnior, and Ivan Felipe Silva dos Santos. Application of
+machine learning models in predictive maintenance of francis hydraulic turbines. RBRH, 29:e48, 2024.
+[183] Maria Grazia De Giorgi, Daniela Bello, and Antonio Ficarella. A neural network approach to analyse cavitating
+flow regime in an internal orifice. In Engineering Systems Design and Analysis, volume 44854, pages 51–62.
+American Society of Mechanical Engineers, 2012.
+[184] Zhaocheng Sun, Zengliang Li, Menghao Fan, Meng Wang, and Le Zhang. Prediction and multi-objective
+optimization of tidal current turbines considering cavitation based on ga-ann methods. Energy Science &
+Engineering, 7(5):1896–1912, 2019.
+[185] Abderraouf Benabdesselam, Quang Hung Pham, Martin Gagnon, and Antoine Tahan. A multi-layer perceptron
+approach for indirect measurement of erosive cavitation in hydraulic turbines. In IET Conference Proceedings
+CP927, volume 2025, pages 29–34. IET, 2025.
+[186] Jin Yang, Yumei Wen, and Ping Li. Leak acoustic detection in water distribution pipelines. In 2008 7th World
+Congress on Intelligent Control and Automation, pages 3057–3061. IEEE, 2008.
+[187] Yanzhao Wu, Xin Guan, Ran Tao, and Ruofu Xiao. Neural network-based analysis on the unusual peak of
+cavitation performance of a mixed flow pipeline pump. Iranian Journal of Science and Technology, Transactions
+of Mechanical Engineering, 47(4):1515–1533, 2023.
+[188] Weibin You, Teng Liu, Sivakumar Manickam, Jilai Wang, Wenlong Wang, and Xun Sun. Cavitation intensity
+prediction and optimization for a venturi cavitation reactor using deep learning. Physics of Fluids, 36(11), 2024.
+34
+
+
+Running Title for Header
+[189] M Ali Al-Obaidi Salah, KH Hui, LM Hee, M Salman Leong, Ali Abdul-Hussain Mahdi, Ahmed M Abdelrhman,
+and YH Ali. Automated valve fault detection based on acoustic emission parameters and artificial neural network.
+In MATEC Web of Conferences, volume 255, page 02013. EDP Sciences, 2019.
+[190] Guiyan Gao, Zheng Zhang, Cheng Cai, Jianglong Zhang, and Baohua Nie. Cavitation damage prediction of
+stainless steels using an artificial neural network approach. Metals, 9(5):506, 2019.
+[191] CN Schizas. Artificial neural networks in estimating marine propeller cavitation. In Proceedings of the
+2002 International Joint Conference on Neural Networks. IJCNN’02 (Cat. No. 02CH37290), volume 2, pages
+1848–1852. IEEE, 2002.
+[192] Berli Paripurna Kamiel. Vibration-based multi-fault diagnosis for centrifugal pumps. Thesis presented for the
+Degree of Doctor of Philosophy of Curtin University, page 268, 2015.
+[193] E Fadaei Kermani, GA Barani, and M Ghaeini-Hessaroeyeh. Cavitation damage prediction on dam spillways
+using fuzzy-knn modeling. Journal of Applied Fluid Mechanics, 11(2):323–329, 2018.
+[194] Weitao Zeng, Peijian Zhou, Yanzhao Wu, Denghao Wu, and Maosen Xu. Multi-cavitation states diagnosis of
+the vortex pump using a combined dt-cwt-vmd and bo-lw-knn based on motor current signals. IEEE Sensors
+Journal, 2024.
+[195] Saeid Farokhzad. Vibration based fault detection of centrifugal pump by fast fourier transform and adaptive
+neuro-fuzzy inference system. Journal of mechanical engineering and technology, 1(3):82–87, 2013.
+[196] Ali Azadeh, Vahid Ebrahimipour, and P Bavar. A fuzzy inference system for pump failure diagnosis to improve
+maintenance process: The case of a petrochemical industry. Expert Systems with Applications, 37(1):627–639,
+2010.
+[197] Duy-Tang Hoang and Hee-Jun Kang. A survey on deep learning based bearing fault diagnosis. Neurocomputing,
+335:327–335, 2019.
+[198] Viktor Mayer-Schönberger and Kenneth Cukier. Big data: A revolution that will transform how we live, work,
+and think. Houghton Mifflin Harcourt, 2013.
+[199] Xinqing Wang, Jie Huang, Guoting Ren, and Dong Wang. A hydraulic fault diagnosis method based on
+sliding-window spectrum feature and deep belief network. Journal of Vibroengineering, 19(6):4272–4284, 2017.
+[200] Jie Huang, Xinqing Wang, Dong Wang, Zhiwei Wang, and Xia Hua. Analysis of weak fault in hydraulic system
+based on multi-scale permutation entropy of fault-sensitive intrinsic mode function and deep belief network.
+Entropy, 21(4):425, 2019.
+[201] Haotao Liu and Jingjing Wang. Optimization application of deep belief network in gear fault diagnosis. In
+Journal of Physics: Conference Series, volume 2437, page 012077. IOP Publishing, 2023.
+[202] Li-Ping Yan, Xue-Zhi Dong, Tao Wang, Qing Gao, Chun-Qing Tan, De-Tang Zeng, Hua-liang Zhang, and
+Hai-sheng Chen. A fault diagnosis method for gas turbines based on improved data preprocessing and an
+optimization deep belief network. Measurement Science and Technology, 31(1):015015, 2019.
+[203] Chen Wu, Hongwei Huang, Le Zhang, Jiayao Chen, Yue Tong, and Mingliang Zhou. Towards automated 3d
+evaluation of water leakage on a tunnel face via improved gan and self-attention dl model. Tunnelling and
+Underground Space Technology, 142:105432, 2023.
+[204] Zhenhua Huang, Shunzhi Yang, MengChu Zhou, Zhetao Li, Zheng Gong, and Yunwen Chen. Feature map
+distillation of thin nets for low-resolution object recognition. IEEE Transactions on Image Processing, 31:1364–
+1379, 2022.
+[205] Zhiqiang Bao, Shunzhi Yang, Zhenhua Huang, MengChu Zhou, and Yunwen Chen. A lightweight block with
+information flow enhancement for convolutional neural networks. IEEE Transactions on Circuits and Systems
+for Video Technology, 33(8):3570–3584, 2023.
+[206] Yao Lu, Wen Yang, Yunzhe Zhang, Zuohui Chen, Jinyin Chen, Qi Xuan, Zhen Wang, and Xiaoniu Yang.
+Understanding the dynamics of dnns using graph modularity. In European Conference on Computer Vision,
+pages 225–242. Springer, 2022.
+[207] Dimitri Palaz, Mathew Magimai-Doss, Ronan Collobert, et al. Analysis of cnn-based speech recognition system
+using raw speech as input. In Interspeech, pages 11–15. Dresden, Germany, 2015.
+[208] Ossama Abdel-Hamid, Abdel-rahman Mohamed, Hui Jiang, Li Deng, Gerald Penn, and Dong Yu. Convolutional
+neural networks for speech recognition. IEEE/ACM Transactions on audio, speech, and language processing,
+22(10):1533–1545, 2014.
+[209] Ossama Abdel-Hamid, Li Deng, and Dong Yu. Exploring convolutional neural network structures and optimiza-
+tion techniques for speech recognition. In Interspeech, volume 2013, pages 1173–5, 2013.
+35
+
+
+Running Title for Header
+[210] Zixu Li, Zhiwei Chen, Haokun Wen, Zhiheng Fu, Yupeng Hu, and Weili Guan. Encoder: Entity mining and
+modification relation binding for composed image retrieval. In Proceedings of the AAAI Conference on Artificial
+Intelligence, volume 39, pages 5101–5109, 2025.
+[211] PM Lavanya and E Sasikala. Deep learning techniques on text classification using natural language processing
+(nlp) in social healthcare network: A comprehensive survey. In 2021 3rd international conference on signal
+processing and communication (ICPSC), pages 603–609. IEEE, 2021.
+[212] Qinlei Huang, Zhiwei Chen, Zixu Li, Chunxiao Wang, Xuemeng Song, Yupeng Hu, and Liqiang Nie. Median:
+Adaptive intermediate-grained aggregation network for composed image retrieval. In ICASSP 2025-2025 IEEE
+International Conference on Acoustics, Speech and Signal Processing (ICASSP), pages 1–5. IEEE, 2025.
+[213] Zhiheng Fu, Zixu Li, Zhiwei Chen, Chunxiao Wang, Xuemeng Song, Yupeng Hu, and Liqiang Nie. Pair:
+Complementarity-guided disentanglement for composed image retrieval. In ICASSP 2025-2025 IEEE Interna-
+tional Conference on Acoustics, Speech and Signal Processing (ICASSP), pages 1–5. IEEE, 2025.
+[214] Yu Qian, Xunhao Li, Jian Zhang, Xiaolin Meng, Yongfu Li, Heng Ding, and Maoze Wang. A diffusion-tgan
+framework for spatio-temporal speed imputation and trajectory reconstruction. IEEE Transactions on Intelligent
+Transportation Systems, 2025.
+[215] Wei Li, Megha Chakraborty, Yu Sha, Kai Zhou, Johannes Faber, Georg Rümpker, Horst Stöcker, and Nishtha
+Srivastava. A study on small magnitude seismic phase identification using 1d deep residual neural network.
+Artificial Intelligence in Geosciences, 3:115–122, 2022.
+[216] Changzhe Jiao, Aoyu Yang, Hantao Zhao, Ruhan Yi, Shuiping Gou, Yu Sha, Wanshun Wen, Licheng Jiao,
+and Marjorie Skubic. Self-supervised, non-contact heartbeat detection based on ballistocardiograms utilizing
+physiological information guidance. IEEE Journal of Biomedical and Health Informatics, 2024.
+[217] Chen Wu, Hongwei Huang, Jiayao Chen, Mingliang Zhou, and Shiju Han. A novel tree-augmented bayesian
+network for predicting rock weathering degree using incomplete dataset. International Journal of Rock Mechanics
+and Mining Sciences, 183:105933, 2024.
+[218] Shuiping Gou, Jiahui Fu, Yu Sha, Zhen Cao, Zhang Guo, Jason K Eshraghian, Ruimin Li, and Licheng Jiao.
+Dynamic spatio-temporal pruning for efficient spiking neural networks. Frontiers in Neuroscience, 19:1545583,
+2025.
+[219] Ye Yuan, Yu Sha, Feixiang Sun, Haofan Lu, Shuiping Gou, and Jie Luo. Prioritization hindsight experience
+based on spatial position attention for robots. Machine Intelligence Research, 22(1):160–175, 2025.
+[220] Long-Gang Pang, Kai Zhou, Nan Su, Hannah Petersen, Horst Stöcker, and Xin-Nian Wang. An equation-of-
+state-meter of quantum chromodynamics transition from deep learning. Nature communications, 9(1):210,
+2018.
+[221] Yao Lu, Yutao Zhu, Yuqi Li, Dongwei Xu, Yun Lin, Qi Xuan, and Xiaoniu Yang. A generic layer pruning method
+for signal modulation recognition deep learning models. IEEE Transactions on Cognitive Communications and
+Networking, 2024.
+[222] Mingjun Xiang, Lingxiao Wang, Yu Sha, Hui Yuan, Kai Zhou, and Hartmut G Roskos. Phase retrieval for
+terahertz holography with physics-informed deep learning. In Digital Holography and Three-Dimensional
+Imaging, pages Tu4A–4. Optica Publishing Group, 2022.
+[223] Alex Krizhevsky, Ilya Sutskever, and Geoffrey E Hinton. Imagenet classification with deep convolutional neural
+networks. Advances in neural information processing systems, 25, 2012.
+[224] K Simonyan and A Zisserman. Very deep convolutional networks for large-scale image recognition. In 3rd
+International Conference on Learning Representations (ICLR 2015). Computational and Biological Learning
+Society, 2015.
+[225] Qun Chao, Jianfeng Tao, Xiaoliang Wei, Yuanhang Wang, Linghui Meng, and Chengliang Liu. Cavitation
+intensity recognition for high-speed axial piston pumps using 1-d convolutional neural networks with multi-
+channel inputs of vibration signals. Alexandria Engineering Journal, 59(6):4463–4473, 2020.
+[226] Xiaopeng Liu, Bingxiang Sun, Jiuchun Jiang, Weige Zhang, Chunlu Zhao, Yuzhang Zhao, Benqiang Mao, Jian
+Li, and Zhisheng Wang. Convolution diagnosis model of centrifugal pump based on fractal dimension. In
+Journal of Physics: Conference Series, volume 2095, page 012061. IOP Publishing, 2021.
+[227] Rajiv Tiwari, DJ Bordoloi, and Aakash Dewangan. Blockage and cavitation detection in centrifugal pumps from
+dynamic pressure signal using deep learning algorithm. Measurement, 173:108676, 2021.
+[228] Lei Han, Dongsheng Ran, and Lishan Zhang. Comparative study on deep and shallow feature fusion cnn for fault
+diagnosis. In 2022 IEEE 17th Conference on Industrial Electronics and Applications (ICIEA), pages 609–613.
+IEEE, 2022.
+36
+
+
+Running Title for Header
+[229] Gaoyang Li, Jiachao He, Xuhui Ding, Yonghong Zhu, Wenkun Zhu, Caiyan Qin, Xuelan Zhang, Siwei Liu, Haiyi
+Sun, Wenjin Yu, et al. Application of deep learning to predict cavitation flow in centrifugal pump. Available at
+SSRN 4182265, 2022.
+[230] Yuejiang Han, Jiamin Zou, Bo Gong, Yin Luo, Longyan Wang, Alexandre Presas Batllo, Jianping Yuan, and
+Chao Wang. The use of model-based voltage and current analysis for torque oscillation detection and improved
+condition monitoring of centrifugal pumps. Mechanical Systems and Signal Processing, 222:111781, 2025.
+[231] Yongxing Song, Tonghe Zhang, Qiang Liu, Bingxin Ge, Jingting Liu, and Linhua Zhang. Cavitation identification
+method of centrifugal pumps based on signal demodulation and efficientnet. Arabian Journal for Science and
+Engineering, 50(12):8779–8793, 2025.
+[232] Jiaxing Lu, Yuzhuo Zhou, Yanlong Ge, Jiahong Liu, and Chuan Zhang. Research into prediction method for
+pressure pulsations in a centrifugal pump based on variational mode decomposition–particle swarm optimization
+and hybrid deep learning models. Sensors, 24(13):4196, 2024.
+[233] Yi He, Yunan Yao, and Hongsen Ou. Status recognition of marine centrifugal pumps based on a stacked sparse
+auto-encoder. Applied Sciences, 14(4):1371, 2024.
+[234] Topias Turunen, Jesse Miettinen, Aleksanteri Hämäläinen, Aku Karhinen, and Raine Viitala. Deep learning for
+centrifugal pump condition monitoring using data from variable frequency drive. In IFToMM World Congress on
+Mechanism and Machine Science, pages 905–914. Springer, 2023.
+[235] Renyuan Wang, Yuanzhi Xu, Wenkan Mu, Yucan Chen, and Zongxia Jiao. Cavitation intensity recognition for
+axial piston pump based on transient flow rate measurement and improved transfer learning method. Mechanical
+Systems and Signal Processing, 232:112667, 2025.
+[236] Chao Feng, Hualun Zhu, Jin Tao, and Mengzi Yang. Experimental study on multiple characteristics of multi-
+source ae signals during cavitation process of waterjet propulsion pump. In Journal of Physics: Conference
+Series, volume 2707, page 012118. IOP Publishing, 2024.
+[237] Iulian Vasiliev, Laurentiu Frangu, Mihai Lucian Cristea, and Mihai Cristian Costea. Pump fault classification
+based on autoencoding convolutional neural network residuum. In 2023 IEEE 28th International Conference on
+Emerging Technologies and Factory Automation (ETFA), pages 1–7. IEEE, 2023.
+[238] Honghu Pan, Xingxi He, Sai Tang, and Fanming Meng. An improved bearing fault diagnosis method using
+one-dimensional cnn and lstm. Strojniski Vestnik-Journal of Mechanical Engineering, 64(7-8):443–453, 2018.
+[239] Xianghao Zheng, Chenxin Yang, Lan Zeng, Yuanshuai He, Yulong Tian, Yuning Zhang, and Jinwei Li. Intensity
+recognition of vortex ropes in draft tube of a prototype pump turbine using an optimized cnn-bilstm framework
+with multi-head self-attention mechanism. Journal of Energy Storage, 106:114910, 2025.
+[240] Ana Cláudia Oliveira e Souza, Maurício B de Souza Jr, and Flávio Vasconcelos da Silva. Development of a
+cnn-based fault detection system for a real water injection centrifugal pump. Expert Systems with Applications,
+244:122947, 2024.
+[241] Oybek Eraliev Maripjon Ugli, Kwang-Hee Lee, and Chul-Hee Lee. Automatic optimization of one-dimensional
+cnn architecture for fault diagnosis of a hydraulic piston pump using genetic algorithm. IEEE Access, 11:68462–
+68472, 2023.
+[242] Shi Li, Huaqing Wang, Liuyang Song, Pengxin Wang, Lingli Cui, and Tianjiao Lin. An adaptive data fusion
+strategy for fault diagnosis based on the convolutional neural network. Measurement, 165:108122, 2020.
+[243] Xianghao Zheng, Hao Li, Suqi Zhang, Yuning Zhang, Jinwei Li, and Weiqiang Zhao. Hydrodynamic feature
+extraction and intelligent identification of flow regimes in vaneless space of a pump turbine using improved
+empirical wavelet transform and bayesian optimized convolutional neural network. Energy, 282:128705, 2023.
+[244] Pengfei Guo, Jin Peng, Wanli Zhao, Xinyu Diao, and Yingqing Guo. Fault diagnosis for hydraulic loading
+system of altitude simulation test facility based on multichannel 1d-cnn. In 2022 13th International Conference
+on Mechanical and Aerospace Engineering (ICMAE), pages 490–495. IEEE, 2022.
+[245] Anil Kumar, CP Gandhi, Yuqing Zhou, Rajesh Kumar, and Jiawei Xiang. Improved deep convolution neural
+network (cnn) for the identification of defects in the centrifugal pump using acoustic images. Applied Acoustics,
+167:107399, 2020.
+[246] Qun Chao, Jianfeng Tao, Xiaoliang Wei, and Chengliang Liu. Identification of cavitation intensity for high-speed
+aviation hydraulic pumps using 2d convolutional neural networks with an input of rgb-based vibration data.
+Measurement Science and Technology, 31(10):105102, 2020.
+[247] Xiaoliang Wei, Qun Chao, Jianfeng Tao, Chengliang Liu, and Lixiao Wang. Cavitation fault diagnosis of
+high-speed axial piston pump based on spectrum analysis and convolutional neural network. Chinese Hydraulics
+& Pneumatics, 45(7):7–13, 2021.
+37
+
+
+Running Title for Header
+[248] Yong Zhu, Guangpeng Li, Rui Wang, Shengnan Tang, Hong Su, and Kai Cao. Intelligent fault diagnosis of
+hydraulic piston pump based on wavelet analysis and improved alexnet. Sensors, 21(2):549, 2021.
+[249] Ali Hajnayeb. Cavitation analysis in centrifugal pumps based on vibration bispectrum and transfer learning.
+Shock and Vibration, 2021(1):6988949, 2021.
+[250] Qun Chao, Xiaoliang Wei, Junbo Lei, Jianfeng Tao, and Chengliang Liu. Improving accuracy of cavitation
+severity recognition in axial piston pumps by denoising time–frequency images. Measurement Science and
+Technology, 33(5):055116, 2022.
+[251] Ying-Yuan Liu, Di Liu, Zhenjun Zhang, and Kang An. Intelligent identification method of flow state in nuclear
+main pump based on deep learning method. In Chinese Intelligent Automation Conference, pages 691–699.
+Springer, 2023.
+[252] Prasshanth Chennai Viswanathan, Sridharan Naveen Venkatesh, Seshathiri Dhanasekaran, Tapan Kumar Ma-
+hanta, Vaithiyanathan Sugumaran, Natrayan Lakshmaiya, Prabhu Paramasivam, and Sakthivel Nanjagounden-
+palayam Ramasamy. Deep learning for enhanced fault diagnosis of monoblock centrifugal pumps: Spectrogram-
+based analysis. Machines, 11(9):874, 2023.
+[253] Shengnan Tang, Boo Cheong Khoo, Yong Zhu, Kian Meng Lim, and Shouqi Yuan. A light deep adaptive
+framework toward fault diagnosis of a hydraulic piston pump. Applied Acoustics, 217:109807, 2024.
+[254] Yong Zhu, Tao Zhou, Shengnan Tang, and Shouqi Yuan. A data-driven diagnosis scheme based on deep learning
+toward fault identification of the hydraulic piston pump. Journal of Marine Science and Engineering, 11(7):1273,
+2023.
+[255] Niamat Ullah, Zahoor Ahmad, Muhammad Farooq Siddique, Kichang Im, Dong-Koo Shon, Tae-Hyun Yoon, Dae-
+Seung Yoo, and Jong-Myon Kim. An intelligent framework for fault diagnosis of centrifugal pump leveraging
+wavelet coherence analysis and deep learning. Sensors, 23(21):8850, 2023.
+[256] Shengnan Tang, Yong Zhu, and Shouqi Yuan. An adaptive deep learning model towards fault diagnosis of
+hydraulic piston pump using pressure signal. Engineering Failure Analysis, 138:106300, 2022.
+[257] CV Prasshanth, S Naveen Venkatesh, Tapan K Mahanta, NR Sakthivel, and V Sugumaran. Deep learning for
+fault diagnosis of monoblock centrifugal pumps: A hilbert–huang transform approach. International Journal of
+System Assurance Engineering and Management, pages 1–14, 2024.
+[258] Chennai Viswanathan Prasshanth, Sridharan Naveen Venkatesh, Tapan Kumar Mahanta, Nanjagounden-
+palayam Ramasamy Sakthivel, and Vaithiyanathan Sugumaran. Fault diagnosis of monoblock centrifugal
+pumps using pre-trained deep learning models and scalogram images. Engineering Applications of Artificial
+Intelligence, 136:109022, 2024.
+[259] Qun Chao, Xiaoliang Wei, Jianfeng Tao, Chengliang Liu, and Yuanhang Wang. Cavitation recognition of
+axial piston pumps in noisy environment based on grad-cam visualization technique. CAAI Transactions on
+Intelligence Technology, 8(1):206–218, 2023.
+[260] Bowen Sun, Zhengzhuang Zhang, Pan Dong, Yi Zeng, Lu Wang, Shuai Yang, Kelin Wu, and Dazhuan Wu.
+Cavitation state recognition of centrifugal pumps across various working conditions by multi-adversarial attention
+network. Mechanical Systems and Signal Processing, 239:113336, 2025.
+[261] Sanghyun Lee, Youngkuk Yoon, and Seung Jin Song. Deep learning-based identification of turbopump inducer
+cavitation instability using high-speed camera images. In AIAA SCITECH 2025 Forum, page 0760, 2025.
+[262] Zihan Chang, Wei Yuan, and Menghong Yu. Centrifugal pump fault diagnosis method based on eas and stacked
+capsule autoencoder. In Third International Conference on Electronics and Communication; Network and
+Computer Technology (ECNCT 2021), volume 12167, pages 233–238. SPIE, 2022.
+[263] Hyunsuk Huh, Soo Young Lee, Seungchul Lee, Kyung Ho Sun, and Joon Ha Jung. New way of detecting
+vibration of mechanical systems by explainable deep learning. In INTER-NOISE and NOISE-CON Congress and
+Conference Proceedings, volume 261, pages 5646–5650. Institute of Noise Control Engineering, 2020.
+[264] Congyue Li, Yihuai Hu, Jiawei Jiang, and Dexin Cui. Fault diagnosis of a marine power-generation diesel engine
+based on the gramian angular field and a convolutional neural network. Journal of Zhejiang University-Science
+A, 25(6):470–482, 2024.
+[265] Qun Chao, Haohan Gao, Jianfeng Tao, Chengliang Liu, Yuanhang Wang, and Jian Zhou. Fault diagnosis of axial
+piston pumps with multi-sensor data and convolutional neural network. Frontiers of Mechanical Engineering,
+17(3):36, 2022.
+[266] Shengnan Tang, Yong Zhu, Shouqi Yuan, and Guangpeng Li. Intelligent diagnosis towards hydraulic axial piston
+pump using a novel integrated cnn model. Sensors, 20(24):7152, 2020.
+38
+
+
+Running Title for Header
+[267] Wasim Zaman, Zahoor Ahmad, Muhammad Farooq Siddique, Niamat Ullah, and Jong-Myon Kim. Centrifugal
+pump fault diagnosis based on a novel sobeledge scalogram and cnn. Sensors, 23(11):5255, 2023.
+[268] Deepak Kumar, Nagendra Singh Ranawat, Pavan Kumar Kankar, and Ankur Miglani. Inceptionv3 based blockage
+fault diagnosis of centrifugal pump. Advanced Engineering Informatics, 65:103181, 2025.
+[269] Cem Ekin Sunal, Vladan Velisavljevic, Vladimir Dyo, Barry Newton, and Jake Newton. Centrifugal pump fault
+detection with convolutional neural network transfer learning. Sensors, 24(8):2442, 2024.
+[270] Hanbing Ma, Oliver Kirschner, and Stefan Riedelbauch. Systematic comparison of sensor signals for pump
+operating points estimation using convolutional neural network. International Journal of Turbomachinery,
+Propulsion and Power, 8(4):39, 2023.
+[271] Ali Akbar Taghizadeh Anvar and Hossein Mohammadi. A novel application of deep transfer learning with audio
+pre-trained models in pump audio fault detection. Computers in Industry, 147:103872, 2023.
+[272] Huaqing Wang, Shi Li, Liuyang Song, and Lingli Cui. A novel convolutional neural network based fault
+recognition method via image fusion of multi-vibration-signals. Computers in Industry, 105:182–190, 2019.
+[273] Cui Dai, Siyuan Hu, Yuhang Zhang, Zeyu Chen, and Liang Dong. Cavitation state identification of centrifugal
+pump based on ceemd-drsn. Nuclear Engineering and Technology, 55(4):1507–1517, 2023.
+[274] Xiaojun Li, Gengling Wu, and Ping Wu. Vmd-se-dcnn-cbam: an intelligent cavitation recognition method for
+canned motor pump. IEEE Transactions on Instrumentation and Measurement, 2024.
+[275] Yuhui Liu, Liping Chen, Duansen Shangguan, and Chengcheng Yu. A data-driven fault diagnosis method for
+marine steam turbine condensate system based on deep transfer learning. Machines, 13(8):708, 2025.
+[276] Shubhendu Kumar Singh, Raj Pradip Khawale, Subhashis Hazarika, and Rahul Rai. Hybrid physics-infused one-
+dimensional convolutional neural network-based ensemble learning framework for diesel engine fault diagnostics.
+Journal of Computing and Information Science in Engineering, 25(4):041006, 2025.
+[277] Fang Dao, Yun Zeng, Yidong Zou, and Jing Qian. Wear fault diagnosis in hydro-turbine via the incorporation of
+the iwso algorithm optimized cnn-lstm neural network. Scientific Reports, 14(1):25278, 2024.
+[278] Long Qian, Binbin Li, and Lijuan Chen. Cnn-based feature fusion motor fault diagnosis. Electronics, 11(17):2746,
+2022.
+[279] Yujia Chen, Yingbing Ran, Chonglin Zhang, Shuxian Xu, Shunli Lv, and Yun Zeng. Fault diagnosis method
+of rotating machinery based on acoustic signals and improved convolutional neural network-bidirectional
+long-short-term memory model. Energy Technology, page 2500955, 2025.
+[280] Hongwei Jin, Huanming Wang, Feng Tian, and Chunhui Zhao. An eemd and convolutional neural network
+based fault diagnosis method in intelligent power plant. In 2019 Chinese Automation Congress (CAC), pages
+5215–5220. IEEE, 2019.
+[281] Anping Wan, Pengchong Li, AL-Bukhaiti Khalil, Xiaomin Cheng, Xiaosheng Ji, Jinglin Wang, and Tianmin
+Shan. Fault diagnosis of air conditioning compressor bearings using wavelet packet decomposition and improved
+1d-cnn. Next Energy, 9:100424, 2025.
+[282] Bo-Jie Lin, Pai-Chen Guan, Hung-Tang Chang, Hong-Wun Hsiao, and Jung-Hsiang Lin. Application of a
+deep neural network for acoustic source localization inside a cavitation tunnel. Journal of Marine Science and
+Engineering, 11(4):773, 2023.
+[283] Andreas Look, Oliver Kirschner, and Stefan Riedelbauch. Building robust classifiers with generative adversarial
+networks for detecting cavitation in hydraulic turbines. ICPRAM, 2018:456–462, 2018.
+[284] Shengnan Tang, Yong Zhu, and Shouqi Yuan. Intelligent fault identification of hydraulic pump using deep
+adaptive normalized cnn and synchrosqueezed wavelet transform. Reliability Engineering & System Safety,
+224:108560, 2022.
+[285] Jinglin He, Jiasheng Hao, and Zhen Cao. Sgst: A novel approach based on machine learning for cavitation fault
+diagnosis. In IECON 2023-49th Annual Conference of the IEEE Industrial Electronics Society, pages 1–7. IEEE,
+2023.
+[286] Pengxin Wang, Liuyang Song, Xudong Guo, Huaqing Wang, and Lingli Cui. A high-stability diagnosis model
+based on a multiscale feature fusion convolutional neural network. IEEE Transactions on Instrumentation and
+Measurement, 70:1–9, 2021.
+[287] Cheng Liu, XinYi Su, Jialing Wu, Qun Zhou, Tao Li, Tang Tian, XianYong Li, and GuiChuan Hu. Method for
+detecting surface defects of runner blades of large hydraulic turbines based on improved real-time lightweight
+network. In Journal of Physics: Conference Series, volume 1955, page 012090. IOP Publishing, 2021.
+39
+
+
+Running Title for Header
+[288] Jian Xu, Longyan Wang, Jianping Yuan, Jiali Shi, Zilu Wang, Bowen Zhang, Zhaohui Luo, and Andy CC Tan.
+A cost-effective cnn-bem coupling framework for design optimization of horizontal axis tidal turbine blades.
+Energy, 282:128707, 2023.
+[289] Yu Sha, Shuiping Gou, Johannes Faber, Bo Liu, Wei Li, Stefan Schramm, Horst Stoecker, Thomas Steckenreiter,
+Domagoj Vnucec, Nadine Wetzstein, et al. Regional-local adversarially learned one-class classifier anomalous
+sound detection in global long-term space. In Proceedings of the 28th ACM SIGKDD Conference on Knowledge
+Discovery and Data Mining, pages 3858–3868, 2022.
+[290] Yu Sha, Johannes Faber, Shuiping Gou, Bo Liu, Wei Li, Stefan Schramm, Horst Stoecker, Thomas Steckenreiter,
+Domagoj Vnucec, Nadine Wetzstein, et al. A multi-task learning for cavitation detection and cavitation intensity
+recognition of valve acoustic signals. Engineering Applications of Artificial Intelligence, 113:104904, 2022.
+[291] Shuiping Gou, Yu Sha, Bo Liu, Ningtao Liu, Johannes Fabe, Stefan Schramm, Horst Stoecker, Thomas
+Steckenreiter, Domagoj Vnucec, Nadine Wetzstein, et al. Hierarchical cavitation intensity recognition using
+sub-master transition network-based acoustic signals in pipeline systems. Expert Systems with Applications,
+258:125155, 2024.
+[292] Chang Wang, Jianqin Zheng, Yongtu Liang, Qi Liao, Bohong Wang, and Haoran Zhang. Deeppipe: Operating
+condition recognition of multiproduct pipeline based on kpca-cnn. Journal of Pipeline Systems Engineering and
+Practice, 13(2):04022006, 2022.
+[293] Lin Li, Xing Zhao, Xiaodong Liu, and Jiyou Fei. Rolling bearing fault diagnosis based on convolutional neural
+network and multi-sensor information fusion. In 2022 IEEE 10th Joint International Information Technology
+and Artificial Intelligence Conference (ITAIC), volume 10, pages 1396–1401. IEEE, 2022.
+[294] Harleen Kaur Sandhu, Saran Srikanth Bodda, Erin Yan, Piyush Sabharwall, and Abhinav Gupta. A comparative
+study on deep learning models for condition monitoring of advanced reactor piping systems. Mechanical Systems
+and Signal Processing, 209:111091, 2024.
+[295] Yu Sha, Shuiping Gou, Bo Liu, Johannes Faber, Ningtao Liu, Stefan Schramm, Horst Stoecker, Thomas
+Steckenreiter, Domagoj Vnucec, Nadine Wetzstein, et al. Hierarchical knowledge guided fault intensity diagnosis
+of complex industrial systems. In Proceedings of the 30th ACM SIGKDD Conference on Knowledge Discovery
+and Data Mining, pages 5657–5668, 2024.
+[296] Xuliang Liu, Wenshu Zha, Zhankui Qi, Daolun Li, Yan Xing, and Lei He. Automatic reservoir model identifica-
+tion method based on convolutional neural network. Journal of Energy Resources Technology, 144(4):043002,
+2022.
+[297] Said Jamal, Jawad Lakziz, Yahya Benremdane, and Said Ouaskit. Passive sonar detection and classification
+based on demon-lofar analysis and neural network algorithms. International Journal of Artificial Intelligence
+and Applications, 15(1):87–98, 2024.
+[298] Jeong-yeong Kim, Tae-hyun Lee, Song-ho Lee, Jong-jik Lee, Won-kyun Lee, Yong-jin Kim, and Jong-won Park.
+A study on deep learning-based fault diagnosis and classification for marine engine system auxiliary equipment.
+Processes, 10(7):1345, 2022.
+[299] Leonardo Miglianti, Francesca Cipollini, Luca Oneto, Giorgio Tani, Stefano Gaggero, Andrea Coraddu, and
+Michele Viviani. Predicting the cavitating marine propeller noise at design stage: A deep learning based approach.
+Ocean Engineering, 209:107481, 2020.
+[300] Nhat Hoang Bach, Le Ha Vu, and Van Duc Nguyen. Classification of surface vehicle propeller cavitation noise
+using spectrogram processing in combination with convolution neural network. Sensors, 21(10):3353, 2021.
+[301] Hoang Nhat Bach, Duc Van Nguyen, and Ha Le Vu. Enhancing the capacity of detecting and classifying
+cavitation noise generated from propeller using the convolution neural network. In International Conference on
+Industrial Networks and Intelligent Systems, pages 268–275. Springer, 2021.
+[302] Yingyuan Liu, Yizhi Wang, and Kang An. A feature extraction method for hydrofoil attached cavitation based
+on deep learning image semantic segmentation algorithm. Scientific Reports, 15(1):4415, 2025.
+[303] Alican Yilmaz and Erkan Caner Ozkat. Deep learning-based propeller sound classification using googlenet.
+2025.
+[304] Lu Chen, Xinwei Luo, and Hanlu Zhou. A ship-radiated noise classification method based on domain knowledge
+embedding and attention mechanism. Engineering Applications of Artificial Intelligence, 127:107320, 2024.
+[305] Junxian Shen, Di Song, Tianchi Ma, and Feiyun Xu. Quantitative detection of blade crack damage based on
+vibro-acoustic information and multi-dimensional feature fusion cnn. In 2022 Global Reliability and Prognostics
+and Health Management (PHM-Yantai), pages 1–6. IEEE, 2022.
+40
+
+
+Running Title for Header
+[306] Usman Ullah Sheikh, Ahmad Zuri Sha’ameri, et al. Marine vessels acoustic classification with enhanced
+machinery and propeller feature extraction, using convolutional neural network. Measurement, page 118494,
+2025.
+[307] Usman Ullah Sheikh, Ahmad Zuri Sha’ameri, et al. Ensemble deep learning approach for marine vessel
+classification: Integrating cnn and vision transformers with machinery feature enhancement. Information Fusion,
+page 103570, 2025.
+[308] Jianqiu Wei, Xiumei Liu, Beibei Li, Yujia Zhang, and Ximing Shang. Cavitation state recognition for control
+valve using alexnet-type neural networks with three-channel images transformed by time series. Measurement
+Science and Technology, 34(5):055301, 2023.
+[309] Alex Graves and Jürgen Schmidhuber. Framewise phoneme classification with bidirectional lstm and other
+neural network architectures. Neural networks, 18(5-6):602–610, 2005.
+[310] Omar Farhan Al-Hardanee and Hüseyin Demirel. Hydropower station status prediction using rnn and lstm
+algorithms for fault detection. Energies, 17(22):5599, 2024.
+[311] Yong Zhu, Hong Su, Shengnan Tang, Shida Zhang, Tao Zhou, and Jie Wang. A novel fault diagnosis method
+based on swt and vgg-lstm model for hydraulic axial piston pump. Journal of Marine Science and Engineering,
+11(3):594, 2023.
+[312] Tonghe Zhang, Yongxing Song, Qiang Liu, Yi Ge, Linhua Zhang, and Jingting Liu. Cavitation state recognition
+method of centrifugal pump based on multi-dimensional feature fusion and convolutional gate recurrent unit.
+Physics of Fluids, 36(10), 2024.
+[313] Wen-Bin Liu, Thuc-Minh Bui, Quyet Nguyen Doan, Huong Le Thi, Trang Nguyen Thi Thu, Ming-Yuan Cho,
+Thao Nguyen Da, and Phuong Nguyen Thanh. A failure diagnosis approach for firefighting pump based deep
+learning gru methodology. In 2024 International Conference on System Science and Engineering (ICSSE), pages
+1–6. IEEE, 2024.
+[314] Yi Zhao, Shengnan Yan, Zhenggui Li, Fang Chen, Qin Zhao, Liangsheng He, Hongteng Wu, Yawei Bai, and
+Xiaolin Yang. Optimizing cavitation fault forecasting in pump-turbine systems through gated recurrent units.
+Physics of Fluids, 37(3), 2025.
+[315] Shuang Zeng, Xinyuan Chang, Mengwei Xie, Xinran Liu, Yifan Bai, Zheng Pan, Mu Xu, and Xing Wei. Future-
+sightdrive: Thinking visually with spatio-temporal cot for autonomous driving. arXiv preprint arXiv:2505.17685,
+2025.
+[316] Shuang Zeng, Xinyuan Chang, Xinran Liu, Zheng Pan, and Xing Wei. Driving with prior maps: Unified vector
+prior encoding for autonomous vehicle mapping. arXiv preprint arXiv:2409.05352, 2024.
+[317] Guorong Lin, Zhiqiang Bao, Zhenhua Huang, Zuoyong Li, Wei-shi Zheng, and Yunwen Chen. A multi-level
+relation-aware transformer model for occluded person re-identification. Neural Networks, 177:106382, 2024.
+[318] Alexey Dosovitskiy, Lucas Beyer, Alexander Kolesnikov, Dirk Weissenborn, Xiaohua Zhai, Thomas Unterthiner,
+Mostafa Dehghani, Matthias Minderer, G Heigold, S Gelly, et al. An image is worth 16x16 words: Transformers
+for image recognition at scale. In International Conference on Learning Representations, 2020.
+[319] Ze Liu, Yutong Lin, Yue Cao, Han Hu, Yixuan Wei, Zheng Zhang, Stephen Lin, and Baining Guo. Swin trans-
+former: Hierarchical vision transformer using shifted windows. In Proceedings of the IEEE/CVF international
+conference on computer vision, pages 10012–10022, 2021.
+[320] Jacob Devlin, Ming-Wei Chang, Kenton Lee, and Kristina Toutanova. Bert: Pre-training of deep bidirectional
+transformers for language understanding. In Proceedings of the 2019 conference of the North American chapter
+of the association for computational linguistics: human language technologies, volume 1 (long and short papers),
+pages 4171–4186, 2019.
+[321] Sinong Wang, Belinda Z Li, Madian Khabsa, Han Fang, and Hao Ma. Linformer: Self-attention with linear
+complexity. arXiv preprint arXiv:2006.04768, 2020.
+[322] Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sastry,
+Amanda Askell, Pamela Mishkin, Jack Clark, et al. Learning transferable visual models from natural language
+supervision. In International conference on machine learning, pages 8748–8763. PmLR, 2021.
+[323] Lizhe Jiang, Hongze Du, Yufeng Bu, Chunyu Zhao, Hailong Lu, and Jun Yan. Deep learning-based multilabel
+compound-fault diagnosis in centrifugal pumps. Ocean Engineering, 314:119697, 2024.
+[324] Bingyang Shang, Zheming Tong, and Hao Liu. A lightweight vision transformer framework integrated with flow
+visualization for incipient cavitation diagnosis in centrifugal pumps. Flow Measurement and Instrumentation,
+page 103016, 2025.
+41
+
+
+Running Title for Header
+[325] Qi Zhang, Yuxing Lin, Ould el Moctar, and Changqing Jiang. Data-driven identification of cavitation regimes
+using acoustic signatures of hydrofoil. Physics of Fluids, 37(4), 2025.
+[326] Anil Kumar, Adam Glowacz, Hesheng Tang, and Jiawei Xiang. Knowledge addition for improving the transfer
+learning from the laboratory to identify defects of hydraulic machinery. Engineering Applications of Artificial
+Intelligence, 126:106756, 2023.
+[327] Christopher E Brennen. Cavitation and bubble dynamics. Cambridge university press, 2014.
+[328] Salem A Alhashmi. Detection and diagnosis of cavitation in centrifugal pumps. The University of Manchester
+(United Kingdom), 2005.
+[329] Ronald A Roy. Cavitation sonophysics. In Sonochemistry and sonoluminescence, pages 25–38. Springer, 1999.
+[330] Micheal L Mavrovouniotis and S Chang. Hierarchical neural networks. Computers & chemical engineering,
+16(4):347–369, 1992.
+[331] Kai Li, Bofan Wu, Shiqi Xia, and Xianshi Jia. A graph isomorphic network with attention mechanism for
+intelligent fault diagnosis of axial piston pump. Applied Sciences, 15(12):6586, 2025.
+[332] Tiantian Guo, Tongpo Zhang, Enggee Lim, Miguel Lopez-Benitez, Fei Ma, and Limin Yu. A review of wavelet
+analysis and its applications: Challenges and opportunities. IEEe Access, 10:58869–58903, 2022.
+[333] Malika Uteuliyeva, Abylay Zhumekenov, Rustem Takhanov, Zhenisbek Assylbekov, Alejandro J Castro, and
+Olzhas Kabdolov. Fourier neural networks: A comparative study. Intelligent Data Analysis, 24(5):1107–1120,
+2020.
+[334] Long Wen, Xinyu Li, and Liang Gao. A new two-level hierarchical diagnosis network based on convolutional
+neural network. IEEE Transactions on Instrumentation and Measurement, 69(2):330–338, 2019.
+[335] Xiaojie Guo, Liang Chen, and Changqing Shen. Hierarchical adaptive deep convolution neural network and its
+application to bearing fault diagnosis. Measurement, 93:490–502, 2016.
+[336] Yiyan Hua, Dawei Duan, Shangbo Han, Longchao Yao, Weijie Liu, Jian Yang, Chenghang Zheng, and Xiang
+Gao. Fault diagnosis of wfgd slurry circulating equipment in coal-fired power plant with graph convolutional
+transformer networks. Available at SSRN 4977997.
+[337] Rong Gao. A novel neural-wavelet approach for process diagnostics and complex system modeling. PhD thesis,
+Purdue University, 2000.
+[338] In-ho Won, Rong Gao, Lefteri H Tsoukalas, Kardir Kavaklioglu, and Evren Eryurek.
+A neural-wavelet
+methodology for pump cavitation detection. In NUTHOS-6: Proceedings of the 6th international topical meeting
+on nuclear reactor thermal hydraulics, operations and safety, pages 12–12, 2004.
+[339] Huaqing Wang and Peng Chen. Intelligent diagnosis method for a centrifugal pump using features of vibration
+signals. Neural Computing and Applications, 18(4):397–405, 2009.
+[340] Jyoti Rani, Tapas Tripura, Umang Goswami, Hariprasad Kodamana, and Souvik Chakraborty. Fault detection
+using fourier neural operator. In Computer Aided Chemical Engineering, volume 52, pages 1897–1902. Elsevier,
+2023.
+[341] H. S. Tan. Fourier neural networks and generalized single hidden layer networks in aircraft engine fault
+diagnostics. Journal of Engineering for Gas Turbines and Power, 128(4):773–782, 2005.
+[342] Ping Yu, Mengmeng Ping, Jialin Ma, and Jie Cao. Method to enhance time series rolling fault prediction by deep
+fast fourier convolution. Measurement, 228:114177, 2024.
+[343] Yuanfang Chi, Yanjie Dong, Z Jane Wang, F Richard Yu, and Victor CM Leung. Knowledge-based fault diagnosis
+in industrial internet of things: a survey. IEEE Internet of Things Journal, 9(15):12886–12900, 2022.
+[344] Alexander Smirnov and Tatiana Levashova. Knowledge fusion patterns: A survey. Information Fusion, 52:31–40,
+2019.
+[345] Yuanfei Dai, Shiping Wang, Neal N Xiong, and Wenzhong Guo. A survey on knowledge graph embedding:
+Approaches, applications and benchmarks. Electronics, 9(5):750, 2020.
+[346] Zijun Cui, Tian Gao, Kartik Talamadupula, and Qiang Ji. Knowledge-augmented deep learning and its applica-
+tions: A survey. IEEE Transactions on Neural Networks and Learning Systems, 2023.
+[347] LEONARDO PIETRO Miglianti. Modelling of the cavitating propeller noise by means of semi-empirical and
+data driven approaches. 2020.
+[348] Wan Qiao, Xiuli Liu, Jinpeng Huang, and Guoxin Wu. A prior knowledge embedding contrastive attention
+learning network for variable working conditions bearing fault diagnosis with small samples. IEEE Sensors
+Journal, 2024.
+42
+
+
+Running Title for Header
+[349] Zhimin Du, Siliang Chen, Pengcheng Li, Kang Chen, Xinbin Liang, Xu Zhu, and Xinqiao Jin. Knowledge-
+extracted deep learning diagnosis and its cloud-based management for multiple faults of chiller. Building and
+Environment, 235:110228, 2023.
+[350] Sheng Shen, Hao Lu, Mohammadkazem Sadoughi, Chao Hu, Venkat Nemani, Adam Thelen, Keith Webster,
+Matthew Darr, Jeff Sidon, and Shawn Kenny. A physics-informed deep learning approach for bearing fault
+detection. Engineering Applications of Artificial Intelligence, 103:104295, 2021.
+[351] Zhiying Wang, Zheng Zhou, Wengang Xu, Chuang Sun, and Ruqiang Yan. Physics informed neural networks
+for fault severity identification of axial piston pumps. Journal of Manufacturing Systems, 71:421–437, 2023.
+[352] You Keshun, Gu Yingkui, Lin Yanghui, and Wang Yajun. A novel physical constraint-guided quadratic neural
+networks for interpretable bearing fault diagnosis under zero-fault sample. Nondestructive Testing and Evaluation,
+pages 1–31, 2025.
+[353] You Keshun, Wang Puzhou, Huang Peng, and Gu Yingkui. A sound-vibration physical-information fusion
+constraint-guided deep learning method for rolling bearing fault diagnosis. Reliability Engineering & System
+Safety, 253:110556, 2025.
+[354] Xiaogang Pan, Ketian Liang, Yuanyuan Jiao, Zhiwen Chen, and Yang Wang. Interpretable chiller fault diagnosis
+based on physics-guided neural networks. Journal of Building Engineering, 86:108991, 2024.
+[355] Chuan Li, Jinyang Wang, Xiaolong Li, Xiaochuan Li, Juan Xu, and David Mba. Pgmtkd: A physics-guided
+multi-teacher knowledge distillation network for external gear pump onboard fault diagnosis with missing
+modality. Mechanical Systems and Signal Processing, 239:113296, 2025.
+43

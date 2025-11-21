@@ -1,0 +1,1978 @@
+1
+Qualitative and quantitative hard-tissue MRI with
+portable Halbach scanners
+Jose Borreguero∗, Luiz G. C. Santos∗, Lorena Vega Cid∗, Elisa Casta˜n´on∗, Marina Fern´andez-Garc´ıa∗,
+Pablo Benlloch∗,†, Rub´en Bosch∗, Jes´us Conejero∗, Pablo Garc´ıa-Crist´obal∗, Alba Gonz´alez-Cebri´an∗,
+Teresa Guallart-Naval∗, Eduardo Pall´as∗, Laia Porcar∗,†, Lucas Swistunow∗, Jose Miguel Algar´ın∗,
+Fernando Galve∗and Joseba Alonso∗
+∗MRILab, Institute for Molecular Imaging and Instrumentation (i3M), Spanish National Research Council (CSIC)
+and Universitat Polit`ecnica de Val`encia (UPV), 46022 Valencia, Spain
+†PhysioMRI Tech S.L., 46980 Paterna, Spain
+Abstract—
+Purpose: To demonstrate the feasibility of performing in vivo imag-
+ing and quantitative relaxation mapping of soft and hard tissues using
+a low-cost, portable MRI scanner, and to establish the methodological
+foundations for zero echo time (ZTE) imaging in systems affected by
+strong field inhomogeneities.
+Methods: A complete framework for artifact-free ZTE imaging
+at low field was developed, including: (i) RF pulse pre/counter-
+emphasis calibration to minimize ring-down and electronics switching
+time; (ii) an extension of a recent single-point double-shot (SPDS)
+protocol for simultaneous 𝐵0 and 𝐵1 mapping; and (iii) a model-based
+reconstruction incorporating these field maps into the encoding matrix.
+ZTE imaging and variable flip angle (VFA)𝑇1 mapping were performed
+on phantoms and in vivo human knees and ankles, and benchmarked
+against standard RARE and STIR acquisitions.
+Results: The optimized PETRA sequence produced 3D images of
+knees and ankles within clinically compatible times (< 15 min),
+revealing hard tissues such as ligaments, tendons, cartilage, and bone
+that are invisible in spin-echo sequences. The extended SPDS method
+enabled accurate field mapping, while the VFA approach provided the
+first in vivo 𝑇1 measurements of hard tissues at 𝐵0 < 0.1 T.
+Conclusions: The proposed framework broadens the range of pulse
+sequences feasible in portable low-field MRI and demonstrates the
+potential of ZTE for quantitative and structural imaging of muscu-
+loskeletal tissues in affordable Halbach-based systems.
+Index Terms—short T2, hard tissues, musculoskeletical MRI,
+ZTE sequences, low-field, portable MRI
+I. Introduction
+In recent years, there has been growing interest in exploring
+the potential of low-field MRI (LF-MRI, 𝐵0 < 0.5 T) as a way
+to enhance accessibility and democratize medical imaging [1],
+[2], [3], [4], [5]. The signal-to-noise ratio (SNR) deficit inherent
+to this regime is inevitable compared to clinical standards
+(𝐵0 = 1.5 and 3 T), resulting in anatomical images of lower
+resolution than those obtained with conventional MRI. Never-
+theless, a variety of strategies have been developed to make
+LF-MRI reconstructions diagnostically useful, including both
+hardware optimization [6], [7] and software-based enhancement
+[8].
+Particularly interesting are scanners employing a Halbach-
+array main magnet [9], which can provide sufficient 𝐵0 strength
+and homogeneity while substantially reducing the weight,
+Corresponding author: J. Borreguero (pepe.morata@i3m.upv.es).
+footprint, and cost of MRI systems [10], [11], [12]. Halbach-
+based systems have shown potential in diverse scenarios, such
+as mounted on vehicles [13], [14], at crowded sporting events
+[15], or even for home-based imaging [5].
+Even so, the limited hardware capabilities of Halbach systems
+constrain the range of pulse sequences (and thereby clinical
+applications) that can be implemented [7]. The effects of the
+relatively poor 𝐵0 homogeneity is alleviated through spin-echo
+refocusing sequences [16], [17], which mitigate the SNR loss.
+This encoding strategy is, however, only suitable for tissues
+with long transverse relaxation times (𝑇2 > 20 ms), a condition
+typically met only by water-rich soft tissues.
+However, a variety of tissues in the human body are charac-
+terized by short 𝑇2 times (even < 1 ms), including bone, lungs,
+ligaments, tendons, and teeth [18]. The NMR signal from these
+tissues is heavily attenuated and X-ray-based imaging techniques
+are favored. Nonetheless, the ability to directly visualize them
+using low-cost MRI could offer substantial diagnostic and
+therapeutic advantages over conventional radiography. Unlike
+X-rays, MRI enables innocuous and direct assessment of
+fiber continuity, thickness, and internal signal of tendons and
+ligaments, as well as early detection of subcortical bone marrow
+edema, microfractures, and cartilage degeneration [19].
+To image these tissues, dedicated pulse sequences have
+been developed. These include ultra-short echo time (UTE)
+[20], zero echo time (ZTE) [21], or Sweep Imaging with
+Fourier Transformation (SWIFT) [22]. Their performance has
+been validated across scanners of varying 𝐵0 and for diverse
+applications, such as imaging and diagnosis of pulmonary
+[23], cartilaginous [24], ligamentous [25], and dental lesions
+[26], [27], even at fields as low as 260 mT [28]. In exchange,
+these sequences are generally hardware-demanding, requiring
+high 𝐵0 homogeneity, substantial radio-frequency (RF) power,
+and strong gradients. Such requirements conflict with the
+capabilities of low-cost, Halbach-based systems, hence hard-
+tissue imaging remains unproven with portable scanners.
+In this work, we present a proof-of-concept demonstration of
+the feasibility of applying ZTE sequences in a portable Halbach
+system originally designed for in vivo brain and musculoskeletal
+imaging with spin-echo acquisitions. To overcome signal losses
+associated with RF switching delays at low field, we implement
+a Pointwise Encoding Time Reduction with Radial Acquisition
+arXiv:2511.15617v1  [physics.med-ph]  19 Nov 2025
+
+
+2
+(PETRA) sequence [29]. To compensate the limited hardware
+capabilities of portable Halbach systems, we introduce model-
+based reconstructions that incorporate prior knowledge (PK)
+of the main (𝐵0) and RF (𝐵1) field inhomogeneities. This PK
+is obtained via an extension of the Single-Point Double-Shot
+(SPDS) protocol [30]. In addition, we extend PETRA to generate
+in vivo quantitative spin-lattice relaxation (𝑇1) maps using a
+variable flip-angle approach (VFA-PETRA) under incoherent
+steady-state conditions. This strategy enables the simultaneous
+quantification of 𝑇1 times in muscle and fat, as well as structures
+typically invisible to MRI, including tendons, ligaments, and
+cortical bone.
+II. Background & theory
+A. Relaxation and dead times
+Some aspects should be considered when advancing towards
+ZTE with Halbach systems. One of the key challenges is the
+available time margin for NMR signal acquisition. In ZTE, the
+receive (Rx) window should start only after switching the RF
+electronics from transmit (Tx) to Rx mode. This dead time
+(𝑇dead) reflects the combined effects of the coil ring-down (with
+time-constant 𝜏) and the saturation of the RF line following
+the Tx pulse. If acquisition begins while the energy stored in
+the resonator still competes with the amplitude of the NMR
+signal, the low-frequency samples of 𝑘-space will contain a
+spurious contribution that often manifests as a sinc-type artifact
+in the image (see Fig. 4a)I). Furthermore, the duration of
+the acquisition window (𝑇acq) is constrained by the coherence
+time of the NMR signal (𝑇∗
+2 ) evolving under 𝐵0(®𝑟). When
+the acquisition extends beyond this limit (i.e., 𝑇acq > 𝑇∗
+2 ), the
+reconstruction exhibits apodization and blurring artifacts at the
+image periphery (see Fig. 4a)V). Both factors are particularly
+unfavorable in our regime. On one hand, 𝜏scales as ∝2𝑄/𝜔L,
+where 𝑄is the quality factor of the coil and 𝜔L is the Larmor
+frequency, so ring-down times are particularly long for high-𝑄
+coils in LF-MRI. On the other, the lightweight and compact
+design of the Halbach magnet compromises 𝐵0 homogeneity,
+limiting the maximum achievable transverse coherence time to
+𝑇∗
+2 ∼1 ms even in substances with 𝑇2 > 1 s (see Fig. 3b).
+B. RF pulse quality
+In any ZTE sequence, spin excitation occurs once the
+encoding gradient has reached its set value. To ensure uniform
+and coherent excitation of all spins within the sample, very
+short rectangular RF pulses are essential [31]. Only in this
+way does the excitation bandwidth uniformly cover the spectral
+range given by Δ𝜔= 𝛾· (Δ ®𝐵0(®𝑟) + |®𝑔enc(®𝑟, 𝑡)|), with ®𝑔enc
+the gradient field for spatial encoding and 𝛾the 𝑔-factor
+(𝛾= 2𝜋· 42.57 MHz/T for 1H). Achieving relevant flip angles
+(FAs) with such short pulses, however, demands high-power
+RF amplification. For our purposes, we prefer a high-𝑄coil
+(to maximize SNR) and RF pulses with a square envelope and
+maximum duration of 𝑡RF = 30 µs (see Fig. 4c). In this regime,
+𝐵1 pulses can be suboptimal, since the expected rectangular
+profile of ®𝐵1(𝑡) is dominated by the current rise time (see
+Fig. 2a). This distortion acts as a low-pass filter, reducing the
+excitation bandwidth and causing FA degradation toward the
+peripheral regions of the sample.
+C. System heating
+Another challenge is the requirement for high continuous
+gradient currents during each repetition. While this minimizes
+eddy currents, it may compromise thermal stability during long
+studies, particularly for sequences with TR ≫𝑇1. Scanners
+designed for ZTE typically employ water-cooled gradient
+systems [28], but this is impractical for portable designs. In
+our case, the high efficiency and low resistance of the copper
+plate-based gradients keep Joule effects low (see Sec. III-A),
+so 2 mm-resolution PETRA sequences lead to minor heating
+even for TR = 250 ms (𝑔enc = 5.8 mT/m, 𝐼𝑥= 9.5 A, so
+𝑃< 8 W in the worst-case scenario and assuming full duty
+cycle). Nevertheless, during long in vivo acquisitions exceeding
+one hour, the Larmor frequency may drift (see Fig. 3d).
+D. Sequence duration
+A further drawback of PETRA sequences is their relatively
+long acquisition time, primarily due to: (i) the need to sample
+the pointwise region of 𝑘-space; (ii) the impossibility of forming
+long echo trains to fill multiple 𝑘-space lines per repetition; and
+(iii) the inherently three-dimensional nature of ZTE. Although
+sequences combining slice selection with ZTE are available
+[30], such approaches demand high homogeneity in all magnetic
+fields, which is difficult to achieve in portable Halbach systems.
+The duration of a PETRA sequence depends on the matrix
+size and maximum field of view (𝑁max and FoVmax), the radial
+undersampling factor (USrad), and the ratio𝑇dead/𝑇acq, according
+to:
+𝑇seq ∝𝑁av · TR
+"
+𝜋
+2 · 𝑁2
+max
+USrad
++ 4
+3𝜋
+
+𝑁max
+2 · FoVmax
+𝑇dead
+𝑇acq
+3#
+, (1)
+where 𝑁av is the number of averages. For typical knee imaging
+resolutions of 2 mm with fully sampled 𝑘-space, a ratio of
+𝑇dead/𝑇acq = 200 µs/1 ms implies that approximately 15 % of
+the total sequence time is spent filling the central region of 𝑘-
+space point by point (𝑁rad = 25, 250, 𝑁sp = 3, 616), making
+PETRA relatively time-inefficient.
+E. Imaging in inhomogeneous 𝐵0 and 𝐵1 fields
+ZTE sequences, due to the radial measurement of signals
+decaying with 𝑇∗
+2 without spin refocusing, are particularly
+sensitive to artifacts arising from 𝐵0 inhomogeneity. Under these
+circumstances, the reconstruction of 𝑘-space using algorithms
+agnostic to the physics of the problem tends to exhibit blurring,
+anisotropic degradation of resolution, and hyperintense bands in
+pixels where the encoding field ( ®𝐵0(®𝑟) + ®𝑔enc(®𝑟, 𝑡)) is extremal.
+In addition, the use of solenoidal coils results in a spatial
+modulation of both the transmission and reception efficiencies.
+This fact causes two effects: (i) a defective FA calibration, since
+the Rabi flops reflect the integrated contribution of all spins
+that have been excited with a position-dependent FA, which
+depends on the deviation of the 𝐵1 field from its average value;
+and (ii) a spatial modulation of brightness in the reconstruction
+even if the FA is homogeneous across the entire sample. This
+indeterminacy is especially critical when employing a variable-
+flip-angle (VFA) method for𝑇1 quantification (see Sec. II-H). To
+
+
+3
+overcome the uncertainties caused by the presence of magnetic
+field inhomogeneities, prior knowledge of the distributions of
+𝐵0(®𝑟) and 𝐵1(®𝑟) is essential.
+F. Mapping the 𝐵0 and 𝐵1 fields
+For 𝐵0 and 𝐵1 mapping, one can adopt the strategy proposed
+in Ref. [30], extending its use to simultaneously obtain maps
+of 𝐵0(®𝑟) and 𝐵1(®𝑟) with immunity to spatial distortions. The
+extended method is based on three fast, low-resolution SPRITE
+sequences that are identical except for their nominal flip angles
+(𝛼i,nom) and dead times (𝑇i,d), each producing a reconstruction
+𝜌𝑖. Ideally, these sequences should be applied to a structureless
+phantom with homogeneous 𝑇1 that fills the available imaging
+volume.
+Analogously to the SPDS approach, the phase maps arg(𝜌1)
+and arg(𝜌2) are cropped to a common mask and subsequently
+unwrapped in three dimensions. Their subtraction yields a map
+of deviations in the main field:
+Δ𝐵0(®𝑟) ≈arg(𝜌2) −arg(𝜌1)
+𝛾 𝑇2,d −𝑇1,d
+
+.
+(2)
+The magnitude maps abs(𝜌1) and abs(𝜌3) exhibit a common
+spatial modulation of brightness, such that the local flip angle
+𝛼𝑖(®𝑟) deviates from its nominal value, estimated as 𝛼i,nom =
+𝛾𝐵1i,nom 𝑡RF (assuming negligible 𝐵0 inhomogeneity). The actual
+FA distribution is therefore:
+𝛼𝑖(®𝑟) = 𝛾𝐵i,eff(®𝑟) 𝑡RF,
+(3)
+where 𝐵i,eff(®𝑟) =
+√︃
+(𝐵1i,nom 𝜂(®𝑟))2 + (Δ𝐵0(®𝑟))2 is the position-
+dependent effective field in the rotating frame, and 𝜂(®𝑟) is
+a dimensionless map representing the scaling between the
+nominal 𝐵1 strength (𝐵1i,nom, calibrated from Rabi flops and
+corresponding to the spatially averaged 𝐵1 amplitude within the
+sample) and the actual 𝐵1 at each pixel within the region of
+interest (RoI):
+𝐵1(®𝑟) = 𝐵1,nom · 𝜂(®𝑟).
+(4)
+Because 𝑇1 is known a priori and homogeneous throughout
+the imaging volume, the relative brightness modulation between
+SPRITE images with different flip angles arises solely from 𝐵1
+inhomogeneity. Therefore, the pixelwise ratio of abs(𝜌1) and
+abs(𝜌3) is given by the ratio of their steady-state signals:
+abs(𝜌1)
+abs(𝜌3) =
+𝑀1,ss 𝑛2
+1,𝑥
+√︃
+sin2(𝛼1) + 𝑛2
+1,𝑧
+ 1 −cos(𝛼1)2
+𝑀3,ss 𝑛2
+3,𝑥
+√︃
+sin2(𝛼3) + 𝑛2
+3,𝑧
+ 1 −cos(𝛼3)2 .
+(5)
+Here, 𝑛𝑖,𝑥and 𝑛𝑖,𝑧denote the components of the unit vector
+pointing along ®𝐵eff in the rotating frame:
+®𝑛𝑖(®𝑟) =
+ 𝐵1i,nom 𝜂(®𝑟)
+𝐵i,eff(®𝑟) , 0, Δ𝐵0(®𝑟)
+𝐵i,eff(®𝑟)
+
+,
+(6)
+and 𝑀i,ss is the longitudinal magnetization reached in the
+incoherent steady state:
+𝑀i,ss =
+1 −𝐸1
+1 −𝐸1
+
+𝑛2
+𝑖,𝑧
+ 1 −cos(𝛼𝑖) + cos(𝛼𝑖)
+ ,
+(7)
+where 𝐸1 = exp(−TR/𝑇1).
+Once the matrix abs(𝜌1)/abs(𝜌3) is computed and masked to
+select the phantom region, Eq. (5) can be solved for 𝜂(®𝑟) at each
+voxel, using the Δ𝐵0(®𝑟) map obtained from Eq. (2). This can be
+used for mapping the effective 𝐵1(®𝑟) field strength according to
+Eq. (4).
+This method effectively decouples the combined effects of 𝐵0
+and 𝐵1 inhomogeneities on their respective maps. On one hand,
+𝐵1 inhomogeneity introduces a common brightness modulation
+across the three images, but this does not affect the 𝐵0 map, since
+its estimation relies solely on the phase of 𝜌, which is insensitive
+to amplitude variations. On the other, 𝐵0 inhomogeneity induces
+geometric distortions that could otherwise deform the maps.
+However, the use of SPRITE sequences with encoding times
+below 500 µs ensures robustness of the 𝜌images against such
+distortions, even when reconstructed using general algorithms
+such as the FFT. Moreover, since the pair of images used to define
+the 𝐵1 field share identical encoding times, their geometric
+deformation is the same and could, if necessary, be corrected by
+reconstructing them using the previously obtained 𝐵0 map as a
+prior. As a result, the ratio of their magnitudes remains exact
+and free from spatial mixing effects due to 𝐵0 inhomogeneity.
+G. Standard relaxation mapping
+The literature on the relaxation times of human tissues at
+low magnetic fields remains scarce, and models predicting their
+field dependence have been only marginally validated with in
+vivo data [32], [33], [34]. Although some reports of 𝑇1 and 𝑇2
+measurements exist for 𝐵0 values close to ours [35], [36], we
+chose to independently measure the relaxation parameters of fat
+and muscle in the knee at 𝐵0 = 90 mT. For this purpose, we
+employed classical quantification methods for 𝑇2 and 𝑇1 based
+on images acquired with Cartesian multi–spin-echo sequences
+and variable TE/TI, as described in Sec. III-E. More efficient
+approaches such as MR fingerprinting [37] were not used, as
+they proved impractical in our control system due to current
+data streaming limitations. This initial strategy for quantifying
+𝑇1 and 𝑇2 serves as a reference for the expected relaxation times
+of fat and muscle, which will later be used for comparison with
+values obtained using more advanced methods such as VFA-
+PETRA.
+H. VFA-PETRA relaxation mapping
+𝑇1 mapping using the variable flip angle (VFA) method is
+a long-established approach [38], [39] widely used in high-
+field MRI for rapid relaxometry of soft tissues. Recently, the
+VFA method has been successfully combined with sequences
+designed for short-𝑇2 components, such as UTE for mouse lungs
+[40] and ZTE for the human brain [41]. However, these reports
+were obtained in high-performance clinical systems operating at
+𝐵0 ≥3 T, where SNR and field inhomogeneities are not critical
+limitations.
+When 𝐵1 is inhomogeneous but 𝐵0 remains highly uniform,
+in vivo 𝑇1 mapping of soft tissues can be achieved by combining
+VFA with spoiled gradient-echo (SPGR) sequences, provided
+that accurate 𝐵1 information is incorporated into the model [42],
+[43]. This method can be extended to very low-field systems, as
+recently demonstrated in Ref. [44] at 6.5 mT for in vivo breast
+
+
+4
+Fig.1. The scanner used fortheexperiments herepresented.a) Elliptical Halbach
+magnet after ring joining and gradients module inserted. b) RF solenoidal coil
+loaded with a phantom for 𝐵0 and 𝐵1 mapping of full volume. c) General
+outlook of the MRI system in the laboratory once finished the integration of all
+componentes. d) Patient positioning during a knee study in this system.
+𝑇1 mapping, although the SNR drop limits the precision of the
+method.
+To enable simultaneous 𝑇1 mapping of hard and soft tissues,
+this approach can be extended by replacing SPGR with a pair
+of PETRA sequences with TR ≪𝑇1 and different nominal flip
+angles (𝛼nom), hereafter referred to as VFA-PETRA. Because
+PETRA maintains the gradients at a constant level after the
+receive window, they act as effective spoilers of the transverse
+magnetization, ensuring the establishment of an incoherent
+steady state across all tissues. To minimize artifacts inherent
+to this regime, several dummy pulses can be applied before the
+repetitions in which data were acquired.
+Unlike the SPDS strategy, in which the known and spatially
+homogeneous 𝑇1 of a phantom is used to estimate 𝐵0(®𝑟) and
+𝐵1(®𝑟) variations, VFA-PETRA exploits the fact that 𝐵0(®𝑟) and
+𝐵1(®𝑟) are already known from a prior SPDS experiment. In this
+case, 𝑇1(®𝑟) becomes the only spatially-varying unknown.
+With the 𝜌𝛼1 and 𝜌𝛼2 reconstructions using PK of 𝐵0, the
+noise background can be removed using a common mask applied
+to both magnitude images. For all voxels within the mask, the
+ratio
+𝜆(®𝑟) = abs(𝜌𝛼1)
+abs(𝜌𝛼2)
+can be computed and solved for 𝑇1(®𝑟) according to the model:
+𝜆(®𝑟) =
+𝑀1,ss(𝑇1(®𝑟)) 𝑛1,𝑥
+√︃
+sin2(𝛼1) + 𝑛2
+1,𝑧
+ 1 −cos(𝛼1)2
+𝑀2,ss(𝑇1(®𝑟)) 𝑛2,𝑥
+√︃
+sin2(𝛼2) + 𝑛2
+2,𝑧
+ 1 −cos(𝛼2)2 ,
+(8)
+where 𝛼𝑖, ®𝑛𝑖, and 𝑀i,ss are defined by Eqs. (3), (6), and
+(7), respectively, each including its voxel dependence through
+𝐵i,eff
+ 𝐵1(®𝑟), 𝐵0(®𝑟), as determined from a previous SPDS
+experiment.
+III. Methods
+A. Scanner
+All results have been obtained on a portable 90 mT MRI
+system (𝜔L = 2𝜋· 3.64 MHz for 1H) designed for extremity and
+brain imaging [12].
+The magnet is based on an elliptical Halbach arrangement
+constructed from Nd2Fe14B cubes (Fig. 1a) and incorporates
+a shimming unit, resulting in a main field of ≈90 mT with
+approximately 4,000 ppm over a sphere of 20 cm in diameter.
+The compact design of the magnet (the bore has minor and
+major axes of 𝑑m = 20 cm and 𝑑M = 28 cm, and a total axial
+length of 𝑙= 44 cm) provides a high degree of portability while
+still offering sufficient space to position the head within the FoV,
+despite the spatial constraints imposed by the shoulders.
+The gradient coils consist of three modules, each comprising
+four concentric elliptical lobes manufactured from water-jetted
+copper plates (Fig. 1a). The gradient coils have efficiencies of
+(0.61, 0.87, 0.87) mT/m/A and resistances of (88, 128, 112) mΩ.
+The coils are driven by three AE Techron 7224 power amplifiers
+(Indiana, USA), which can deliver currents up to 50 A to the
+loads, achieving maximum gradient strengths of (30.5, 43.5,
+43.5) mT/m.
+The RF system is based on a single solenoidal coil 15 cm
+in length and diameter, wound with 44 turns of 2 mm copper
+wire on a PLA holder (see Fig. 1b). The coil bandwidth was
+≈260 kHz when loaded with a knee, corresponding to a quality
+factor of 𝑄≈2501 (𝜏≈22 µs; see Fig. 2a). The RF low-noise
+amplifier (45 dB gain, noise factor ≈1 dB) and power amplifier
+(250 W, maximum duty cycle 10 % with 10 ms pulses), as well
+as the passive Tx/Rx switch, were purchased from Barthel HF-
+Technik GmbH (Aachen, Germany).
+All components are housed within an aluminum structure
+(Fig. 1c) measuring 68×95×140 cm3 (width × height × length)
+and weighing 377 kg in total, allowing the system to be easily
+moved. The device operates as a standalone unit and requires
+only a connection to a standard single-phase power outlet.
+During knee imaging experiments, the body acts as an
+antenna [45], coupling significant amounts of electromagnetic
+interference into the RF coil. To minimize this effect, the coil
+and subject are partially covered with conductive cloth from
+Holland Shielding Systems BV (Dordrecht, the Netherlands)
+(Fig. 1d). All images were acquired with an RMS noise floor
+below < 1.5× the expected thermal noise limit [46], with the RF
+coil impedance matched to 50.0 ± 0.2 Ω at the daily operating
+frequency.
+The scanner is controlled through the open-source MaRCoS
+(Magnetic Resonance Control System) framework [47], [48],
+which features synchronized pulse-sequence execution and data
+acquisition. User interaction with MaRCoS is handled via the
+MaRGE interface (MaRCoS Graphical Environment) [49], and
+all pulse sequences used in this work are openly available on
+GitHub [50].
+B. Pulse sequences
+The pulse sequence parameters for all qualitative and quanti-
+tative acquisitions are provided in Table I (PETRA) and Table II
+(RARE).
+C. System calibrations and PETRA optimization
+To alleviate the effects of coil ringing and Tx/Rx switching
+delays, we adopted the pre-emphasis and counter-emphasis
+1The quality factor (𝑄) was determined from the time constant of the ring-
+down signal (𝜏) following an RF pulse generated with a square input to the
+RFPA. The magnetic field 𝐵1(𝑡) was recorded on an oscilloscope via flux
+induction in a pickup loop near the RF coil (see Fig. 2a), and the decay envelope
+was fitted to an exponential model.
+
+
+5
+TABLE I
+Acquisition parameters for PETRA sequences.
+Image
+FA (◦)
+RF pulse
+length (µs)
+FoV
+(mm3)
+Pixel
+size
+(mm)
+Dead
+time (µs) /
+Acquisition
+time (ms)
+Bandwidth
+(kHz)
+TR
+(ms)
+US𝑟𝑎𝑑
+Radial
+spokes
+Pointwise
+spokes
+Averages
+Scan
+time
+(min)
+Fig. 4a.I
+90
+4/20/3
+20×16×16
+2×2×2
+150 / 1
+50
+50
+1
+25,250
+568
+1
+21.5
+Fig. 4a.II
+90
+4/20/3
+20×16×16
+2×2×2
+175 / 1
+50
+50
+1
+25,250
+1,584
+1
+22.4
+Fig. 4a.III
+90
+4/20/3
+20×16×16
+2×2×2
+200 / 1
+50
+50
+1
+25,250
+3,416
+1
+23.9
+Fig. 4a.IV
+90
+4/20/3
+20×16×16
+2×2×2
+200 / 2
+50
+50
+1
+25,250
+488
+1
+21.4
+Fig. 4a.V
+90
+4/20/3
+20×16×16
+2×2×2
+200 / 3
+50
+50
+1
+25,250
+168
+1
+21.2
+Fig. 4b.I
+90
+4/20/3
+20×16×16
+2×2×2
+200 / 1
+50
+50
+1
+25,250
+3,416
+1
+23.9
+Fig. 4b.II
+90
+4/20/3
+20×16×16
+2×2×2
+200 / 1
+50
+50
+2
+12,622
+3,416
+1
+13.4
+Fig. 4b.III
+90
+4/20/3
+20×16×16
+2×2×2
+200 / 1
+50
+50
+4
+6,370
+3,416
+1
+8.2
+Fig. 4b.IV
+90
+4/20/3
+20×16×16
+2×2×2
+200 / 1
+50
+50
+8
+3,226
+3,416
+1
+5.5
+Fig. 4b.V
+90
+4/20/3
+20×16×16
+2×2×2
+200 / 1
+50
+50
+16
+1,604
+3,416
+1
+4.2
+Fig. 4c.I
+90
+4/10/3
+20×16×16
+2×2×2
+200 / 1
+50
+50
+1
+25,250
+3,192
+1
+23.7
+Fig. 4c.II
+90
+4/20/3
+20×16×16
+2×2×2
+200 / 1
+50
+50
+1
+25,250
+3,416
+1
+23.8
+Fig. 4c.III
+90
+4/50/3
+20×16×16
+2×2×2
+200 / 1
+50
+50
+1
+25,250
+4,176
+1
+24.5
+Fig. 4c.IV
+90
+4/150/3
+20×16×16
+2×2×2
+200 / 1
+50
+50
+1
+25,250
+7,512
+1
+27.3
+Fig. 4c.V
+90
+4/300/3
+20×16×16
+2×2×2
+200 / 1
+50
+50
+1
+25,250
+15,096
+1
+33.62
+Fig. 5c&d
+90
+4/20/3
+20×16×16
+2×2×2
+200 / 1
+40
+50
+1
+25,250
+1,936
+1
+22.6
+Fig. 7a
+10:10:90
+4/20/3
+20×16×16
+2×2×2
+300 / 1
+50
+10
+5
+5,108
+10,600
+2
+5.2
+Fig. 8 top
+40
+2.5/20/2.5
+20×16×16
+1.6×1.6×1.6
+300 / 1.25
+48
+20
+4
+9,488
+10,752
+2
+13.5
+Fig. 8 bottom
+30
+2.5/10/2.5
+20×16×12
+1.6×1.6×1.6
+320 / 1.25
+48
+25
+4
+7,086
+9,096
+2
+13.4
+Fig. 9a&b.IV
+30
+2.5/20/2.5
+20×16×16
+2×2×4
+200 / 1
+50
+50
+2
+6,380
+1,864
+1
+6.8
+Fig. 9c&d.IV
+40
+2.5/20/2.5
+20×16×12
+2×2×3
+300 / 1
+50
+20
+4
+3,232
+5,151
+3
+8.4
+Fig. 10
+20:20:80
+4/20/2.5
+20×16×16
+2×2×4
+200 / 1.0
+48
+25/50/100
+4
+3,232
+1,832
+4/2/1
+8.4
+Fig. 11&12a
+90
+4/20/2.5
+20×16×16
+2×2×4
+200 / 1.25
+48
+50
+4
+3,842
+3,568
+1
+6.1
+TABLE II
+Acquisition parameters for RARE sequences.
+Image
+Pulse
+time (µs)
+FoV
+(mm3)
+Pixel
+size
+(mm)
+TI (ms)
+TE (ms)
+ETL
+TR (ms)
+𝑇𝑎𝑐𝑞(ms)
+Dummy
+pulses
+Partial
+Fourier (%)
+Averages
+Scan
+time
+(min)
+Fig. 6a
+28/56
+20×16×16
+2×2×4
+0
+20:100
+4
+800
+4
+0
+70
+1
+7.4
+Fig. 6b
+32/64
+20×16×16
+2×2×4
+0:600
+20
+4
+800
+4
+0
+70
+1
+7.4
+Fig. 9a-d.I
+100
+20×16×16
+2×2×4
+0
+15
+4
+800
+2
+0
+70
+1
+7.5
+Fig. 9a-d.II
+100
+20×16×16
+2×2×4
+0
+40
+8
+800
+2
+0
+70
+2
+7.5
+Fig. 9a-d.III
+100
+20×16×16
+2×2×4
+0
+20
+4
+120
+2
+10
+70
+7
+7.8
+approach proposed in Ref. [51]. In this scheme, the RF pulse is
+composed of three consecutive components: (0) a short, high-
+amplitude pre-emphasis pulse of the same phase as the main
+excitation; (1) the main excitation pulse; and (2) a counter-
+emphasis pulse of opposite phase (180° phase shift) that
+suppresses residual energy stored in the resonator (see Fig. 2b).
+This strategy effectively reduces post-transmission ringing2.
+The impact of pre/counter-emphasis on RF pulse quality
+(Sec. II-B) was evaluated by recording the 𝐵1(𝑡) field trace
+on an oscilloscope using a small pickup coil (2 cm diameter,
+2Not to be confused with a reduction in the intrinsic ring-down time constant,
+which remains unchanged.
+4 turns) positioned close to and approximately concentric with
+the Tx/Rx coil. The voltage and duration configuration used
+was 𝑉RF,0/𝑉RF,1/𝑉RF,2 = 1/0.25/1 a.u. and 𝑡RF,0/𝑡RF,1/𝑡RF,2 =
+4/50/3 µs, corresponding respectively to the pre-, main-, and
+counter-emphasis pulses. In the configuration without pre-
+emphasis, only the main component was applied with 𝑉RF,1 =
+0.25 a.u. and 𝑡RF,1 = 50 µs.
+To prolong 𝑇∗
+2 times (Sec. II-A), we shimmed actively
+prior to each study, based on the line-narrowing of the free
+NMR signal spectrum (see Fig. 3c). For this step, the pre-
+emphasis configuration was 𝑉RF,0/𝑉RF,1/𝑉RF,2 = 1/0.25/1 a.u.
+and 𝑡RF,0/𝑡RF,1/𝑡RF,2 = 3/25/3 µs.
+To correct for slow Larmor-frequency drifts (Sec. II-C),
+
+
+6
+the carrier and demodulation frequencies were recalibrated at
+intervals of no more than 10 minutes.
+To keep acquisition times below 15 min (Sec. II-D), we
+employed a moderate degree of radial undersampling (USrad up
+to ×4). However, the pointwise region of 𝑘-space is always fully
+acquired, as compressed sensing [52], [53] was suboptimal for
+our context. Although the gradient system would tolerate longer
+TRs without overheating, we limited the maximum TR to 50 ms.
+D. Field maps
+We followed the procedure introduced in Sec. II-F to obtain
+simultaneous 𝐵0(®𝑟) and 𝐵1(®𝑟) maps in our 90 mT system, where
+the Halbach magnet and the single, uniformly wound solenoidal
+RF coil introduce significant fluctuations in both fields. The
+three SPRITE sequences were applied to a structureless phantom
+filled with a 1 % CuSO4 solution (TI = 8.6 ms, 𝑇1 = 12.5 ms,
+measured by inversion recovery) that fully occupied the RF
+imaging volume (see Fig. 1b).
+Common parameters for the SPRITE sequences were: 𝑁av =
+1, FoV = (20, 16, 16) cm, 𝑁= (20, 16, 16), Δ𝑟= 10 × 10 ×
+10 mm3,𝑇1,d/𝑇2,d = 350/550 µs, 𝛼1,nom/𝛼2,nom = 60/80°, TR =
+10 ms, BW = 50 kHz, 𝑁sp = 10,000, 𝑁dummy = 10, and 𝑇seq =
+100 s, with a total protocol duration of 𝑇prot = 5 min.
+For the first and third sequences, the different flip angles were
+generated by increasing the nominal 𝐵1 strength while keeping
+the RF pulse length (𝑡RF = 20 µs) and pre/counter-emphasis
+identical in both cases, thereby avoiding relative modulations
+due to differing excitation bandwidths. The three acquired 𝑘-
+spaces were zero-padded by a factor of five to increase the spatial
+resolution to 2 mm and subsequently reconstructed using FFT
+to obtain the complex matrices 𝜌𝑖.
+To estimate the spatially varying 𝐵1-scaling, we solved Eq. 5
+for the value of 𝜂that minimizes the 𝐿2 norm of the discrepancy
+between the analytical steady-state signal-ratio model (right-
+hand side of Eq. 5) and the experimentally measured ratio at
+each voxel (left-hand side), using in MATLAB a derivative-free
+Nelder–Mead search (fminsearch) initialized at 𝜂=1 for all
+pixels.
+E. Standard relaxation maps
+For the measurement of 𝑇2 in the soft tissues of the knee
+following a standard approach (Sec. II-G), a series of RARE
+images were acquired with TR ≫𝑇1. The echo time (TE) was
+progressively varied in steps of 10 ms, from TE = 20 ms up to
+100 ms, at which point the signal of all tissues became strongly
+attenuated. For the measurement of 𝑇1, fourteen STIR images
+were acquired with TR ≫𝑇1, varying the inversion time (TI)
+from TI = 0 up to TI = 600 ms, where the signals of all tissues
+were fully recovered from inversion.
+In all cases, the filling of 𝑘-space followed a center-out
+trajectory with 70 % partial Fourier sampling in the slice
+direction. The 𝑘-spaces were FFT-reconstructed, and the noise
+background was removed using a common mask applied to all
+magnitude images. For each pixel within the mask, a voxelwise
+fit to the appropriate relaxation model was performed. For the
+𝑇2 map, the magnitude data |𝑠(TE)| was fitted to
+𝑠(𝜌,𝑇2) = 𝜌𝑒−TE/𝑇2,
+(9)
+whereas the 𝑇1 map was obtained by fitting the magnitude data
+|𝑠(TI)| to:
+𝑠(𝜌,𝑇1) =
+𝜌
+
+1 −2𝑒−TI/𝑇1 + 𝑒−TR/𝑇1
+ .
+(10)
+F. VFA-PETRA relaxation maps
+Because the 𝑇1 mapping strategy described in Sec. II-H can
+become imprecise when applied to anatomical regions that
+protrude from the RF coil bore (such as the knee or elbow), we
+first validated the method using the same homogeneous phantom
+employed for field mapping, which fully occupied the imaging
+volume (Fig. 1b).
+This validation aimed to assess how the SNR of the resulting
+𝑇1 maps depends on the nominal flip angles of the PETRA
+pair used to compute 𝜆(®𝑟) in Eq. (8), and how this relationship
+affects𝑇1 estimation accuracy and precision. Following phantom
+validation, the VFA-PETRA method was applied for in vivo 𝑇1
+mapping of the knee, simultaneously covering soft and hard
+tissues in a healthy volunteer.
+The RF pulses were systematically corrected by means
+of pre/counter-emphasis, and the calibration of each 𝛼nom
+was defined from Rabi flops obtained with increasing RF
+amplitude and fixed pulse duration, ensuring identical excitation
+bandwidths for both acquisitions.
+For the in vivo case, two PETRA datasets were acquired
+with a fixed TR = 50 ms and variable nominal flip an-
+gles 𝛼1,nom/𝛼2,nom = 10/40° over Tseq = 6 min each. This
+configuration produced a 3D 𝑇1 map with a resolution of
+Δ𝑟= 2 × 2 × 4 mm3 in a total acquisition time of 12 min.
+After the pair of PETRA acquisitions, the volunteer’s knee
+was removed from the RF coil and replaced with the homo-
+geneous phantom used for field mapping (Fig. 1b). After this
+exchange, we readjusted the impedance matching. Subsequently,
+the three SPRITE sequences described in Sec. II-F were
+executed using the same active shimming settings as those
+applied during the preceding in vivo PETRA scans.
+G. Reconstruction and post-processing
+Under ideal conditions, a radial-to-Cartesian interpolation
+(with optional density compensation) followed by a model-
+agnostic Fourier inversion can be an efficient strategy for non-
+Cartesian 𝑘-space sampling. However, in non-ideal regimes a
+more accurate approach is to construct a linear forward model
+describing the system response to the applied pulse sequence,
+incorporating prior knowledge of the relevant magnetic fields.
+The resulting model defines a cost function that is minimized
+(optionally with regularization) to solve the linear system of 𝑖
+equations:
+𝑠𝑖(𝑡) = EM𝑖, 𝑗(®𝑟, 𝑡) 𝜌𝑗(®𝑟),
+(11)
+where 𝑠𝑖is the vectorized 𝑘-space signal with a length equal to
+the number of recorded samples during the sequence (𝑖), and
+𝜌𝑗is the vectorized spin-density matrix with a size equal to the
+number of voxels in the reconstructed image (𝑗). The matrix
+EM𝑖, 𝑗represents a signal encoding matrix.
+Once the Δ𝐵0(®𝑟) and Δ𝐵1(®𝑟) field maps have been estimated
+from the SPDS protocol, the corresponding field matrices
+
+
+7
+(defined over the full imaging FoV) are cropped to the partial
+imaging region and interpolated to match the target image
+resolution. When reconstructing 𝑘-space data acquired with
+a PETRA sequence at a given nominal flip angle 𝛼nom, the
+voxelwise vectors Δ𝐵0(®𝑟𝑗) and 𝜂(®𝑟𝑗) are incorporated into the
+non-ideal terms of the EM for each 𝑖-sample of 𝑘-space as
+EM𝑖, 𝑗= 𝜖(®𝑟𝑗) · exp
+n
+−i
+h
+®𝑘𝑖· ®𝑟𝑗+ 𝛾Δ𝐵0(®𝑟𝑗) 𝑡(®𝑘𝑖)
+io
+,
+(12)
+where
+𝜖(®𝑟𝑗) = sin 𝛼nom 𝜂(®𝑟𝑗)
+sin(𝛼nom)
+· 𝜂(®𝑟𝑗).
+(13)
+On the right-hand side of Eq. (13), the left fraction represents
+the normalized FA experienced by each voxel during transmis-
+sion, while 𝜂accounts for the receive sensitivity of the coil at
+each voxel. In our PETRA acquisitions, 𝑡(®𝑘) = 𝑇d for the central
+pointwise region, and 𝑡(®𝑘) = |®𝑘|/(𝛾|𝑔enc|) for the radial portion.
+In RARE acquisitions, 𝑡(®𝑘) = |®𝑘rd|/(𝛾|𝑔rd|).
+Finally, Eq. (11) is inverted using the Kaczmarz algorithm
+(ART) [54], based on the recursive expression
+𝜌𝑛= 𝜌𝑛−1 + 𝜆𝑠𝑖−EM𝑖· 𝜌𝑛−1
+∥EM𝑖∥
+EM∗
+𝑖,
+(14)
+where 𝜆is a regularization parameter, 𝑠𝑖is the 𝑖th element of
+the vectorized 𝑘-space data, EM𝑖is the 𝑖th row of the encoding
+matrix, and 𝜌0 is typically initialized to zero. The estimated
+solution 𝜌𝑛is updated 𝑛t × 𝑛it times via Eq. (14), where 𝑛it
+denotes the number of ART iterations.
+Except for the images shown in Fig. 6, which were simply
+FFT-inverted, all PETRA and RARE images presented here
+were reconstructed using ART with 𝐵0 and 𝐵1 PK. In all cases,
+we used 𝜆= 𝑛it = 1. Except for the images in Figs. 4 and
+5c–d (which are shown in raw form), all reconstructions were
+denoised using a BM4D filter [55].
+H. Tissue 𝑇1 estimations
+Once the 3D 𝑇1 and 𝑇2 maps are obtained using either VFA-
+PETRA or standard methods, a systematic procedure is followed
+to extract the mean relaxation times for each tissue. First, a
+representative 2D slice of the 3D map is selected, corresponding
+to the region where the largest and most homogeneous portion
+of the tissue of interest is visible and free of artifacts. This slice
+is then segmented to generate a mask covering the homogeneous
+region of that tissue. Finally, the mean value and standard
+deviation of 𝑇1 and 𝑇2 are determined by fitting the histogram
+of unmasked pixel values to Gaussian distributions.
+IV. Results
+A. System calibrations and PETRA optimization
+The results presented below correspond to the calibration and
+optimization procedures described in Section III-C.
+Figure 2 shows the temporal evolution of the 𝐵1(𝑡) field in the
+absence (a) and presence (b) of pre/counter-emphasis. Figure 2c
+displays the corresponding frequency spectra of the blue traces
+in panels a and b.
+Figure 3 summarizes the calibration measurements performed
+prior to each experiment once the RF coil was loaded with the
+subject’s knee. Panel a shows a Rabi flop acquired by repeatedly
+applying RF pulses (TR = 1 s) with pre/counter-emphasis and
+linearly increasing amplitude. The first point of each recorded
+FID, acquired 𝑇dead = 200 µs after switching off the RF pulse, is
+plotted. Panels b and c show the FIDs and their respective FFTs
+obtained without and with active shimming, after applying a
+90° RF pulse (𝑡RF = 25 µs) with amplitude calibrated from
+panel a. The optimized shimming reduced the linewidth to
+88 ppm (FWHM = 320 Hz at 3.64 MHz). Panel d shows the
+Larmor frequency drift measured during long PETRA and STIR
+acquisitions in vivo (corresponding to Figs. 6b and 12a) and
+during analogous phantom experiments.
+Figure 4a illustrates the influence of the Tx/Rx switching
+time (𝑇dead) and acquisition window (𝑇acq) on PETRA recon-
+structions. From left to right, the ratio 𝑇dead/𝑇acq varies around
+the optimal value found for this phantom, set to 200 µs/1 ms.
+Figure 4b shows the impact of radial 𝑘-space undersampling
+(USrad). As USrad increases from ×1 to ×16, the sequence
+duration shortens at the expense of nominal resolution. Figure 4c
+shows the artifacts caused by RF pulse length (𝑡RF) in PETRA
+images acquired with |𝑔enc| = 6 mT/m and a bandwidth 38 kHz.
+From left to right, 𝑡RF increases as 5, 20, 50, 150, and 300 µs,
+corresponding to spectral bandwidths of 240, 60, 24, 8, and
+4 kHz, respectively.
+B. Field maps and model-based reconstruction
+The results presented here correspond to the procedures
+described in Section III-D (field mapping) and Section III-G
+(reconstruction).
+Figures 5a and b show, respectively, the Δ𝐵0(®𝑟) and 𝜂(®𝑟) maps
+obtained using the SPDS protocol for several 𝑧-slices across
+the FoV. Figures 5c and d compare agnostic and model-based
+reconstructions of the same PETRA 𝑘-space data acquired from
+a gridded phantom filled with a 1 % CuSO4 solution.
+C. Standard relaxation maps
+The results presented below correspond to the standard
+procedures described in Section III-E for 𝑇1 and 𝑇2 mapping.
+Figure 6a shows a representative slice from a series of nine
+3D RARE images of a healthy volunteer’s knee, acquired with
+echo times ranging from 10 ms to 100 ms. Figure 6b shows the
+same slice from a series of fourteen 3D STIR images acquired
+in another healthy volunteer, with inversion times ranging from
+0 ms to 600 ms. Figures 6c and d display the corresponding 𝑇2
+and 𝑇1 maps of the knee’s soft tissues, obtained by voxelwise
+fitting of the signal variation with TE and TI according to
+Eqs. (9) and (10), respectively.
+D. Phantom validation of VFA-PETRA relaxation maps
+The results presented below correspond to procedures de-
+scribed in Section III-F.
+Figure 7 shows the phantom-based validation of the VFA-
+PETRA approach for 𝑇1 mapping, evaluating its reliability as
+a function of: (i) the nominal flip angles used for the PETRA
+sequence pair; and (ii) the inclusion or omission of 𝐵0 and 𝐵1
+PK in the fitting model.
+
+
+8
+Fig. 2. Temporal trace of the 𝐵1(𝑡) field generated by the RF coil after triggering the RFPA with a pulse (a) without and (b) with pre- and counter-emphasis. (c)
+FFTs of the 𝐵1(𝑡) field envelopes detected by the pickup coil in both cases.
+Fig. 3. Calibration of the NMR signal with the RF coil loaded by a knee for PETRA optimization in Halbach systems. (a) Rabi flop acquired from the repeated
+application (TR = 1 s) of square RF pulses with pre-emphasis (𝑡RF = 25 µs) and linearly increasing amplitude for flip-angle calibration. (b) FID before and after
+active shimming optimization. (c) Frequency spectra of the FIDs in (b), showing line narrowing to 88 ppm (FWHM = 320 Hz at 3.64 MHz) after shimming. (d)
+Larmor frequency drift during PETRA and STIR studies on in vivo subjects and the corresponding variation observed in phantom measurements.
+Fig. 4. Evaluation of reconstruction quality of a reticulated phantom encoded
+with PETRA sequences: (a) effect of the ratio between Tx/Rx switching time
+and acquisition window (𝑇dead/𝑇acq), (b) effect of radial 𝑘-space undersampling
+(USrad), and (c) dependence on RF pulse length (𝑡RF).
+Figure 7a displays the central 𝑧-slice from a set of nine PETRA
+images (𝜌𝑖, 𝑖= 1 . . . 9) acquired with nominal flip angles
+varying from 𝛼1,nom = 10° to 𝛼9,nom = 90° in 10° increments.
+All images were reconstructed with ART using only 𝐵0 PK in
+the encoding matrix.
+Figure 7b shows the corresponding ratio maps 𝜆𝑖(®𝑟) =
+abs(𝜌𝑖)/abs(𝜌1) (𝑖= 2 . . . 9) computed for the same slice.
+Figure 7c presents the𝑇1 maps obtained from each𝜆𝑖by fitting
+Eq. (8) under the assumption of negligible field inhomogeneities
+(Δ𝐵0 = 0, 𝜂= 1). Figure 7d shows the corresponding 𝑇1
+histograms derived from these maps.
+Figure 7e displays the 𝑇1 maps obtained from the same ratios
+when including the Δ𝐵0 and 𝜂maps estimated from SPDS as PK
+in the fitting model. Finally, Figure 7f shows the 𝑇1 histograms
+corresponding to these corrected maps.
+E. In vivo imaging of hard tissues
+The results presented here correspond to the PETRA se-
+quences detailed in Table I, after applying the optimizations
+and calibrations described in the previous subsections.
+Figure 8 shows reconstructions of 𝑘-space data acquired
+for the knee and ankle of a healthy volunteer. For consistent
+visualization across all three anatomical planes, an isotropic
+spatial resolution of 2 mm was selected, despite the associated
+penalty in SNR and scan time.
+Figure 9 compares the visualization capabilities of PETRA
+with those of standard clinical MRI sequences (PD-, 𝑇1-,
+and 𝑇2-weighted RARE) for both the knee and ankle. Below
+each anatomical slice, the corresponding SNR map is shown,
+normalized per unit of scan time and displayed using a common
+color scale.
+Figure 10 shows the same 𝑧-slice of a healthy volunteer’s knee,
+encoded with equivalent PETRA sequences differing only in FA
+and TR. The number of averages was fixed for each acquisition
+to maintain a constant total scan duration (8.4 min).
+Figure 11 shows slices from four 3D datasets obtained by
+subtracting PETRA images acquired with fixed TR = 50 ms and
+variable flip angles ranging between 10° and 150°. Figure 11a
+corresponds to 𝛼2 −𝛼1 = 120◦−50◦, highlighting the cruciate
+ligament (red arrow). Figure 11b corresponds to 𝛼2 −𝛼1 =
+150◦−90◦, enhancing fat relative to muscle (green arrow).
+
+
+9
+Fig. 5. Evaluation of 𝐵0(®𝑟) and 𝐵1(®𝑟) mapping protocols and comparison between agnostic and model-based reconstruction methods. (a) Different slices along
+the 𝑧-direction of the Δ𝐵0(®𝑟) map. (b) Corresponding slices showing the 𝐵1 efficiency map 𝜂(®𝑟). (c) Same slices reconstructed with ART without PK of the
+fields (Eq. (11) with Δ𝐵0(®𝑟𝑗) = 0 and 𝜖(®𝑟𝑗) = 1) from a grid phantom encoded with PETRA. (d) Same slices reconstructed with ART including PK of both
+𝐵0(®𝑟) and 𝐵1(®𝑟), using the same PETRA sequence as in (c).
+Fig. 6. Quantitative 𝑇1 and 𝑇2 maps obtained using gold-standard methods.
+(a) Single slice containing the posterior cruciate ligament from a series of nine
+RARE images acquired at varying echo times (TE). (b) Same slice from a series
+of fourteen STIR images acquired at varying inversion times (TI). (c) 𝑇2 map
+computed from the data in (a). (d) 𝑇1 map computed from the data in (b).
+Figure 11c corresponds to 𝛼2−𝛼1 = 70◦−20◦, showing complete
+fat suppression and muscle enhancement (blue arrow). Finally,
+Figure 11d corresponds to 𝛼2 −𝛼1 = 30◦−10◦, emphasizing
+cartilage and meniscus (purple arrow).
+F. In vivo relaxation maps of hard tissues
+The results presented below correspond to methods described
+in Section III-F and validated as shown in Section IV-D.
+Figure 12 shows the results of 3D 𝑇1 mapping performed
+with VFA-PETRA on the knee of a healthy volunteer. Figure 12a
+displays four representative slices from a 3D PETRA acquisition
+encompassing the main tissues of interest. This image was gen-
+erated using PETRA parameters equivalent to those employed
+for the pair of images used to compute 𝜆(®𝑟) in Eq. (8), except for
+the flip angle, which was set to 90° to enhance tissue contrast
+and facilitate automatic segmentation.
+Figure 12b shows the segmentation of short-𝑇2 tissues in
+the same slices, from which the mean 𝑇1 value for each region
+was subsequently determined. The segmented structures include
+the posterior cruciate ligament (sky blue), quadriceps tendon
+(green), patellar tendon (red), cortical bone (purple), auricular
+cartilage (dark blue), and patellar cartilage (gray). For com-
+parison with standard methods, two predominant soft tissues
+(muscle and fat, shown in orange and yellow, respectively) were
+also included.
+Figure 12c presents the corresponding 𝑇1 maps for the
+same slices, obtained from 𝜆(®𝑟) computed using a pair of
+PETRA images with nominal flip angles 𝛼1,nom/𝛼2,nom = 10/40,
+followed by voxelwise fitting to Eq. (5). Finally, Figure 12d
+shows the 𝑇1 distributions within each RoI together with their
+Gaussian fits, from which the mean 𝑇1 values for each tissue
+were estimated.
+V. Discussion
+A. System calibrations and PETRA optimization
+Figure 2a shows the distortion of the RF pulse relative to
+the expected rectangular shape. In this case, the charging and
+discharging of energy in the resonator extend up to 𝜏≈22 µs
+due to the low operating frequency (𝜔L = 2𝜋·3.64 MHz) and the
+high quality factor (𝑄≈250) of the RF coil. However, Figure 2b
+demonstrates that this distortion can be effectively compensated
+by incorporating pre-emphasis, while the counter-emphasis
+reduces spurious energy stored in the resonator. Figure 2c further
+shows that the application of pre/counter-emphasis enables a
+more uniform excitation of a 24 kHz spectral bandwidth.
+In Figure 3a, the uncertainty in flip-angle calibration derived
+from a Rabi flop is evident, originating from 𝐵1 inhomo-
+geneities. This manifests as a non-zero signal at 𝐵1 = 0.35 a.u.,
+corresponding to the 𝜋-pulse condition. Figures 3b and c show
+that active shimming extends the raw FID up to𝑇∗
+2 ≈1 ms, while
+narrowing the spectral width to 320 Hz (88 ppm). The Larmor
+frequency drift observed across different studies (Fig. 3d)
+supports two conclusions: (i) the PETRA sequences used in
+this study do not induce greater heating than the RARE/STIR
+sequences;and (ii)thedriftin Larmorfrequencyis mainlydriven
+by heat transferred from the subject to the magnet, as well as
+
+
+10
+Fig. 7. Validation of VFA-PETRA 𝑇1 mapping on a homogeneous phantom. (a) ART reconstructions with 𝐵0 PK of nine PETRA sequences acquired with different
+nominal FAs. (b) Ratio maps 𝜆𝑖(®𝑟) computed using 𝜌1 as the baseline for the lowest-FA image. (c) 𝑇1 maps obtained by fitting Eq. (8) without PK of 𝐵0 or 𝐵1.
+(d) 𝑇1 maps obtained from the same data when including 𝐵0 and 𝐵1 PK in the fitting model. (e) Histograms of 𝑇1 distributions for each map in (c). (f) Histograms
+of 𝑇1 distributions for each map in (d).
+Fig. 8. Axial, coronal, and sagittal slices reconstructed from PETRA acquisitions of the knee (top) and ankle (bottom) of a volunteer. In the knee, identifiable
+structures include the anterior (yellow) and posterior (red) cruciate ligaments, patellar cartilage (blue), cortical bone (green), quadriceps tendon (brown), patellar
+ligament (white), fibular collateral ligament (orange), and the medial (pink) and lateral (black) menisci. A Baker’s cyst (purple) appears dark. In the ankle: Achilles
+tendon (red), peroneus longus tendon (yellow), tibialis anterior tendon (green), posterior tibiofibular ligament (orange), tibialis posterior tendon (brown), and flexor
+hallucis tendon (white).
+
+
+11
+Fig. 9. Qualitative comparison of the same slice of a healthy subject’s knee (top)
+and ankle (bottom) imaged with four different sequences, together with their
+corresponding SNR maps. From left to right: RARE-PDw, RARE-𝑇1w, RARE-
+𝑇2w, and PETRA. In the knee: anterior cruciate ligament (red), patellar tendon
+(green), patellar cartilage (red), and lateral meniscus (yellow). In the ankle:
+Achilles tendon (red), posterior talofibular ligament (yellow), and peroneus
+longus tendon (blue).
+Fig. 10. Reconstructions and SNR maps of the same 𝑧-slice of a knee, acquired
+with equivalent PETRA sequences at different flip angles (FA) and repetition
+times (TR).
+Fig. 11. Slices from four 3D datasets generated by subtraction of PETRA images
+acquired at different flip angles. (a) Hyperintense visualization of the cruciate
+ligament above muscle (red). (b) Hyperintense visualization of fat relative to
+muscle (green). (c) Fat suppression and enhanced muscle contrast (blue). (d)
+Hyperintense visualization of cartilage and meniscus (purple).
+the sensitivity of the permanent magnets to ambient conditions.
+During in vivo knee experiments, a maximum frequency shift
+of 650 Hz was recorded after 110 min of consecutive sequences,
+all performed under identical gradient conditions.
+Figure 4a reveals that excessively short 𝑇dead values produce
+artifacts in the form of a central lobe resembling a sinc function,
+caused by residual ring-down energy. The required dead time
+depends primarily on the signal amplitude, which varies with the
+size of the anatomical region, as well as with image resolution,
+TR, and FA. When 𝑇acq > 𝑇∗
+2 ≈1 ms, blurring, anisotropic
+resolution loss, geometric distortions, and hyperintense banding
+appear as a consequence of incorrect spin mapping induced by
+𝐵0(®𝑟) inhomogeneities. Unlike 𝑇dead, this limit is intrinsic to
+the system, since 𝑇∗
+2 is mainly determined by the distribution
+of Larmor frequencies within the imaging volume. For these
+reasons, while𝑇acq was fixed at 1.25 ms for in vivo imaging,𝑇dead
+was adjusted from 175 µs (knee) to 300 µs (ankle), reflecting the
+lower signal amplitude in the latter.
+Figure 4b illustrates that reducing the number of radial
+readouts in 𝑘-space leads to a loss of nominal resolution, which
+is less noticeable in highly structured phantoms such as the one
+used here. We found that undersampling up to a factor of ×4
+remains acceptable for large anatomical structures, introducing
+only minor degradation in fine details.
+Finally, Figure 4c shows that extending the RF pulse in ZTE
+introduces two distinct effects: (i) the non-uniform spectral
+coverage of long pulses produces a sinc-like radial modulation
+of brightness in the phantom, as peripheral regions are less
+efficiently excited; and (ii) the spectral selectivity of long pulses
+under a gradient field promotes adiabatic-like excitation, intro-
+ducing a relative time-origin shift in 𝑘(𝑡) between isochromats.
+This effect results in image blurring in regions where spins are
+significantly detuned from the RF carrier frequency.
+B. Field maps and model-based reconstruction
+Figures 5a and b demonstrate the capability of the SPDS
+extension to generate simultaneous 𝐵0(®𝑟) and 𝐵1(®𝑟) maps that
+are free from geometric distortions. In the resulting maps, the
+expected 𝐵1 modulation toward the edges of the solenoidal
+coil and the characteristic high-order field components of the
+Halbach magnet are markedly visible.
+Figure 5c shows the types of artifacts typically observed in
+PETRA reconstructions when field-agnostic methods are ap-
+plied.These includegeometric distortions,pronouncedblurring,
+and complete signal loss in regions most affected by strong 𝐵0
+inhomogeneity.
+In contrast, Figure 5d shows a substantial reduction of these
+artifacts when PK of both 𝐵0(®𝑟) and 𝐵1(®𝑟) is incorporated
+into the EM within the ART reconstruction, demonstrating the
+advantage of the model-based approach.
+C. Phantom validation of VFA-PETRA relaxation maps
+Figure 7 validates the VFA-PETRA approach for 𝑇1 quan-
+tification in tissues with short 𝑇2. As shown in Figure 7b,
+increasing the difference between the nominal flip angles of the
+PETRA image pair enhances the SNR of the 𝜆(®𝑟) map, thereby
+improving the robustness of the 𝑇1 estimation. However, this
+
+
+12
+Fig. 12. In vivo 𝑇1 mapping of a healthy volunteer’s knee using VFA-PETRA. (a) Selected slices for 𝑇1 analysis. (b) Segmentation of regions of interest (RoIs) for
+each tissue type. (c) Resulting 𝑇1 maps for the same slices. (d) 𝑇1 distribution within each segmented RoI and corresponding Gaussian fits for mean 𝑇1 estimation.
+also amplifies the effects of 𝐵0 and 𝐵1 fluctuations, which in
+turn demand accurate field mapping via SPDS.
+Figure 7c illustrates that, when 𝜆(®𝑟) maps with large FA
+separations are used to generate 𝑇1 maps without accounting
+for field inhomogeneities in Eq. (8), the resulting 𝑇1 map
+exhibits good SNR but deviates substantially from the expected
+homogeneous distribution of this phantom. Such bias could
+compromise the precision of 𝑇1 estimates for tissues located
+away from the coil center in in vivo VFA-PETRA applications.
+Conversely, when a small FA difference is selected, the low
+SNR reduces the apparent 𝐵1(®𝑟)-related inhomogeneity in the
+resulting 𝑇1 map, but the estimation becomes unreliable due to
+insufficient signal contrast.
+Finally, Figure 7d shows that, when PK of both 𝐵0 and 𝐵1
+fields is incorporated into Eq. (8) and a large 𝜆(®𝑟) map is used,
+the resulting 𝑇1 distribution becomes spatially homogeneous
+across the entire phantom while retaining SNR. This improve-
+ment, which stems from the inclusion of 𝐵0 and 𝐵1 PK and the
+choice of sufficiently separated nominal flip angles, is reflected
+in the mean values and standard deviations of the Gaussian fits
+displayed in Figures 7e and f.
+D. In vivo imaging of hard tissues
+The slices shown in Figure 8 highlight several hard-tissue
+structures exhibiting non-zero signal intensity in the PETRA
+reconstructions. In the knee, identifiable structures include
+the anterior (yellow) and posterior (red) cruciate ligaments,
+patellar cartilage (blue), cortical bone (green), quadriceps
+tendon (brown), patellar ligament (white), fibular collateral
+ligament (orange), and the medial (pink) and lateral (black)
+menisci. A Baker’s cyst (purple) appears dark due to its long
+𝑇1 (greater than 1 s) compared with the short repetition time
+used (TR = 20 ms). In the ankle slices, distinct structures can be
+identified, such as the Achilles tendon (red), peroneus longus
+tendon (yellow), tibialis anterior tendon (green), posterior
+tibiofibular ligament (orange), tibialis posterior tendon (brown),
+and flexor hallucis tendon (white). It is worth noting that the
+circular and vertical halos visible in the axial and coronal/sagittal
+planes, respectively, are not artifacts intrinsic to the PETRA
+sequence, but rather correspond to the PLA holder used for the
+RF coil winding.
+Figure 9 compares the performance of PETRA against RARE
+sequences (PD-weighted, 𝑇1-weighted, and 𝑇2-weighted) for
+imaging the knee and ankle. In the knee slices, the image in
+Figure 9a contains the largest extent of the anterior cruciate
+ligament (red), while Figure 9b highlights the patellar tendon
+(green), patellar cartilage (red), and lateral meniscus (yellow). In
+the ankle, Figure 9c shows the slice containing the widest portion
+of the Achilles tendon (red) and posterior talofibular ligament
+(yellow), whereas Figure 9d displays the peroneus longus tendon
+(blue).
+A comparison of the SNR maps (normalized per unit of scan
+time and shown below each image) reveals that PETRA achieves
+substantial SNR in regions where RARE sequences show little
+or no signal. Among the RARE variants, PD-weighted imaging
+provides the closest performance to PETRA, since shorter
+TE and ETL values combined with longer TRs improve the
+detectability of tissues with short 𝑇2, long 𝑇1, and low proton
+density.
+Figure 10 illustrates the dependence of tissue contrast and
+SNR efficiency in PETRA on flip angle and repetition time.
+According to the Ernst equation, the maximum SNR for fat
+and muscle (assuming an average 𝑇1 = 150 ms) occurs at 𝛼≈
+30° for TR = 25 ms and at 𝛼≈60° for TR = 100 ms. However,
+as in steady-state spin-echo sequences, the most efficient SNR
+performance is achieved at the shortest possible TR when the
+FA is adjusted close to the corresponding Ernst angle (in our
+case, TR = 25 ms and 𝛼= 40°).
+Figure 11 demonstrates the effectiveness of applying VFA
+strategies in PETRA imaging to modulate tissue contrast in
+a controlled and predictable manner. By selecting appropriate
+pairs of flip angles, preferential contrast enhancement can be
+achieved between specific structures, as illustrated in each
+subfigure: cruciate ligament, fat, muscle, cartilage, and meniscus
+are selectively highlighted depending on the chosen flip-
+angle combination. This targeted contrast notably improves the
+anatomical delineation achievable with ZTE, which is otherwise
+largely limited to PD- or 𝑇1-weighted contrast. Simultaneously,
+acquiring two PETRA images with calibrated flip angles enables
+the subsequent computation of𝑇1 relaxation maps (see Fig. 12c),
+thereby integrating qualitative contrast manipulation and quan-
+titative relaxometry within a single acquisition framework. This
+underscores both the versatility and the potential diagnostic
+value of combining PETRA with VFA, in contrast to traditional
+inversion-recovery approaches.
+
+
+13
+E. In vivo relaxation maps of soft and hard tissues
+From the analysis of the data in Figures 6c and d, and
+according to Eqs. (9) and (10), the muscle exhibits relaxation
+times of 𝑇1 = 189 ± 16 ms and 𝑇2 = 35 ± 5 ms, while fat
+shows 𝑇1 = 128 ± 11 ms and 𝑇2 = 69 ± 7 ms. These values
+are consistent with those reported in Ref. [35] at 50 mT, who
+measured 𝑇1 = 183 ± 10 ms and 𝑇2 = 41 ± 3 ms for muscle, and
+𝑇1 = 134 ± 7 ms and 𝑇2 = 104 ± 10 ms for fat. As expected,
+this conventional approach yields highly reliable 𝑇1 and 𝑇2
+estimates for soft tissues, although it remains time-consuming
+and impractical for routine clinical use. Nonetheless, it provides
+a valuable reference for assessing the accuracy of the 𝑇1 values
+obtained using VFA-PETRA.
+Figure 7 demonstrates the capability of VFA-PETRA to
+generate 𝑇1 maps of short-𝑇2 phantoms (𝑇2 ≈5 ms), which
+are inaccessible using standard relaxation mapping techniques.
+However, it is essential to include 𝐵1(®𝑟) information in the
+theoretical model to ensure robust estimation. As shown in
+Figure 7c, neglecting 𝐵1 fluctuations results in inhomogeneous
+𝑇1 maps that mirror the 𝐵1 efficiency distribution, leading to
+strong bias and poor precision in Gaussian fits. Conversely,
+when 𝐵1 PK is incorporated (Figure 7d), the 𝑇1 maps display
+homogeneous distributions, and the fitted values match the
+expected reference with smaller uncertainties. This result further
+validates the SPDS extension for 𝐵1 mapping.
+The analysis of the data in Figure 12c, according to Eq. (8),
+provides the estimated 𝑇1 values for the different soft and hard
+tissues in the knee, summarized in the titles of Figure 12d. The
+mean 𝑇1 values obtained for muscle and fat with VFA-PETRA
+agree, within experimental error, with those derived from
+standard methods, confirming the reliability of the proposed
+approach. However, it was not possible to quantify the 𝑇1 times
+of the smallest short-𝑇2 tissues, such as the meniscus, due to
+insufficient segmentation accuracy.
+VI. Conclusion
+In this work, we have demonstrated that it is possible to
+broaden the range of pulse sequences applicable to portable,
+low-cost MRI systems based on Halbach magnets. Specifically,
+we have implemented and optimized a ZTE-like PETRA
+sequence capable of producing images with clinically acceptable
+resolution and SNR within acquisition times below 15 min
+at 𝐵0 ≈90 mT. This achievement significantly extends the
+diagnostic reach of such portable systems, enabling the visual-
+ization of hard tissues (including ligaments, tendons, cartilage,
+and bone) that are largely suppressed in conventional spin-
+echo acquisitions. The feasibility of in vivo PETRA imaging
+was demonstrated on knees and ankles of healthy volunteers,
+establishing, to our knowledge, the first proof of ZTE imaging
+in a Halbach-based MRI system. Clinically, this capability holds
+promise for musculoskeletal assessment, therapy monitoring,
+and longitudinal follow-up in both radiological and point-of-
+care environments, offering a non-ionizing alternative to X-rays
+for bone and ligament evaluation.
+To achieve artifact-free PETRA reconstructions under the
+strong field inhomogeneities characteristic of Halbach systems,
+a set of dedicated calibration and correction procedures was
+developed. These include the use of pre/counter-emphasis pulses
+to minimize RF ring-down energy and reduce Tx/Rx switching
+time, thereby improving the temporal efficiency and SNR of
+the sequence without extending scan duration or computational
+demand. Furthermore, we introduced an extension of the SPDS
+protocol that enables simultaneous mapping of 𝐵0(®𝑟) and 𝐵1(®𝑟)
+in under 5 min. This calibration, which can be performed entirely
+with a phantom outside the patient workflow, was found essential
+for accurate model-based reconstruction, as 𝐵0 PK proved
+critical for mitigating geometric distortions. In contrast, 𝐵1 PK,
+while not mandatory for qualitative imaging, was shown to be
+crucial for accurate quantitative mapping.
+Using these calibrations, we validated the VFA-PETRA
+approach for quantitative 𝑇1 mapping in both phantoms and
+in vivo in human knees. This method enables, for the first
+time, the estimation of 𝑇1 in hard tissues with 𝑇2 < 1 ms
+at 𝐵0 < 0.1 T, extending quantitative MRI capabilities into
+regimes previously inaccessible to portable scanners. Although
+the technique provides accurate results, its precision remains
+limited by the intrinsically low SNR of low-field MRI, the coarse
+spatial resolution required for clinically acceptable scan times,
+and the small physical dimensions and low proton density of
+hard tissues. These constraints amplify partial-volume effects
+and reduce segmentation reliability, particularly for ligaments
+and cartilage. Similar challenges have been reported in other
+low-field VFA implementations [44], underscoring the need for
+further optimization of both sequence parameters and hardware
+sensitivity.
+Despite these limitations, the present work establishes a solid
+foundation for quantitative and structural MRI at very low field.
+Thedemonstrated combinationofPETRA imaging,pre/counter-
+emphasis, and SPDS-based field mapping constitutes a versatile
+framework for robust imaging in portable Halbach systems.
+Future work will focus on improving SNR through optimized
+RF coils and reconstruction algorithms, refining VFA-PETRA
+for higher precision in 𝑇1 estimation, and exploring strategies
+to measure 𝑇2 and 𝑇∗
+2 in hard tissues. The latter is currently
+unfeasible with PETRA but potentially achievable through mod-
+ified ZTE or multi-echo variants. Together, these advances could
+further extend the clinical reach of portable MRI, providing safe,
+accessible, and comprehensive imaging for musculoskeletal
+applications in both clinical and remote settings.
+Disclosures
+The tissue identification presented in Figures 8 and 9
+was performed by the authors without input from certified
+radiological specialists. Consequently, certain structures in the
+images may have been incorrectly associated with anatomical
+tissues of the human atlas. It is not our intention to mislead
+or confuse expert readers, nor to attribute undue interpretative
+significance to these identifications. For anatomical comparison
+and tissue labeling, reference was made to the online knee atlas
+available at https://freitasrad.net/pages/atlas/Knee/knee.php.
+Contributions
+See Table III.
+
+
+14
+TABLE III
+Author contributions. An “x” indicates participation in the corresponding task.
+Task
+JB
+LGCS
+LVC
+EC
+MFG
+PB
+RB
+JC
+PGC
+AGC
+TGN
+EP
+LP
+LS
+JMA
+FG
+JA
+Scanner preparation
+x
+x
+x
+x
+x
+x
+x
+x
+x
+x
+Sequence design
+x
+x
+x
+Data acquisition
+x
+x
+x
+x
+x
+x
+x
+Data analysis
+x
+x
+x
+x
+x
+Project conception
+x
+x
+x
+x
+Project management
+x
+x
+Figure prod.
+x
+Paper writing
+x
+x
+Paper revision
+x
+x
+x
+x
+x
+x
+x
+x
+x
+x
+x
+x
+x
+x
+x
+x
+x
+Acknowledgment
+This work was funded by: the European Innovation Council
+(NextMRI 101136407), Ministerio de Ciencia e Innovaci´on
+(PID2022-142719OB-C22), and the Ag`encia Valenciana de la
+Innovaci´o under grant INNVA1/2023/30.
+References
+[1] M. Sarracanie, C. D. LaPierre, N. Salameh, D. E. J. Waddington,
+T. Witzel, and M. S. Rosen, “Low-Cost High-Performance MRI,”
+Scientific Reports, vol. 5, no. 1, p. 15177, dec 2015. [Online]. Available:
+http://www.nature.com/articles/srep15177
+[2] S. Geethanath and J. T. Vaughan, “Accessible magnetic resonance
+imaging: A review,” Journal of Magnetic Resonance Imaging, vol. 49,
+01 2019.
+[3] J. Obungoloch, I. Muhumuza, W. Teeuwisse, J. Harper, I. Etoku,
+R. Asiimwe, P. Tusiime, G. Gombya, C. Mugume, M. H. Namutebi,
+M. A. Nassejje, M. Nayebare, J. M. Kavuma, B. Bukyana, F. Natukunda,
+P. Ninsiima, A. Muwanguzi, P. Omadi, M. van Gijzen, S. J. Schiff,
+A. Webb, and T. O’Reilly, “On-site construction of a point-of-care
+low-field MRI system in Africa,” NMR in Biomedicine, vol. 36, no. 7,
+p. e4917, 2023. [Online]. Available: https://analyticalsciencejournals.
+onlinelibrary.wiley.com/doi/abs/10.1002/nbm.4917
+[4] L. L. Wald, P. C. McDaniel, T. Witzel, J. P. Stockmann, and C. Z.
+Cooley, “Low-cost and portable MRI,” Journal of Magnetic Resonance
+Imaging, vol. 52, no. 3, pp. 686–696, 2020. [Online]. Available:
+https://onlinelibrary.wiley.com/doi/abs/10.1002/jmri.26942
+[5] T. Guallart-Naval, J. Algarin, R. Pellicer-Guridi, F. Galve, Y. Vives-
+Gilabert, R. Bosch, E. Pallas, J. M. Gonzalez, J. Rigla, P. Martinez,
+F. J. Lloris, J. Borreguero Morata, A. Marcos-Perucho, V. Negnevitsky,
+L. Marti-Bonmati, A. Rios, J. Benlloch, and J. Alonso, “Portable magnetic
+resonance imaging of patients indoors, outdoors and at home,” Scientific
+Reports, vol. 12, 07 2022.
+[6] A. Webb and T. O’Reilly, “Tackling SNR at low-field: a review of hardware
+approaches for point-of-care systems,” Magnetic Resonance Materials in
+Physics, Biology and Medicine, vol. 36, 05 2023.
+[7] T. O’Reilly and A. Webb, “Deconstructing and reconstructing MRI
+hardware,” Journal of Magnetic Resonance, vol. 306, pp. 134–138,
+2019. [Online]. Available: https://www.sciencedirect.com/science/article/
+pii/S1090780719301363
+[8] R. Ayde, M. Vornehm, Y. Zhao, F. Knoll, E. X. Wu, and M. Sarracanie,
+“MRI at low field: A review of software solutions for improving
+SNR,” NMR in Biomedicine, vol. 38, no. 1, p. e5268, 2025. [Online].
+Available: https://analyticalsciencejournals.onlinelibrary.wiley.com/doi/
+abs/10.1002/nbm.5268
+[9] K. Halbach, “Design of permanent multipole magnets with oriented rare
+earth cobalt material,” Nuclear Instruments and Methods, vol. 169, no. 1,
+pp. 1–10, 1980.
+[10] T. O’Reilly, W. M. Teeuwisse, D. Gans, K. Koolstra, and A. G. Webb, “In
+vivo 3D brain and extremity MRI at 50 mT using a permanent magnet
+Halbach array,” Magnetic Resonance in Medicine, p. mrm.28396, jul
+2020.
+[11] C. Z. Cooley, P. C. McDaniel, J. P. Stockmann, S. A. Srinivas, S. F. Cauley,
+M. ´Sliwiak, C. R. Sappo, C. F. Vaughn, B. Guerin, M. S. Rosen, M. H.
+Lev, and L. L. Wald, “A portable scanner for magnetic resonance imaging
+of the brain,” Nature Biomedical Engineering 2020 5:3, vol. 5, no. 3, pp.
+229–239, nov 2020.
+[12] F. Galve, E. Pall´as, T. Guallart-Naval, P. Garc´ıa-Crist´obal, P. Mart´ınez,
+J. M. Algar´ın, J. Borreguero, R. Bosch, F. Juan-Lloris, J. M. Benlloch,
+and J. Alonso, “Elliptical Halbach magnet and gradient modules for
+low-field portable magnetic resonance imaging,” NMR in Biomedicine,
+p. e5258, 2024. [Online]. Available: https://analyticalsciencejournals.
+onlinelibrary.wiley.com/doi/abs/10.1002/nbm.5258
+[13] M. Nakagomi, M. Kajiwara, J. Matsuzaki, K. Tanabe, S. Hoshiai,
+Y. Okamoto, and Y. Terada, “Development of a small car-mounted
+magnetic resonance imaging system for human elbows using a 0.2 T
+permanent magnet,” Journal of Magnetic Resonance, vol. 304, pp. 1–6,
+jul 2019.
+[14] T. Miyasaka, M. Kajiwara, A. Kawasaki, Y. Okamoto, and Y. Terada, “De-
+velopment of a Car-mounted Mobile MR Imaging System for Diagnosis of
+Sports-related Wrist Injury,” Magnetic Resonance in Medical Sciences,
+vol. 22, 04 2022.
+[15] J. M. Algar´ın, T. Guallart-Naval, E. G. Orqu´ın, R. Bosch, F. Juan-Lloris,
+E. Pall´as, J. P. Rigla, P. Mart´ınez, J. Borreguero, R. Alamar, L. Mart´ı-
+Bonmat´ı, J. M. Benlloch, F. Galve, and J. Alonso, “Portable MRI for Major
+Sporting Events – a Case Study on the MotoGP World Championship,”
+Portable MRI Journal, February 2024. [Online]. Available: https:
+//www.portablemrijournal.org/portablemriformajorsportingevents
+[16] E. L. Hahn, “Spin Echoes,” Phys. Rev., vol. 80, pp. 580–594, Nov 1950.
+[Online]. Available: https://link.aps.org/doi/10.1103/PhysRev.80.580
+[17] H. Y. Carr and E. M. Purcell, “Effects of diffusion on free precession in
+nuclear magnetic resonance experiments,” Physical Review, vol. 94, no. 3,
+pp. 630–638, 1954.
+[18] S. Mastrogiacomo, W. Dou, J. A. Jansen, and X. F. Walboomers,
+“Magnetic Resonance Imaging of Hard Tissues and Hard Tissue
+Engineered Bio-substitutes,” Molecular Imaging and Biology, vol. 21,
+no.
+6,
+pp.
+1003–1019,
+dec
+2019.
+[Online].
+Available:
+http:
+//link.springer.com/10.1007/s11307-019-01345-2
+[19] B. Eck, M. Yang, J. Elias, C. Winalski, F. Altahawi, N. Subhas, and
+X. Li, “Quantitative mri for evaluation of musculoskeletal disease:
+Cartilage and muscle composition, joint inflammation, and biomechanics
+in osteoarthritis,” Investigative Radiology, vol. Publish Ahead of Print, 09
+2022.
+[20] M. D. Robson, P. D. Gatehouse, M. Bydder, and G. M. Bydder, “Magnetic
+Resonance: An Introduction to Ultrashort TE (UTE) Imaging,” Journal of
+Computer Assisted Tomography, vol. 27, no. 6, pp. 825–846, November
+2003.
+[21] D. P. Madio and I. J. Lowe, “Ultra-fast imaging using low flip
+angles and fids,” Magnetic Resonance in Medicine, vol. 34, no. 4, pp.
+525–529, 1995. [Online]. Available: https://onlinelibrary.wiley.com/doi/
+abs/10.1002/mrm.1910340407
+[22] D. Idiyatullin, C. Corum, J.-Y. Park, and M. Garwood, “Fast and
+quiet MRI using a swept radiofrequency,” Journal of Magnetic
+Resonance, vol. 181, no. 2, pp. 342–349, 2006. [Online]. Available:
+https://www.sciencedirect.com/science/article/pii/S1090780706001479
+[23] Q. Lin, C. Cheng, Y. Bao, W. V. Liu, L. Zhang, Z. Cai, Q. Wan,
+C. Sun, X. Li, and Y. Deng, “A clinically-recommended MR whole
+
+
+15
+lung imaging protocol using free-breathing 3D isotropic zero echo time
+sequence,” Heliyon, vol. 10, no. 13, p. e34098, 2024. [Online]. Available:
+https://www.sciencedirect.com/science/article/pii/S2405844024101296
+[24] A. M. Afsahi, S. Sedaghat, D. Moazamian, G. Afsahi, J. S. Athertya,
+H. Jang, and Y.-J. Ma, “Articular cartilage assessment using ultrashort
+echo time mri: A review,” Frontiers in Endocrinology, vol. Volume 13
+- 2022, 2022. [Online]. Available: https://www.frontiersin.org/journals/
+endocrinology/articles/10.3389/fendo.2022.892961
+[25] B. S. Malhi, H. Jang, M. S. Malhi, D. B. Berry, and S. Jerban,
+“Tendon evaluation with ultrashort echo time (ute) mri: a systematic
+review,” Frontiers in Musculoskeletal Disorders, vol. Volume 2 -
+2024, 2024. [Online]. Available: https://www.frontiersin.org/journals/
+musculoskeletal-disorders/articles/10.3389/fmscd.2024.1324050
+[26] M. Weiger, K. P. Pruessmann, A.-K. Bracher, S. K¨ohler, V. Lehmann,
+U. Wolfram, F. Hennel, and V. Rasche, “High-resolution ZTE imaging of
+human teeth,” NMR in Biomedicine, vol. 25, no. 10, pp. 1144–1151, oct
+2012. [Online]. Available: http://doi.wiley.com/10.1002/nbm.2783
+[27] D. Idiyatullin, C. Corum, S. Moeller, H. S. Prasad, M. Garwood, and
+D. R. Nixdorf, “Dental magnetic resonance imaging: making the invisible
+visible,” Journal of endodontics, vol. 37, no. 6, pp. 745–752, 2011.
+[28] J. M. Algar´ın, E. D´ıaz-Caballero, J. Borreguero, F. Galve, D. Grau-Ruiz,
+J. P. Rigla, R. Bosch, J. M. Gonz´alez, E. Pall´as, M. Corber´an, C. Gramage,
+S. Aja-Fern´andez, A. R´ıos, J. M. Benlloch, and J. Alonso, “Simultaneous
+imaging of hard and soft biological tissues in a low-field dental MRI
+scanner,” Scientific Reports, vol. 10, no. 1, p. 21470, 2020. [Online].
+Available: https://doi.org/10.1038/s41598-020-78456-2
+[29] D. M. Grodzki, P. M. Jakob, and B. Heismann, “Ultrashort echo time
+imaging using pointwise encoding time reduction with radial acquisition
+(PETRA),” Magnetic Resonance in Medicine, vol. 67, no. 2, pp. 510–518,
+feb 2012.
+[30] J. Borreguero, F. Galve, J. M. Algar´ın, and J. Alonso, “Zero-echo-time
+sequences in highly inhomogeneous fields,” Magnetic Resonance in
+Medicine, vol. 93, no. 3, pp. 1190–1204, 2025. [Online]. Available:
+https://onlinelibrary.wiley.com/doi/abs/10.1002/mrm.30352
+[31] M. Weiger, K. P. Pruessmann, and F. Hennel, “MRI with zero echo
+time: Hard versus sweep pulse excitation,” Magnetic Resonance in
+Medicine, vol. 66, no. 2, pp. 379–389, aug 2011. [Online]. Available:
+http://doi.wiley.com/10.1002/mrm.22799
+[32] P. A. Bottomley, T. H. Foster, R. E. Argersinger, and L. M. Pfeifer,
+“A review of normal tissue hydrogen NMR relaxation times and
+relaxation mechanisms from 1–100 MHz: Dependence on tissue type,
+NMR frequency, temperature, species, excision, and age,” Medical
+Physics, vol. 11, no. 4, pp. 425–448, 1984. [Online]. Available:
+https://aapm.onlinelibrary.wiley.com/doi/abs/10.1118/1.595535
+[33] J.-P.
+Korb
+and
+R.
+G.
+Bryant,
+“Magnetic
+field
+dependence
+of
+proton spin-lattice relaxation times,” Magnetic Resonance in Medicine,
+vol.
+48,
+no.
+1,
+pp.
+21–26,
+2002.
+[Online].
+Available:
+https:
+//onlinelibrary.wiley.com/doi/abs/10.1002/mrm.10185
+[34] W. D. Rooney, G. Johnson, X. Li, E. R. Cohen, S.-G. Kim, K. Ugurbil,
+and C. S. Springer Jr., “Magnetic field and tissue dependencies of
+human brain longitudinal 1H2O relaxation in vivo,” Magnetic Resonance
+in Medicine, vol. 57, no. 2, pp. 308–318, 2007. [Online]. Available:
+https://onlinelibrary.wiley.com/doi/abs/10.1002/mrm.21122
+[35] T. O’Reilly and A. G. Webb, “In vivo 𝑇1 and 𝑇2 relaxation time maps of
+brain tissue, skeletal muscle, and lipid measured in healthy volunteers at
+50 mT,” Magnetic Resonance in Medicine, vol. 87, no. 2, pp. 884–895,
+feb 2021.
+[36] M. Sarracanie, “Fast Quantitative Low-Field Magnetic Resonance Imag-
+ing With OPTIMUM - Optimized Magnetic Resonance Fingerprinting
+Using a Stationary Steady-State Cartesian Approach and Accelerated
+Acquisition Schedules,” Investigative Radiology, 2021.
+[37] D. Ma, V. Gulani, N. Seiberlich, K. Liu, J. L. Sunshine, J. L. Duerk, and
+M. A. Griswold, “Magnetic resonance fingerprinting,” Nature, vol. 495,
+no. 7440, pp. 187–192, Mar. 2013.
+[38] E. K. Fram, R. J. Herfkens, G. Johnson, G. H. Glover, J. P. Karis,
+A. Shimakawa, T. G. Perkins, and N. J. Pelc, “Rapid calculation of
+T1 using variable flip angle gradient refocused imaging,” Magnetic
+Resonance Imaging, vol. 5, no. 3, pp. 201–208, 1987. [Online]. Available:
+https://www.sciencedirect.com/science/article/pii/0730725X8790021X
+[39] R. K. Gupta, “A new look at the method of variable nutation
+angle for the measurement of spin-lattice relaxation times using
+fourier transform NMR,” Journal of Magnetic Resonance (1969),
+vol.
+25,
+no.
+1,
+pp.
+231–235,
+1977.
+[Online].
+Available:
+https:
+//www.sciencedirect.com/science/article/pii/002223647790138X
+[40] D. F. Alamidi, A. Smailagic, A. W. Bidar, N. S. Parker, M. Olsson,
+P. D. Hockings, K. M. Lagerstrand, and L. E. Olsson, “Variable
+flip angle 3D ultrashort echo time (UTE) T1 mapping of mouse
+lung: A repeatability assessment,” Journal of Magnetic Resonance
+Imaging, vol. 48, no. 3, pp. 846–852, 2018. [Online]. Available:
+https://onlinelibrary.wiley.com/doi/abs/10.1002/jmri.25999
+[41] E. Ljungberg, T. Wood, A. B. Solana, S. Kolind, S. C. R. Williams,
+F. Wiesinger, and G. J. Barker, “Silent T1 mapping using the
+variable flip angle method with B1 correction,” Magnetic Resonance
+in Medicine, vol. 84, no. 2, pp. 813–824, 2020. [Online]. Available:
+https://onlinelibrary.wiley.com/doi/abs/10.1002/mrm.28178
+[42] G. Liberman, Y. Louzoun, and D. Ben Bashat, “T1 Mapping using
+variable flip angle SPGR data with flip angle correction,” Journal of
+Magnetic Resonance Imaging, vol. 40, no. 1, pp. 171–180, 2014. [Online].
+Available: https://onlinelibrary.wiley.com/doi/abs/10.1002/jmri.24373
+[43] Y. Lee, M. Callaghan, and Z. Nagy, “Analysis of the Precision of Variable
+Flip Angle T1 Mapping with Emphasis on the Noise Propagated from RF
+Transmit Field Maps,” Frontiers in Neuroscience, vol. 11, 03 2017.
+[44] S. Shen, N. Koonjoo, S. E. Ogier, T. Boele, M. A. Saksena,
+K.
+E.
+Keenan,
+and
+M.
+S.
+Rosen,
+“B1-corrected
+breast
+T1
+mapping
+at
+ultralow
+field,”
+Magnetic
+Resonance
+in
+Medicine,
+vol. 94, no. 5, pp. 1900–1912, 2025. [Online]. Available: https:
+//onlinelibrary.wiley.com/doi/abs/10.1002/mrm.30602
+[45] B. Kibret, A. K. Teshome, and D. T. H. Lai, “Characterizing the Human
+Body as a Monopole Antenna,” IEEE Transactions on Antennas and
+Propagation, vol. 63, no. 10, pp. 4384–4392, 2015.
+[46] T. Guallart-Naval and J. Alonso, “Electromagnetic noise character-
+ization and suppression in low-field mri systems,” arXiv preprint
+arXiv:2507.20413, 2025.
+[47] T. Guallart-Naval, T. O’Reilly, J. M. Algar´ın, R. Pellicer-Guridi, Y. Vives-
+Gilabert, L. Craven-Brightman, V. Negnevitsky, B. Menk¨uc, F. Galve, J. P.
+Stockmann, A. Webb, and J. Alonso, “Benchmarking the performance of
+a low-cost magnetic resonance control system at multiple sites in the open
+MaRCoS community,” NMR in Biomedicine, vol. 36, no. 1, p. e4825,
+2023. [Online]. Available: https://analyticalsciencejournals.onlinelibrary.
+wiley.com/doi/abs/10.1002/nbm.4825
+[48] V.
+Negnevitsky,
+Y.
+Vives-Gilabert,
+J.
+M.
+Algar´ın,
+L.
+Craven-
+Brightman,
+R.
+Pellicer-Guridi,
+T.
+O’Reilly,
+J.
+P.
+Stockmann,
+A.
+Webb,
+J.
+Alonso,
+and
+B.
+Menk¨uc,
+“MaRCoS,
+an
+open-
+source electronic control system for low-field MRI,” Journal of
+Magnetic Resonance, vol. 350, p. 107424, 2023. [Online]. Available:
+https://www.sciencedirect.com/science/article/pii/S1090780723000599
+[49] J. M. Algar´ın, T. Guallart-Naval, J. Borreguero, F. Galve, and
+J. Alonso, “MaRGE: A graphical environment for MaRCoS,” Journal
+of Magnetic Resonance, vol. 361, p. 107662, 2024. [Online]. Available:
+https://www.sciencedirect.com/science/article/pii/S1090780724000466
+[50] “Marcos graphical environment,” 2025, accessed: 2025-03-03. [Online].
+Available: https://github.com/mriLab-i3M/MaRGE
+[51] Y. Ha, K. Selvaganesan, B. Wu, K. Hancock, C. Rogers, S. Hossein-
+nezhadian, and G. Galiana, “Practical method for RF pulse distortion
+compensation using multiple square pulses for low-field MRI,” PLOS
+ONE, vol. 17, p. e0273432, 09 2022.
+[52] S. Ilbey, P. M. Jungmann, J. Fischer, M. Jung, M. Bock, and A. C.
+¨Ozen, “Single point imaging with radial acquisition and compressed
+sensing,” Magnetic Resonance in Medicine, vol. 87, no. 6, pp.
+2685–2696, 2022. [Online]. Available: https://onlinelibrary.wiley.com/
+doi/abs/10.1002/mrm.29156
+[53] H. T. Fabich, M. Benning, A. J. Sederman, and D. J. Holland,
+“Ultrashort echo time (UTE) imaging using gradient pre-equalization
+and compressed sensing,” Journal of Magnetic Resonance, vol. 245,
+pp. 116–124, 2014. [Online]. Available: https://www.sciencedirect.com/
+science/article/pii/S1090780714001840
+[54] S. Kaczmarz, “Angen¨aherte Aufl¨osung von Systemen linearer Gleichun-
+gen,” Bulletin International de l’Academie Polonaise des Sciences et des
+Lettres., vol. 35, pp. 355–357, 1937.
+[55] M. Maggioni, V. Katkovnik, K. Egiazarian, and A. Foi, “Nonlocal
+transform-domain filter for volumetric data denoising and reconstruction,”
+IEEE Transactions on Image Processing, vol. 22, no. 1, pp. 119–133,
+2013.

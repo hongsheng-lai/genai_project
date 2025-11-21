@@ -1,0 +1,1925 @@
+PREPARED FOR SUBMISSION TO JHEP
+Partial-Wave Unitarity Bounds on
+Higher-Dimensional Operators from 2-to-N
+Scattering
+Céline Degrande,b Hao-Lin Li,a,b Ling-Xiao Xu.c
+aSchool of Physics, Sun Yat-Sen University, Guangzhou 510275, P. R. China
+bCentre for Cosmology, Particle Physics and Phenomenology (CP3), Universite Catholique de Louvain
+cAbdus Salam International Centre for Theoretical Physics, Strada Costiera 11, 34151, Trieste, Italy
+E-mail: lihlin68@mail.sysu.edu.cn,
+celine.degrande@uclouvain.be, lxu@ictp.it
+ABSTRACT: We present a systematic method for deriving partial-wave unitarity bounds on Wilson
+coefficients of higher-dimensional operators in effective field theories involving more than four
+fields, which naturally appear in tree-level 2-to-N scattering processes with N ≥3. Unlike 2-to-2
+scattering, 2-to-N scattering with N ≥3 features multiple amplitudes associated with the same
+total angular momentum. To resolve these degeneracies, we provide a way to construct an or-
+thonormal amplitude basis by parameterizing the phase space manifold of massless particles using
+spinor-helicity variables, enabling analytical integration over the phase space with arbitrary particle
+numbers. We provide Mathematica code to analytically evaluate phase space integrals of interfer-
+ence between two local on-shell amplitudes up to four final-state particles, with straightforward
+generalization to N final-state particles. As practical applications, we demonstrate the use of this
+tool by deriving unitarity bounds on some dimension-7 and dimension-8 operators in the Standard
+Model effective field theory involving five and six fields, respectively.
+arXiv:2511.15524v1  [hep-ph]  19 Nov 2025
+
+
+Contents
+1
+Introduction
+1
+2
+Partial-wave unitarity bounds from 2 →N scattering
+3
+3
+Constructing partial-wave amplitudes
+5
+4
+Phase space integral and normalization of partial-wave amplitudes
+8
+4.1
+N-body phase space
+8
+4.2
+Normalization of 2 →3 and 2 →4 partial-wave amplitudes
+11
+4.3
+A Mathematica code implementing phase space integration
+12
+5
+Partial-wave unitarity bounds for dimension-7 and dimension-8 operators in SMEFT 13
+5.1
+A dimension-7 example: eRlLH†3D
+13
+5.2
+A dimension-8 example: H2H†2eReRD
+16
+6
+Conclusion
+17
+A Conventions for spinor-helicity variables
+18
+B
+Phase space integral for N massless particles
+19
+1
+Introduction
+In the post-Higgs-discovery era, the Standard Model effective field theory (SMEFT), due to its
+universality and systematic nature, has become increasingly popular as a theoretical framework for
+analyzing small deviations from Standard Model (SM) predictions caused by hypothetical ultravi-
+olet (UV) theories at high energy scales.
+Recently, rapid developments on the theoretical side — such as the automation of operator
+basis construction, matching computation, and global fit analysis — have paved the way for sys-
+tematic phenomenological studies involving a large number of higher-dimensional operators be-
+yond the dimension-six level. (For a recent review on computation tools for effective field theories,
+see [1]). It has also been shown that several dimension-8 SMEFT operators can be probed at fu-
+ture collider experiments [2–15]. However, to interpret the experimental results as the constraints
+or measured values of Wilson coefficients, it is essential to ensure that the underlying theoretical
+predictions within the SMEFT framework are consistent. Therefore, theoretical consistency condi-
+tions — such as partial-wave unitarity bounds and positivity bounds [16], which are derived from
+unitarity and locality of the S-matrix — impose important constraints on the allowed structure and
+size of EFT operators. Indeed, for a Bayesian global fit, these theoretical constraints can also serve
+– 1 –
+
+
+as priors on the Wilson coefficients from the beginning of the statistical analysis, especially if one
+aims to filter out the UV theories that violate fundamental principles.
+Positivity bounds in the SMEFT have been extensively studied in recent years [3, 17–28].
+For instance, it was shown in [17] that applying positivity constraints to the parameter space of
+dimension-8 operators relevant to anomalous quartic gauge couplings excludes approximately 98%
+of the experimentally allowed region. However, such positivity bounds can only restrict the Wilson
+coefficients to a convex hull in the parameter space, and typically they apply to the 2-to-2 scatter-
+ing amplitudes. In contrast, partial-wave unitarity bounds play a complementary role by providing
+the upper limits on the Wilson coefficients [26]. Perturbative partial-wave unitarity bounds for
+dimension-6 SMEFT operators have been studied extensively in e.g. [29–34], all focusing on the
+2-to-2 scattering processes. However, for operators of dimension higher than six, many of them
+contain more than four fields, and their leading contributions naturally appear in scattering ampli-
+tudes involving more than four external particles. In such cases, it becomes necessary to extend
+the analysis of partial-wave unitarity to general 2-to-N scattering processes. For instance, an upper
+bound on the scale responsible for neutrino mass generation can be derived from the scaling of
+the cross sections of 2-to-N processes [35], while the analysis only relies on the J = 0 partial
+wave. Furthermore, the J = 0 unitarity bounds on the EFT operators from the scattering pro-
+cess V V →hhh were also studied [36]. Until recent years, the partial-wave amplitude basis was
+constructed [37], and the partial-wave unitarity bounds for SMEFT operators beyond dimension
+six were studied using 2-to-3 scattering processes [38], where a list of 2-to-3 partial-wave helicity
+amplitudes (of the lowest mass dimension) was also provided explicitly. Recently, the authors of
+[38] also derived the unitarily bound and compared with the positivity point in axion-like particle
+EFT up to dimension-8 [39].
+More technically, the study of generalized 2-to-N partial-wave amplitudes has been relatively
+limited, mainly due to the following two challenges. First, unlike the 2-to-2 case, where the partial-
+wave basis of massless particles is constructed using the well-known Wigner d-functions, the gen-
+eral local on-shell amplitude basis for 2-to-N processes was not known until recently. This chal-
+lenge was addressed in [37], where a method based on the action of the Casimir operator of the
+Poincaré group was introduced. Second, for general 2-to-N scattering, the partial-wave basis can
+be degenerate for a given total angular momentum J. Consequently, obtaining an orthogonal set
+of basis EFT amplitudes and determining their normalization requires performing the full N-body
+phase space integration analytically.
+For the massless N-body phase space, Refs. [40, 41] provide an explicit parameterization for
+the three-body final state by expressing the spinor-helicity variables of the final-state particles as
+complex linear combinations of those of the two initial-state particles. Using a similar approach,
+Ref. [42] nearly achieves a complete parameterization of the massless N-body phase space that
+resolves all delta functions arising from momentum conservation. However, an explicit expression
+for the transformation matrix between the two sets of integration variables at an intermediate step
+is missing. Ref. [43] also proposes an N-body phase space parameterization, but it is primarily de-
+signed for Monte Carlo phase-space generation and the treatment of infrared divergences, making
+it less convenient for the analytical computations considered in this work. Consequently, a fully
+explicit and convenient parameterization of the general N-body massless phase-space integral, suit-
+able for analytical computation for the local on-shell amplitudes, has not yet been presented in the
+– 2 –
+
+
+literature.
+In this paper, we begin by reviewing the basic concepts behind the Casimir operator method,
+which enables the systematic construction of the massless partial-wave amplitude basis. This cor-
+responds to the bipartite case of the general J-basis amplitudes. Through an explicit example, we
+demonstrate how these amplitudes can be derived using a single line of code with the Mathematica
+package ABC4EFT [44].
+Next, we highlight a key observation: the phase space integral of an N-body massless final
+state can be computed analytically using a parametrization inspired by spinor-helicity variables
+in Ref. [42]. We find that the missing piece of the explicit transformation matrix in that paper
+can be analytically obtained by Sherman-Morrison formula. This enables us to write phase space
+integration in closed analytic form using a set of spherical coordinates. To our knowledge, this is
+the first derivation of an explicit analytic parametrization and phase space measure for a 4-body
+massless final state. Moreover, our method generalizes straightforwardly to the case of N-body
+final states. Based on this parameterization, we automate the evaluation of phase space integrals for
+the interference of local on-shell amplitudes in 2-to-3 and 2-to-4 scattering processes. We provide
+the Mathematica code to assist the reader in performing these integrals analytically. Finally, using
+these tools, we demonstrate — through explicit examples — how to derive partial-wave unitarity
+bounds for SMEFT dimension-7 and dimension-8 operators with five and six fields, respectively.
+This paper is organized as follows. In section. 2, we derive the master formula of unitarity
+constraints for the generalized 2-to-N amplitudes starting from the 2-to-2 scattering process. In
+section. 3, we review the formalism for constructing the partial-wave amplitudes. In section. 4, we
+introduce the general procedure for constructing the orthonormal partial-wave amplitude basis for
+a N-body final state, and we illustrate our general procedure with concrete examples of 3-body
+and 4-body cases. In section. 5, we discuss how to derive the partial-wave unitarity bounds on the
+Wilson coefficients for the SMEFT operators with more than four fields. Finally, we conclude in
+section. 6. In appendix. A we summarize our conventions for spinor variables. In appendix. B, we
+show how to parameterize the massless N-body phase space using a set of spherical coordinates,
+which enables us to perform the integral analytically.
+2
+Partial-wave unitarity bounds from 2 →N scattering
+The scattering matrix is defined as S = 1 + iT , where T is related to the scattering amplitude
+Mi→f as
+⟨f|T|i⟩= (2π)4δ4(pf −pi)Mi→f,
+(2.1)
+where i and f denote the initial and final states, respectively, specified by the four-momenta, he-
+licities, and all internal quantum numbers of the particles involved in the scattering process. The
+unitarity condition S†S = 1 implies that T −T † = iT †T . As a result, the scattering amplitude
+satisfies the condition
+Mi→f −M∗
+f→i = i
+X
+X
+Z
+dΠXM∗
+f→XMi→X(2π)4δ4(pi −pX),
+(2.2)
+– 3 –
+
+
+where we used the identity ⟨f|T †|i⟩= ⟨i|T |f⟩∗= M∗
+f→i(2π)4δ4(pi −pf). The phase space
+measure for the intermediate particles is defined as dΠX = Q
+j
+d3pj
+(2π)32Ej . Throughout the paper, we
+consider only the scattering amplitudes of massless particles. In the context of SMEFT, this corre-
+sponds to the unbroken phase of electroweak symmetry. We assume that taking the massless limit
+is a valid approximation for studying the energy scale at which perturbative unitarity is violated.
+Indeed, due to the decoupling nature of heavy particles, unitarity violation in SMEFT is expected
+to occur only at sufficiently high energies.
+To derive the general partial-wave unitarity bound for 2-to-N scattering, we begin by consid-
+ering the case where both the initial and final states, i and f, are two-particle states. In this case,
+the scattering amplitude is fully determined by the center-of-mass energy s and the scattering angle
+θ. For forward elastic scattering (i.e. θ = 0), eq. (2.2) becomes
+2ImM(0) =
+X
+X̸=i
+Z
+dΠX|Mi→X|2(2π)4δ4(pX −pi) +
+Z sin θdθ
+16π
+|M(θ)|2,
+(2.3)
+where we have separated the contributions from the intermediate states X ̸= i from those where
+X = i, they correspond to the inelastic scattering and the elastic ones, respectively. Here, M(θ)
+denotes the elastic scattering amplitude for a specific 2-to-2 process involving massless particles.
+For a specific scattering process with a definite helicity configuration such as Aλ1Bλ2 →
+Aλ1Bλ2, the amplitude M(θ) can be expanded in particle waves with definite total angular mo-
+mentum J as
+M(θ) = 16π
+X
+J
+(J + 1/2)dJ
+λλ(θ)T J(s),
+(2.4)
+where dJ
+λλ is the Wigner d-matrix and λ = λ1−λ2 is the helicity difference in the initial state. Sub-
+stitute the partial-wave expansion of M(θ) into the second term on the right-hand side of eq. (2.3)
+yields
+Z sin θdθ
+16π
+|M(θ)|2 = P
+J 16π(J + 1/2)|T J(s)|2,
+(2.5)
+where we have used the orthonormality condition for the Wigner d-matrix:
+Z
+dJ
+λµdJ′
+λµd cos θ =
+δJJ′
+(J + 1/2).
+(2.6)
+Likewise, the left-hand side of eq. (2.3) can be decomposed into partial waves as
+2 ImM(0) = 2
+X
+J
+16π(J + 1/2) dJ
+λλ(0) ImT J(s) .
+(2.7)
+Using dJ
+λλ(0) = 1, eq. (2.3) becomes
+2
+X
+J
+16π(J + 1/2)ImT J(s) =
+X
+X̸=i
+Z
+dΠX|Mi→X|2(2π)4δ4(pX −pi) +
+X
+J
+16π(J + 1/2)|T J(s)|2.
+(2.8)
+– 4 –
+
+
+Since the S-matrix is block-diagonal in total angular momentum J (i.e., angular momentum con-
+servation), one can isolate each J-block in eq. (2.8). For a 2-to-2 scattering process with definite
+total angular momentum J, we have the partial-wave unitarity bound as
+|T J| ≤2,
+0 ≤ImT J ≤2,
+|ReT J| ≤1.
+(2.9)
+This result is well known in the literature.
+We now derive the partial-wave unitarity bounds for 2-to-N scattering from eq. (2.8), a result
+much less explored in the literature. Let us begin by decomposing the amplitude as
+Mi→X =
+X
+J,a
+CJa
+i→XBJa
+i→X ,
+(2.10)
+where J denotes the total angular momentum with the corresponding partial-wave amplitude BJa
+i→X,
+which is a function of the four-momenta of all the external particles. As we will see in concrete ex-
+amples in section 3, the partial-wave amplitudes for a fixed J may not be unique. Consequently, we
+introduce an additional index a to label the degeneracy for the partial-wave amplitudes with fixed
+J. All other relevant information, such as the Wilson coefficients and gauge quantum numbers, is
+included in CJa
+i→X. We assume that the basis amplitudes BJa
+i→X satisfy the following orthonormality
+condition
+Z
+dΠXBJa
+i→X(BJ′a′
+i→X)∗(2π)4δ4(pX −pi) ≡
+D
+BJ′a′
+i→X, BJa
+i→X
+E
+= gJa
+i→X(s)δaa′δJJ′,
+(2.11)
+it means that amplitudes with different quantum numbers J and a are orthogonal to each other after
+integrating over the N-body phase space of the intermediate state. It follows that, for each partial
+wave J, the unitarity condition in eq. (2.8) becomes
+2ImT J(s) =
+X
+X̸=i
+P
+a gJa
+i→X(s)|CJa
+i→X|2
+16π(J + 1/2)
++ |T J(s)|2.
+(2.12)
+From eq. (2.12), we obtain the master formula for the partial-wave unitarity bounds for 2-to-N
+scattering amplitudes:
+P
+a,X̸=i gJa
+i→X(s)|CJa
+i→X|2
+16π(J + 1/2)
+≤1.
+(2.13)
+3
+Constructing partial-wave amplitudes
+As seen from eqs. (2.11) and (2.13), once the basis for the partial-wave amplitudes BJa
+i→X and
+their corresponding normalization factors gJa
+i→X(s) are determined, one can derive the partial-wave
+unitarity bounds on the Wilson coefficients that appear in the amplitude for the process i →X.
+Therefore, the first task is to systematically construct the basis of BJa
+i→X, which can be achieved by
+taking the following steps:
+1. For a given mass dimension, we first systematically construct a basis of local, on-shell ampli-
+tudes with the Young Tensor Method [45, 46] using spinor-helicity variables. The amplitude
+basis obtained as such is denoted as Y-basis. The advantage of this method is that it automat-
+ically removes the redundancies from momentum conservation and the Schouten identity.
+– 5 –
+
+
+2. Within the space of the complete Y-basis amplitudes, we determine the matrix representation
+of the Casimir operator W 2 = WµW µ of the Poincaré group.
+Here, W µ is the Pauli-Lubanski vector defined as Wµ = 1
+2ϵµνρσP µMρσ, where P µ is the
+momentum operator and Mµν is the Lorentz group generator. In terms of spinor-helicity
+variables, we have
+W 2 = 1
+8P 2(Tr[M2] + Tr[ f
+M2]) −1
+4Tr[P ⊺MP f
+M] .
+(3.1)
+where P = Pµσµ
+α ˙α, P ⊺= Pµ¯σµ ˙αα, and M, f
+M are the chiral components defined as
+Mµνσµ
+α ˙ασν
+β ˙β = ϵαβ f
+M ˙α ˙β +˜ϵ ˙α ˙βMαβ. For a given subset I of particles in a scattering process,
+f
+M ˙α ˙β and Mαβ act on amplitudes as the differential operators:
+Mαβ = i P
+i∈I
+
+λiα
+∂
+∂λβ
+i
++ λiβ
+∂
+∂λα
+i
+
+,
+f
+M ˙α ˙β = i P
+i∈I
+
+˜λi ˙α
+∂
+∂˜λ
+˙β
+i
++ ˜λi ˙β
+∂
+∂˜λ ˙α
+i
+
+.
+(3.2)
+It is the summation over the subset I of particles that enables us to define the specific scat-
+tering channel with definite angular momentum.
+3. We obtain the partial-wave amplitudes BJa
+I→X as the eigenvectors of the matrix representa-
+tion of W 2
+I, such that W 2
+IBJa
+I→X = −sIJ(J + 1)BJa
+I→X, where sI ≡(P
+i∈I pi)2. This
+set of partial-wave amplitudes forms the J-basis for the given scattering channel I. (In the
+rest of the paper, we will use the terms "partial-wave amplitudes" and "J-basis amplitudes"
+interchangeably.)
+For clarity, we illustrate the steps described above with a simple example. Let us consider
+the scattering process involving five massless particles ψ1ϕ2ϕ3ϕ4ψ†
+5, where ϕ, ψ, ψ† represent
+particles with helicities 0, −1/2, and 1/2, respectively. The subscripts of these fields correspond
+to the labeling of their momenta.
+1. Using the Young Tensor Method, we identify two amplitudes of mass dimension two in the
+Y-basis
+By
+1 = ⟨14⟩[45],
+By
+2 = −[35]⟨13⟩,
+(3.3)
+where all the particles are considered to be incoming.
+2. Suppose we focus on partial-wave amplitudes for the particles ϕ2ϕ3. Acting the Casimir op-
+erator W 2
+23 on the amplitudes By
+1 and By
+2 yields the following amplitudes of mass dimension
+four
+W 2
+23By
+1
+= 0,
+(3.4)
+W 2
+23By
+2
+= s23(By
+1 −2By
+2).
+(3.5)
+Importantly, the right-handed side of these equations can be rewritten as linear combinations
+of the original amplitudes By
+1 and By
+2 after factoring out the kinematic variable s23 = (p2 +
+p3)2. Hence, the matrix representation of (W2
+23)ji, defined by W 2
+23By
+i = By
+j (W2
+23)ji on the
+basis spanned by By
+1,2, is
+W2
+23 = s23
+ 
+0 1
+0 −2
+!
+.
+(3.6)
+– 6 –
+
+
+3. Diagonalizing the above matrix W2
+23 yields two eigenvalues, −2s23 and 0, and they corre-
+spond to the angular momentum channels J = 0 and J = 1, respectively. The associated
+eigenvectors are
+BJ=0 : ⟨14⟩[45],
+BJ=1 : −2⟨13⟩[35] −⟨14⟩[45].
+(3.7)
+These eigenvectors BJ=0 and BJ=1 are the J-basis amplitudes for the particles ϕ2,3.
+Unlike 2-to-2 scattering, one prominent feature of the J-basis amplitudes for 2-to-N processes
+with N ≥3 is that, for a fixed total angular momentum, the corresponding J-basis amplitudes can
+be non-unique. We illustrate this point with the amplitudes of mass dimension 2 in the scattering
+process of five scalar particles, which corresponds to the effective operator of the type ϕ5D2. To
+start, we have the Y-basis amplitudes
+By
+1 = −s45, By
+2 = s35, By
+3 = −s34, By
+4 = −s25, By
+5 = s24,
+(3.8)
+where sij = (pi + pj)2, and all the particles are the incoming ones. The corresponding J-basis
+amplitudes for the scattering channel initiated by ϕ1ϕ2 are given by
+BJ=0,a=1,2,3
+0,0;0,0,0
+: −s34, s35, −s45,
+(3.9)
+BJ=1,a=1,2
+0,0;0,0,0
+: 2s24 + s34 + s45, −2s25 −s35 −s45,
+(3.10)
+where both the J = 0 and J = 1 partial-wave amplitudes are degenerate.
+The procedure for obtaining the J-basis amplitudes described above is fully automated us-
+ing the Mathematica package ABC4EFT [44]. To be specific, this is realized by the function
+W2Diagonalize[state,k,ch], which requires three inputs: "state", the particle configu-
+ration listed in an order of increasing helicities; "k", the number of derivatives in the corresponding
+operator; "ch", the subset of particles specifying the scattering channel for which partial-wave am-
+plitudes of definite angular momentum are constructed. For example, the J-basis amplitudes shown
+in eq. (3.7) can be obtained by the following command:
+In[1]:= W2Diagonalize[{-1/2, 0,0,0, 1/2}, 1, {2, 3}] //Ampform
+Out[1]= <|"basis"→
+[45]<14>,-[35]<13>
+	, "j"→{1, 0},
+"transfer"→{{-1, 2}, {1, 0}}, "j-basis"→
+-2[35]<13>-[45]<14>,
+[45]<14>
+	|>
+The output contains four keys: "basis", the complete and independent Y-basis of amplitudes con-
+structed with the Young tensor method; "j", a list of total angular momentum values allowed for
+the specified scattering channel; "transfer", the transformation matrix from the Y-basis to the J-
+basis; "j-basis", the concrete J-basis amplitudes for the scattering channel, ordered according to
+the entries in the "j" list. In this way, one can verify the partial-wave 5-point amplitudes (up to
+normalization) that appear in the appendix of [38], where only the local on-shell amplitudes of the
+lowest dimension are included for each helicity configuration.
+– 7 –
+
+
+4
+Phase space integral and normalization of partial-wave amplitudes
+In the previous section, we introduced a systematic method for constructing the partial-wave ampli-
+tude basis for scattering processes involving more than two particles in the final state. To obtain the
+partial-wave unitarity bound as given in eq. (2.13), it remains to compute the normalization factor
+gJa
+i→X(s), which requires performing the N-body phase space integral over the final-state massless
+particles, as shown in eq. (2.11).
+4.1
+N-body phase space
+In this section, we introduce a general parameterization for the N-body phase space integral using
+a set of spherical variables. Following [42], the phase space manifold of N massless particles can
+be decomposed into the product of a (N −1)-simplex and a (2N −3)-sphere, i.e.
+dΠN(2π)4 δ4
+ 
+P −
+N
+X
+i=1
+pi
+!
+= (2π)4−3NsN−2d∆N−1 × dS2N−3 ,
+(4.1)
+where s is the center-of-mass energy squared of all the N massless particles. In appendix B, we
+provide a lightning review on the derivation of the integration measures d∆N−1 and dS2N−3, based
+on a parametrization using the spinor-helicity variables of the N massless particles involved in the
+phase space. In the following, we only highlight the main results.
+Based on the spinor-helicity formalism, the integration variables can be chosen to be two
+complex N-component vectors, ⃗u = (u1, u2, · · · , uN)T and ⃗v = (v1, v2, · · · , vN)T . Intuitively,
+each pair of complex numbers (ui, vi) are the coefficients expanding the spinor |pi⟩for each particle
+on the two basis spinors |k1⟩and |k2⟩of momenta of incoming particles, i.e. |pi⟩= ui|k1⟩+vi|k2⟩.
+Parameterizing ⃗u = (r1e−iϕ1, r2e−iϕ2, · · · , rNe−iϕN )T , and gauge fixing the ϕi = 0 with
+little group redundancy, the integration over ⃗u can be shown to be equivalent to the integration on
+a (N −1)-simplex, of which the integration measure is given by:
+d∆N−1 =
+N
+Y
+i=1
+ridri δ
+ 
+1 −
+N
+X
+i=1
+r2
+i
+!
+.
+(4.2)
+In the spherical coordinates we can further parameterize ri as:
+rN = cos θN−1 ,
+rN−1 = sin θN−1 cos θN−2 ,
+rN−2 = sin θN−1 sin θN−2 cos θN−3 ,
+...
+r2 = sin θN−1 . . . sin θ2 cos θ1 ,
+r1 = sin θN−1 . . . sin θ2 sin θ1 .
+(4.3)
+Since ri > 0, all θi are within [0, π/2]. It follows that
+d∆N−1 = 1
+2
+ N−1
+Y
+i=1
+sin2i−1 θi cos θi
+!
+dθ1 . . . dθN−1.
+(4.4)
+– 8 –
+
+
+Likewise, as detailed in the appendix B, the integral manifold over ⃗v is equivalent to S2N−3
+with the constraint
+vN = −
+PN−1
+i=1 rivi
+rN
+.
+(4.5)
+With a change of integration variables into v′ such that (v1, v2, . . . , vN−1)T = O(v′
+1, v′
+2, . . . , v′
+N−1)T ,
+the remaining integration measure related to ⃗v′ is given by
+dN−1v′ δ
+ 
+1 −
+N−1
+X
+i=1
+|v′
+i|2
+!
+=
+ N−2
+Y
+k=1
+cos ηk sin2(N−2−k)+1 ηk
+!
+dξi . . . dξN−1dηi . . . dηN−2,
+(4.6)
+with a complex spherical parameterization of v′ in the following form:
+v′
+1 = e−iξ1 cos η1 ,
+v′
+2 = e−iξ2 sin η1 cos η2 ,
+...
+v′
+N−2 = e−iξN−2 sin η1 . . . sin ηN−3 cos ηN−2 ,
+v′
+N−1 = e−iξN−1 sin η1 . . . sin ηN−3 sin ηN−2 .
+(4.7)
+Here ξi ∈[0, 2π], ηi ∈[0, π/2]. Most importantly, we derive an analytical formula for the real and
+symmetric transformation matrix O in terms of ri:
+O = 1(N−1)×(N−1) −
+ √1 + β −1
+β√1 + β
+!
+rT r
+r2
+N
+, β = |r|2
+r2
+N
+,
+(4.8)
+with r = (r1, r2, . . . , rN−1).
+With eq. (4.3), (4.5), (4.7) and (4.8), we can construct the explicit parameterization of ⃗u and ⃗v
+in terms of ηi, ξi and θi, and the δ-function imposed by momentum conservation is fully resolved.
+To illustrate the power of the general formalism outlined above, we derive explicit expressions for
+the 3-body and 4-body phase spaces, and the generalization to the N-body case follows straight-
+forwardly.
+• For instance, we find the integration measure for the 3-body phase space
+dΠ3(2π)4δ4
+ 
+P −
+3
+X
+i=1
+pi
+!
+=
+s
+2(2π)5l! sin θ1 cos θ1 sin3 θ2 cos θ2 sin η1 cos η1dθ1dθ2dη1dξ1dξ2
+(4.9)
+with the parametrization of ⃗u and ⃗v given by
+u1 = sin θ2 sin θ1,
+u2 = cos θ1 sin θ2,
+u3 = cos θ2.
+(4.10)
+– 9 –
+
+
+and
+v1 = e−iξ1 cos η1
+
+cos2 θ1 + cos θ2 sin2 θ1
+
++ e−iξ2 sin η1(cos θ2 −1) cos θ1 sin θ1 ,
+v2 = e−iξ1 cos η1(cos θ2 −1) cos θ1 sin θ1 + e−iξ2 sin η1
+
+cos θ2 cos2 θ1 + sin2 θ1
+
+,
+v3 = −sin θ2(e−iξ1 cos η1 sin θ1 + e−iξ2 cos θ1 sin η1).
+(4.11)
+Notice that we have included the symmetry factor l! for identical particles in dΠ3. Another
+parameterization of the 3-body phase space can be found in e.g. [41]. As a consistency check,
+we verified that different parameterizations yield the same result.
+• For the 4-body phase space, we find the integration measure
+dΠ4(2π)4δ4
+ 
+P −
+4
+X
+i=1
+pi
+!
+=
+s2
+2(2π)8l! sin θ1 cos θ1 sin3 θ2 cos θ2 sin5 θ3 cos θ3 cos η1 sin3 η1 cos η2 sin η2
+dθ1dθ2dθ3dξ1dξ2dξ3dη1dη2,
+(4.12)
+with the parametrization of ⃗u and ⃗v given by
+u1 = sin θ3 sin θ2 sin θ1,
+u2 = sin θ3 sin θ2 cos θ1,
+u3 = sin θ3 cos θ2,
+u4 = cos θ3,
+(4.13)
+and
+v1 = e−iξ2 sin η1 cos η2(cos θ3 −1) sin2 θ2 sin θ1 cos θ1
++e−iξ3 sin η1 sin η2(cos θ3 −1) sin θ2 cos θ2 sin θ1
++e−iξ1 cos η1
+
+sin2 θ2
+
+cos θ3 sin2 θ1 + cos2 θ1
+
++ cos2 θ2
+
+,
+v2 = e−iξ2 sin η1 cos η2
+
+sin2 θ2
+
+cos θ3 cos2 θ1 + sin2 θ1
+
++ cos2 θ2
+
++e−iξ3 sin η1 sin η2(cos θ3 −1) sin θ2 cos θ2 cos θ1
++e−iξ1 cos η1(cos θ3 −1) sin2 θ2 sin θ1 cos θ1,
+v3 = e−iξ2 sin η1 cos η2(cos θ3 −1) sin θ2 cos θ2 cos θ1
++e−iξ3 sin η1 sin η2
+
+cos θ3 cos2 θ2 + sin2 θ2
+
++e−iξ1 cos η1(cos θ3 −1) sin θ2 cos θ2 sin θ1,
+v4 = −sin θ3
+h
+sin θ2
+
+e−iξ2 sin η1 cos η2 cos θ1 + e−iξ1 cos η1 sin θ1
+
++e−iξ3 sin η1 sin η2 cos θ2
+i
+.
+(4.14)
+Given the phase space measure dΠN, the interference between two local on-shell partial-
+wave amplitudes can always be computed analytically, since each term in the amplitude square
+decomposes into a product of cos and sin functions of the integration variables. In the following,
+we illustrate this in two examples for dΠ3 and dΠ4, respectively.
+– 10 –
+
+
+4.2
+Normalization of 2 →3 and 2 →4 partial-wave amplitudes
+Let us consider an operator of the type ϕ1ϕ2ϕ3ψ4ψ†
+5D, which generates on-shell local ampli-
+tudes involving particles of the helicity configuration (0, 0, 0, −1/2, 1/2). 1 Using the package
+ABC4EFT [44], one can find two independent J-basis amplitudes with the total angular momentum
+J = 1 or 0 for the scattering process
+ϕ1(p1)ϕ2(p2) →ϕ3(−p3)ψ†
+4(−p4)ψ5(−p5) .
+(4.15)
+The corresponding J-basis amplitudes are the same by applying a proper cyclic relabeling of the
+external particles (4321) to the amplitudes given in eq. (3.7), where the momentum conservation
+P5
+i=1 pi = 0 and p0
+i=3,4,5 < 0 are considered. Analytic continuation to the region with p0
+i > 0
+amounts to flipping the sign of the angle spinors λα
+3,4,5 while leaving the remaining square spinors
+unchanged, as detailed in appendix A. The normalization of these two amplitudes can be calculated
+accordingly as
+gJ=0
+0,0;0,−1/2,1/2 =
+D
+BJ=0
+0,0;0,−1/2,1/2, BJ=0
+0,0;0,−1/2,1/2
+E
+=
+s3
+3072π3 ,
+gJ=1
+0,0;0,−1/2,1/2 =
+D
+BJ=1
+0,0;0,−1/2,1/2, BJ=1
+0,0;0,−1/2,1/2
+E
+=
+s3
+1024π3 .
+(4.16)
+In cases where there is degeneracy for a fixed J, the corresponding basis can be orthogonalized
+within that subspace at a fixed amplitude dimension. This simplifies the computation of the partial-
+wave unitarity bounds for a given operator. Again, we consider the operator of the type ϕ5D2 as an
+example. The J-basis amplitudes are derived in eq. (3.9) and (3.10), where we find two amplitudes
+with J = 1 and three with J = 0. Using our phase space parameterization of dΠ3, the interference
+metric tensor can be obtained analytically as follows:
+D
+BJ=0,a
+0,0;0,0,0, BJ=0,b
+0,0;0,0,0
+E
+=
+s3
+256π3l!
+
+
+
+1
+6
+−1
+12
+1
+12
+−1
+12
+1
+6
+−1
+12
+1
+12
+−1
+12
+1
+6
+
+
+,
+(4.17)
+D
+BJ=1,a
+0,0;0,0,0, BJ=1,b
+0,0;0,0,0
+E
+=
+s3
+256π3l!
+ 1
+6
+1
+12
+1
+12
+1
+6
+!
+,
+(4.18)
+here we still leave the general symmetric factor l! in the denominator, though two particles can
+be differed by gauge quantum numbers. From this result, one can obtain the orthogonal basis and
+determine the corresponding normalization factors:
+B
+′J=0,a=1,2,3
+0,0;0,0,0
+:
+
+
+
+
+
+
+
+
+
+s34+s35+s45
+√
+3
+g =
+s3
+768π3l!,
+−s34+s45
+√
+2
+g =
+s3
+3072π3l!,
+s34−2s35+s45
+√
+6
+g =
+s3
+3072π3l!,
+(4.19)
+B
+′J=1,a=1,2
+0,0;0,0,0
+:
+
+
+
+2s24−2s25+s34−s35
+√
+2
+g =
+s3
+1024π3l!,
+2s24+2s25+s34+s35+2s45
+√
+2
+g =
+s3
+3072π3l!.
+(4.20)
+1Here
+the
+convention
+is
+that
+all
+the
+particles
+are
+incoming.
+When
+converting
+to
+a
+2-to-
+3
+scattering
+process
+with
+2
+incoming
+and
+3
+outgoing
+particles,
+the
+helicity
+configurations
+can
+be
+(0, 0; 0, −1/2, 1/2),
+(0, 1/2; 0, 0, 1/2),
+(0, −1/2; 0, 0, −1/2),
+(−1/2, 1/2; 0, 0, 0), with the semicolon sepa-
+rating incoming and outgoing particles.
+– 11 –
+
+
+Finally, let us consider a 2-to-4 scattering process
+ϕ1(p1)ϕ2(p2) →ϕ3(−p3)ϕ4(−p4)ψ†(−p5)ψ(−p6).
+(4.21)
+Again, we first obtain the corresponding J-basis amplitudes
+BJ=1 = 2⟨25⟩[26] + ⟨35⟩[36] + ⟨45⟩[46],
+(4.22)
+BJ=0
+1
+= ⟨35⟩[36],
+BJ=0
+2
+= ⟨45⟩[46],
+(4.23)
+where we find two amplitudes in the J = 0 subspace. Following the same procedure of integrating
+over dΠ4, we have the normalization factors and the corresponding orthogonal J-basis amplitudes.
+For J = 0, we have
+B′J=0
+1
+= ⟨35⟩[36] + ⟨45⟩[46]
+√
+2
+,
+gJ=0
+1
+=
+s4
+737280π5 ,
+(4.24)
+B′J=0
+2
+= −⟨35⟩[36] + ⟨45⟩[46]
+√
+2
+,
+gJ=0
+2
+=
+s4
+1474560π5 ,
+(4.25)
+while for the J = 1 case we have
+gJ=1 =
+s4
+184320π5 .
+(4.26)
+4.3
+A Mathematica code implementing phase space integration
+To assist the reader in analytically computing the phase space integrals for the interference between
+partial-wave amplitudes, we provide the Mathematica code, which can be downloaded in from the
+GitHub link2.
+The key function is PSIntAMPUser[amp1,amp2,n,in]. It takes four inputs: the first
+two are the amplitudes whose interference is being calculated; the third is the total number of final-
+state particles n; the fourth is a list of two indices indicating which two particles are treated as the
+initial-state ones. Overall, the function evaluates the following integral:
+PSIntAMPUser[M1, M2, n, {i, j}] =
+Z
+dΠk/∈{i,j}(2π)4δ4(pi + pj −
+X
+k/∈{i,j}
+pk)M∗
+1M2.
+(4.27)
+As an example, the normalization factor gJ=0
+1
+in the eq. (4.24) can be computed easily as follows,
+In[2]:= PSIntAMPUser[ab[3,5]sb[3,6]+ab[4,5]sb[4,6]
+√
+2
+,
+ab[3,5]sb[3,6]+ab[4,5]sb[4,6]
+√
+2
+,4,{1,2}]
+Out[2]=
+s4
+737280π5
+2https://github.com/haolinli1991/CalcJMetric
+– 12 –
+
+
+where ab and sb denote the angle and square brackets, and all momenta are treated as incoming.
+The variable s in the output represents the center-of-mass energy squared of the two initial-state
+particles. We validate our calculation against the known total volume of the three- and four-body
+phase space and verify across multiple examples that partial-wave amplitudes with different total
+angular momentum are indeed orthogonal.
+Furthermore, we also provide the function to compute the metric of the J-basis amplitudes,
+given the helicities of the external particles and the number of derivatives in the corresponding
+operators. The function GetJbasisMetric[hellist,nD,in] takes three inputs: the first
+is the list of helicities of external particles {hi} ordered from the most negative to the most posi-
+tive; the second parameter represents the number of derivatives #D in the corresponding operator,
+which fixes the mass dimension of the amplitude to be Pn
+i=1 |hi|+#D, where n is the total number
+of external particles; the last input is the label of particles that are considered to be the incoming
+particles. The output of this function is a table as in figure. 1, where the first column includes the
+possible values of total angular momentum for the scattering channel; the second column includes
+the J-basis amplitudes obtained from the W2Diagonalize; the last column includes the metrics
+for the inner product of the amplitudes in the same J subspace, and the labeling of the indices is in
+order with the ones in the second column.
+Figure 1: An example output of the function GetJbasisMetric.
+5
+Partial-wave unitarity bounds for dimension-7 and dimension-8 operators in SMEFT
+In this section, we use the orthogonal partial-wave amplitude basis, obtained in the previous sec-
+tion, to derive the perturbative unitarity bounds for two SMEFT operators, i.e. eRlLH†3D and
+H2H†2eReRD. In particular, we will illustrate how to treat the gauge and flavor quantum numbers
+when deriving the bounds.
+5.1
+A dimension-7 example: eRlLH†3D
+We first consider an operator that violates the lepton number and can contribute to the process
+of neutrinoless double beta decay [47]. At the dimension-7 level, there is only one independent
+operator of this type. In four-component fermion notation, the operator is given by
+O1 = iCf1f5ϵi2i4ϵi3i5H†i2H†i3 
+DµH†i4 
+eRγµCli5
+L
+T 
+,
+(5.1)
+– 13 –
+
+
+i2
+i3
+i4
+i5
+CJ=1
+CJ=0
+1
+1
+2
+2
+0
+3Cf1f2
+1
+2
+1
+2
+−3Cf1f5/2
+−3Cf1f5/2
+2
+1
+3Cf1f5/2
+−3Cf1f5/2
+2
+1
+1
+2
+3Cf1f5/2
+−3Cf1f5/2
+2
+1
+−3Cf1f5/2
+−3Cf1f5/2
+2
+2
+1
+1
+0
+3Cf1f2
+Table 1: Partial-wave decomposition of the amplitude in eq. (5.3) for the scattering channel H†H† →
+e−HL, where CJ=0 and CJ=1 are the coordinates of the amplitude projecting to the j-basis amplitudes
+BJ=0 and BJ=1.
+where i2,3,4,5 are SU(2)L gauge indices, Cf1f5 is the Wilson coefficient with f1,5 being flavor in-
+dices of the right-handed electron eR and the left-handed lepton doublet lL. The charge conjugation
+operator C is defined as C = iγ0γ2. Summation over the repeated indices is understood.
+The operator contributes to the scattering process
+H†i2(p2)H†i3(p3) →e−
+f1(−p1)Hi4(−p4)Li5
+f5(−p5) ,
+(5.2)
+with the corresponding amplitude:
+Mf1f5
+i2i3i4i5 = Cf1f5ϵi2i4ϵi3i5[45]⟨14⟩+ sym(234),
+(5.3)
+where symmetrization applies to both the momenta and the gauge indices. The Lorentz J-basis
+amplitudes are obtained as in eq. (3.7)
+BJ=0 = ⟨14⟩[45],
+BJ=1 = −(2⟨13⟩[35] + ⟨14⟩[45]),
+(5.4)
+and their normalization factors can be found in eq. (4.16). One can find the coordinates of the full
+amplitude Mf1f5
+i2i3i4i5 on this J-basis as
+CJ=1 = Cf1f5
+2
+(ϵi2i4ϵi3i5 + 2ϵi2i3ϵi4i5 −ϵi2i5ϵi3i4) ,
+(5.5)
+CJ=0 = 3Cf1f5
+2
+(ϵi2i5ϵi3i4 + ϵi2i4ϵi3i5) .
+(5.6)
+By fixing the SU(2) indices, we obtain the coefficients of partial-wave decomposition shown in
+table. 1. The resulting partial-wave unitarity bounds on Cf1f5 for different choices of i2 and i3
+(while i4,5 have been summed over) are
+i2 = i3 = 1 or i2 = i3 = 2,
+3s3 P
+f1f5 |Cf1f5|2
+8192π4
+≤1 for J = 0,
+(5.7)
+i2 = 1, i3 = 2 or i2 = 2, i3 = 1,
+
+
+
+
+
+
+
+s3 P
+f1f5 |Cf1f5|2
+8192π4
+≤1,
+J = 1
+3s3 P
+f1f5 |Cf1f5|2
+16384π4
+≤1,
+J = 0
+.
+(5.8)
+– 14 –
+
+
+i2
+i3
+i4
+i5
+CJ=1/2
+1
+CJ=1/2
+2
+1
+1
+2
+2
+3Cf1f5/
+√
+2
+3Cf1f5/
+√
+2
+2
+1
+2
+3Cf1f5/
+√
+2
+−3Cf1f5/
+√
+2
+2
+2
+1
+−3
+√
+2Cf1f5
+0
+2
+1
+1
+2
+−3
+√
+2Cf1f5
+0
+1
+2
+1
+3Cf1f5/
+√
+2
+−3Cf1f5/
+√
+2
+2
+1
+1
+3Cf1f5/
+√
+2
+3Cf1f2/
+√
+2
+Table 2: Partial-wave decomposition of the amplitude in eq. (5.3) for the scattering channel e+H† →HHL,
+where CJ=1/2
+1
+and CJ=1/2
+2
+are the coordinates of the amplitude projecting to the J-basis amplitudes BJ=1/2
+1
+and BJ=1/2
+2
+.
+Hence, we find that eq. (5.7) gives the strongest bound.
+The same operator also contributes to the scattering channel
+e+
+f1(p1)H†i2(p2) →Hi3(−p3)Hi4(−p4)Li5
+f5(−p5) .
+(5.9)
+For this channel, there are two degenerate J-basis amplitudes with J = 1/2. The orthogonal J-basis
+amplitudes and their normalization factors are
+BJ=1/2
+1
+= ⟨13⟩[35]+⟨14⟩[45]
+√
+2
+, gJ=1/2
+1
+=
+s3
+1536π3l!,
+(5.10)
+BJ=1/2
+2
+= −⟨13⟩[35]+⟨14⟩[45]
+√
+2
+, gJ=1/2
+2
+=
+s3
+3072π3l!.
+(5.11)
+The coefficients of the full amplitude projected on the J-basis amplitudes are
+CJ=1/2
+1
+= 3Cf1f5
+√
+2
+(ϵi2i4ϵi3i5 + ϵi2i3ϵi4i5) ,
+(5.12)
+CJ=1/2
+2
+= 3Cf1f5
+√
+2
+(ϵi2i5ϵi3i4) .
+(5.13)
+In table. 2, we summarize the values of CJ=1/2
+1,2
+for different choices of the SU(2)L gauge indices.
+Considering the initial state where three flavors of e+ mix evenly, we obtain the most stringent
+bounds on the Wilson coefficients as follows:
+i2 = 1 or 2,
+3s3 P
+f1f5 |Cf1f5|2
+8192
+≤1,
+(5.14)
+where we consider the symmetry factor in the phase-space integral for the two identical scalars in
+the final states when i3 = i4. For the scattering channel
+L†i5
+f5 (p5)H†i2(p2) →e−
+f1(−p1)Hi3(−p3)Hi4(−p4) ,
+(5.15)
+the partial-wave amplitude and the decomposition are the same as the scattering channel with e+H†
+as the initial state. Therefore, it leads to the same bound in eq. (5.14).
+Finally, we investigate the scattering channel
+e−
+f1(p1)L†i5
+f5 (p5) →H†i2(−p2)Hi3(−p3)Hi4(−p4) .
+(5.16)
+– 15 –
+
+
+We find that the partial-wave amplitudes have the same form as in eq. (5.10) and eq. (5.11), even
+though they correspond to total angular momentum J = 1 instead of J = 1/2. The normalization
+factors change correspondingly, since they have different helicity configurations in the final state,
+BJ=1
+1
+= ⟨13⟩[35]+⟨14⟩[45]
+√
+2
+, gJ=1
+1
+=
+s3
+6144π3l!,
+(5.17)
+BJ=1
+2
+= −⟨13⟩[35]+⟨14⟩[45]
+√
+2
+, gJ=1
+2
+=
+s3
+2048π3l!.
+(5.18)
+Since the form of the partial wave amplitudes is the same as in the previous scattering channel, the
+decomposition coefficients are also the same as in table. 2, from which one can obtain the bounds
+on each flavor component of the Wilson coefficients:
+5|Cf1f5|2s3
+32768π4
+≤1.
+(5.19)
+Comparing bounds derived from different channels, we can find that the strongest bound is given
+by the J = 0 partial wave in the scattering H†H† →e−HL as in eq. (5.7) and J = 1/2 partial
+wave in the scattering e+H† →e−HHL.
+5.2
+A dimension-8 example: H2H†2eReRD
+At last, we consider a dimension-8 operator
+O2 = |H|2H†←→
+D µH(eRf6γµeRf1),
+(5.20)
+where eR is the right-handed electron. The contact on-shell amplitude induced by this operator is
+given by
+Mf1f6
+i2i3i4i5 = Cf1f6
+n 
+δi2
+i4δi3
+i5⟨15⟩[56] + sym(45)
+
++ sym(23)
+−
+
+δi2
+i4δi3
+i5⟨13⟩[36] + sym(23)
+
++ sym(45)
+o
+,
+(5.21)
+where p1 to p6 in order represent the momenta for lepton, two Higgs, two anti-Higgs, and one anti-
+lepton respectively in the all incoming convention, i2,3 and i4,5 represent the SU(2)L indices for
+Higgs and anti-Higgs respectively, f1 and f6 are the flavor for lepton and anti-lepton. The J-basis
+for the scattering channel Hi2(p2)Hi3(p3) →e+(−p1)e−(−p6)H†i4(−p4)H†i5(−p5) give:
+BJ=1 = 2⟨13⟩[36] + ⟨14⟩[46] + ⟨15⟩[56],
+gJ=1 =
+s4
+184320π5
+(5.22)
+BJ=0
+1
+= ⟨14⟩[46] + ⟨15⟩[56]
+√
+2
+,
+gJ=1
+1
+=
+s4
+737280π5 ,
+(5.23)
+BJ=0
+2
+= −⟨14⟩[46] + ⟨15⟩[56]
+√
+2
+,
+gJ=1
+2
+=
+s4
+1474560π5 ,
+(5.24)
+as one expected, the orthogonal basis is equivalent to the ones in eq. (4.22) to eq. (4.25) by cyclic
+permutation among (12345). The full amplitude eq. (5.21) can be expanded by the J-basis, and we
+find that only the coefficient of BJ=0
+1
+is non-zero:
+CJ=0
+1
+= 2
+√
+2(δi2
+i4δi3
+i5 + δi3
+i4δi2
+i5)Cf1f6.
+(5.25)
+– 16 –
+
+
+The tightest bound for this channel is given by setting i2 = 1 and i3 = 2 or vice versa as i2 = i3
+indicates i4 = i5 in the final state, introducing a factor of 2! in the denominator of gJ=0
+1
+due to the
+identical particle in the final state:
+P
+f1f5 |Cf1f6|2s4
+737280π6
+≤1.
+(5.26)
+Similarly, we obtain the optimal bounds for the rest of the possible scattering channels, and
+they are
+P
+f1f6 |Cf1f6|2s4
+737280π6
+≤1, for Hi2(p2)H†i4(p4), H†i4(p4)H†i5(p5),
+(5.27)
+P
+f6 |Cf1f6|2s4
+737280π6
+≤1, for Hi2(p2)e−(p1), H†i4(p4)e−(p1),
+(5.28)
+P
+f1 |Cf1f6|2s4
+737280π6
+≤1, for Hi2(p2)e+(p6), H†i4(p4)e+(p6).
+(5.29)
+If we assume a U(3)eR flavor symmetry, then only the diagonal Wilson coefficients are non-zero
+and are equal to the same value, then all the different scattering channels provide the same bound
+on the Wilson coefficient.
+To summarize, to obtain the optimal partial-wave unitarity bound for a given SMEFT operator
+containing more than four fields, one proceeds with the following steps:
+1. Construct the amplitude basis for the type of operator being considered.
+2. Determine the partial-wave (i.e. J-basis) amplitudes using the Casimir operator method.
+3. Identify all possible 2-to-N scattering channels relevant to the operator.
+4. For each scattering channel, decompose the amplitude onto the J-basis, and derive the strongest
+unitarity bound among different partial waves and gauge components.
+5. Iterate over all the scattering channels and select the optimal bound as the final result.
+Note that in the examples discussed above, we have, for simplicity, assumed that only a single
+SMEFT operator contributes in the analysis. However, in a complete analysis, multiple operators
+can contribute to the same scattering channel. We leave such a comprehensive analysis to future
+work.
+6
+Conclusion
+In this paper, we study the generalized partial-wave unitarity bounds derived from 2-to-N scattering
+amplitudes and show that they impose theoretical consistency constraints on the Wilson coefficients
+of higher-dimensional operators in effective field theories involving more than four fields.
+We outline a general procedure — based on the Casimir operator method — for systemati-
+cally constructing the local on-shell partial-wave amplitude basis at a given mass dimension. This
+method uses the Young tensor method to generate an amplitude basis, from which the represen-
+tation matrix of the W 2 Casimir operator of the Poincaré group is constructed. The partial-wave
+– 17 –
+
+
+amplitude basis is then obtained by diagonalizing this matrix. We further highlight that, in general
+2-to-N scattering processes, partial-wave amplitudes for a fixed total angular momentum and a
+given mass dimension can be degenerate. Such a degeneracy can be partially resolved by consid-
+ering mutually commuting angular momentum operators associated with subsets of the final-state
+particles.
+To determine the unitarity bound for each partial wave, it is first necessary to compute the
+normalization factor. This requires computing the N-body phase space integrals between pairs
+of amplitudes in the partial-wave basis. To enable analytic evaluation of the massless N-body
+phase space integrals, we map the integral onto a compact manifold, given by the product of a
+(N −1)-simplex and a (2N −3)-sphere. We show that the coordinate transformation between
+the four-momenta of final-state particles and the spherical coordinates on this compact manifold
+can be solved analytically by leveraging the spinor-helicity representation of massless momenta.
+As examples, we provide concrete parameterizations of the spinor-helicity variables for the 3- and
+4-body final states using the aforementioned spherical coordinates, along with the corresponding
+integration measures. Additionally, we provide Mathematica code that automates the analytical
+computation of the resulting phase space integrals. Finally, with two examples, we illustrate how to
+derive the partial-wave unitarity bounds on the Wilson coefficients of SMEFT operators containing
+more than four fields.
+We believe that these theoretical bounds will serve as valuable inputs when applying effective
+field theory to interpret results from precision measurements across a wide range of current and
+future experimental programs.
+Acknowledgments
+H.-L.L. Thanks Gauthier Durieux, Ming-Lei Xiao, Jiang-Hao Yu and Yu-Hui Zheng’s helpful dis-
+cussion. The work of H.-L.L. si supported by the start-up funding of Sun Yat-Sen University under
+grant number 74130-12255013 and by the National Science Foundation of China under Grants
+No.1250050417. The work of L.X.X. is partially supported by "Exotic High Energy Phenomenol-
+ogy" (X-HEP) 3, a project funded by the European Union - Grant Agreement n.101039756. L.X.X.
+is also supported by the Munich Institute for Astro-, Particle and BioPhysics (MIAPbP) which
+is funded by the Deutsche Forschungsgemeinschaft (DFG, German Research Foundation) under
+Germany’s Excellence Strategy – EXC-2094 – 390783311.
+A
+Conventions for spinor-helicity variables
+We adopt the following parameterization for the massless spinor-helicity variables associated with
+positive-energy momenta Ei > 0, where i labels the i-th external particle:
+⟨i|α ≡λα
+i =
+p
+2Ei
+ 
+cos θi/2
+e−iϕi sin θi/2
+!
+,
+[˜i| ˙α ≡˜λi ˙α =
+p
+2Ei
+ 
+−eiϕi sin θi/2
+cos θi/2
+!
+.
+(A.1)
+3Funded by the European Union. Views and opinions expressed are however those of the author(s) only and do not
+necessarily reflect those of the European Union or the ERC Executive Agency (ERCEA). Neither the European Union
+nor the granting authority can be held responsible for them.
+– 18 –
+
+
+The spinor indices can be raised and lowered using the totally anti-symmetric ϵ tensors defined by
+ϵ12 = ϵ21 = ϵ˙1˙2 = ϵ˙2˙1 = 1, so that
+|i⟩α ≡λiα = ϵαβλβ
+i ,
+|˜i] ˙α ≡˜λ ˙α
+i = ϵ ˙α ˙β˜λi ˙β.
+(A.2)
+One can verify that this parameterization indeed satisfies the following identities:
+piα ˙α ≡piµσµ
+α ˙α = λiα˜λi ˙α,
+p ˙αα
+i
+≡piµ¯σµ ˙αα = ˜λi ˙αλiα.
+(A.3)
+where pµ = (E, px, py, pz), σµ = (1, σ), ¯σµ = (1, −σ), with σ denoting the Pauli matrices.
+A state vector |p; h, M = 0⟩in the massless unitary irreducible representation of the Poincaré
+group is labeled by the three momentum vector p, which corresponds to the eigenvalue of the
+spatial translation generator. On the other hand, the helicity h labels the irreducible representation
+of the little group (i.e. the two-dimensional Euclidean group), which underlies the construction
+of massless Poincaré representations. From Wigner’s little group classification, a general Lorentz
+transformation Λ acting on the state |p; h, M = 0⟩induces a phase factor that depends on both Λ
+and the momentum p of the state. One can view the spinor variables as a realization of the massless
+irreducible representation of the Poincaré group with h = ±1/2, such that
+Λ →D−1
+2 [Λ],
+|p; h⟩→λ(p),
+(A.4)
+D−1
+2 [Λ].λ(p) = eiw(Λ,p)/2λ(Λp),
+(A.5)
+where D−1
+2 [Λ] denotes the spin-1/2 representation of the Lorentz group and w(Λ, p) is the little
+group phase factor.
+The parameterization of the spinors in eq. (A.1) is defined for momentum with p0 > 0. For
+negative energy momenta (i.e., p0 < 0), we analytically extend the definition of the spinor variables
+as follows:
+λα(p) ≡−λα(−p), ˜λ ˙α(p) ≡˜λ ˙α(−p), for p0 < 0,
+(A.6)
+which preserves eq. (A.3). In addition, for real momenta, the spinor satisfy (λα)∗= ±˜λ ˙α, where
+the minus sign applies to momenta with p0 < 0.
+B
+Phase space integral for N massless particles
+We review the N-body phase space of massless particles following [42]. We leave the more tech-
+nical discussions in this appendix while highlighting our main results in section 4. For a more
+complete discussion, we refer the readers to [42].
+The standard N-body phase space is given by
+dΠN(2π)4δ4
+ 
+P −
+N
+X
+i=1
+pi
+!
+=
+N
+Y
+i=1
+d3pi
+(2π)32Ei
+(2π)4δ4
+ 
+P −
+N
+X
+i=1
+pi
+!
+(B.1)
+= (2π)4−3N
+N
+Y
+i=1
+d4piδ(p2
+i )Θ(Ei) δ4
+ 
+P −
+N
+X
+i=1
+pi
+!
+,
+(B.2)
+– 19 –
+
+
+where s = P 2 is the square of the center-of-mass energy. When all particles are massless, instead
+of using the three-momenta pi, it is convenient to use the spinor-helicity variables as the integration
+variables, where for each four-momentum we replace pi with (pi)α ˙α = λiα˜λi ˙α and (˜λi ˙α)∗= λiα.
+Hence, the integration measure for the on-shell four-momentum pi becomes
+d4piδ(p2
+i )Θ(Ei) = d2λiα d2˜λi ˙α
+U(1)
+≡sdui dvi
+U(1)
+,
+(B.3)
+where the U(1) in the denominator denotes the redundant little group transformation (that should
+eventually be removed for each pi), ui and vi are the two complex numbers parameterizing pi. One
+can view ui and vi as the coefficients when projecting the spinor |pi⟩on the two basis spinors |k1⟩
+and |k2⟩, i.e. |pi⟩= ui|k1⟩+ vi|k2⟩. 4 All the N pairs of the two complex numbers (ui, vi) form
+two complex N-component vectors ⃗u = (u1, u2, · · · , uN)T and ⃗v = (v1, v2, · · · , vN)T , i.e.,
+
+|p1⟩|p2⟩· · · |pN⟩
+T =
+ 
+u1 u2 · · · uN
+v1 v2 · · · vN
+!T  
+|k1⟩
+|k2⟩
+!
+.
+(B.4)
+With the parameterization of ui and vi, the phase space can be written as
+dΠN = (2π)4−3NsN−2 dNudNv
+U(1)N δ(1 −|⃗u|2)δ(1 −|⃗v|2)δ2(⃗u†⃗v),
+(B.5)
+where the superscript 2 in the last δ-function indicates that it is for a complex variable. More
+precisely, for Pα ˙α −PN
+i=1(pi)α ˙α inside the δ function, 1 −|⃗u|2 matches the (α, ˙α) = (1, 1)
+component, 1−|⃗v|2 matches the (α, ˙α) = (2, 2) component, while ⃗u†⃗v matches the (α, ˙α) = (1, 2)
+component.
+More specifically, removing the redundancy of the little group U(1)N factor amounts to fixing
+the phase of one of the complex variables for each pair of ui and vi. Without loss of generality, we
+choose to set ui = rieiϕi and send all ϕi to zero, i.e.,
+d∆N−1δ4
+ 
+P −
+N
+X
+i=1
+pi
+!
+=
+dNu
+U(1)N δ(1 −|⃗u|2) =
+QN
+i=1 ridridϕi
+U(1)N
+δ
+ 
+1 −
+N
+X
+i=1
+r2
+i
+!
+=
+Z
+N
+Y
+i=1
+[ridridϕiδ(ϕi)] δ
+ 
+1 −
+N
+X
+i=1
+r2
+i
+!
+= 1
+2N
+N
+Y
+i=1
+[dρi]
+ 
+1 −
+N
+X
+i=1
+ρi
+!
+,
+(B.6)
+where ρi = r2
+i . In [42], this is called the integration measure on the (N −1)-simplex.
+Furthermore, one can use δ2(⃗u†⃗v) to remove the integral of the last component of v, i.e.,
+dS2N−3 = dNvδ(1 −|⃗v|2)δ2(⃗u†⃗v) = dN−1v
+|uN|2 δ
+ 
+1 −
+N−1
+X
+i=1
+|vi|2 −|vN|2
+!
+.
+(B.7)
+4One convenient choice for the basis spinors is that |k1⟩= (1, 0)T and |k2⟩= (0, 1)T , which can be interpreted as
+the two spinors of the initial-state particles moving in the forward and backward directions, respectively.
+– 20 –
+
+
+From the condition ⃗u†⃗v = 0, we see that vN is a function depending on v1,...,N−1 and u1,...,N, i.e.,
+vN = −
+PN−1
+i=1 u∗
+i vi
+u∗
+N
+= −
+PN−1
+i=1 rivi
+rN
+.
+(B.8)
+To perform the integral over v1,...,N−1, we need to make a symmetric real transformation for the
+variables v′ = O−1v such that 1 −PN−1
+i=1 |vi|2 −|vN|2 = 1 −PN−1
+i=1 |v′|2, where the coordinates
+of v′
+1,2,··· ,N−1 are parametrized by
+v′
+1 = e−iξ1 cos η1
+(B.9)
+v′
+2 = e−iξ2 sin η1 cos η2
+...
+v′
+N−2 = e−iξN−2 sin η1 . . . sin ηN−3 cos ηN−2
+v′
+N−1 = e−iξN−1 sin η1 . . . sin ηN−3 sin ηN−2.
+Here ξi ∈[0, 2π], ηi ∈[0, π/2]. These coordinates can be viewed as embedding S2N−3 into
+CN−1 [42]. Using these new variables, the relevant integral measure for dS2N−3 is given by 5
+dN−1v′ δ
+ 
+1 −
+N−1
+X
+i=1
+|v′
+i|2
+!
+=
+ N−2
+Y
+k=1
+cos ηk sin2(N−2−k)+1 ηk
+!
+dξi . . . dξN−1dηi . . . dηN−2.
+(B.10)
+After including the Jacobian for v′ = O−1v, we finally obtain the measure of S2N−3.
+From eq. (B.8) and the condition PN−1
+i=1 |vi|2 + |vN|2 = PN−1
+i=1 |v′|2, we find
+(O−1)2 = 1 + 1
+r2
+N
+rT r,
+(B.11)
+where r = (r1, r2, . . . , rN−1). The right-hand side of the equation takes the form of a rank-one
+modification of the identity matrix, whose inverse and square root can be computed analytically
+using the Sherman–Morrison Formula [48]. For instance,
+p
+1 + uT u = 1 +
+ p
+1 + |u|2 −1
+|u|2
+!
+uT u,
+(B.12)
+
+1 + uT u
+−1 = 1 −
+1
+1 + |u|2 uT u,
+(B.13)
+where |u| =
+qP
+i u2
+i is the norm of the vector. Therefore, the matrix O can be solved as
+O = 1 −
+ √1 + β −1
+β√1 + β
+!
+rT r
+r2
+N
+, β = |r|2
+r2
+N
+.
+(B.14)
+5We identified a typo in the measure of S2N−3 in Ref. [42] and corrected them in eq. (B.10).
+– 21 –
+
+
+References
+[1] L. Allwicher et al., Computing tools for effective field theories: SMEFT-Tools 2022 Workshop Report,
+14–16th September 2022, Zürich, Eur. Phys. J. C 84 (2024), no. 2 170, [arXiv:2307.08745].
+[2] C. Degrande, A basis of dimension-eight operators for anomalous neutral triple gauge boson
+interactions, JHEP 02 (2014) 101, [arXiv:1308.6323].
+[3] B. Bellazzini and F. Riva, New phenomenological and theoretical perspective on anomalous ZZ and
+Zγ processes, Phys. Rev. D 98 (2018), no. 9 095021, [arXiv:1806.09640].
+[4] J. Ellis, S.-F. Ge, and K. Ma, Hadron collider probes of the quartic couplings of gluons to the photon
+and Z boson, JHEP 04 (2022) 123, [arXiv:2112.06729].
+[5] J. Ellis, H.-J. He, and R.-Q. Xiao, Probing neutral triple gauge couplings at the LHC and future
+hadron colliders, Phys. Rev. D 107 (2023), no. 3 035005, [arXiv:2206.11676].
+[6] R. Boughezal, Y. Huang, and F. Petriello, Exploring the SMEFT at dimension eight with Drell-Yan
+transverse momentum measurements, Phys. Rev. D 106 (2022), no. 3 036020,
+[arXiv:2207.01703].
+[7] R. Boughezal, Y. Huang, and F. Petriello, Impact of high invariant-mass Drell-Yan forward-backward
+asymmetry measurements on SMEFT fits, Phys. Rev. D 108 (2023), no. 7 076008,
+[arXiv:2303.08257].
+[8] J. Ellis, H.-J. He, and R.-Q. Xiao, Probing neutral triple gauge couplings with Z*γ (νν¯γ)
+production at hadron colliders, Phys. Rev. D 108 (2023), no. 11 L111704, [arXiv:2308.16887].
+[9] J. Ellis, K. Mimasu, and F. Zampedri, Dimension-8 SMEFT analysis of minimal scalar field
+extensions of the Standard Model, JHEP 10 (2023) 051, [arXiv:2304.06663].
+[10] H. El Faham, K. Mimasu, D. Pagani, C. Severi, E. Vryonidou, and M. Zaro, Electroweak corrections
+in the SMEFT: four-fermion operators at high energies, arXiv:2412.16076.
+[11] C. Degrande, R. Rosenfeld, and A. Vasquez, Collider sensitivity to SMEFT heavy-quark operators at
+one-loop in top-quark processes, JHEP 07 (2024) 114, [arXiv:2402.06528].
+[12] A. Martin, A case study of SMEFT O
+ 1/Λ4
+effects in diboson processes: pp →Wś(ℓśν)γ, JHEP 05
+(2024) 223, [arXiv:2312.09867].
+[13] B. Assi and A. Martin, Energy-enhanced dimension eight SMEFT effects in VBF Higgs production,
+JHEP 02 (2025) 029, [arXiv:2410.21563].
+[14] D. Gillies, A. Banfi, A. Martin, and M. A. Lim, Dimension-8 operators in W +W −production via
+gluon fusion, arXiv:2412.16020.
+[15] J. Ellis, H.-J. He, and R.-Q. Xiao, Probing CP-Violating Neutral Triple Gauge Couplings at
+Electron-Positron Colliders, arXiv:2504.13135.
+[16] C. de Rham, S. Kundu, M. Reece, A. J. Tolley, and S.-Y. Zhou, Snowmass White Paper: UV
+Constraints on IR Physics, in Snowmass 2021, 3, 2022. arXiv:2203.06805.
+[17] C. Zhang and S.-Y. Zhou, Positivity bounds on vector boson scattering at the LHC, Phys. Rev. D 100
+(2019), no. 9 095003, [arXiv:1808.00010].
+[18] G. N. Remmen and N. L. Rodd, Consistency of the Standard Model Effective Field Theory, JHEP 12
+(2019) 032, [arXiv:1908.09845].
+[19] G. N. Remmen and N. L. Rodd, Flavor Constraints from Unitarity and Analyticity, Phys. Rev. Lett.
+125 (2020), no. 8 081601, [arXiv:2004.02885]. [Erratum: Phys.Rev.Lett. 127, 149901 (2021)].
+– 22 –
+
+
+[20] Q. Bonnefoy, E. Gendy, and C. Grojean, Positivity bounds on Minimal Flavor Violation, JHEP 04
+(2021) 115, [arXiv:2011.12855].
+[21] B. Fuks, Y. Liu, C. Zhang, and S.-Y. Zhou, Positivity in electron-positron scattering: testing the
+axiomatic quantum field theory principles and probing the existence of UV states, Chin. Phys. C 45
+(2021), no. 2 023108, [arXiv:2009.02212].
+[22] J. Gu, L.-T. Wang, and C. Zhang, Unambiguously Testing Positivity at Lepton Colliders, Phys. Rev.
+Lett. 129 (2022), no. 1 011805, [arXiv:2011.03055].
+[23] J. Davighi, S. Melville, and T. You, Natural selection rules: new positivity bounds for massive
+spinning particles, JHEP 02 (2022) 167, [arXiv:2108.06334].
+[24] X. Li, K. Mimasu, K. Yamashita, C. Yang, C. Zhang, and S.-Y. Zhou, Moments for positivity: using
+Drell-Yan data to test positivity bounds and reverse-engineer new physics, JHEP 10 (2022) 107,
+[arXiv:2204.13121].
+[25] D. Ghosh, R. Sharma, and F. Ullah, Amplitude’s positivity vs. subluminality: causality and unitarity
+constraints on dimension 6 & 8 gluonic operators in the SMEFT, JHEP 02 (2023) 199,
+[arXiv:2211.01322].
+[26] Q. Chen, K. Mimasu, T. A. Wu, G.-D. Zhang, and S.-Y. Zhou, Capping the positivity cone:
+dimension-8 Higgs operators in the SMEFT, JHEP 03 (2024) 180, [arXiv:2309.15922].
+[27] J. Gu and C. Shu, Probing positivity at the LHC with exclusive photon-fusion processes, JHEP 05
+(2024) 183, [arXiv:2311.07663].
+[28] M. Chala and X. Li, Positivity restrictions on the mixing of dimension-eight SMEFT operators, Phys.
+Rev. D 109 (2024), no. 6 065015, [arXiv:2309.16611].
+[29] U. Baur and D. Zeppenfeld, Unitarity Constraints on the Electroweak Three Vector Boson Vertices,
+Phys. Lett. B 201 (1988) 383–389.
+[30] G. J. Gounaris, F. M. Renard, and G. Tsirigoti, Anomalous weak boson couplings: Suggestions from
+unitarity and dynamics, Phys. Lett. B 350 (1995) 212–217, [hep-ph/9502376].
+[31] J. Layssac, F. M. Renard, and G. J. Gounaris, Unitarity constraints for transverse gauge bosons at
+LEP and supercolliders, Phys. Lett. B 332 (1994) 146–152, [hep-ph/9311370].
+[32] G. F. Giudice, C. Grojean, A. Pomarol, and R. Rattazzi, The Strongly-Interacting Light Higgs, JHEP
+06 (2007) 045, [hep-ph/0703164].
+[33] T. Corbett, O. J. P. Éboli, and M. C. Gonzalez-Garcia, Unitarity Constraints on Dimension-Six
+Operators, Phys. Rev. D 91 (2015), no. 3 035014, [arXiv:1411.5026].
+[34] T. Corbett, O. J. P. Éboli, and M. C. Gonzalez-Garcia, Unitarity Constraints on Dimension-six
+Operators II: Including Fermionic Operators, Phys. Rev. D 96 (2017), no. 3 035006,
+[arXiv:1705.09294].
+[35] F. Maltoni, J. M. Niczyporuk, and S. Willenbrock, The Scale of fermion mass generation, Phys. Rev.
+D 65 (2002) 033004, [hep-ph/0106281].
+[36] W. Kilian, S. Sun, Q.-S. Yan, X. Zhao, and Z. Zhao, Multi-Higgs boson production and unitarity in
+vector-boson fusion at future hadron colliders, Phys. Rev. D 101 (2020), no. 7 076012,
+[arXiv:1808.05534].
+[37] M. Jiang, J. Shu, M.-L. Xiao, and Y.-H. Zheng, Partial Wave Amplitude Basis and Selection Rules in
+Effective Field Theories, Phys. Rev. Lett. 126 (2021), no. 1 011601, [arXiv:2001.04481].
+– 23 –
+
+
+[38] L. C. Bresciani, G. Levati, and P. Paradisi, Amplitudes and partial wave unitarity bounds,
+arXiv:2504.12855.
+[39] L. C. Bresciani, G. Levati, and P. Paradisi, Positivity and partial wave unitarity bounds on ALP
+theories via amplitude methods, arXiv:2510.13953.
+[40] B. I. Zwiebel, From Scattering Amplitudes to the Dilatation Generator in N=4 SYM, J. Phys. A 45
+(2012) 115401, [arXiv:1111.0083].
+[41] J. Elias Miró, J. Ingoldby, and M. Riembau, EFT anomalous dimensions from the S-matrix, JHEP 09
+(2020) 163, [arXiv:2005.06983].
+[42] A. J. Larkoski and T. Melia, Covariantizing phase space, Phys. Rev. D 102 (2020), no. 9 094014,
+[arXiv:2008.06508].
+[43] P. Cox and T. Melia, Independently Parameterised Momenta Variables and Monte Carlo IR
+Subtraction, JHEP 12 (2018) 038, [arXiv:1809.09325].
+[44] H.-L. Li, Z. Ren, M.-L. Xiao, J.-H. Yu, and Y.-H. Zheng, Operators For Generic Effective Field
+Theory at any Dimension: On-shell Amplitude Basis Construction, arXiv:2201.04639.
+[45] B. Henning and T. Melia, Constructing effective field theories via their harmonics, Phys. Rev. D 100
+(2019), no. 1 016015, [arXiv:1902.06754].
+[46] H.-L. Li, Z. Ren, J. Shu, M.-L. Xiao, J.-H. Yu, and Y.-H. Zheng, Complete set of dimension-eight
+operators in the standard model effective field theory, Phys. Rev. D 104 (2021), no. 1 015026,
+[arXiv:2005.00008].
+[47] Y. Liao and X.-D. Ma, Renormalization Group Evolution of Dimension-seven Operators in Standard
+Model Effective Field Theory and Relevant Phenomenology, JHEP 03 (2019) 179,
+[arXiv:1901.10302].
+[48] J. Sherman and W. J. Morrison, Adjustment of an inverse matrix corresponding to a change in one
+element of a given matrix, Ann. Math. Stat. 21 (1950) 124–127.
+– 24 –

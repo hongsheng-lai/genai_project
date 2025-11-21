@@ -1,0 +1,2284 @@
+A thermo-mechanically coupled finite deformation model for
+freezing-induced damage in soft materials
+Ali Saeedia, Ram Devireddyb, Mrityunjay Kotharia,∗
+aDepartment of Mechanical Engineering, University of New Hampshire, Durham, NH 03820, USA
+bDepartment of Mechanical Engineering, Louisiana State University, Baton Rouge, LA 70803, USA
+Abstract
+In the U.S., approximately 17 patients die each day awaiting an organ transplant, a crisis driven by the
+inability to store organs long-term via methods like cryopreservation. A primary failure mechanism is the
+severe thermo-mechanical damage tissues experience during freezing. A predictive understanding of this
+damage is hindered by the complex interplay between heat transfer, phase change, and large deformation
+mechanics. Motivated by this fundamental problem, we present a fully coupled, thermo-mechanical phase-
+field framework for modeling damage evolution in fluid-saturated soft materials under cryogenic conditions.
+The theoretical framework integrates heat transfer with solid-liquid phase transition, finite deformation
+nonlinear elasticity, and progressive mechanical damage. The governing equations are solved using FEniCS
+finite element package. The presentation will detail the theoretical framework and showcase representative
+simulations that capture the spatiotemporal evolution of temperature, freezing phase field, stress, and dam-
+age fields during representative freezing protocols. The developed framework serves as a powerful tool for
+understanding the fundamental mechanisms of freezing-induced injury and for designing improved cryop-
+reservation strategies.
+Keywords:
+Cryogenic temperature, Freezing, Solidification, Phase field, Thermo-mechanical model,
+Nonlinear Elasticity, Fracture
+1. Introduction
+Cryopreservation—the use of ultra-low temperatures to preserve biological tissues and organs—holds im-
+mense promise for extending organ transplantation windows, enabling tissue banking, and advancing regen-
+erative medicine. However, the wide success achieved in cryopreservation of isolated cells [1, 2, 3, 4, 5, 6, 7,
+8, 9, 10, 11, 12, 13, 14, 15, 16] has not yet translated to the preservation of organs and tissues despite a dire
+need. One of the grand challenges to organ cryopreservation is that the “larger” size of the organs and tissues
+compared to single cells introduces a new and poorly understood form of damage caused by the excessive
+thermo-mechanical stresses, which leads to loss of biological function [17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27].
+Most soft tissues contain ∼50 to ∼70% water. When tissues are frozen, the water undergoes phase change
+to ice progressively throughout the tissue; the frozen tissue then continues to cool down further until the
+desired temperatures are reached. It is understood in the cryopreservation literature that different mech-
+anisms of damage are at play in these two stages. While in the first stage, dynamics of freezing/thawing,
+nucleation of ice crystals, and their interaction with cell membranes are the key contributors, in the sec-
+ond stage, bulk mechanical stresses due to phase-change induced volume change and differential thermal
+expansion/contraction due to temperature gradients are the major factors.
+∗Corresponding author
+Email address: mrityunjay.kothari@unh.edu (Mrityunjay Kothari)
+Preprint submitted to Elsevier
+November 20, 2025
+arXiv:2511.15500v1  [cond-mat.soft]  19 Nov 2025
+
+
+These stresses, when severe, cause tissues to progressively lose structural integrity (“damage”) and ulti-
+mately develop visible cracks (see Figure 1).
+Figure 1: Thermal stresses induced cracking upon freezing a sample of bovine liver. Ex-
+perimental image courtesy of Prof. Ram Devireddy’s Bioengineering/Bioheat Transfer Lab-
+oratory at the Louisiana State University, Baton Rouge, LA.
+Given the immense promise
+of cryopreservation for
+human
+health,
+there
+has
+been
+an
+exten-
+sive
+body
+of
+work—
+both experimental and
+theoretical—which has
+significantly
+advanced
+the knowledge of this
+process.
+We will con-
+fine our attention to
+the thermo-mechanical
+aspects
+of
+this
+pro-
+cess.
+Early
+exper-
+iments on cryopreser-
+vation
+of
+animal
+tis-
+sues observed mechan-
+ical damage ranging from
+microscopic fractures [28, 29] to catastrophic gross fractures [30] during the entire cycle of freezing and thaw-
+ing. Due to the non-uniform cooling of tissues (initiated from the boundaries and progressing to the interior),
+different regions of the tissues expand differently. Prior modeling efforts have indeed tested and confirmed
+this hypothesis and revealed important insights into the thermal stresses that develop during the freezing of
+tissues [18, 31, 20, 21] and in heart geometries [32]. In addition to reaffirming the experimental observations
+that thermal stresses are indeed high enough to push the tissues beyond their elastic limit, they also con-
+cluded that mechanical damage to the tissue is unavoidable no matter how slow the cooling is carried out
+[22, 23, 24, 25, 26, 27, 33]. Studies in cylindrically symmetric settings showed that the volumetric expansion
+associated with the phase change of water (∼9%) is a significant contributor to the thermal stress (can
+elevate the maximum equivalent stress by ∼2-3x higher in renal tissues)[34, 35].
+Prior theoretical and computational efforts to model thermo-mechanical failures have largely focused on
+stress analyses and on avoiding fracture in simpler geometries, such as spheres and cylinders, to facilitate
+analytical tractability. Furthermore, these studies are generally limited to simplified linear elastic or elastic-
+plastic models, which do not capture the non-linear elastic response that is typical of tissues. Additionally,
+there is lack of theoretical and computational modeling that is able predict the evolution of damage due
+to thermo-mechanical stresses in tissues, which eventually leads to fracture. While fracture is certainly in-
+dicative of failure of the tissue and the cryopreservation protocol itself, damage is likely to be a more useful
+indicator of the extent of loss of biological function.
+Cryopreservation involves a confluence of thermal and mechanical processes that are intricately coupled,
+making it necessary to develop a fully coupled description of the processes, something that is currently
+missing from the literature. Motivated by the importance of cryopreservation to human health and the
+existing mechanistic gaps in the literature, this works presents a fully-coupled, thermo-mechanically consis-
+tent framework for modeling freezing-induced damage in water-saturated soft materials, formulated within
+a finite deformation setting. This effort will focus on developing a mechanistic picture of the second stage
+of the cryopreservation process, where bulk thermo-mechanical stresses play a crucial role.
+Freezing of tissues is a complex biophysical process. Our approach to modeling is to develop the simplest
+model that captures all the relevant physical (thermo-mechanical) factors at play namely heat transfer,
+phase change, mechanical stresses and deformations, and the ensuing damage. To this end, we integrate two
+2
+
+
+phase-field models—one for fracture (or material damage) and one for the freezing process—into a unified
+continuum mechanics formulation. In contrast to prior cryopreservation models that relied on simplified
+geometries or linearized material behavior, our framework can accommodate complex geometries and in-
+corporates a nonlinear elastic description of the soft tissue. The phase change from liquid water to ice is
+described by a continuously varying field that triggers volumetric expansion upon solidification, and this is
+coupled to the stress analysis so that thermal expansion/contraction and solidification-induced strain are
+naturally included. Similarly, the phase-field damage variable is coupled to the mechanical response, de-
+grading the stiffness of the material as the material progressively loses its structural integrity under severe
+stresses. By solving the strongly coupled heat transfer, phase transformation, and mechanical equilibrium
+equations, the model can capture the interplay between temperature evolution, ice formation, and mechan-
+ical damage in a way that is not possible with existing approaches. To our knowledge, this is the first
+theoretical framework that combines phase-field fracture and phase-field freezing in a finite-strain setting
+for soft biological materials.
+The organization of the paper is as follows. In §2 we describe the thermo-mechanical theoretical framework,
+that integrates heat transfer, phase change, mechanical deformation/stresses, and damage. The framework
+is then specialized in §3 to a chosen set of free energies to derive the relevant governing equations. The
+numerical implementation of the framework is validated through a selection of test problems in §4. The
+capabilities of the model are demonstrated by application of the specialized framework to four representative
+cases in §5. We conclude with a brief discussion of the results and future directions in §6.
+2. Thermo-mechanical Theoretical Framework
+In this section we develop a coupled thermo-mechanical framework for modeling of evolution of damage in
+a freezing material over time.
+2.1. Kinematic Descriptors
+We develop a theory that is based on the following kinematic descriptors: {χ, F, d, ∇d, T, ∇T, ϕ, ∇ϕ}. Here,
+χ is the deformation field and F := ∇χ is the deformation gradient; 0 ≤d ≤1 is a damage phase field, which
+represents pristine material when d = 0 and completely broken material when d = 1; T is the temperature;
+and, lastly, 0 ≤ϕ ≤1 is a freezing phase field which represents frozen material when ϕ = 0 and unfrozen
+when ϕ = 1. The aim of the theory is to solve for {χ, d, T, ϕ}.
+Since thermal expansion/contraction is a significant contributor to freezing stresses, we will adopt a Kr¨oner-
+Lee multiplicative decomposition [36] of the deformation gradient F into elastic and phase change parts Fe
+and Fph as
+F = FeFph,
+where
+J ≡det F,
+Je ≡det Fe > 0, and Jph ≡det Fph > 0.
+(2.1)
+In this work, we will consider Fph = (1+ϵT (T, ϕ))1, with ϵT (T, ϕ) being the transformation strain associated
+with thermal contraction/expansion and phase change.
+2.2. Macroscopic and Microscopic Force Balance
+We employ the Principle of Virtual Power (PVP), following the approach of Germain [37], to derive the
+macroscopic and microscopic force balances involving our chosen kinematic variables and their associated
+power conjugates.
+PVP requires that
+1. The virtual power of all internal and external forces acting on a system, for any admissible virtual
+motion, be null;
+2. The internal virtual power be an objective quantity.
+3
+
+
+Internal virtual power, Pi is:
+Pi =
+Z
+B
+
+P : ˙F + ω ˙d + ζ · ∇˙d + π ˙ϕ + ξ · ∇˙ϕ
+
+dVR,
+(2.2)
+where P (Tensorial Stress), ω (Scalar Microstress), ζ (Vector Microstress), π (Scalar Microstress), ξ (Vector
+Microstress) are defined as power conjugates to ˙F (distortion rate), ˙d (rate of damage), ∇˙d (gradient of rate
+of damage), ˙ϕ (rate of freezing), and ∇˙ϕ (gradient of rate of freezing) respectively. The subscript R denotes
+the reference configuration and indicates that the above integral is expressed in reference configuration. B
+denotes the continuum body and ∂B denotes its boundary (Fig. 2).
+B
+@B
+Figure 2: Schematic of the continuum body.
+External virtual power, Pe, is:
+Pe =
+Z
+B
+
+bR · v + k ˙d + l · ∇˙d + α ˙ϕ + β · ∇˙ϕ
+
+dVR+
+Z
+∂B
+
+tR · v + h ˙d + g · ∇˙d + γ ˙ϕ + π · ∇˙ϕ
+
+dAR,
+(2.3)
+where bR is the body force per unit refer-
+ence volume and tR is the external mechan-
+ical traction that expend power on v (veloc-
+ity);
+k
+and α are microforces that expend
+power on
+˙d and
+˙ϕ respectively; l and β are
+microstresses that expend power on ∇˙d and
+∇˙ϕ respectively; h and γ are microscopic trac-
+tions that expend power on
+˙d and
+˙ϕ respec-
+tively; g and π are microscopic tractions that
+expend power on ∇˙d and ∇˙ϕ respectively; all
+quantities are defined in reference configura-
+tion.
+We require that Pi is objective under the transformation x∗= y(t) + Q(t)(x −o), where Q(t) ∈SO(3) is
+an orthogonal rotation matrix, which gives the following transformation rules:
+P∗= QP,
+PF⊤= P⊤F
+(2.4a)
+ω∗= ω,
+π∗= π,
+(2.4b)
+ζ∗= Qζ,
+ξ∗= Qξ
+(2.4c)
+Finally, from Pi = Pe, we obtain the following macroscopic and microscopic balances1
+∇· P + b =0, X ∈B
+Balance of Lin. Mom. 2
+(2.5a)
+PnR −tR =0, X ∈∂B
+Cauchy’s Law
+(2.5b)
+∇· ζ −ω =0, X ∈B
+Microforce Balance (for d)
+(2.5c)
+ζ · nR −h =0, X ∈∂B
+Microscopic Traction (for d)
+(2.5d)
+∇· ξ −π =0, X ∈B
+Microforce Balance (for ϕ)
+(2.5e)
+ξ · nR −γ =0, X ∈∂B
+Microscopic Traction (for ϕ)
+(2.5f)
+g =0, X ∈∂B
+Microscopic Traction (for d)
+(2.5g)
+π =0, X ∈∂B
+Microscopic Traction (for ϕ)
+(2.5h)
+1In this calculation, it is implicitly assumed that there are no external volume fields that expend power on the ˙d, ∇˙d, ˙ϕ,
+and ∇˙ϕ, thus nullifying k, l, α, and β.
+4
+
+
+With these equations, the final form of the virtual power balance becomes:
+Z
+B
+
+P : ˙F + ω ˙d + ζ · ∇˙d + π ˙ϕ + ξ · ∇˙ϕ
+
+dVR =
+Z
+B
+bR · v dVR +
+Z
+∂B
+
+tR · v + h ˙d + γ ˙ϕ
+
+dAR.
+(2.6)
+2.3. First and Second Laws of Thermodynamics
+For thermodynamic consistency, the theory must satisfy the First and Second Laws of Thermodynamics.
+Following the internal virtual power form in (2.6), the First Law of Thermodynamics gives the following
+balance of energy in B,
+˙e = P: ˙F + ω ˙d + ζ · ∇˙d + π ˙ϕ + ξ · ∇˙ϕ + r −∇· qR,
+(2.7)
+where e is the internal energy per unit reference volume, r is some volumetric internal heating source per
+unit reference volume, and qR is the heat-flux vector expressed in the referential form. The remaining terms
+correspond to the power expended on the system by various stresses, microforces, and microstresses.
+Aside on Stress Power.
+We also note here that in view of equation (2.1), ˙F, ˙Fe, and ˙Fph are related.
+Thus, the term P : ˙F can be split into the following terms [38],
+P : ˙F = JσF−e⊤: ˙Fe + JFe⊤σF−e⊤: ˙FphFph−1
+(2.8)
+where σ = J−1PF⊤is the Cauchy Stress tensor. Since the strain energy functions are typically expressed
+as functions of the elastic right Cauchy-Green tensor Ce, the above equation can be recast following the
+approach in [38] as,
+P : ˙F = 1
+2σe : ˙Ce −¯p ˙Jph
+(2.9)
+where
+σe =Fe−1JσFe−⊤= Fe−1PFph⊤,
+(2.10)
+Ce =Fe⊤Fe,
+and
+(2.11)
+¯p = −1
+3Jetr(PF⊤/J)
+(2.12)
+By introducing the Helmholtz free energy ψ = e −Ts, where s is the entropy per unit reference volume, we
+can rearrange the internal energy equation (2.7), using (2.9), as
+T ˙s = 1
+2σe : ˙Ce + ω ˙d + ζ · ∇˙d +
+
+π −¯p∂Jph
+∂ϕ
+
+˙ϕ + ξ · ∇˙ϕ + r −∇· qR −˙ψ −˙T
+
+s + ¯p∂Jph
+∂T
+
+(2.13)
+where we have used ˙Jph = ∂Jph
+∂ϕ
+˙ϕ + ∂Jph
+∂T
+˙T.
+The Second Law of Thermodynamics states that the total entropy change of the system and surround-
+ings must be non-negative. This translates into the following requirement, also known as the Dissipation
+Inequality:
+D ≡1
+2σe : ˙Ce + ω ˙d + ζ · ∇˙d +
+
+π −¯p∂Jph
+∂ϕ
+
+˙ϕ + ξ · ∇˙ϕ −˙ψ −˙T
+
+s + ¯p∂Jph
+∂T
+
+−qR · ∇T
+T
+≥0.
+(2.14)
+5Readers familiar with this process will recognize that P is the First Piola Kirchhoff Stress Tensor.
+5
+
+
+Assuming a general form for the Helmholtz free energy as ψ ≡ψ(Ce, d, ∇d, T, ∇T, ϕ, ∇ϕ), the ˙ψ term can
+be expanded as follows,
+˙ψ = ∂ψ
+∂Ce : ˙Ce + ∂ψ
+∂d
+˙d + ∂ψ
+∂∇d · ∇˙d + ∂ψ
+∂T
+˙T + ∂ψ
+∂ϕ
+˙ϕ + ∂ψ
+∂∇ϕ · ∇˙ϕ,
+(2.15)
+which yields the following concise form for the dissipation inequality,
+D ≡
+1
+2σe −∂ψ
+∂Ce
+
+: ˙Ce +
+
+ω −∂ψ
+∂d
+
+˙d +
+
+ζ −∂ψ
+∂∇d
+
+· ∇˙d +
+
+π −¯p∂Jph
+∂ϕ
+−∂ψ
+∂ϕ
+
+˙ϕ
++
+
+ξ −∂ψ
+∂∇ϕ
+
+· ∇˙ϕ −
+
+s + ¯p∂Jph
+∂T
++ ∂ψ
+∂T
+
+˙T −qR · ∇T
+T
+≥0.
+(2.16)
+2.4. Constitutive Relations
+Through the application of Coleman-Noll procedure [39] on the chosen form of free energy, the dissipation
+inequality yields the following equations:
+σe =2 ∂ψ
+∂Ce
+Stress
+(2.17a)
+s = −¯p∂Jph
+∂T
+−∂ψ
+∂T
+Entropy Density
+(2.17b)
+ω =∂ψ
+∂d
+Scalar Microstress
+(2.17c)
+π = ¯p∂Jph
+∂ϕ
++ ∂ψ
+∂ϕ
+|
+{z
+}
+πenergetic
++
+1
+M
+˙ϕ
+|{z}
+πdissipative
+Scalar Microstress
+(2.17d)
+ζ = ∂ψ
+∂∇d
+Vector Microstress
+(2.17e)
+ξ = ∂ψ
+∂∇ϕ
+Vector Microstress
+(2.17f)
+qR = −KR(Ce, d, ϕ, T)∇T
+Heat Conduction
+(2.17g)
+In general, any choice that is consistent with (2.16) is a valid choice.
+In the above application of the
+Coleman-Noll procedure, we make a specific constitutive choice that π has an energetic and a dissipative
+part. This will be complemented with an evolution equation for ϕ in the next subsection. M > 0 is a
+mobility constant, and KR(Ce, d, ϕ, T) > 0 is the thermal conductivity.
+2.5. Damage-informed Temperature and Freezing Evolution
+Temperature Evolution.
+Starting from the entropy evolution equation (2.13) and using equations (2.15)
+and (2.17a)-(2.17g), we get the following simplified equation for entropy evolution
+T ˙s = πdiss. ˙ϕ + r −∇· qR.
+(2.18)
+Recalling from equation (2.17b) that s = −¯p∂Jph
+∂T
+−∂ψ
+∂T , the entropy evolution equation can be recast in
+the following form for temperature evolution
+T ∂s
+∂T
+| {z }
+Cv, Volumetric Heat Capacity
+˙T = r−∇·qR + πdiss. ˙ϕ −T
+ ∂s
+∂Ce : ˙Ce + ∂s
+∂d : ˙d + ∂s
+∂∇d : ∇˙d + ∂s
+∂ϕ : ˙ϕ +
+∂s
+∂∇ϕ : ∇˙ϕ
+
+|
+{z
+}
+L
+.
+(2.19)
+6
+
+
+Freezing Phase Field Evolution.
+From the microscopic balance law (2.5e) and scalar microstress equa-
+tion (2.17d), we obtain
+∇· ∂ψ
+∂∇ϕ = πenergetic + πdiss.,
+(2.20)
+which gives the following form for πdiss.
+πdiss. = ∇· ∂ψ
+∂∇ϕ −¯p∂Jph
+∂ϕ
+−∂ψ
+∂ϕ
+(2.21)
+Thus, the evolution equation for the freezing phase field becomes,
+˙ϕ = −M
+
+¯p∂Jph
+∂ϕ
++ ∂ψ
+∂ϕ −∇· ∂ψ
+∂∇ϕ
+
+.
+(2.22)
+2.6. Summary of Equations
+The relevant governing equations for a rate-independent model are6:
+∇· P + b = 0
+Mechanical Equilibrium
+∇· ∂ψ
+∂∇d −∂ψ
+∂d = 0
+Damage Evolution
+c ˙T −L = r −∇· qR
+Heat Conduction
+˙ϕ + M
+
+¯p∂Jph
+∂ϕ
++ ∂ψ
+∂ϕ −∇· ∂ψ
+∂∇ϕ
+
+= 0
+Freezing Phase Field Evolution
+(2.23)
+(2.24)
+(2.25)
+(2.26)
+supplemented with appropriate initial and boundary conditions for χ, d, T, and ϕ. With proper choice of
+the constitutive equations, the model applies to rate-dependent damage as well.
+3. Specialization of Framework
+As an illustrative example, we will specialize the general model developed in §2 to specific choices of free
+energies and derive the relevant governing equations. We choose the following form for the free energies for
+this exercise:
+ψ(Ce, d, ∇d, T, ϕ, ∇ϕ) = ψel(Ce, d) + ψcrack(d, ∇d, ϕ) + ψthermal(T, ϕ, ∇ϕ),
+(3.1)
+where the first term is the elastic strain energy stored in the material, the second term is the diffused fracture
+(or damage) energy (equivalent to
+R
+GcdA in Griffith’s theory [40]), and the last term is the thermal energy.
+In the following, we will specialize each of these energies to a specific form.
+3.1. Nonlinear elasticity: slightly compressible neo-Hookean model
+The elastic free energy for a neo-Hookean model is chosen to be
+ψel(Ce, d) = gd(d)
+µ
+2
+ ¯I1 −3
+
++ K
+2 (ln Je)2
+
+(3.2)
+where gd(d) = (1 −d)2 is a degradation function that degrades the elastic energy density (more discussion
+in the next subsection), ¯I1 = tr ¯Ce and ¯Ce = Je−2/3Ce. From the constitutive relation (2.17a), we obtain
+σe = gd(d)
+
+µJe−2/3
+
+1 −1
+3Ce−⊤trCe
+
++ K ln JeCe−⊤
+
+.
+(3.3)
+6Here, it is assumed that mechanical fields equilibriate much faster than thermal fields. H is a history variable introduced
+to ensure that the crack does not heal.
+7
+
+
+Cauchy and Piola-Kirchoff stresses are then obtained as,
+Jσ =gd(d)
+
+µdev( ¯Be) + K ln Je1
+
+,
+and
+(3.4)
+P ≡gd(d)
+
+µdev( ¯Be) −Jep1
+
+F−⊤= gd(d)
+
+µdev( ¯Be) + K ln Je1
+
+F−⊤.
+(3.5)
+where p = −K ln Je/Je. Furthermore, we get
+¯p = −gd(d)Je
+J K ln Je.
+(3.6)
+We will consider Fph = (1 + ϵT (ϕ, T))1 for this specialization; the functional form is given in §3.3.
+3.2. Damage
+A number of damage models have been proposed in the literature that smear the crack over a finite width
+and thus regularize the sharp interface crack problem [41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52]7. There
+are recent works in the literature that have proposed theories that unify nucleation and crack propagation
+in a single framework by means of a strength surface. On the other hand, classical models have proposed
+choosing the length scale such that the tensile strength of the material matches the localization stress from
+the models. The focus of the current work is not to propose a new damage model or comment on their
+relative strengths, but on the overall framework that integrates the various physical processes together. To
+this end, the framework presented in §2 can be adapted to any suitable choice of damage model appropriate
+for the specific material and problem at hand. Here, for purposes of illustration of the framework, we will
+choose the AT2 model where the free energy associated with cracking is,
+ψcrack =
+Z
+B
+Gcγ(d, ∇d)dV,
+(3.7)
+where
+γ(d, ∇d) = w(d)
+2l
++ l
+2|∇d|2
+(3.8)
+is the crack surface density function, w(d) = d2 is a geometric function that controls local fracture energy,
+and Gc is the critical energy release rate and is assumed to be a material property. In the limit of the
+regularization length l →0, the minimization problem converges to the classical sharp-crack problem.
+In this specialization, we have chosen a simple degradation scheme that degrades both the isochoric and
+volumetric parts of the energy. A more sophisticated split can be easily achieved in this framework. For
+the case of tissues in particular, biological damage can happen even under compression which may lead
+to mechanical damage (loss in ability to sustain loads), thus an appropriate split of the energy is an open
+research question in itself.
+3.3. Phase Change
+The solidification phase field ϕ ∈[0, 1] is defined such that ϕ = 0 represents the frozen phase while ϕ = 1
+represents the unfrozen phase.
+We choose the thermal free energy, ψthermal as comprising a symmetric
+double-well potential function that presents an energy barrier to freezing and a temperature-dependent
+latent heat term that introduces asymmetry in the free energy.
+ψthermal = f0g(ϕ) + ∆f(T)p(ϕ) + β
+2 |∇ϕ|2
+(3.9)
+where ∆f(T) = L(Tm −T)/Tm, g(ϕ) = ϕ2(1 −ϕ)2, p(ϕ) = ϕ3(6ϕ2 −15ϕ + 10), and Tm is the melting
+temperature. For these choices, p′(ϕ) = 30g(ϕ). Finally, for transformation strain for phase change, we
+choose ϵT (ϕ, T) = ϵ0(1 −p(ϕ)) + α(ϕ)(T −Tm), where ϵ0 is the transformation strain associated with phase
+change from water to ice, and α(ϕ) = ϕαwater + (1 −ϕ)αice is the effective coefficient of thermal expansion.
+Figure 3 shows a sketch of the various functional forms.
+7We do not attempt to present an exhaustive literature review of damage modeling in this work.
+8
+
+
+0
+0.2
+0.4
+0.6
+0.8
+1
+?
+0
+0.02
+0.04
+0.06
+g(?)
+(a)
+0
+0.2
+0.4
+0.6
+0.8
+1
+?
+0
+0.5
+1
+p(?)
+(b)
+0
+0.2
+0.4
+0.6
+0.8
+1
+?
+-0.1
+-0.05
+0
+0.05
+0.1
+f0g(?) + "f(T)p(?)
+T > Tm
+T = Tm
+T < Tm
+(c)
+Figure 3: (a) Double-well potential g(ϕ); (b) smooth interpolation function p(ϕ); (c) schematic of thermal free energy at
+different temperatures.
+3.4. Evolution Equations
+Entropy for the chosen functional forms of free energies becomes
+s = −¯p∂Jph
+∂T
+−∂ψ
+∂T = 3Jph−1/3Kgd(d) ln Jeα(ϕ) + L
+Tm
+p(ϕ)
+(3.10)
+which yields the following evolution equation for the temperature field (2.19)
+Cv ˙T = KR∇2T + 1
+M
+˙ϕ2 −3
+2TKgd(d)Jph−1/3α(ϕ)Ce−⊤
+|
+{z
+}
+T ∂s
+∂Ce
+: ˙Ce−
+T
+
+−3Jph−2/3α(ϕ)∂ϵT
+∂ϕ Kgd(d) ln Je + 3Jph−1/3α′(ϕ)Kgd(d) ln Je + L
+Tm
+p′(ϕ)
+
+|
+{z
+}
+T ∂s
+∂ϕ
+˙ϕ−
+T
+h
+3Jph−1/3Kg′
+d(d) ln Jeα(ϕ)
+i
+|
+{z
+}
+T ∂s
+∂d
+˙d
+(3.11)
+where Cv is the volumetric heat capacity (J/m3), and L is the latent heat of fusion (J/m3)8, 9.
+The freezing phase field ϕ evolves according to the following equation,
+˙ϕ = −M
+
+¯p∂Jph
+∂ϕ
++ f0g′(ϕ) + LTm −T
+Tm
+p′(ϕ) −β∇2ϕ
+
+(3.12)
+Using
+Jph = (1 + ϵT (ϕ, T))3
+(3.13)
+8For the specific choices made in the specialization, a number of terms that involve partial derivatives with T vanish from
+the latent heating in (2.19).
+9 1
+M ˙ϕ2 is a valid term that shows in this formulation, as also reported in [53]. However, we will drop this term under the
+assumption that kinetics are sufficiently slow, which will make the contribution of this term of lower order than other terms.
+9
+
+
+and
+ϵT (ϕ, T) = ϵ0(1 −p(ϕ)) + α(ϕ)(T −Tm),
+(3.14)
+we obtain that
+∂Jph
+∂ϕ
+= 3Jph2/3(−p′(ϕ)ϵ0 + α′(ϕ)(T −Tm))
+(3.15)
+The evolution equation for the freezing phase field then takes the following form,
+˙ϕ = −M
+
+3p′(ϕ)ϵ0Jph−1/3Kgd(d) ln Je −3α′(ϕ)(T −Tm)Jph−1/3Kgd(d) ln Je + f0g′(ϕ) + LTm −T
+Tm
+p′(ϕ) −β∇2ϕ
+
+.
+(3.16)
+The mechanical behavior of the system is assumed to take place at a much faster timescale, and thus it is
+always assumed to be in equilibrium. These equations are
+∇· P = 0
+(3.17)
+Gcl∇2d + 2(1 −d)H −Gc
+l d = 0
+Damage Evolution
+(3.18)
+H = max(Hold, ψel)
+History Variable
+(3.19)
+4. Benchmarking of the Model and Numerical Implementation
+In this section we will test the various modules of our model and numerical implementation by applying it
+to simplified problems whose solutions can be obtained analytically.
+4.1. Numerical Implementation
+The coupled thermomechanical phase-field damage model is implemented within theFEniCSfinite element
+framework [54, 55, 56, 57, 58, 59, 60, 61, 62].
+Discretization.
+The computational domains considered in §4 & 5 are discretized either using meshes
+generated natively withinFEniCSor using an external mesh generator “Gmsh” [63] and imported into the
+solver via the XDMF format. A mixed finite element method was employed for spatial discretization. The
+displacement field u was approximated using continuous second-order (P2) Lagrange elements, while the
+pressure p, temperature T, and phase-field c were approximated with continuous first-order (P1) elements to
+form a stable Taylor-Hood-like element for the (u, p) pair. The damage field d and damage rate ˙d were solved
+in a separate P1 function space. Time integration was performed using a first-order, implicit backward-Euler
+scheme.
+Solution Strategy.
+A staggered (operator-split) solution strategy [64] was employed at each time step to
+handle the multi-physics coupling. The iterative procedure within a time step proceeds as follows:
+1. First, the monolithic coupled system for the primary fields (u, p, T, c) was solved. This step incorpo-
+rates the thermal source term from damage, utilizing the damage rate ˙d calculated from the previous
+staggered iteration.
+2. Next, the elastic energy density ψel was computed to serve as the damage driving force H in accordance
+with (3.19).
+3. Using this updated history field, the separate non-linear damage evolution problem for d was solved.
+4. Finally, the damage rate field ˙d was updated using the new damage solution.
+10
+
+
+This process was iterated until the L2-norm of the change in the damage field fell below a relative tolerance
+of 10−4. All non-linear systems were solved using a Newton-Raphson method, and resulting linear systems
+were resolved via the MUMPS parallel direct sparse solver.
+4.2. Finite Deformation: Uniaxial loading with prescribed displacement
+We consider a 2D, unit square with u2(X1, X2 = 0) = 0 and u2(X1, X2 = 1) =utop, as shown in the figure 4.
+No other displacements are constrained (other than pinning the bottom left corner to prevent translation)
+and the left and right boundaries are traction-free. The analytical solution for this problem for a nearly
+incompressible neo-Hookean material under plane strain conditions is given as,
+P11 =
+µ
+(λ1λ2)2/3
+2λ1
+3
+−λ2
+2
+3λ1
+−
+1
+3λ1
+
++ K ln(λ1λ2)
+λ1
+= 0,
+(4.1)
+P22 =
+µ
+(λ1λ2)2/3
+
+−λ2
+1
+3λ2
++ 2λ2
+3
+−
+1
+3λ2
+
++ K ln(λ1λ2)
+λ2
+,
+(4.2)
+where λ1 and λ2 are stretches in 1- and 2-directions, respectively. Equation (4.1) can be solved for given
+values of λ2, and equation (4.2) can then be used to obtain the corresponding value of P22. The numerical
+results match the analytical results (Fig. 4(b)).
+u2(X1, X2 = 1) = utop
+u2(X1, X2 = 0) = 0
+X1
+X2
+(a)
+0.8
+0.9
+1
+1.1
+1.2
+62
+-1.5
+-1
+-0.5
+0
+0.5
+1
+P22=7
+Analytical
+FEniCS
+(b)
+Figure 4: (a) Schematic of the setup to study uniaxial loading of a nearly incompressible, plane strain neo-Hookean sample.
+The domain was discretized natively inFEniCSusing 40,000 structured quadrilateral elements. (b) First Piola Kirchhoff stress,
+P22, obtained from simulation matches the analytical results.
+4.3. Heat Transfer and Solidification Problem
+We apply the model to capture the propagation of a planar freezing front in an effort to validate the results
+with the classic Stefan problem (Fig. 5). For a purely thermal problem (ie. no mechanical coupling), the
+evolution equations for temperature and freezing phase field are
+Cv ˙T = KR∇2T −T
+Tm
+Lp′(ϕ) ˙ϕ,
+(4.3)
+and
+˙ϕ = −M
+
+f0g′(ϕ) + LTm −T
+Tm
+p′(ϕ) −β∇2ϕ
+
+.
+(4.4)
+11
+
+
+These equations are solved on a square domain of size LR × LR for the model parameters listed in Table 1.
+X1
+X2
+rφ · nR = 0
+rφ · nR = 0
+T = 0.99Tm
+LR = 5 mm
+LR = 5 mm
+ω(X1 →[0.04LR, LR], t = 0) = 1
+ω(X1 →[0, 0.04LR], t = 0) = 0
+→T · nR = 0, →ω · nR = 0
+A
+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
+0hor3U1Ld7lA6aTFHVHsZ+XvfKEpY382SpVsNnFqQfxPj9M8b4qfTB1r6ZPlOF2Wv6Kn0v6SIfxjJX6yYgmT3fgMuM6XSisH+XwXDeW
+64Zh+hQwKQDUEDwXTA0rhbR8HpgaVgtp+RwNawV0vL5X2pYL6Tlc7/UsFIy+d9qeFeIS2f86WG+4W0fL6XGh4U0vK5Xmp4WEjL53mp4
+VEhLZ/jpYbHhbR8Epcatgtp+aQqNewU0ukTqvL41I3tzDSIw9kDqjHiDKhnNEqYTMpng2m1lg6rmA8pDadLjxyfKn/qsfBzuj4dhnfJk
+pxZsoW2POno4iUo2Tp0I+ec7+RIHjnNTPnU6312hImOnqLBXp/5J8NIiu3Vk8ny6jVbok5ou4zEcu4l7K5VuC8uVb6p4t3/KzZat2
+yRbz5X3r/3xN6vumEcnZvPkm3fkjMyhx57c/yCHwoZ3q7wDznUWagyXx4k68kf6euJi/9R+bIh/vOyWPMkna4zLFkdpI5P5YiXY5
+u8Ksirusmrirxqm7xqyKu+yauOvBqbvBrIa2+T1x7y2t/ktY+8DjZ5HWCvGLjpsJqM/I3Oh5sOeYi8jZ5HSGv5iavJvI63uR1jLxONn
+mdIK/TV6nyKu1yauFvM42eZ0hr/Ymr7bxYvJ3k1sHay7yauLvHqbvHrIq7/Jq4+8zjd5nSOvi01eF8jrcpPXJfJ6vcnrte2w313e19
+X2yPzT+9/MLXx9sv7MwzM9UXjLXnG8XUlz1QU80zVcTU8kwNMfU8U0dMI80ELOXZ/YQs59n9hFzkGcOEHOYZw4Rc5RnjhDTzDNxBz
+nmWPEnOSZE8Sc5plTxLTyTAsxZ3nmDHtPNGTCfPdBDTzTNdxPTyTA8x/TzTR8x5njlHzEWeuUDMZ65RMzrPMa3OpQo/zu8i3u8z
+XfuVbxnk6yPa4U+2a7W9/xQ+e3K0Z0bs1S3a75t2r3N2anZVj3y2fvlqhWzfiTpJjbwE5B6QsyJv07tATnI7yUG1xWUNdPJ3k1aOriR
+tJ+qOhe+TDaTk5tx65bL9ckevW16alc/XedM3RaYd6rUj+vzHzGaPo7WYyh+Rm2Gpqy7gA7JGpo5ZQuqLtcN2WZbN9lsy2u5zHAsDF1/
+/Uhj7b0B19mT3Q+KdCk+TAQurOEHfcEBlDJAw3meXKxPYrXcCrjdiqrSU3aW4YciQ3PbrZ7kl2rOQ1O8r0LnenkQdv+ijp8bXYmUx/
+fCB9lNeA7r0vu1kW/C69I7a3T49UqM7UcrbrA2umvGBcbHGlxcg7pNFjFXy9j0ZXR7ST91YTk0SHSkxdt7ORv0h+hSWDkH+YVfBu
++ULcbU9rCWU1iL3zh+vmjHlzjJG3aCxaZGsJs2pKDiTaNcbtSj/u5I3jq/Ib1OlvYDXTtvGqzQlc37qw12S8O20vxQ3izun5t5R9r6+
+kD9goDP7stMsbWVWVvrk0s2kACnc/CD3Wl6EDeMo3SXKMnh78BW3s8EPy3lX8j6yx0G2s47bX3l2JX8ku48FVcubiTuhBco/70S7C4
+SC9a5ltAGS/EIPreT9KmpA+iv6q4CMF6Z2+dUw5oqUzPzCPa5fu2mZcf/ny2SCS0mxVLkSxX5IP+ZCmNfh/fsnblY2XshEIbz2VqWD
+NTUnUzADro/Sz9kRCG5exeE6SxIbmDF/kftNaIsh9k0q+d9FZNfjCkH7nK2vwgel9bP1Hz1TbfrsrmyoaYKxt+2rOPZzcKdVzptjvik
+wFfKpr+KGxLH2ZSxp+vLYOvsIbpbqGR+hFAROtjxLJozSzs2uKs2tGxsBbXcsMNWAQ16Omr0ekD8nvRor17HlW6bmuVN67FHTN03wMa
+3fsOp9Uz0/y/oNdTfjbjBN4aCQzA6MjS/JvtZNfufV81+ZGhezci/szGavORbvtlBquLsqj7Z9E/uwsvzxN1QESc4I1LiXkeEaPoJD
+u1k8SbP4n92HOHN0aQPipJq/9So9yMXLtwjtXtJz9cpP+X1mrZpFBUaclyKHc19KJeXrFo4as4+XDYcnX1D1Q+5lvmP15Y/Tq7LkXA46
+90JOPJkaheKqw/X/6M3Nd+F4l1UsqadZL5CF9yAPoTCvgNrslB5jdorXn/V+1hHGob/+FsqzqrBer7+s8ewa7H5mfW2OTZYGWZdLh3m
+e3pZrRfWI4y7SEoEFXnuIkfpay+g9IdZWGVpmbw+Med0iaD0DMxu18pbygt/kfS+9/58OpmkF7XaUOqRO/UIbJEflqDtLkYiRO1aw
+OBbT7yOxapKwakcFGYRI81avkU2sqCXDmndmtf/KOI7QJ8ujEWyTZ9mzJ8ZxPzP0haEXGQ+eCfuR8eCGdmZoC0MlO0ZFHKMSGQP3uMw
+MlyiRFk8EkTHw2hbzdbClH/R+9zO+ILwhz0M2+bPBvehvPs1zfKnucxpNjVxErmBz0VZg2w0NEo3GgxJlLTRWUuOqXZ+k2q/hwXRot7
+PqTN7dLaeoTslZJ9QvZLyd1HcLd4w6VC6quU1lclZHUDKS9ndcPljHLdGxWTUI2S8ljQh6XkrVIhkwqRTe6GF35GeTjBt2mqk9I1Sel
+5MSk1JsZLFROeYnH3IbZQoctYicwkn5KejJ/7MOaTlb86i82nNyZc5LyR4he6VkNcqFdQnZJ2S/lKwQslJKtgnZLiUvCXlZPkLIQG2W
+jrqanwviErJOyHope7n+qiEPHsEz4oT1Nl6aOawohVuE2T/Znu6Zh2dIoboWe1x8beh8Xg/Zoro64NdF2MrK+i1tjF1MRSRHPaX6fL
+n7MjP/1AOqpVeoFavoG4TOiQKjqlVRwT8piTg49tOhaY2Xhrosvjqz9ZDR64+yEZP+rkR6kuL3rngbmLI2P41U6Cs9Mp7/StujQ7ISh
+i7otyM/q43EvfCwxF8sxY+JL+8tLXsinzODxfq5VNkZ5PkZwOvuNCMFmuhKfbhFdiCYx9eBDKVrab1+oDvj+uGuM4uRWpX61X9WJNn
+60tzNdkRAK6m6/XWslLsVq7X28u6tfcvPDH6w8pLpKPp4sZej3WR5/92RP+0d3six6jgfyx+h+beI3myaZ1/qytMVlSe9UGXlwK8b/R
+Sb1j9MN7Qtw3hf2vNv6vDE18sfrLyjVLCWu4Sxr6ay4pTPSUvF91i6Z7ulWSMqStF8mbX+agNLniZv+vI7DyVpNY/ylcvG1VHnzlTLbx
+h2ImPgI7ET5VpTckF8PJPyW89RNoD0J1e42T3jw4n0R/p53YBrcsFnPV9N/1O5E/5rQY9MZqkY+ZIca4qDNbjL329uvri6c7L7fTPKX
+7Rf/Vy5uX35z94umvK1vZ34+2/nbr7a+3NrZ+nbr1v7W62t3tZw69+3/mPrP7f+6/v29/f/+v3v8nQH/7A+PzNVu7v+3/7H87R1G
+Y=</latexit>→T · nR = 0, →ω · nR = 0
+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</latexit>→T · nR = 0
+T(X1, t = 0) = Tm
+Figure 5: Schematic of problem to study planar freezing front propagation. The domain was discretized natively in FEniCS
+using 160,000 structured quadrilateral elements.
+Table 1: Parameters for Solidification Validation Problem
+Parameter
+Value
+Parameter
+Value
+Cv
+1.71 × 106 J/(kg K) [65, 66]
+f0
+180 J/m3
+KR
+0.5 W/(mK)[67]
+g(ϕ)
+ϕ2(1 −ϕ)2
+M
+{10−6, 10−5, 10−4} m3/Js
+p(ϕ)
+ϕ3(6ϕ2 −15ϕ + 10)
+Tm
+273 K
+β
+10−3 J/m
+L
+1.4 × 108 J/m3 [68]
+LR
+5 mm
+T(X, t = 0)
+Tm
+T(left boundary)
+0.99 Tm
+ϕ(X1 ∈[0.04, LR], t = 0)
+1
+∆X1 = ∆X2
+0.0125 mm
+0
+0.2
+0.4
+0.6
+0.8
+1
+=
+0
+0.1
+0.2
+0.3
+xfront(=)
+M = 10!6
+Simulation Data (Subsampled for -gure)
+Power Law Fit: 0.2480 t0:5221 + 0.0129
+(a)
+0
+0.2
+0.4
+0.6
+0.8
+1
+=
+0
+0.1
+0.2
+0.3
+xfront(=)
+M = 10!5
+Simulation Data (Subsampled for -gure)
+Power Law Fit: 0.2486 t0:5161 + 0.0156
+(b)
+0
+0.2
+0.4
+0.6
+0.8
+1
+=
+0
+0.1
+0.2
+0.3
+xfront(=)
+M = 10!4
+Simulation Data (Subsampled for -gure)
+Power Law Fit: 0.2489 t0:5149 + 0.0157
+(c)
+Figure 6: Location of the freezing front as a function of time for different values of the mobility parameter, M. Here, τ = t/tR,
+where tR = CvL2
+R/KR = 85.5 s is a reference timescale.
+Figure 6 shows the location of the freezing front (defined as the X1-coordinate where ϕ = 0.5) as a function
+of time τ = t/tR for three different values of the mobility parameter M. As the mobility increases, the
+results from the simulation approach the sharp interface Stefan’s solution where the location of the front in
+an infinite, 1-D setting is proportional to t1/2. These results validate the thermal/phase change behavior of
+the framework and its FEniCS implementation.
+12
+
+
+4.4. Damage Problem: Single Edge Notch Tension Test (SENT)
+We validate the damage component of the model by applying it to a single edge notch tension test on a
+sample made of linear elastic material. The setting is isothermal and the phase field is set to ϕ = 1. Thus,
+only the mechanical part of the model is active. In the linear elastic setting, there is no distinction between
+First Piola Kirchoff stress and Cauchy stress. These are given by
+σ =
+E
+(1 + ν)(1 −2ν) [(1 −2ν)ϵ + ν(trϵ)1]
+(4.5)
+where ϵ is the infinitesimal strain tensor, and E and ν are the Young’s Modulus and Poisson’s Ratio of the
+material, respectively. Figure 7 shows the schematic of the test. The sample is rectangular with width b
+and height 2h. The crack has a length a. Values used for these parameters are reported in Table 2.
+Table 2: Parameters for SENT validation
+Parameter
+Value
+Parameter
+Value
+E
+210 kN/mm2
+a
+0.5 mm
+Gc
+2.7 × 10−3 kN/mm
+b
+1 mm
+ν
+0.3
+h
+1 mm
+a
+b
+h
+u2,top = !
+(a)
+0
+2
+4
+6
+8
+Displacement " [mm]#10-3
+0
+0.2
+0.4
+0.6
+0.8
+Load F [N]
+Reaction Force vs Displacement
+Miehe et al. 2010
+FEniCS; l = 0:015 mm
+Miehe et al. 2010
+FEniCS; l = 0:0075 mm
+(b)
+Figure 7: (a) Schematic of the SENT test. The mesh, prepared in Gmsh, contains 581,328 triangular elements. (b) Load-
+displacement curve from the validation test compared with results from Miehe et al. [64]. Black color denotes the results for
+damage length parameter l = 0.015 mm and red color denotes the results for l = 0.0075 mm.
+13
+
+
+5. Representative Cases
+In this section, we apply the specialized framework from §3 to four representative cases. While the framework
+is dimension-agnostic, we will consider plane strain setting for these cases. We will use the material properties
+listed in Table 3, unless stated otherwise. Where available, parameters such as the elastic moduli (µ, K) and
+thermal properties (Cv, KR) have been chosen to be representative of soft biological tissues (e.g., liver). The
+value of Gc for brittle frozen tissues was not readily available, thus, its value has been chosen for convenience
+to illustrate the mechanics. The phase-field parameters (e.g., f0, β, M) govern the phenomenological aspects
+of the model, such as the energy barrier for phase change, the diffuse interface width, and the kinetic mobility.
+As these are not typically available from direct physical measurement, they have been selected to ensure
+numerical stability, convergence, and computational efficiency. For a direct, quantitative comparison with
+specific experimental data, these model-specific parameters would be calibrated to match the observed
+experimental length- and time-scales.
+Table 3: Parameters for Representative Cases
+Parameter
+Value
+Parameter
+Value
+Cv
+1.71 × 106 J/(kg K) [65]
+f0
+1.44 × 103 J/m3
+KR
+1 W/(mK) [65, 66]
+g(ϕ)
+ϕ2(1 −ϕ)2
+M
+10−6 m3/Js
+p(ϕ)
+ϕ3(6ϕ2 −15ϕ + 10)
+Tm
+273 K
+β
+4 × 10−3 J/m
+L
+1.4 × 108 J/m3 [68]
+LR
+10 mm
+µ
+10 kPa [69, 70]
+K
+103 × µ
+ϵ0
+0.03
+gd(d)
+(1 −d)2
+Gc
+1.5 N/m
+w(d)
+d2
+l
+0.5 mm
+∆x
+0.05 mm
+αwater
+50 × 10−6/◦C
+αice
+50 × 10−6/◦C
+5.1. Case I: Unconstrained freezing of a square sample
+We consider an LR × LR sample with temperature prescribed as T0 = 193 K (−80◦C) on all boundaries.
+The sample is mechanically unconstrained, ie. all boundaries are traction-free. Freezing and damage phase
+fields are subject to natural boundary conditions on all boundaries.
+The initial temperature of the sample is set at 273 K (0◦C), which is also taken to be the freezing temper-
+ature. To initiate the freezing phase transformation in numerics, a thin layer near the boundaries, where ϕ
+transitions from a very low value (ϕ ∼0) to unfrozen (ϕ = 1), is set as initial condition on all the boundaries,
+which is prescribed in accordance with the following form:
+ϕi(X) = 1
+2 [1 + tanh (γ (d(X) −δ))] ,
+(5.1)
+where
+d(X) = min(X1, LR −X1, X2, LR −X2),
+γ = 80/LR controls the interface steepness, and δ = 0.02LR controls the interface width. Figure 8 shows
+the schematic of the setup.
+Figure 9 shows the evolution of temperature, freezing phase field, damage, and stress fields along a plane
+through the center of the domain (X2/LR = 0.5), for three different instances of time: τ = t/tR = 0, 0.1,
+and 0.2, where tR = CvL2
+R/KR is a reference timescale. The simulations are carried out for a dimensional
+time of 34.2s. Contour plots in figure 10 show the spatial evolution of various fields at the conclusion of the
+simulation (τ = 0.2). The symmetry of the problem setup reflects in the evolution of the fields.
+14
+
+
+LR = 10 mm
+LR = 10 mm
+X1
+X2
+T = T0
+rφ · nR = 0
+T = T0
+rφ · nR = 0
+→d · nR = 0
+→d · nR = 0
+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
+u8sNk</latexit>tR = 0
+T = T0,
+→ω · nR =0, →d · nR, tR = 0
+T = T0 < Tm,
+→ω · nR =0, →d · nR, tR = 0
+e
+YRE=">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</latexit>tR = 0
+T(X, t = 0) = Tm
+ω(X, t = 0) = ωi(X)
+Figure 8:
+Schematic of the unconstrained freezing setup.
+The domain was discretized natively in FEniCS using 40,000
+structured quadrilateral elements.
+0
+0.5
+1
+X1=LR
+180
+200
+220
+240
+260
+280
+T (K)
+0
+0.5
+1
+X1=LR
+0
+0.5
+1
+?
+0
+0.5
+1
+X1=LR
+0
+0.05
+0.1
+d
+0
+0.5
+1
+X1=LR
+0
+0.02
+0.04
+0.06
+0.08
+P11=7
+0
+0.5
+1
+X1=LR
+-0.1
+-0.05
+0
+0.05
+0.1
+P22=7
+a
+b
+c
+e
+d
+0.1
+0.2
+0.1
+0.2
+0.1
+0.2
+0.1
+0.2
+0.2
+0.1
+0.2
+ω = 0
+ω = 0
+ω = 0
+ω = 0
+ω = 0
+Figure 9: Evolution of (a) temperature, (b) freezing phase field, (c) damage, (d) P11, and (e) P22 fields for the unconstrained
+freezing setup across X2/LR = 0.5 line. The fields are shown at three different instants of time: τ = t/tR = 0, 0.1, and 0.2,
+where the reference time is tR = 171 s.
+As the sample starts to cool down, and undergo phase change, differential thermal and phase-change expan-
+sions across the sample induce stresses and damage; this can be seen in the dashed red plots for τ = 0.1. By
+the end of the simulation, the entire sample is nearly completely frozen and the temperature gradients are
+gentle. Thus, the stresses in this unconstrained sample start to vanish, as is shown by the dashed blue plots
+in figure 9. The damage generated during this evolution is, however, irreversible, and does not disappear
+when the entire sample has reached thermal and phase-change equilibrium.
+15
+
+
+a
+b
+c
+d
+e
+f
+Figure 10: Spatial distribution of (a) temperature, (b) freezing phase field, (c) damage, (d) P11, (e) P22, and (f) P12 fields
+for the unconstrained freezing setup for Case I. The fields are shown at the end of the simulation at τ = t/tR = 0.2, where the
+reference time is tR = 171 s.
+5.2. Case II: Constrained freezing of a square sample
+The thermal, freezing, and damage boundary conditions are the same as in case I, namely: we consider an
+LR × LR sample with temperature prescribed as T0 = 193 K (−80◦C) on all boundaries, and freezing and
+damage phase fields are subject to natural boundary conditions on all boundaries. The sample is mechan-
+ically constrained: u2 = 0 on the bottom boundary (X2/LR = 0) and u2 = 0.02LR on the top boundary
+(X2/LR = 1).
+The initial conditions are exactly the same as that of case I, namely: the initial temperature of the sample
+is set at 273 K (0◦C) and the freezing phase-field is initialized as ϕ(X, t = 0) = ϕi(X). Figure 11 shows a
+schematic of the problem setup.
+Figure 12 shows the evolution of temperature, freezing phase field, damage, and stress fields along a plane
+through the center of the domain (X2/LR = 0.5), for three different instances of time: τ = t/tR = 0, 0.1,
+and 0.2, where tR = CvL2
+R/KR is the reference timescale. The simulations are carried out for a dimensional
+time of 34.2s. Contour plots in figure 13 show the spatial evolution of various fields at the conclusion of the
+simulation (τ = 0.2).
+Similar to case I, differential thermal and phase-change expansions drive the stresses during the evolution
+of freezing in the sample. The sample is nearly entirely frozen by the end of the simulation; in contrast
+to case I, the stresses do not vanish. This is because the sample is mechanically constrained and the final
+state of stress reflects the imposed displacement boundary conditions in the 2-direction. This is why P22
+is non-zero. Further, since the accumulated damage is non-uniform, the resulting P22 is also non-uniform.
+Notably, the peak damage in case I and case II are similar10, possibly indicating that mechanical constraint
+10Remark: The location and magitude of peak damage is likely a function of the initial condition on ϕ. Regardless, the
+16
+
+
+applied is “weak”.
+LR = 10 mm
+LR = 10 mm
+X1
+X2
+T = T0
+rφ · nR = 0
+→d · nR = 0
+tR = 0
+T = T0
+rφ · nR = 0
+→d · nR = 0
+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
+u8sNk</latexit>tR = 0
+T(X, t = 0) = Tm
+ω(X, t = 0) = ωi(X)
+T = T0, u2 = 0,
+→ω · nR = 0, →d · nR = 0
+T = T0, u2 = 0.02LR,
+→ω · nR = 0, →d · nR = 0
+Figure 11: Schematic of the constrained freezing setup. The domain was discretized natively in FEniCS using 40,000 structured
+quadrilateral elements.
+0
+0.5
+1
+X1=LR
+180
+200
+220
+240
+260
+280
+T (K)
+0
+0.5
+1
+X1=LR
+0
+0.5
+1
+?
+0
+0.5
+1
+X1=LR
+0
+0.05
+0.1
+d
+0
+0.5
+1
+X1=LR
+0
+0.02
+0.04
+0.06
+0.08
+P11=7
+0
+0.5
+1
+X1=LR
+-0.15
+-0.1
+-0.05
+0
+P22=7
+a
+b
+c
+e
+d
+0.1
+0.2
+0.1
+0.2
+0.1
+0.2
+0.1
+0.2
+0.1
+0.2
+ω = 0
+ω = 0
+ω = 0
+ω = 0
+ω = 0
+Figure 12: Evolution of (a) temperature, (b) freezing phase field, (c) damage, (d) P11, and (e) P22 fields for the constrained
+freezing setup across X2/LR = 0.5 line. The fields are shown at three different instants of time: τ = t/tR = 0, 0.1, and 0.2,
+where the reference time is tR = 171 s.
+model is able to capture any form of initial conditions, including ones that might be better physically motivated.
+17
+
+
+a
+b
+c
+d
+e
+f
+Figure 13: Spatial distribution of (a) temperature, (b) freezing phase field, (c) damage, (d) P11, (e) P22, and (f) P12 fields
+for the constrained freezing setup for Case II. The fields are shown at the end of the simulation at τ = t/tR = 0.2, where the
+reference time is tR = 171 s.
+5.3. Case III: Freeze-thaw temperature conditions in square sample
+We consider a square annulus geometry in this case, as shown in Figure 14(a). Temperature is prescribed
+on all boundaries and is a function of time, given by ¯Tin(t) on the inner boundary and ¯Tout(t) on the outer
+boundary. The functional forms for temperature boundary conditions are given by equations (5.2) and (5.3)
+for a time period P and are visually represented in Figure 14(b). The prescribed temperature evolution is
+designed to show the behavior of the sample under freezing and subsequent thawing conditions, which are
+typical of cryopreservation protocols.
+¯Tout(t)/Tm =
+
+
+
+
+
+1.0 −(0.3) ·
+t
+P/4
+if 0 ≤t ≤P
+4
+0.7 + (0.3) · t−P/4
+P/4
+if P
+4 < t ≤P
+2
+1.0
+if P
+2 < t ≤P
+(5.2)
+¯Tin(t)/Tm =
+
+
+
+
+
+1.0
+if 0 ≤t ≤P
+2
+1.0 + (0.2) · t−P/2
+P/4
+if P
+2 < t ≤3P
+4
+1.2
+if 3P
+4 < t ≤P
+(5.3)
+The initial conditions are exactly the same as that of cases I and II, namely: the initial temperature of the
+sample is set at 273 K (0◦C) and the freezing phase-field is initialized as ϕ(X, t = 0) = ϕi(X).
+For this particular study, we use β = 8×10−3 J/m. Figure 15 shows snapshots of fields at different instances
+of time along the line X2/LR = 0. During the cooling and then warming phase back to freezing temperature
+on the outer boundary (from A-C), the freezing front proceeds inwards from the boundaries (Fig. 15(b);
+τA →τB →τC), which leads to development of stresses and induces damage. The temperature is then held
+constant at Tm on the outer boundary; the inner boundary temperature is raised slowly to T = 1.2Tm (C-D)
+18
+
+
+and then held constant (D-E). This triggers thawing of the sample, and the freezing front starts to reverse
+back towards the outer boundary, as can be seen in the movement of the freezing from τC →τD →τE.
+Notably, damage is induced in the freezing process but not in the thawing process in this case. This happens
+because of the following reason: the transformation strain from freezing is the dominant contributor to the
+stress. As the freezing front moves inwards, it causes a spike in the strain energy density across the front,
+which drives damage. During the thawing process, the strain energy density across the front stays below the
+previously experienced peak strain energy and thus does not induce additional damage (see Figure A.23).
+Just like in Case I, the boundaries of the sample are mechanically unconstrained; a stronger constraint of
+all boundaries being fixed rapidly induces a much higher damage in the sample (in results not included in
+the present study). The dominant stress component along the X2/LR = 0 line is P22; P11 remains much
+smaller during the entire process. The spatial distribution of fields at the end of the simulation is presented
+in figure 16.
+X2
+Γin
+Γout
+T(Γin, t) = ¯Tin(t)
+rφ · nR = 0
+→d · nR = 0
+tR = 0
+For all boundaries:
+LR = 10 mm
+LR = 10 mm
+T(Γout, t) = ¯Tout(t)
+X1
+5 mm
+T(X, t = 0) = Tm
+ω(X, t = 0) = ωi(X)
+Initial Conditions:
+(a)
+0
+P
+4
+P
+2
+3P
+4
+P
+0.7
+1.0
+1.2
+A
+B
+C
+D
+E
+t
+¯T(t)/Tm
+Outer Boundary
+Inner Boundary
+(b)
+Figure 14: (a) Schematic of the unconstrained freeze/thaw setup in a square annulus. The mesh, prepared in Gmsh, contains
+17,694 triangular elements. (b) Programmed temperature evolution over one period P. Points A–E mark transitions between
+phases. The fields are shown for P = 8.55 s.
+a
+b
+c
+e
+d
+-0.5
+-0.375
+-0.25
+X1=LR
+200
+225
+250
+275
+300
+325
+350
+T (K)
+=A
+=B
+=C
+=D
+=E
+-0.5
+-0.375
+-0.25
+X1=LR
+0
+0.5
+1
+?
+=A
+=B
+=C
+=D
+=E
+-0.5
+-0.375
+-0.25
+X1=LR
+0
+0.05
+0.1
+0.15
+d
+=A
+=B
+=C
+=D
+=E
+-0.5
+-0.375
+-0.25
+X1=LR
+-15
+-10
+-5
+0
+#10-4
+S11=7
+=A
+=B
+=C
+=D
+=E
+-0.5
+-0.375
+-0.25
+X1=LR
+-0.1
+-0.05
+0
+0.05
+0.1
+S22=7
+=A
+=B
+=C
+=D
+=E
+P11/µ
+P22/µ
+Figure 15: Evolution of (a) temperature, (b) freezing phase field, (c) damage, (d) P11, and (e) P22 fields for the constrained
+heating setup across X2/LR = 0.5 line.
+The fields are shown at five different instants of time: τ := t/tR, τA = 0, τB =
+0.0125, τC = 0.025, τD = 0.0375, and τE = 0.05, where the reference time is tR = 171 s.
+19
+
+
+a
+b
+c
+d
+e
+f
+Figure 16: Spatial distribution of (a) temperature, (b) freezing phase field, (c) damage, (d) P11, (e) P22, and (f) P12 fields
+for the unconstrained freezing setup for Case III. The fields are shown at the end of the simulation at τ = t/tR = 0.05, where
+the reference time is tR = 171 s.
+5.4. Case IV: Fixed temperature and displacement boundary conditions in an
+irregular shape
+In this case, we consider an irregular shape to showcase the broad applicability of the model. A fixed tem-
+perature T0 = 193 K (−80◦C) is prescribed on the entire boundary. The displacements are constrained such
+that the entire boundary is fixed. Natural boundary conditions apply to damage and freezing phase fields.
+The entire domain is initially at the freezing temperature of Tm = 273 K. To initiate freezing, a thin strip
+around the boundary of the domain that smoothly evolves from ϕ = 0 to ϕ = 1 is prescribed as the initial
+condition.
+X
+Y
+Z
+X1
+X2
+rφ · nR = 0
+→d · nR = 0
+!0
+T(!0) = T0
+u(!0) = 0
+T(X, t = 0) = Tm
+ω(X, t = 0) = ωi(X)
+B
+FOzxG+Mnoy7dNAbBVZgRTbIMuHEZwXwgCaGn85I06Z4Zu9+IYcgVvIBbvYE7cesdvIDnsPNZaGLBg6LqPepRQSyFQc/7ctbWNza3tjM72d29/YOce3hUN1GiOdR4JCPdDJgBKUK
+oUAJzVgDU4GERjC6nvqNB9BGROEdjmPoKDYIRV9whlbqujm/VLibYRHTKlSk6b9wreDHSV+AuSJwtUu+53uxfxREGIXDJjWr4XYydlGgWXMm2EwMx4yM2gJalIVNgOuns8
+Qk9s0qP9iNtJ0Q6U39fpEwZM1aB3VQMh2bZm4r/eqDiIdwvpWO/3ElFGCcIZ+H9xNJMaLTZmhPaOAox5YwroX9n/Ih04yj7S9ri/GXa1gl9YuCXywUby/zlfKiogw5IafknPik
+RCrkhlRJjXCSkGfyQl6dJ+fNeXc+5qtrzuLmPyB8/kD6qiarw=</latexit>17.5 mm
+24.6 mm
+Figure 17: Schematic of the kidney with fixed temperature and displacement boundary conditions. The mesh, prepared in
+Gmsh, contains 316,782 triangular elements.
+20
+
+
+For this particular study, we use Gc = 1 N/m, µ = 1 kPa, and β = 8 × 10−3 J/m. Other parameters remain
+the same as in Table 3. Figure 18 shows the evolution of temperature, freezing phase field, damage fields,
+and stresses along a plane through the center of the domain (X2/LR = 0), for three different instances of
+time: τ = t/tR = 0, 0.00356, and 0.00712, where tR = CvL2
+R/KR is a reference timescale. The simulations
+are carried out for a dimensional time of ∼1.2 s. Contour plots in figure 19 show the spatial evolution of
+various fields at the conclusion of the simulation (τ = 0.00712).
+We find that the mechanical constraint imposed in this problem is “stronger”, in contrast to Case II, since
+the damage starts to develop early on in the entire sample (see also Appendix A for more detailed time
+evolution contour plots).
+0
+0.5
+1
+X1=LR
+180
+200
+220
+240
+260
+280
+T (K)
+0
+0.5
+1
+X1=LR
+0
+0.5
+1
+?
+0
+0.5
+1
+X1=LR
+0
+0.2
+0.4
+0.6
+0.8
+d
+0
+0.5
+1
+X1=LR
+-15
+-10
+-5
+0
+P11=7
+0
+0.5
+1
+X1=LR
+-15
+-10
+-5
+0
+P22=7
+ω = 0
+ω = 0
+a
+b
+c
+e
+d
+ω = 0
+ω = 0
+0.00356
+0.00712
+ω = 0
+0.00356
+0.00712
+0.00356
+0.00712
+0.00712
+0.00356
+0.00712
+0.00356
+Figure 18: Evolution of (a) temperature, (b) freezing phase field, (c) damage, (d) P11, and (e) P22 fields for the constrained
+heating setup across X2/LR = 0 line. The fields are shown at three different instants of time: τ = t/tR = 0, 0.00356, and
+0.00712, where the reference time is tR = 171 s.
+The damage appears to severely localize near the curved region along the center of the domain. The curvature
+tends to concentrate stresses, which in turn drive damage. In general, regions of stress concentrations are
+more prone to damage.
+6. Discussion, Conclusion, and Future Work
+We have developed a thermodynamically consistent, thermo-mechanically coupled finite deformation model
+for capturing the freezing-induced damage in soft materials. The developed framework is by nature modular
+in the way it accounts for various sources of energy contributions, and therefore, easily extensible to include
+other physics, if necessary.
+The representative cases showcase the capability of the model to capture a
+diverse range of thermal and mechanical scenarios. Results also show that mechanical constraints can sig-
+nificantly affect the stresses experienced by the sample and the resulting damage. In case II, the mechanical
+constraint of applied displacement in the 2-direction is “weaker” than the constraint applied in case IV,
+where displacement on all boundaries is zero. The latter, thus, shows significantly higher damage starting
+much earlier in the process.
+Current work is a first step in the direction of developing a comprehensive and predictive understanding
+21
+
+
+a
+b
+c
+d
+e
+f
+Figure 19: Spatial distribution of (a) temperature, (b) freezing phase field, (c) damage, (d) P11, (e) P22, and (f) P12 fields
+for the constrained heating setup for Case IV. The fields are shown at the end of the simulation at τ = t/tR = 0.00712, where
+the reference time is tR = 171 s. Due to the strong mechanical constraint of fixed boundary on the entire domain, the damage
+grows rapidly in this system.
+of the cryopreservation mechanics. While this work successfully integrates multiple physical processes into
+a comprehensive framework, it is worth nothing that there are important open problems which need to be
+addressed in future works on this topic. Below we list some such opportunities for investigation:
+• As touched upon in the introduction, the model focuses on the development of bulk thermo-mechanical
+stresses developed in the second stage of the freezing process, and does not account for internal
+transport of water. Furthermore, the model does not have an explicit freezing nucleation mechanism
+built in. Addressing these two phenomena in the modeling can widen the applicability of the model
+to early stages of the freezing process as well.
+• The choice of damage model is an area with significant scope for more exploration. While the cur-
+rent framework provides a baseline for damage evolution, future works will focus on integrating more
+sophisticated models. The current formulation can be extended to include rate-dependent damage,
+which is likely important as tissues are subjected to protocols involving varying rates of cooling and
+thawing. Future works will integrate other damage models proposed recently in the mechanics com-
+munity that could more accurately simulate the initiation and propagation of damage across a range
+of samples, from pristine materials to those with existing cracks.
+• Lastly, the present work focuses on a simplified abstraction of tissue as a nonlinear elastic material.
+Future works may focus on a more nuanced description of the tissue microstructure including cells and
+extracellular matrix. This may be achieved in simplified continuum-scale models through inclusion of
+spatial variation of material properties, anisotropy of elastic and thermal properties, and the incorpo-
+ration of viscoelasticity, which accounts for the time-dependent mechanical response of soft biological
+materials.
+The thermodynamically consistent approach presented here and the resulting framework provide a robust
+22
+
+
+foundation to advance modeling efforts in future, including in all of the above directions.
+Acknowledgements
+We would like to acknowledge helpful discussions with Dr. Chockalingam Senthilnathan (Purdue University).
+Declaration of Interest
+Declarations of interest: none
+23
+
+
+Appendix A. Detailed Time Evolution of Fields for Representa-
+tive Cases
+= 0
+= 0.04
+= 0.08
+= 0.12
+= 0.16
+= 0.2
+Figure A.20: Contour plots showing the time evolution of various fields for unconstrained freezing case.
+24
+
+
+= 0
+= 0.04
+= 0.08
+= 0.12
+= 0.16
+= 0.2
+Figure A.21: Contour plots showing the time evolution of various fields for constrained freezing case.
+25
+
+
+B = 0.0125
+A = 0
+C = 0.025
+D = 0.0375
+E = 0.05
+Figure A.22: Contour plots showing the time evolution of various fields for unconstrained freezing in case of a square annulus.
+26
+
+
+0
+0.01
+0.02
+0.03
+0.04
+0.05
+=
+0
+0.2
+0.4
+0.6
+0.8
+1
+c
+0
+0.005
+0.01
+0.015
+0.02
+0.025
+0.03
+Ael=7
+c
+Ael=7
+Figure A.23: Plot of elastic energy density and freezing phase field at (X1/LR, X2/LR) = (−0.375, 0) as a function of time.
+The maximum strain energy is experienced during the inward movement of the freezing front, which dictates the extent of
+damage. The thawing process does not incur additional damage because the peak strain energy density remains lower than
+during freezing.
+27
+
+
+= 0
+= 0.00356
+= 0.00712
+Figure A.24: Contour plots showing the time evolution of various fields for constrained freezing case in an irregular shape.
+References
+[1] J. Paget, Observations on the freezing of the albumen of eggs, in: Abstracts of the Papers Communicated to the Royal
+Society of London, The Royal Society London, ????, pp. 906–907.
+[2] H. Molisch, Untersuchungen ¨uber das Erfrieren der Pflanzen, G. Fischer, 1897.
+28
+
+
+[3] H. Hippocrates, Hippocrates; heracleitus: on the universe, (No Title) (1931).
+[4] L. BJ, Effects of ultra-rapid and of slow freezing and thawing on mammalian erythrocytes, Biodynamica 6 (1949) 217–223.
+[5] R. M. Love, The freezing of animal tissue, Cryobiology 3 (1966) 307–405.
+[6] P. Mazur, Freezing of living cells: mechanisms and implications, American journal of physiology-cell physiology 247 (1984)
+C125–C142.
+[7] J. J. McGrath, Preservation of biological material by freezing and thawing, Springer, 1985, pp. 185–238.
+[8] P. M. Mehl, Nucleation and crystal growth in a vitrification solution tested for organ cryopreservation by vitrification,
+Cryobiology 30 (1993) 509–518.
+[9] F. Franks, Long-term stabilization of biologicals, Bio/technology 12 (1994) 253–256.
+[10] R. V. Devireddy, Biopreservation: heat/mass transfer challenges and biochemical/genetic adaptations in biological sys-
+tems, Heat transfer research 44 (2013).
+[11] S. Shaik, R. Devireddy,
+Heat and mass transfer models and measurements for low-temperature storage of biological
+systems, Handbook of Thermal Science and Engineering; Kulacki, FA, Ed.; Springer International Publishing: Cham,
+Switzerland (2017) 1–39.
+[12] W. F. Rall, G. M. Fahy, Ice-free cryopreservation of mouse embryos at- 196 c by vitrification, Nature 313 (1985) 573–575.
+[13] H. Huang, M. L. Yarmush, O. B. Usta, Long-term deep-supercooling of large-volume water and red cell suspensions via
+surface sealing with immiscible liquids, Nature communications 9 (2018) 3201.
+[14] S. N. Tessier, R. J. de Vries, C. A. Pendexter, S. E. J. Cronin, S. Ozer, E. O. A. Hafiz, S. Raigani, J. P. Oliveira-Costa,
+B. T. Wilks, M. Lopera Higuita, T. M. van Gulik, O. B. Usta, S. L. Stott, H. Yeh, M. L. Yarmush, K. Uygun, M. Toner,
+Partial freezing of rat livers extends preservation time by 5-fold, Nature Communications 13 (2022).
+[15] Z. Han, J. S. Rao, L. Gangwar, B.-E. Namsrai, J. L. Pasek-Allen, M. L. Etheridge, S. M. Wolf, T. L. Pruett, J. C.
+Bischof, E. B. Finger, Vitrification and nanowarming enable long-term organ cryopreservation and life-sustaining kidney
+transplantation in a rat model, Nature communications 14 (2023) 3407.
+[16] L. Zhan, M.-g. Li, T. Hays, J. Bischof, Cryopreservation method for drosophila melanogaster embryos, Nature communi-
+cations 12 (2021) 2412.
+[17] J. K. Lewis, J. C. Bischof, I. Braslavsky, K. G. Brockbank, G. M. Fahy, B. J. Fuller, Y. Rabin, A. Tocchio, E. J.
+Woods, B. G. Wowk, The grand challenges of organ banking: Proceedings from the first global summit on complex tissue
+cryopreservation, Cryobiology 72 (2016) 169–182.
+[18] B. Rubinsky, C. Lee, J. Bastacky, G. Onik,
+The process of freezing and the mechanism of damage during hepatic
+cryosurgery, Cryobiology 27 (1990) 85–97.
+[19] Y. Rabin, P. Olson, M. J. Taylor, P. S. Steif, T. B. Julian, N. Wolmark, Gross damage accumulation in frozen rabbit liver
+due to mechanical stress at cryogenic temperatures, Cryobiology 34 (1997) 394–405.
+[20] Y. Rabin, P. Steif, Thermal stresses in a freezing sphere and its application to cryobiology (1998).
+[21] Y. Rabin, P. Steif, Letter to the editor: Analysis of thermo-mechanical stress in cryopreservation, Cryo-Letters 26 (2005)
+409–412.
+[22] R. T. Venkatasubramanian, E. D. Grassl, V. H. Barocas, D. Lafontaine, J. C. Bischof, Effects of freezing and cryopreser-
+vation on the mechanical properties of arteries, Annals of Biomedical engineering 34 (2006) 823–832.
+[23] P. S. Steif, M. C. Palastro, Y. Rabin, Continuum mechanics analysis of fracture progression in the vitrified cryoprotective
+agent dp6 (2008).
+[24] A. I. Zhmakin, Fundamentals of Cryobiology: Introduction.-2. Ice Formation in Biological Medium.-3. Biological Effec of
+Low Temperatures.-4. Imitation Models.-5. Microscopic Models.-6. Macroscopic Models.-7. Conclusions.-AA Brief History
+of Cryomedicine.-B. Simulation of Solidification.-C. Thermal Properties of Tissues, Springer, 2008.
+[25] R. T. Venkatasubramanian, W. F. Wolkers, M. M. Shenoi, V. H. Barocas, D. Lafontaine, C. L. Soule, P. A. Iaizzo, J. C.
+Bischof, Freeze-thaw induced biomechanical changes in arteries: role of collagen matrix and smooth muscle cells, Annals
+of biomedical engineering 38 (2010) 694–706.
+[26] V. Ragoonanan, A. Hubel, A. Aksan, Response of the cell membrane-cytoskeleton complex to osmotic and freeze/thaw
+stresses, Cryobiology 61 (2010) 335–344.
+[27] T. A. Berendsen, B. G. Bruinsma, C. F. Puts, N. Saeidi, O. B. Usta, B. E. Uygun, M.-L. Izamis, M. Toner, M. L. Yarmush,
+K. Uygun, Supercooling enables long-term transplantation survival following 4 days of liver preservation, Nature medicine
+20 (2014) 790–793.
+[28] M. Adam, J. F. Hu, P. Lange, L. Wolfinbarger Jr, The effect of liquid nitrogen submersion on cryopreserved human heart
+valves, Cryobiology 27 (1990) 605–614.
+[29] Y. Rabin, P. S. Steif, M. J. Taylor, T. B. Julian, N. Wolmark, An experimental study of the mechanical response of frozen
+biological tissues at cryogenic temperatures, Cryobiology 33 (1996) 472–482.
+[30] D. E. Pegg, M. C. Wusteman, S. Boylan, Fractures in cryopreserved elastic arteries, Cryobiology 34 (1997) 183–192.
+[31] Y. Rabin, P. S. Steif, Analysis of thermal stresses around a cryosurgical probe, Cryobiology 33 (1996) 276–290.
+[32] P. Joshi, Y. Rabin, Thermomechanical stress analyses of nanowarming-assisted recovery from cryopreservation by vitrifi-
+cation in human heart and rat heart models, Plos one 18 (2023) e0290063.
+[33] D. P. Eisenberg, J. C. Bischof, Y. Rabin, Thermomechanical stress in cryopreservation via vitrification with nanoparticle
+heating as a stress-moderating effect, Journal of biomechanical engineering 138 (2016) 011010.
+[34] X. He, J. C. Bischof, Analysis of thermal stress in cryosurgery of kidneys, Journal of Biomechanical Engineering 127
+(2005) 656–661.
+[35] X. Shi, A. K. Datta, Y. Mukherjee, Thermal stresses from large volumetric expansion during freezing of biomaterials,
+Journal of Biomechanical Engineering 120 (1998) 720–726.
+[36] E. Lee, Elastic-plastic deformations at finite strains, Journal of Applied Mechanics 36 (1969) 1 – 6.
+29
+
+
+[37] P. Germain, The method of virtual power in continuum mechanics. part 2: Microstructure, SIAM Journal on Applied
+Mathematics 25 (1973) 556–575.
+[38] S. A. Chester, L. Anand, A thermo-mechanically coupled theory for fluid permeation in elastomeric materials: application
+to thermally responsive gels, Journal of the Mechanics and Physics of Solids 59 (2011) 1978–2006.
+[39] W. Noll, B. D. Coleman, W. Noll, The thermodynamics of elastic materials with heat conduction and viscosity, The
+foundations of mechanics and thermodynamics: Selected papers (1974) 145–156.
+[40] A. A. Griffith, Vi. the phenomena of rupture and flow in solids, Philosophical transactions of the royal society of london.
+Series A, containing papers of a mathematical or physical character 221 (1921) 163–198.
+[41] B. Bourdin, G. A. Francfort, J.-J. Marigo, Numerical experiments in revisited brittle fracture, Journal of the Mechanics
+and Physics of Solids 48 (2000) 797–826.
+[42] B. Bourdin, G. A. Francfort, J.-J. Marigo, The variational approach to fracture, Journal of elasticity 91 (2008) 5–148.
+[43] O. Lopez-Pamies, J. E. Dolbow, G. A. Francfort, C. J. Larsen, Classical variational phase-field models cannot predict
+fracture nucleation, Computer Methods in Applied Mechanics and Engineering 433 (2025) 117520.
+[44] A. Kumar, B. Bourdin, G. A. Francfort, O. Lopez-Pamies, Revisiting nucleation in the phase-field approach to brittle
+fracture, Journal of the Mechanics and Physics of Solids 142 (2020) 104027.
+[45] A. Kumar, O. Lopez-Pamies, The phase-field approach to self-healable fracture of elastomers: A model accounting for
+fracture nucleation at large, with application to a class of conspicuous experiments, Theoretical and Applied Fracture
+Mechanics 107 (2020) 102550.
+[46] C. Miehe, F. Welschinger, M. Hofacker, Thermodynamically consistent phase-field models of fracture: Variational princi-
+ples and multi-field fe implementations, International journal for numerical methods in engineering 83 (2010) 1273–1311.
+[47] A. Raina, C. Miehe, A phase-field model for fracture in biological tissues, Biomechanics and modeling in mechanobiology
+15 (2016) 479–496.
+[48] A. Konale, V. Srivastava, On modeling fracture of soft polymers, Mechanics of Materials 206 (2025) 105346.
+[49] A. Konale, V. Srivastava, A physics-informed neural network for modeling fracture without gradient damage: Formulation,
+application, and assessment, Journal of the Mechanics and Physics of Solids (2025) 106395.
+[50] B. Talamini, Y. Mao, L. Anand, Progressive damage and rupture in polymers, Journal of the Mechanics and Physics of
+Solids 111 (2018) 434–457.
+[51] Y. Mao, L. Anand, A theory for fracture of polymeric gels, Journal of the Mechanics and Physics of Solids 115 (2018)
+30–53.
+[52] K. Alkhoury, S. A. Chester, V. Srivastava, A finite element implementation of a large deformation gradient-damage theory
+for fracture with abaqus user material subroutines, arXiv preprint arXiv:2507.02702 (2025).
+[53] E. Fried, M. E. Gurtin, Continuum theory of thermally induced phase transitions based on an order parameter, Physica
+D: Nonlinear Phenomena 68 (1993) 326–343.
+[54] M. S. Alnaes, J. Blechta, J. Hake, A. Johansson, B. Kehlet, A. Logg, C. N. Richardson, J. Ring, M. E. Rognes, G. N.
+Wells, The FEniCS project version 1.5, Archive of Numerical Software 3 (2015).
+[55] A. Logg, K.-A. Mardal, G. N. Wells, Automated Solution of Differential Equations by the Finite Element Method, Springer,
+2012. doi:10.1007/978-3-642-23099-8.
+[56] A. Logg, G. N. Wells, DOLFIN: automated finite element computing, ACM Transactions on Mathematical Software 37
+(2010).
+[57] A. Logg, G. N. Wells, J. Hake,
+DOLFIN: a C++/Python finite element library,
+in: A. Logg, K.-A. Mardal, G. N.
+Wells (Eds.), Automated Solution of Differential Equations by the Finite Element Method, volume 84 of Lecture Notes in
+Computational Science and Engineering, Springer, 2012.
+[58] R. C. Kirby, A. Logg, A compiler for variational forms, ACM Transactions on Mathematical Software 32 (2006).
+[59] A. Logg, K. B. Ølgaard, M. E. Rognes, G. N. Wells, FFC: the FEniCS form compiler, in: A. Logg, K.-A. Mardal, G. N.
+Wells (Eds.), Automated Solution of Differential Equations by the Finite Element Method, volume 84 of Lecture Notes in
+Computational Science and Engineering, Springer, 2012.
+[60] K. B. Ølgaard, G. N. Wells, Optimisations for quadrature representations of finite element tensors through automated
+code generation, ACM Transactions on Mathematical Software 37 (2010).
+[61] R. C. Kirby, Algorithm 839: FIAT, a new paradigm for computing finite element basis functions, ACM Transactions on
+Mathematical Software 30 (2004) 502–516.
+[62] R. C. Kirby, FIAT: numerical construction of finite element basis functions, in: A. Logg, K.-A. Mardal, G. N. Wells (Eds.),
+Automated Solution of Differential Equations by the Finite Element Method, volume 84 of Lecture Notes in Computational
+Science and Engineering, Springer, 2012.
+[63] Geuzaine, Christophe and Remacle, Jean-Francois, Gmsh, ???? URL: http://http://gmsh.info/.
+[64] C. Miehe, M. Hofacker, F. Welschinger, A phase field model for rate-independent crack propagation: Robust algorithmic
+implementation based on operator splits, Computer Methods in Applied Mechanics and Engineering 199 (2010) 2765–2778.
+[65] E. Campagnoli, V. Giaretto, Experimental investigation on thermal conductivity and thermal diffusivity of ex-vivo bovine
+liver from room temperature down to- 60 c, Materials 14 (2021) 3750.
+[66] S. R. Guntur, K. I. Lee, D.-G. Paeng, A. J. Coleman, M. J. Choi, Temperature-dependent thermal properties of ex vivo
+liver undergoing thermal ablation, Ultrasound in medicine & biology 39 (2013) 1771–1784.
+[67] L. Bianchi, F. Cavarzan, L. Ciampitti, M. Cremonesi, F. Grilli, P. Saccomandi, Thermophysical and mechanical properties
+of biological tissues as a function of temperature: a systematic literature review, International Journal of Hyperthermia
+39 (2022) 297–340.
+[68] J. H. Choi, J. C. Bischof, A quantitative analysis of the thermal properties of porcine liver with glycerol at subzero and
+cryogenic temperatures, Cryobiology 57 (2008) 79–83.
+30
+
+
+[69] G. Millonig, S. Friedrich, S. Adolf, H. Fonouni, M. Golriz, A. Mehrabi, P. Stiefel, G. P¨oschl, M. W. B¨uchler, H. K. Seitz,
+et al., Liver stiffness is directly influenced by central venous pressure, Journal of hepatology 52 (2010) 206–210.
+[70] J. M. Hudson, L. Milot, C. Parry, R. Williams, P. N. Burns, Inter-and intra-operator reliability and repeatability of shear
+wave elastography in the liver: a study in healthy volunteers, Ultrasound in medicine & biology 39 (2013) 950–955.
+31

@@ -1,0 +1,2190 @@
+Parameter Importance-Driven Continual Learning for Foundation Models
+Lingxiang Wang1,2
+Hainan Zhang1,2*
+Zhiming Zheng1,2
+1Beijing Advanced Innovation Center for Future Blockchain and Privacy Computing, Beihang University
+2School of Artificial Intelligence, Beihang University
+wanglingxiang@buaa.edu.cn, zhanghainan@buaa.edu.cn, zhengzhiming0130@163.com
+Abstract
+Domain-specific post-training often causes catastrophic
+forgetting, making foundation models lose their general
+reasoning ability and limiting their adaptability to dynamic
+real-world environments. Preserving general capabilities
+while acquiring downstream domain knowledge is a cen-
+tral challenge for large language and multimodal models.
+Traditional continual learning methods, such as regular-
+ization, replay and architectural isolation, suffer from poor
+downstream performance, reliance on inaccessible histor-
+ical data, or additional parameter overhead.
+While re-
+cent parameter-efficient tuning (PET) methods can allevi-
+ate forgetting, their effectiveness strongly depends on the
+choice of parameters and update strategies. In this paper,
+we introduce PIECE, a Parameter Importance Estimation-
+based Continual Enhancement method that preserves gen-
+eral ability while efficiently learning domain knowledge
+without accessing prior training data or increasing model
+parameters. PIECE selectively updates only 0.1% of core
+parameters most relevant to new tasks, guided by two im-
+portance estimators: PIECE-F based on Fisher Informa-
+tion, and PIECE-S based on a second-order normalization
+that combines gradient and curvature information.
+Ex-
+periments across three language models and two multi-
+modal models show that PIECE maintains general capabili-
+ties and achieves state-of-the-art continual learning perfor-
+mance across diverse downstream tasks. Our results high-
+light a practical path to scalable, domain-adaptive founda-
+tion models without catastrophic forgetting.
+1. Introduction
+Foundation models,
+including large language models
+(LLMs) and multimodal LLMs (MLLMs), have shown re-
+markable generalization and reasoning abilities across di-
+verse domains, from natural language understanding [23,
+*Corresponding author
+(a)
+(b)
+Figure 1.
+(a) Average downstream-task scores and (b) Hu-
+manEval Programming ability (Pass@K, K=1) of Llama3-8B
+on the TRACE benchmark as continual learning tasks increase.
+PIECE consistently outperforms full fine-tuning (SeqFT), regular-
+ization (EWC, GEM, LwF), replay (Replay, Replay-online), and
+PET (SeqLoRA, O-LoRA, LayerNorm, MIGU) baselines in both
+downstream performance and capability retention.
+69] and multimodal reasoning [28, 42] to applications in
+healthcare [11] and science [59].
+However, when fine-
+tuned on new domains, these models often suffer from
+catastrophic forgetting [17, 31], which erodes their core
+strengths, such as general reasoning abilities and broad
+knowledge, and ultimately limiting their effectiveness in
+1
+arXiv:2511.15375v1  [cs.LG]  19 Nov 2025
+
+
+domain-specific adaptation [30, 37].
+Continual learning [40, 47] has been recognized as an
+effective mechanism for enabling models to incrementally
+acquire new domain knowledge.
+Regularization meth-
+ods [24, 34] constrain model updates to remain close to the
+original parameters, but it may hinder efficient learning for
+downstream tasks. Replay methods [44, 45] rely on his-
+torical training data, which is impractical for post-training
+foundation models [54] and inefficient due to large-scale
+data replay. Architectural isolation methods [53, 67] mit-
+igate forgetting by separating different tasks through mech-
+anisms such as gating, but they introduce additional param-
+eter overhead and impede cross-task generalization [55]. To
+compare these methods, we take programming ability as a
+representative proxy for the general capabilities of founda-
+tion models, because it is particularly vulnerable to destruc-
+tion [8]. Figure 1 (b) evaluate the forgetting behaviors of
+these traditional approaches, showing that both Regulariza-
+tion and Replay methods1 fail to meet the crucial require-
+ment of preserving the broad and general capabilities of
+foundation models during continual learning.
+Recently, parameter-efficient tuning (PET) methods [14,
+21, 56, 65] have demonstrated the potential for anti-
+forgetting learning [50, 58] without relying on historical
+training data, task labels, or modifying model architecture.
+As shown in Figure 1, our analysis reveals that: (1) PET
+outperforms traditional continual learning approaches
+in preserving the original capabilities of the model. In
+contrast, regularization and replay methods struggle with
+catastrophic forgetting due to the lack of access to histor-
+ical training data. (2) Different PET strategies exhibit
+varying levels of general capability preservation.
+Se-
+qLoRA [21], which updates only Attention components,
+outperforms LayerNorm [65] updates on downstream per-
+formance, suggesting that domain knowledge is possibly
+concentrated in Attention components [29].
+However, it
+slightly weakens original abilities due to all layers structural
+disruption (see Section 4.2). Thus, the choice of parameters
+to fine-tune and the update strategy play critical roles in do-
+main transfer and prior knowledge retention.
+In this paper, we propose PIECE, a Parameter Im-
+portance Estimation-based Continual Enhancement method
+that effectively learns domain-specific knowledge while
+preserving general capabilities.
+PIECE focuses on the
+internal model updates without the need for historical
+data or additional parameters. It selectively updates only
+the most relevant 0.1% of core parameters for new tasks.
+Specifically, before fine-tuning, PIECE evaluates parame-
+ter importance using two independent strategies: one based
+on Fisher information (PIECE-F), which measures param-
+eter sensitivity to the current task loss, and the other based
+1We only focus on continue learning without parameter growth, thus
+we don’t compare the architectural isolation methods.
+on a second-order normalization method (PIECE-S), which
+combines gradient and curvature information to assess pa-
+rameter importance. Notably, PIECE-S is our first theory-
+grounded variant and better preserves original model capa-
+bilities than PIECE-F. Based on these importance scores,
+only the Top-0.1% parameters are updated during fine-
+tuning, while the remaining parameters are frozen. This se-
+lective updating enables efficient domain adaptation while
+preserving the model’s original capability.
+We conducted extensive experiments2 on three LLMs
+and two MLLMs, encompassing model sizes ranging from
+2B to 14B. The results demonstrate that PIECE effectively
+preserves prior knowledge across diverse downstream tasks
+while achieving state-of-the-art continual learning perfor-
+mance, surpassing strong baselines. Our analysis reveals
+that PIECE selectively updates portions of Attention as well
+as LayerNorm modules at lower and deeper layers, enabling
+it to maintain general capabilities while efficiently assimi-
+lating new knowledge. These findings highlight a practical
+and scalable pathway toward domain-adaptive foundation
+models that mitigate catastrophic forgetting. Our contribu-
+tions can be summarized as follows:
+• We find that parameter selection is an effective strategy to
+mitigate catastrophic forgetting, enabling continual learn-
+ing through internal model updates without the need for
+historical data or additional parameters.
+• We propose two parameter importance estimation meth-
+ods: PIECE-F and PIECE-S. Notably, PIECE-S is our
+first theory-grounded variant and better preserves origi-
+nal model capabilities than PIECE-F.
+• PIECE is a model-agnostic, scalable method that en-
+ables sustainable continual learning while preserving pre-
+trained abilities, as validated by extensive experiments
+across diverse LLMs and MLLMs.
+2. Related Work
+Regularization-based methods mitigate catastrophic for-
+getting by constraining changes to weights or units asso-
+ciated with previous tasks. Some research focuses on pre-
+serving task-relevant parameters [3, 24], while others em-
+phasize constraints on the model’s intermediate or final
+outputs [27]. Replay-based methods introduce the fixed
+memory to store either real samples [45, 70] or pseudo-
+generative examples [38, 48] from previous tasks, and re-
+play them during training to preserve the acquired knowl-
+edge. Although these two types of methods have shown
+significant effectiveness in mitigating catastrophic forget-
+ting, access to pretraining data is often limited in foun-
+dation models for ordinary users, which constrains their
+practical applicability. Architecture-based methods ex-
+2See code, dataset, logs and appendix in Supplemental Materials and
+https://github.com/wanglingxiang0717/PIECE.
+2
+
+
+pand or isolate model parameters to retain new knowledge
+while preventing the forgetting of prior knowledge.
+In-
+spired by Aljundi et al. [2], some methods [10, 25] employ
+gating mechanisms to assign independent modules to dif-
+ferent tasks, thereby achieving knowledge isolation. Tong
+et al. [53] further optimize the training of the gates to
+improve classification accuracy and overall model perfor-
+mance, while Zhao et al. [67] enhance the design of the
+gates to increase the utilization efficiency of task-specific
+modules, improving knowledge transfer. However, these
+methods cause the parameter size to grow linearly with
+the number of tasks, resulting in higher computational and
+storage costs. Parameter-Efficient Tuning (PET) [13, 62]
+has become an active research direction in post-training of
+large models. Some research has shown that parameter-
+efficient tuning offers significant advantages in mitigating
+catastrophic forgetting [5, 6], with LoRA [21] demonstrat-
+ing particularly strong performance [67]. Wang et al. [56]
+proposed O-LoRA, a method that updates LoRA weights
+within an orthogonal subspace to enhance the model’s con-
+tinual learning capability.
+Compared to these structured
+methods, unstructured parameter-efficient tuning focuses
+more on the model’s transfer performance on downstream
+tasks. Sung et al. [50] and Xu et al. [58] demonstrated that
+tuning only a subset of task-relevant parameters can achieve
+better transfer performance than full fine-tuning. Subse-
+quently, Du et al. [14] introduce MIGU, which uses unstruc-
+tured parameter-efficient tuning for continual learning to re-
+tain model capabilities without historical data. However, its
+parameter importance relies solely on the L1-norm of out-
+puts. Building on this, we explore unstructured parameter-
+efficient tuning and propose two improved parameter im-
+portance evaluation strategy.
+3. Method
+In this section, we introduce the components of PIECE, in-
+cluding preliminaries, two types of parameter importance
+estimators (PIECE-F and PIECE-S) and mask-based imple-
+mentations. As shown in Figure 2, we first evaluate the im-
+portance of each parameter based on new task data to gener-
+ate a fixed gradient mask. Then, we use this mask to protect
+the majority of model parameters and update only a small
+subset of parameters most relevant to new task.
+3.1. Preliminaries
+Continual learning aims to address a key challenge: en-
+abling a model to acquire new tasks sequentially while
+minimizing performance degradation on previously learned
+ones. Formally, the model needs to learn a sequence of
+tasks T
+= {T1, T2, . . . , TT }. Each task Tt corresponds
+to a dataset Dt = {(x(t)
+i , y(t)
+i )}nt
+i=1, consisting of nt in-
+put–output pairs. Given a neural network f(·; θ) parame-
+terized by θ, the objective at each task step t is to adapt to
+ 
+ 
+i
+t
+t
+M
+1
+2
+3
+4
+1
+0
+Vanilla
+PIECE
+Loss
+Input
+Backward
+i
+t
+i
+t
+
+1
+i
+t+
+1
+tT −
+tT
+1
+tT +
+Gradient
+ 
+ 
+i
+t
+
+1
+i
+t+
+Forward
+Update
+Mask
+Large Model
+Compute parameter importance
+(PIECE-F or PIECE-S)
+t
+t
+F or S
+ 
+ 
+(
+, )
+t
+t
+TopK F or S k
+ 
+ 
+i
+t
+
+Figure 2. The illustration of PIECE. During parameter updates,
+PIECE performs standard 1⃝forward and 2⃝backward steps, but
+before 4⃝updating, it 3⃝applies a fixed gradient mask (computed
+from PIECE-F/S parameter importance) to protect most parame-
+ters and update only top-k task-relevant ones.
+task Tt by minimizing:
+θ∗= arg min
+θ
+1
+nt
+nt
+X
+i=1
+L(f(x(t)
+i ; θ), y(t)
+i ),
+(1)
+where L(·, ·) denotes the loss function, e.g., cross-entropy.
+Typically, only the current dataset Dt is accessible dur-
+ing the training of task Tt. However, previous approaches
+often relax this constraint to varying degrees. For exam-
+ple, replay-based methods retain a small subset of past sam-
+ples for replay or generate pseudo-samples; regularization-
+based methods store historical signals such as gradients or
+parameter importance to constrain updates; architecture-
+based methods adapt to new tasks by adding parameters
+or modifying the structure, sometimes with additional task-
+identification memory. In this work, we strictly follow a
+no-history assumption: while learning task Tt, the model
+is prohibited from accessing any past data or intermediate
+training information, and both the parameter budget and ar-
+chitecture remain fixed.
+Moreover, unlike conventional settings that start from
+task T1, we consider a more realistic large-model scenario
+in which the model may already exhibit strong performance
+on some tasks. These tasks should be treated as prior knowl-
+edge to be preserved. Thus, continual learning can start
+from any step t ∈{1, . . . , T} while protecting previously
+acquired capabilities.
+3.2. Fisher Information-based Importance
+We employ Fisher Information [16] to assess the impor-
+tance of model parameters, which is widely used in modern
+3
+
+
+machine learning for various purposes, such as protecting
+critical parameters of previous tasks [24], guiding model
+compression and pruning [49], and selecting target parame-
+ters for efficient fine-tuning [50, 58]. From the perspective
+of parameter importance, a parameter that strongly influ-
+ences the model’s output will induce a significant change in
+the predictive distribution when updated. Let θ denote the
+model parameters and x the input, with the output distribu-
+tion denoted by pθ(y|x). When a small perturbation δ →0
+is applied to the parameters (as in the fine-tuning stage), it
+can be shown [39, 43] that the resulting change in the pre-
+dictive distribution can be approximated as:
+Ex[DKL(pθ(y|x)∥pθ+δ(y|x))] ≈δ⊤Fθδ,
+(2)
+where Fθ denotes the Fisher information matrix, which is
+defined as:
+Fθ = Ex
+h
+Ey∼pθ(y|x)
+h
+∇θ log pθ(y|x)∇θ log pθ(y|x)⊤ii
+. (3)
+Since the true data distribution is typically unavailable
+and computing the full Fisher information matrix is expen-
+sive, we follow the approaches of Kirkpatrick et al. [24],
+Sung et al. [50], and Xu et al. [58] to approximate the im-
+portance of each parameter using the diagonal elements of
+the empirical Fisher information matrix computed over the
+training set Dt of a given task. Specifically, for task Tt, the
+Fisher Information parameter importance of the i-th param-
+eter is defined as:
+Ft,i ≈
+1
+|Dt|
+X
+(x,y)∈Dt
+∂log pθt−1(y|x)
+∂θt−1,i
+2
+.
+(4)
+3.3. Second-order Normalization Importance
+From a Bayesian perspective, we analyze the rationale of
+using the Fisher information to measure parameter impor-
+tance for past tasks, taking the optimization of task T2 as an
+example:
+p(θ2 | D1, D2) = p(D2 | θ2)p(θ2 | D1)
+p(D2)
+.
+(5)
+Here, the posterior distribution p(θ2 | D1) from the previ-
+ous task T1, serves as the prior when optimizing the new
+task, thereby protecting knowledge acquired from past pa-
+rameters. Maximizing this posterior is equivalent to mini-
+mizing the new task loss L2(θ2) augmented with a regular-
+ization term induced by the prior from the old task:
+θ2 = arg max
+θ2 log p(θ2 | D1, D2)
+= arg min
+θ2 L2(θ) −log p(θ2 | D1).
+(6)
+Then perform a second-order Taylor expansion of f(θ2) =
+log p(θ2 | D1) around the optimum θ1 of the previous task:
+f(θ2) ≈f(θ1)+Jθ2,θ1(θ2−θ1)+1
+2(θ2−θ1)⊤Hθ2,θ1(θ2−θ1),
+(7)
+Jθ2,θ1 = ∂f(θ2)
+∂θ2
+
+θ2=θ1
+, Hθ2,θ1 = ∂2f(θ2)
+∂θ2
+2
+
+θ2=θ1
+.
+Since θi is a stationary point for the previous task, the Ja-
+cobian vanishes, i.e., Jθ2,θ1 = 0. Moreover, the negative
+expected Hessian, i.e., Hθ2,θ1 equals the Fisher information
+matrix. Thus, using Fisher information to quantify parame-
+ter importance is consistent with Bayesian formulation.
+Although the Fisher information characterizes parame-
+ter importance around the optimum of the previous task, it
+relies on the assumption that the current parameters remain
+close to that optimum, where the gradients vanish. How-
+ever, when learning a new task Tt, the initialization θt−1 is
+in general not a stationary point under the new data distri-
+bution, i.e., ∇θt−1 log pθt−1(Dt) ̸= 0. Neglecting the first-
+order term thus ignores the primary source of parameter up-
+dates for the new task. To address this, we instead expand
+the new task log-likelihood f ∗
+t (θt) = log p(θt | Dt) at the
+current parameter θt−1:
+f ∗
+t (θt) ≈f ∗
+t (θt−1) + Jθt,θt−1(θt −θt−1)
++ 1
+2(θt −θt−1)⊤Hθt,θt−1(θt −θt−1),
+(8)
+and yield the approximate optimal update:
+θ⋆
+t ≈θt−1 −H−1
+θt,θt−1Jθt,θt−1.
+(9)
+This expression indicates that the magnitude of parameter
+updates is jointly determined by the first-order gradient and
+the second-order curvature: parameters with large gradients
+and low curvature tend to change more during learning and
+thus contribute more to adaptation. Further, assuming that
+the parameters are near a local optimum, the Laplace ap-
+proximation gives θ⋆
+t ∼N(θ⋆
+t , H−1
+θ⋆
+t ,θt−1), while the current
+parameters θt−1 can be viewed as a degenerate distribution
+δ(θt−1). We therefore use the standardized mean shift be-
+tween these two distributions as the importance measure for
+each parameter. To avoid computing true data expectations
+and Hessians, we approximate the Jacobian by the empirical
+gradients and the negative Hessian by the empirical Fisher
+information computed at θt−1 under task Tt. Specifically,
+for task Tt the Second-order Normalized parameter impor-
+tance of the i-th parameter is defined as:
+St,i =
+
+1
+|Dt|
+P
+(x,y)∈Dt
+∂log pθt−1(y|x)
+∂θt−1,i
+
+r
+1
+|Dt|
+P
+(x,y)∈Dt
+ ∂log pθt−1(y|x)
+∂θt−1,i
+2
++ ξ
+,
+(10)
+where ξ > 0 is a constant for numerical stability.
+3.4. PIECE
+We introduce the core workflow of PIECE using the most
+standard single-step fine-tuning paradigm as an example.
+4
+
+
+Let θi
+t denote the model parameters at the i-th itera-
+tion on task Tt (where θ0
+t denotes the initialization for
+task Tt).
+In standard fine-tuning, gradients of the loss
+L(f(x(t); θi
+t), y(t)) are computed and applied to update all
+parameters via gradient descent:
+θi+1
+t
+= θi
+t −η ∂L(f(x(t); θi
+t), y(t))
+∂θi
+t
+.
+(11)
+In contrast, PIECE first computes the importance of each
+parameter from the current task data (as defined in Eq. 4
+or Eq. 10), and only updates the top-k most important pa-
+rameters, forming a task-specific sparse update subnetwork
+Ck
+t . In practice, we set k = ⌊0.001 · |θ|⌋, i.e., only 0.1% of
+parameters are trainable for each task. To achieve this, we
+define a binary mask with the same shape as θ:
+Mt,i =
+
+1,
+θt,i ∈Ck
+t
+0,
+θt,i /∈Ck
+t
+.
+(12)
+It is then applied to filter gradient updates, freezing low-
+importance parameters and updating the important ones:
+θi+1
+t
+= θi
+t −η(∂L(f(x(t); θi
+t), y(t))
+∂θi
+t
+⊙Mt).
+(13)
+Algorithm 1 provides the complete pseudo-code of PIECE
+in a sequential multi-task learning setting.
+4. Experiments
+We validate our method on several benchmark datasets
+against a variety of continual learning baselines.
+4.1. Experiment Setup
+Datasets For language tasks, we use the TRACE [57]
+benchmark with 1,000 training samples per task. TRACE
+contains eight sub-datasets spanning science (Sin.), finance
+(Fom.), social news (Mee.), multiple languages (English,
+German [20M.], Chinese [Cst.]), and complex tasks such as
+code questions (Py150) and mathematical reasoning (Ngc,
+Ngd).
+We use the HumanEval [9] programming bench-
+mark to assess the model’s capability retention. For multi-
+modal tasks, we use VQA v2 [19]. Following VQACL [63],
+tasks are split by question type with 1,000 training sam-
+ples per task, keeping the original test set. We focus on
+three types—action (act.), commonsense (com.), and count
+(cou.)—based on performance gains and capability preser-
+vation. Flickr30K [61] is used to assess overall capability
+retention. Details in supplementary materials A.
+Baselines We compared three categories of baselines: Reg-
+ularization methods like EWC [24], GEM [34], and
+LwF [27] constrain updates via parameter importance, gra-
+dient projection, or distillation to preserve prior knowl-
+edge. Replay methods reuse past data to reduce forgetting,
+Algorithm 1 PIECE: Parameter Importance Estimation-
+based Continual Enhancement
+Require: Sequential tasks {T1, T2, ..., TT }; model f(·; θ);
+top-k ratio k; learning rate η;
+1: for t = 1 to T do
+2:
+Initialize θ0
+t = θt−1
+// θ0 is foundation model parameters.
+3:
+Sample dataset Dt
+4:
+for each parameter θt−1,i do
+5:
+Compute importance score Ft,i or St,i
+via Eq. 4 or Eq. 10
+6:
+end for
+// Compute parameter importance for task Tt
+7:
+Ck
+t = TopK(Ft or St, k)
+8:
+Construct binary mask Mt where Mt,i = 1 if θt,i ∈
+Ck
+t , else 0
+// Build sparse update subnetwork
+// It: number of optimization steps for task Tt
+9:
+for i = 0 to It do
+10:
+Compute gradient g = ∂L(f(x(t);θi
+t),y(t))
+∂θi
+t
+11:
+˜g = g ⊙Mt
+12:
+θi+1
+t
+= θi
+t −η˜g
+13:
+end for
+// Gradient descent on selected parameters
+14: end for
+15: return θT
+either after each new task (Replay) [44] or continuously
+during training (Replay-online) [45].
+PET baselines in-
+clude SeqLoRA [21], O-LoRA [56], LayerNorm [65], and
+MIGU [14], which adapt different subsets or structures of
+parameters. Full fine-tuning (SeqFT) is also included. De-
+tails in supplementary materials B.
+Metrics Let Rt,i denote the model’s performance on task
+i after learning task t.
+Accuracy is used for classifica-
+tion or single-token QA tasks, and the average of Rouge-
+L and BLEU scores for others. The evaluation metrics are
+Overall Performance (OP) [7] OPt =
+1
+t
+Pt
+i=1 Rt,i, mea-
+suring average performance across all learned tasks; Back-
+ward Transfer (BWT) [34] BWTt = 1
+t
+Pt−1
+i=1(Rt,i −Ri,i),
+indicating how later tasks affect earlier ones.
+These are
+computed on sequential tasks to compare methods and iso-
+late changes in the model’s original abilities. For capabil-
+ity preservation evaluation, code generation (HumanEval)
+is measured by Pass@1, i.e., the fraction of correct single-
+attempt outputs, and Image captioning (Flickr30K) is mea-
+sured by the mean of Rouge-L and BLEU scores. See sup-
+plementary material C for details.
+Models and Implementation Details We use Gemma2-
+2B [51], Llama3-8B [1], and Qwen3-14B [52] for language
+tasks, and Qwen3-VL-4B [52] and LLaVA-1.5-7B [32, 33]
+for multimodal tasks. Language tasks follow the TRACE
+5
+
+
+Methods
+HumanEval(↑)
+Various task in TRACE (↑)
+OP(↑) BWT(↑)
+Cst.
+Fom.
+Mee.
+Sin.
+Ngc.
+Ngd.
+20M.
+Py150
+Gemma2-2B
+30.49
+SeqFT
+0.0
+23.70
+0.0
+7.28
+1.65
+7.40
+38.77
+2.91
+39.35
+15.13
+-19.08
+EWC
+0.0
+21.25 18.95
+5.36
+3.50
+2.47
+39.69
+3.21
+42.65
+17.13
+-13.99
+GEM
+0.0
+32.95 13.51
+4.50
+16.20
+6.17
+35.69
+2.86
+41.31
+19.15
+-16.27
+LwF
+0.0
+10.15 11.41 11.64 10.01 17.41 39.69 10.24
+14.33
+16.86
+-10.10
+replay
+0.0
+33.40 37.09 17.19 43.15
+3.70
+32.62
+7.96
+34.01
+26.14
+-1.43
+replay-online
+0.0
+33.10 40.52 18.52 44.45 13.58 34.77
+8.53
+39.35
+29.10
+-3.82
+SeqLoRA
+10.37
+45.75 35.28 11.31 67.25 38.27 50.77 12.18
+57.36
+39.77
+-10.80
+O-LoRA
+13.41
+48.85 57.26 16.24 72.00 33.33 51.38 11.57
+54.55
+43.15
+-3.45
+LayerNorm
+21.95
+52.75 35.28
+8.65
+75.75 12.35
+9.54
+9.78
+13.78
+27.23
+-1.67
+MIGU
+1.22
+35.00
+4.64
+9.46
+16.00 12.35 42.77
+8.33
+53.12
+22.71
+-10.36
+PIECE-F (ours)
+32.32
+53.10 53.43 18.17 76.25 34.57 50.77 12.90
+55.48
+44.33
+-3.21
+PIECE-S (ours)
+33.54
+54.35 52.22 19.37 75.85 22.22 45.23 12.75
+54.24
+42.03
+-1.18
+Llama3-8B
+34.15
+SeqFT
+0.0
+47.10 58.67 23.77 41.75 28.40 47.70 13.32
+53.05
+39.22
+-10.69
+EWC
+0.0
+33.95 58.67 22.10 21.20 27.16 39.08 11.33
+50.13
+32.95
+-10.05
+GEM
+0.0
+41.05 60.48 24.33 47.75 27.16 48.92 10.80
+54.43
+39.37
+-10.24
+LwF
+0.0
+39.80 44.07 12.14 40.20 23.45 49.23 10.67
+44.92
+33.06
+-9.94
+replay
+0.0
+42.45 60.48 25.88 53.55 25.93 40.62 11.20
+48.84
+38.62
+-2.94
+replay-online
+0.0
+52.25 65.32 26.46 76.95 38.27 42.46 10.78
+51.25
+45.47
+-1.99
+SeqLoRA
+28.05
+47.15 56.05 18.62 72.75 54.32 53.23 12.51
+53.67
+46.04
+-4.39
+O-LoRA
+26.83
+45.20 39.52 17.57 61.30 43.20 48.00 11.73
+51.30
+39.73
+-7.19
+LayerNorm
+27.44
+34.90 27.02
+9.44
+66.80 37.04 35.08
+9.34
+23.50
+30.39
+-1.86
+MIGU
+0.0
+38.60 25.40 20.93 59.35 41.98 49.23 11.42
+54.29
+37.65
+-10.02
+PIECE-F (ours)
+29.88
+47.95 59.88 23.42 76.40 61.73 57.85 13.50
+59.65
+50.05
+-2.66
+PIECE-S (ours)
+32.32
+49.05 57.66 23.47 77.10 59.26 52.62 14.00
+59.24
+49.05
+-1.78
+Qwen3-14B ∗
+59.76
+SeqFT
+47.56
+13.30
+4.84
+8.86
+0.0
+25.91 24.00 12.64
+26.88
+14.56
+-16.24
+EWC
+46.34
+38.95 39.72 12.79 86.65 40.74 35.69 11.86
+26.85
+36.66
+-8.27
+GEM
+48.17
+37.85 43.15 13.64 86.75 50.62 48.00 11.33
+20.93
+39.03
+-7.96
+LwF
+54.27
+18.60
+0.20
+7.45
+44.60 41.98 25.85
+1.78
+22.18
+20.33
+-2.04
+replay
+45.12
+42.60 50.81 30.60 65.65 33.33
+8.92
+12.04
+43.52
+35.93
+-7.64
+replay-online
+48.17
+7.25
+0.0
+25.91 85.25 49.38 49.54 12.58
+41.71
+33.95
+-8.89
+SeqLoRA
+49.39
+26.90 55.04 12.13 64.80 58.02 44.62 11.70
+53.21
+40.80
+-6.31
+O-LoRA
+44.51
+47.05 53.83 10.40 89.25 55.56 51.38 10.63
+27.73
+43.23
+-2.20
+LayerNorm
+50.00
+63.50 40.93
+9.50
+44.25
+0.0
+0.62
+10.48
+4.10
+21.67
+-0.76
+MIGU
+49.39
+42.60 39.72 15.41 11.45 41.98 35.69 13.01
+19.82
+31.38
+-7.27
+PIECE-F (ours)
+50.61
+60.65 61.49
+9.41
+90.55 48.15 44.62 10.63
+23.15
+49.80
+-0.33
+PIECE-S (ours)
+59.14
+59.45 62.50 13.39 90.50 62.96 46.77 11.96
+47.27
+49.35
+-0.16
+Table 1. Performance of methods on language tasks. OP and BWT are computed on sequential tasks; inherent capability variation is
+measured via HumanEval. ∗Qwen3-14B trained one epoch per task, showing less forgetting.
+order, with Py150 placed last to limit its impact on intrin-
+sic capabilities; multimodal tasks are sequenced by their ef-
+fect on original capabilities: action, commonsense, count.
+All models use the Adam optimizer (batch size 64, seed
+42), with learning rates: Gemma2-2B, 5e-4 for LoRA/O-
+LoRA, and 5e-5 for the others; for the other models, 1e-4
+for LoRA/O-LoRA, and 1e-5 for the rest. No warmup is
+applied. Qwen3-14B is trained 1 epoch per task, others 5
+6
+
+
+Methods
+Flickr30k(↑) Various task in VQA OP(↑) BWT(↑)
+Act.
+Com.
+Cou.
+Qwen3-VL-4B
+26.19
+SeqFT
+7.42
+47.29 48.66
+44.03
+46.66
+-13.86
+EWC
+4.34
+40.06 40.42
+38.40
+39.62
+-18.14
+GEM
+8.28
+47.64 42.54
+41.34
+43.84
+-12.89
+LwF
+26.67
+66.97 58.19
+40.89
+55.35
+-5.74
+replay
+20.79
+61.20 60.88
+52.27
+58.11
+-2.72
+replay-online
+8.86
+65.65 69.68
+50.67
+62.00
+-0.83
+SeqLoRA
+32.18
+38.66 45.56
+23.38
+35.87
+-1.62
+O-LoRA
+5.23
+40.06 48.90
+37.01
+41.99
+-1.25
+LayerNorm
+23.77
+60.29 59.09
+43.06
+54.15
+-1.37
+MIGU
+27.44
+47.64 57.46
+37.29
+47.46
+-4.87
+PIECE-F (ours)
+35.59
+62.66 58.76
+48.19
+56.54
+-1.53
+PIECE-S (ours)
+38.74
+62.15 61.53
+47.50
+57.06
+-0.50
+LLaVA-1.5-7B
+30.82
+SeqFT
+10.69
+41.72 39.36
+43.03
+41.37
+-26.84
+EWC
+21.92
+46.38 52.40
+24.21
+41.00
+-10.04
+GEM
+24.17
+49.65 53.63
+30.16
+44.48
+-7.18
+LwF
+36.02
+67.66 58.11
+2.07
+42.62
+-0.51
+replay
+13.61
+65.79 70.90
+45.62
+60.77
+-0.78
+replay-online
+10.46
+67.25 69.11
+44.93
+60.43
+-1.66
+SeqLoRA
+31.04
+75.31 75.63
+53.10
+68.01
+-0.51
+O-LoRA
+6.80
+70.38 72.94
+52.30
+65.21
+-0.26
+LayerNorm
+30.71
+69.68 60.39
+2.91
+44.33
+-0.20
+MIGU
+21.81
+67.66 52.40
+42.89
+54.32
+-8.62
+PIECE-F (ours)
+37.51
+74.48 77.18
+53.06
+68.24
+-0.29
+PIECE-S (ours)
+41.94
+75.31 77.34
+53.27
+68.64
+-0.16
+Table 2. Results of different methods on multimodal tasks.
+epochs. Experiments run on 4×80G A100, 4×80G A800,
+and 8×40G A100 GPUs. See supplementary material B for
+baseline-specific deployment details.
+4.2. Main Results
+The main results are shown in Table 1 and Table 2. Table 1
+presents language tasks performance, and Table 2 reports
+multimodal results. Based on these results, we can draw the
+following conclusions:
+PIECE demonstrates outstanding performance across
+both language and multimodal tasks. Across models of
+different scales, especially for large models, both PIECE-
+F and PIECE-S achieve the highest OP, outperforming
+all baselines.
+Meanwhile, the BWT results indicate that
+PIECE substantially alleviates forgetting during sequential
+task learning, highlighting its strong potential to balance
+new task acquisition and previous knowledge retention.
+PIECE effectively preserves the original capabilities of
+foundation models.
+On the HumanEval benchmark for
+language models and the Flickr30K benchmark for multi-
+modal models, PIECE significantly outperforms traditional
+approaches, verifying its robustness in maintaining general
+capabilities. Even for Qwen3-14B with one-epoch-per-task
+training and naturally mild forgetting, PIECE still main-
+tains a clear advantage, demonstrating its consistent ability-
+preserving effect under different training intensities.
+PIECE-F excels in task transfer,
+while PIECE-S
+Figure 3. Distribution of critical parameters identified by PIECE-
+F and PIECE-S across different tasks.
+Intermediate 
+Layer_20
+Upper 
+Layer_32
+Raw Model
+Full fine-tuning
+PIECE
+Figure 4. Visualization of intermediate and upper layer task repre-
+sentations comparing the base model, full fine-tuning, and PIECE.
+achieves stronger forgetting mitigation. As reflected by
+the OP metric, PIECE-F slightly outperforms PIECE-S
+across several tasks, showing greater adaptability and trans-
+ferability to new domains. Conversely, PIECE-S consis-
+tently achieves the best BWT results with the least forget-
+ting. This stability not only mitigates performance degra-
+dation in sequential learning but also further contributes to
+preserving the foundation model’s original abilities.
+4.3. Analysis
+To further understand the behavior of PIECE beyond its
+overall performance, we conduct a series of analytical ex-
+periments focusing on three key questions:
+1. Where PIECE learns and why it achieves its objective?
+2. Whether PIECE forgets more as task count increases?
+3. How the choice of sparsity ratio affects performance?
+All analyses are performed on the Llama3-8B model.
+Where PIECE learns and why it achieves its objective?
+To explore where PIECE learns and why it is stable, we
+visualize the important parameters selected by PIECE-F
+7
+
+
+Figure 5. Parameter overlap across tasks.
+Figure 6. Correlation of parameter overlap and forgetting rate.
+and PIECE-S across tasks. Figure 3 shows both methods
+mainly target attention submodules V/O and feed-forward
+layers (U/D). This aligns with Yao et al. [60], which sug-
+gests that the V/O modules play a more crucial role than
+Q/K in downstream adaptation, and Dai et al. [12], which
+identifies U and D as key locations for knowledge stor-
+age. At the layer level, both methods primarily attend to
+the higher layers, consistent with Zhao et al. [68] linking
+them to downstream task relevance. The distinction is that
+PIECE-F also emphasizes lower layers, potentially aiding
+better adaptation to downstream tasks, although adjusting
+these shared modules may introduce some forgetting. No-
+tably, both mechanisms avoid the intermediate layers, sug-
+gesting that these layers encode core pretraining knowledge
+and are crucial for maintaining the structural stability of the
+model. To further examine the role of intermediate layers in
+the model’s multitask capabilities, we visualized task rep-
+resentations at intermediate and upper layers using dimen-
+sionality reduction. As shown in Figure 4, compared to base
+model, full fine-tuning disrupts the representations in inter-
+mediate layers, consequently impairing the final task sepa-
+rability, whereas PIECE preserves clear task distinctions.
+Whether PIECE forgets more as task count increases?
+The core of PIECE lies in fine-tuning only a small sub-
+set of critical parameters, thereby mitigating catastrophic
+forgetting. This raises a natural question: as the number
+of tasks increases, do important parameters overlap signifi-
+cantly across tasks, potentially increasing the risk of forget-
+ting? To investigate the scalability of PIECE, we first ana-
+lyze the parameter overlap across tasks. As shown in Fig-
+ure 5, the overlap is relatively low for both PIECE-F and
+PIECE-S, with PIECE-S, which emphasizes task-specific
+parameters, exhibiting the lowest overlap. Moreover, we
+Figure 7. Effect of the number of updated parameters on perfor-
+mance and forgetting. Average Performance (AP) is the mean per-
+formance across sequential tasks after each task, reflecting transfer
+ability: APt = 1
+t
+Pt
+i=1 Ri,i
+compute the correlation between parameter overlap and task
+forgetting rate (Figure 6). The results show negligible cor-
+relation for both methods (Pearson r: -0.04 for PIECE-S,
+0.01 for PIECE-F), indicating that even as the number of
+tasks grows, PIECE can effectively preserve critical param-
+eters and maintain performance on previous tasks.
+How the choice of sparsity ratio affects performance?
+To investigate the effect of the number of updated param-
+eters on performance, we varied the selection ratio k, with
+the results shown in Figure 7. The experiments indicate that
+increasing k initially improves the model’s transfer perfor-
+mance on downstream tasks, but this improvement is not
+sustained; at k = 5%, performance is actually lower than
+at k = 1%. Meanwhile, larger k values substantially exac-
+erbate forgetting, resulting in a decrease in OP and causing
+more severe degradation of the original capabilities.
+5. Conclusion
+We present PIECE, a Parameter Importance Estimation-
+based Continual Enhancement method for foundation mod-
+els. PIECE mitigates catastrophic forgetting by selectively
+updating only the most critical 0.1% of parameters, guided
+by theoretically grounded importance estimation.
+With-
+out relying on replay data, task labels, or architectural
+modifications, PIECE achieves efficient domain adaptation
+while preserving general reasoning and programming abili-
+ties. Extensive experiments on diverse LLMs and MLLMs
+show that PIECE surpasses existing approaches in both
+retention and transfer.
+By coupling parameter-efficient
+tuning with importance estimation, PIECE offers a scal-
+able, model-agnostic pathway toward sustainable, domain-
+adaptive foundation models.
+In the future, we will fur-
+8
+
+
+ther distinguish fine-tuning key parameters from stability-
+critical ones to better balance downstream transfer and for-
+getting mitigation.
+6. Acknowledgments
+This work was funded by the National Natural Science
+Foundation of China (NSFC) under Grants No. 62406013,
+the Beijing Advanced Innovation Center Funds for Future
+Blockchain and Privacy Computing(GJJ-24-034), and the
+Fundamental Research Funds for the Central Universities.
+References
+[1] AI@Meta. Llama 3 model card. 2024. 5
+[2] Rahaf Aljundi, Punarjay Chakravarty, and Tinne Tuytelaars.
+Expert gate: Lifelong learning with a network of experts. In
+Proceedings of the IEEE conference on computer vision and
+pattern recognition, pages 3366–3375, 2017. 3
+[3] Rahaf Aljundi, Francesca Babiloni, Mohamed Elhoseiny,
+Marcus Rohrbach, and Tinne Tuytelaars.
+Memory aware
+synapses: Learning what (not) to forget. In Proceedings of
+the European conference on computer vision (ECCV), pages
+139–154, 2018. 2
+[4] Claas Beger and Saikat Dutta. Coconut: Structural code un-
+derstanding does not fall out of a tree. In 2025 IEEE/ACM
+International Workshop on Large Language Models for Code
+(LLM4Code), pages 128–136. IEEE, 2025. 1
+[5] Prashant Shivaram Bhat, Shakib Yazdani, Elahe Arani,
+and Bahram Zonooz.
+Parameter efficient continual learn-
+ing with dynamic low-rank adaptation.
+arXiv preprint
+arXiv:2505.11998, 2025. 3
+[6] Dan Biderman, Jacob Portes, Jose Javier Gonzalez Ortiz,
+Mansheej Paul, Philip Greengard, Connor Jennings, Daniel
+King, Sam Havens, Vitaliy Chiley, Jonathan Frankle, et al.
+Lora learns less and forgets less. Transactions on Machine
+Learning Research, 2024. 3
+[7] Arslan Chaudhry, Puneet K Dokania, Thalaiyasingam Ajan-
+than, and Philip HS Torr. Riemannian walk for incremen-
+tal learning: Understanding forgetting and intransigence. In
+Proceedings of the European conference on computer vision
+(ECCV), pages 532–547, 2018. 5
+[8] Jie Chen, Zhipeng Chen, Jiapeng Wang, Kun Zhou, Yu-
+tao Zhu, Jinhao Jiang, Yingqian Min, Wayne Xin Zhao,
+Zhicheng Dou, Jiaxin Mao, et al. Towards effective and ef-
+ficient continual pre-training of large language models. In
+Proceedings of the 63rd Annual Meeting of the Associa-
+tion for Computational Linguistics (Volume 1: Long Papers),
+pages 5779–5795, 2025. 2, 1
+[9] Mark Chen. Evaluating large language models trained on
+code. arXiv preprint arXiv:2107.03374, 2021. 5
+[10] Qian Chen, Lei Zhu, Hangzhou He, Xinliang Zhang, Shuang
+Zeng, Qiushi Ren, and Yanye Lu.
+Low-rank mixture-of-
+experts for continual medical image segmentation.
+In In-
+ternational Conference on Medical Image Computing and
+Computer-Assisted Intervention, pages 382–392. Springer,
+2024. 3
+[11] Yanyuan Chen, Dexuan Xu, Yu Huang, Songkun Zhan, Han-
+pin Wang, Dongxue Chen, Xueping Wang, Meikang Qiu,
+and Hang Li. Mimo: A medical vision language model with
+visual referring multimodal input and pixel grounding mul-
+timodal output. In Proceedings of the Computer Vision and
+Pattern Recognition Conference, pages 24732–24741, 2025.
+1
+[12] Damai Dai, Li Dong, Yaru Hao, Zhifang Sui, Baobao Chang,
+and Furu Wei. Knowledge neurons in pretrained transform-
+ers. In Proceedings of the 60th Annual Meeting of the Asso-
+ciation for Computational Linguistics (Volume 1: Long Pa-
+pers), pages 8493–8502, 2022. 8
+[13] Ning Ding, Yujia Qin, Guang Yang, Fuchao Wei, Zonghan
+Yang, Yusheng Su, Shengding Hu, Yulin Chen, Chi-Min
+Chan, Weize Chen, et al. Parameter-efficient fine-tuning of
+large-scale pre-trained language models. Nature machine in-
+telligence, 5(3):220–235, 2023. 3
+[14] Wenyu Du, Shuang Cheng, Tongxu Luo, Zihan Qiu, Zeyu
+Huang, Ka Chun Cheung, Reynold Cheng, and Jie Fu. Un-
+locking continual learning abilities in language models. In
+Findings of the Association for Computational Linguistics:
+EMNLP 2024, pages 6503–6522, 2024. 2, 3, 5, 1
+[15] Yujie Feng,
+Xujia Wang,
+Zexin Lu,
+Shenghong Fu,
+Guangyuan Shi, Yongxin Xu, Yasha Wang, Philip S Yu, Xu
+Chu, and Xiao-Ming Wu. Recurrent knowledge identifica-
+tion and fusion for language model continual learning. arXiv
+preprint arXiv:2502.17510, 2025. 1
+[16] Ronald Aylmer Fisher. Theory of statistical estimation. In
+Mathematical proceedings of the Cambridge philosophical
+society, pages 700–725. Cambridge University Press, 1925.
+3
+[17] Robert M French. Catastrophic forgetting in connectionist
+networks. Trends in cognitive sciences, 3(4):128–135, 1999.
+1
+[18] Annette Rios Gonzales, Nicolas Spring, Tannon Kew, Marek
+Kostrzewa, Andreas S¨auberli, Mathias M¨uller, and Sarah
+Ebling. A new dataset and efficient baselines for document-
+level text simplification in german. In Proceedings of the
+Third Workshop on New Frontiers in Summarization, pages
+152–161, 2021. 1
+[19] Yash Goyal, Tejas Khot, Douglas Summers-Stay, Dhruv Ba-
+tra, and Devi Parikh. Making the v in vqa matter: Elevating
+the role of image understanding in visual question answer-
+ing.
+In Proceedings of the IEEE conference on computer
+vision and pattern recognition, pages 6904–6913, 2017. 5, 2
+[20] Jinghan He, Haiyun Guo, Kuan Zhu, Zihan Zhao, Ming
+Tang, and Jinqiao Wang. Seekr: Selective attention-guided
+knowledge retention for continual learning of large language
+models. In Proceedings of the 2024 Conference on Empirical
+Methods in Natural Language Processing, pages 3254–3266,
+2024. 1
+[21] Edward J Hu, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi Li,
+Shean Wang, Lu Wang, Weizhu Chen, et al. Lora: Low-
+rank adaptation of large language models. In International
+Conference on Learning Representations. 2, 3, 5
+[22] Yebowen Hu, Timothy Ganter, Hanieh Deilamsalehy, Franck
+Dernoncourt, Hassan Foroosh, and Fei Liu. Meetingbank:
+9
+
+
+A benchmark dataset for meeting summarization. In Pro-
+ceedings of the 61st Annual Meeting of the Association for
+Computational Linguistics (Volume 1: Long Papers), pages
+16409–16423, 2023. 1
+[23] Nikitas Karanikolas, Eirini Manga, Nikoletta Samaridi, Eleni
+Tousidou, and Michael Vassilakopoulos.
+Large language
+models versus natural language understanding and genera-
+tion. In Proceedings of the 27th Pan-Hellenic Conference
+on Progress in Computing and Informatics, pages 278–290,
+2023. 1
+[24] James Kirkpatrick, Razvan Pascanu, Neil Rabinowitz, Joel
+Veness, Guillaume Desjardins, Andrei A Rusu, Kieran
+Milan, John Quan, Tiago Ramalho, Agnieszka Grabska-
+Barwinska, et al. Overcoming catastrophic forgetting in neu-
+ral networks. Proceedings of the national academy of sci-
+ences, 114(13):3521–3526, 2017. 2, 4, 5
+[25] Minh Le, An Nguyen, Huy Nguyen, Trang Nguyen, Trang
+Pham, Linh Van Ngo, and Nhat Ho. Mixture of experts meets
+prompt-based continual learning. Advances in Neural Infor-
+mation Processing Systems, 37:119025–119062, 2024. 3
+[26] Jia Li, Ge Li, Yongmin Li, and Zhi Jin. Structured chain-
+of-thought prompting for code generation. ACM Transac-
+tions on Software Engineering and Methodology, 34(2):1–
+23, 2025. 1
+[27] Zhizhong Li and Derek Hoiem. Learning without forgetting.
+IEEE transactions on pattern analysis and machine intelli-
+gence, 40(12):2935–2947, 2017. 2, 5
+[28] Zongxia Li, Xiyang Wu, Hongyang Du, Fuxiao Liu, Huy
+Nghiem, and Guangyao Shi.
+A survey of state of the art
+large vision language models: Benchmark evaluations and
+challenges. In Proceedings of the Computer Vision and Pat-
+tern Recognition Conference, pages 1587–1606, 2025. 1
+[29] Huanxuan Liao, Shizhu He, Yupu Hao, Jun Zhao, and
+Kang Liu.
+Data: Decomposed attention-based task adap-
+tation for rehearsal-free continual learning. arXiv preprint
+arXiv:2502.11482, 2025. 2
+[30] Chengyuan Liu, Yangyang Kang, Shihang Wang, Lizhi
+Qing, Fubang Zhao, Chao Wu, Changlong Sun, Kun Kuang,
+and Fei Wu. More than catastrophic forgetting: Integrating
+general capabilities for domain-specific llms. In Proceed-
+ings of the 2024 Conference on Empirical Methods in Natu-
+ral Language Processing, pages 7531–7548, 2024. 2
+[31] Hong Liu, Mingsheng Long, Jianmin Wang, and Yu Wang.
+Learning to adapt to evolving domains. Advances in neural
+information processing systems, 33:22338–22348, 2020. 1
+[32] Haotian Liu, Chunyuan Li, Qingyang Wu, and Yong Jae Lee.
+Visual instruction tuning. Advances in neural information
+processing systems, 36:34892–34916, 2023. 5
+[33] Haotian Liu, Chunyuan Li, Yuheng Li, and Yong Jae Lee.
+Improved baselines with visual instruction tuning. In Pro-
+ceedings of the IEEE/CVF conference on computer vision
+and pattern recognition, pages 26296–26306, 2024. 5
+[34] David Lopez-Paz and Marc’Aurelio Ranzato.
+Gradient
+episodic memory for continual learning. Advances in neu-
+ral information processing systems, 30, 2017. 2, 5
+[35] Pan Lu, Swaroop Mishra, Tanglin Xia, Liang Qiu, Kai-Wei
+Chang, Song-Chun Zhu, Oyvind Tafjord, Peter Clark, and
+Ashwin Kalyan. Learn to explain: Multimodal reasoning via
+thought chains for science question answering.
+Advances
+in Neural Information Processing Systems, 35:2507–2521,
+2022. 1
+[36] Shuai Lu, Daya Guo, Shuo Ren, Junjie Huang, Alexey Svy-
+atkovskiy, Ambrosio Blanco, Colin Clement, Dawn Drain,
+Daxin Jiang, Duyu Tang, et al. Codexglue: A machine learn-
+ing benchmark dataset for code understanding and genera-
+tion. In Thirty-fifth Conference on Neural Information Pro-
+cessing Systems Datasets and Benchmarks Track (Round 1).
+1
+[37] Yun Luo, Zhen Yang, Fandong Meng, Yafu Li, Jie Zhou, and
+Yue Zhang. An empirical study of catastrophic forgetting in
+large language models during continual fine-tuning. IEEE
+Transactions on Audio, Speech and Language Processing,
+2025. 2
+[38] Aru Maekawa, Hidetaka Kamigaito, Kotaro Funakoshi, and
+Manabu Okumura. Generative replay inspired by hippocam-
+pal memory indexing for continual language learning.
+In
+Proceedings of the 17th Conference of the European Chap-
+ter of the Association for Computational Linguistics, pages
+930–942, 2023. 2
+[39] James Martens. New insights and perspectives on the natural
+gradient method. Journal of Machine Learning Research, 21
+(146):1–76, 2020. 4
+[40] Michael McCloskey and Neal J Cohen. Catastrophic inter-
+ference in connectionist networks: The sequential learning
+problem. In Psychology of learning and motivation, pages
+109–165. Elsevier, 1989. 2
+[41] Swaroop
+Mishra,
+Arindam
+Mitra,
+Neeraj
+Varshney,
+Bhavdeep Sachdeva, Peter Clark, Chitta Baral, and Ashwin
+Kalyan. Numglue: A suite of fundamental yet challenging
+mathematical reasoning tasks. In Proceedings of the 60th
+Annual Meeting of the Association for Computational
+Linguistics (Volume 1: Long Papers), pages 3505–3523.
+Association for Computational Linguistics, 2022. 1
+[42] Chancharik Mitra, Brandon Huang, Trevor Darrell, and Roei
+Herzig. Compositional chain-of-thought prompting for large
+multimodal models. In Proceedings of the IEEE/CVF Con-
+ference on Computer Vision and Pattern Recognition, pages
+14420–14431, 2024. 1
+[43] Razvan Pascanu and Yoshua Bengio. Revisiting natural gra-
+dient for deep networks. arXiv preprint arXiv:1301.3584,
+2013. 4
+[44] Sylvestre-Alvise Rebuffi, Alexander Kolesnikov, Georg
+Sperl, and Christoph H Lampert. icarl: Incremental classifier
+and representation learning. In Proceedings of the IEEE con-
+ference on Computer Vision and Pattern Recognition, pages
+2001–2010, 2017. 2, 5
+[45] David Rolnick, Arun Ahuja, Jonathan Schwarz, Timothy Lil-
+licrap, and Gregory Wayne. Experience replay for continual
+learning.
+Advances in neural information processing sys-
+tems, 32, 2019. 2, 5
+[46] Agam Shah, Suvan Paturi, and Sudheer Chava. Trillion dol-
+lar words: A new financial dataset, task & market analysis.
+In Proceedings of the 61st Annual Meeting of the Associa-
+tion for Computational Linguistics (Volume 1: Long Papers),
+pages 6664–6679, 2023. 1
+10
+
+
+[47] Haizhou Shi, Zihao Xu, Hengyi Wang, Weiyi Qin, Wenyuan
+Wang, Yibin Wang, Zifeng Wang, Sayna Ebrahimi, and Hao
+Wang. Continual learning of large language models: A com-
+prehensive survey. ACM Computing Surveys, 2024. 2
+[48] Hanul Shin, Jung Kwon Lee, Jaehong Kim, and Jiwon Kim.
+Continual learning with deep generative replay. Advances in
+neural information processing systems, 30, 2017. 2
+[49] Sidak Pal Singh and Dan Alistarh.
+Woodfisher: Efficient
+second-order approximation for neural network compres-
+sion. Advances in Neural Information Processing Systems,
+33:18098–18109, 2020. 4
+[50] Yi-Lin Sung, Varun Nair, and Colin A Raffel. Training neu-
+ral networks with fixed sparse masks. Advances in Neural
+Information Processing Systems, 34:24193–24205, 2021. 2,
+3, 4
+[51] Gemma Team. Gemma. 2024. 5
+[52] Qwen Team. Qwen3 technical report, 2025. 5
+[53] Kai Tong, Kang Pan, Xiao Zhang, Erli Meng, Run He,
+Yawen Cui, Nuoyan Guo, and Huiping Zhuang. Any-ssr:
+How recursive least squares works in continual learning of
+large language model. In Proceedings of the IEEE/CVF In-
+ternational Conference on Computer Vision, pages 3047–
+3057, 2025. 2, 3, 1
+[54] Hugo Touvron, Thibaut Lavril, Gautier Izacard, Xavier
+Martinet, Marie-Anne Lachaux, Timoth´ee Lacroix, Baptiste
+Rozi`ere, Naman Goyal, Eric Hambro, Faisal Azhar, et al.
+Llama:
+Open and efficient foundation language models.
+arXiv preprint arXiv:2302.13971, 2023. 2
+[55] Vinay Kumar Verma, Kevin J Liang, Nikhil Mehta, Piyush
+Rai, and Lawrence Carin. Efficient feature transformations
+for discriminative and generative continual learning. In Pro-
+ceedings of the IEEE/CVF conference on computer vision
+and pattern recognition, pages 13865–13875, 2021. 2
+[56] Xiao Wang, Tianze Chen, Qiming Ge, Han Xia, Rong Bao,
+Rui Zheng, Qi Zhang, Tao Gui, and Xuan-Jing Huang. Or-
+thogonal subspace learning for language model continual
+learning. In Findings of the Association for Computational
+Linguistics: EMNLP 2023, pages 10658–10671, 2023. 2, 3,
+5
+[57] Xiao Wang, Yuansen Zhang, Tianze Chen, Songyang Gao,
+Senjie Jin, Xianjun Yang, Zhiheng Xi, Rui Zheng, Yicheng
+Zou, Tao Gui, et al. Trace: A comprehensive benchmark for
+continual learning in large language models. arXiv preprint
+arXiv:2310.06762, 2023. 5
+[58] Runxin Xu, Fuli Luo, Zhiyuan Zhang, Chuanqi Tan, Baobao
+Chang, Songfang Huang, and Fei Huang.
+Raise a child
+in large language model: Towards effective and generaliz-
+able fine-tuning. In Proceedings of the 2021 Conference on
+Empirical Methods in Natural Language Processing, pages
+9514–9528, 2021. 2, 3, 4
+[59] Yibo Yan, Shen Wang, Jiahao Huo, Jingheng Ye, Zhendong
+Chu, Xuming Hu, Philip S. Yu, Carla Gomes, Bart Selman,
+and Qingsong Wen. Position: Multimodal large language
+models can significantly advance scientific reasoning. arXiv
+preprint arXiv:2502.02871, 2025. 1
+[60] Xinhao Yao, Hongjin Qian, Xiaolin Hu, Gengze Xu, Wei
+Liu, Jian Luan, Bin Wang, and Yong Liu. Theoretical in-
+sights into fine-tuning attention mechanism: Generalization
+and optimization. arXiv preprint arXiv:2410.02247, 2024. 8
+[61] Peter Young, Alice Lai, Micah Hodosh, and Julia Hocken-
+maier. From image descriptions to visual denotations: New
+similarity metrics for semantic inference over event descrip-
+tions.
+Transactions of the Association for Computational
+Linguistics, 2:67–78, 2014. 5, 2
+[62] Dan Zhang, Tao Feng, Lilong Xue, Yuandong Wang, Yux-
+iao Dong, and Jie Tang. Parameter-efficient fine-tuning for
+foundation models. arXiv preprint arXiv:2501.13787, 2025.
+3
+[63] Xi Zhang, Feifei Zhang, and Changsheng Xu.
+Vqacl: A
+novel visual question answering continual learning setting.
+In Proceedings of the IEEE/CVF Conference on Computer
+Vision and Pattern Recognition, pages 19102–19112, 2023.
+5, 2
+[64] Xinyu Zhang, Yuanquan Hu, Fangchao Liu, and Zhicheng
+Dou. P3: Prompts promote prompting. In Findings of the As-
+sociation for Computational Linguistics: ACL 2025, pages
+11948–11965, 2025. 1
+[65] Bingchen Zhao, Haoqin Tu, Chen Wei, Jieru Mei, and Ci-
+hang Xie. Tuning layernorm in attention: Towards efficient
+multi-modal llm finetuning. In ICLR, 2024. 2, 5, 3
+[66] Chenye Zhao, Yingjie Li, and Cornelia Caragea. C-stance: A
+large dataset for chinese zero-shot stance detection. In Pro-
+ceedings of the 61st Annual Meeting of the Association for
+Computational Linguistics (Volume 1: Long Papers), pages
+13369–13385, 2023. 1
+[67] Weixiang Zhao, Shilong Wang, Yulin Hu, Yanyan Zhao,
+Bing Qin, Xuanyu Zhang, Qing Yang, Dongliang Xu,
+and Wanxiang Che.
+Sapt: A shared attention framework
+for parameter-efficient continual learning of large language
+models. In Proceedings of the 62nd Annual Meeting of the
+Association for Computational Linguistics (Volume 1: Long
+Papers), pages 11641–11661, 2024. 2, 3
+[68] Zheng Zhao, Yftah Ziser, and Shay B Cohen.
+Layer by
+layer:
+Uncovering where multi-task learning happens in
+instruction-tuned large language models. In Proceedings of
+the 2024 Conference on Empirical Methods in Natural Lan-
+guage Processing, pages 15195–15214, 2024. 8
+[69] Huiping Zhuang, Zhenyu Weng, Hongxin Wei, Renchunzi
+Xie, Kar-Ann Toh, and Zhiping Lin. Acil: Analytic class-
+incremental learning with absolute memorization and pri-
+vacy protection. Advances in Neural Information Processing
+Systems, 35:11602–11614, 2022. 1
+[70] Tao Zhuo, Zhiyong Cheng, Zan Gao, Hehe Fan, and Mohan
+Kankanhalli. Continual learning with strong experience re-
+play. arXiv preprint arXiv:2305.13622, 2023. 2
+11
+
+
+Parameter Importance-Driven Continual Learning for Foundation Models
+Supplementary Material
+A Datasets
+A.1 Language Task Details
+The language tasks in this paper are derived from the
+TRACE dataset, which was constructed following three
+principles:
+1. the datasets should be sufficiently novel so that large lan-
+guage models (LLMs) exhibit weak initial performance;
+2. the tasks should be challenging enough to comprehen-
+sively test reasoning and generalization capabilities;
+3. the tasks should cover a wide range of domains and
+types.
+Due to its well-designed and diverse task settings, TRACE
+has been adopted in several recent continual learning stud-
+ies [14, 15, 20, 53]. The language tasks in TRACE can
+be categorized into four groups: Domain-Specific Tasks,
+Multi-lingual Tasks, Code QA Tasks, and Mathemati-
+cal Reasoning Tasks. The statistics for each category are
+shown in Table 3, and configurations are introduced below.
+Domain-Specific Tasks
+Domain-specific tasks evaluate a model’s knowledge acqui-
+sition and application within specialized domains. When
+relevant domain information is underrepresented in train-
+ing corpora, model performance can degrade significantly.
+TRACE includes the following three datasets under this cat-
+egory:
+• ScienceQA (Sin.) [35]: Collected from elementary and
+high school science curricula, covering topics across nat-
+ural science, social science, and language science. This
+dataset requires multi-hop reasoning and scientific knowl-
+edge understanding. Only text-only samples are retained
+in this work.
+• FOMC (Fom.) [46]: A financial-domain classification
+task aimed at identifying whether Federal Reserve policy
+statements are “hawkish” or “dovish.” The original cor-
+pus consists of three parts—meeting minutes, press con-
+ference transcripts, and speeches. A combined version of
+all three is used in this work.
+• MeetingBank (Mee.) [22]: A newly introduced dataset
+for city council meeting summarization, requiring global
+comprehension and compression of lengthy meeting tran-
+scripts.
+As a relatively unexplored domain, it effec-
+tively evaluates models’ long-context understanding and
+abstraction abilities.
+Multi-lingual Tasks
+Cross-lingual capability serves as an important measure of a
+large language model’s generalization ability. However, due
+to vocabulary coverage and corpus imbalance, most models
+perform worse on non-English languages. TRACE includes
+two datasets for evaluating such multi-lingual abilities:
+• C-STANCE (Cst.) [66]:
+A Chinese stance detection
+dataset collected from Sina Weibo. It includes two sub-
+tasks: target-based and domain-based stance detection.
+We adopt the target-based subtask, where targets in the
+test set do not appear in the training set, to evaluate zero-
+shot and cross-domain generalization.
+• 20Minuten (20M.) [18]:
+A German text simplifica-
+tion dataset derived from the Swiss news magazine 20
+Minuten.
+Each instance consists of an original article
+and its simplified summary, used to evaluate model per-
+formance in German text generation.
+Code QA Tasks
+Code-related tasks are used to assess a model’s under-
+standing and generation capabilities under structured, long-
+context conditions. TRACE employs the Py150 [36] corpus
+to construct the code QA task. The corpus contains approx-
+imately 150,000 Python programs collected from GitHub
+repositories. The task requires predicting the subsequent
+content given code context, where label formats differ from
+those in standard code generation tasks, posing additional
+challenges to capability retention.
+Considering that Hu-
+manEval is used in this paper to measure the retention of
+code generation ability, this task plays a crucial role in as-
+sessing model performance. Thus, we place Py150 last in
+TRACE testing order to limit its impact on intrinsic capa-
+bilities.
+Mathematical Reasoning Tasks
+Mathematical reasoning tasks are designed to test mod-
+els’ arithmetic and logical reasoning capabilities. TRACE
+selects the first two subtasks (Ngc., Ngd.)
+from the
+NumGLUE benchmark [41]. Both subtasks require numer-
+ical computation and logical inference in natural language
+settings. These tasks impose higher demands on symbolic
+reasoning and are particularly useful for evaluating capabil-
+ity retention under abstract reasoning scenarios.
+Given that programming ability is widely recognized as
+a representative prior knowledge that is particularly suscep-
+tible to forgetting during post-training [8], we adopt it as a
+measure of the model’s retention of original capabilities and
+quantify it using the HumanEval benchmark. HumanEval
+is a standardized evaluation dataset for Python function gen-
+eration tasks, designed to assess the code generation capa-
+bilities of large language models [4, 26, 64]. The dataset
+contains 164 programming problems, each consisting of a
+function description (function docstring) and a function sig-
+nature. The model is required to generate a complete, ex-
+ecutable function implementation based on the natural lan-
+guage description. Unlike typical natural language genera-
+1
+
+
+Dataset
+Language Task
+Multi-modal Task
+Cst.
+Fom. Mee.
+Sin.
+Ngc. Ngd. 20M. Py150. HumanEval
+Act.
+Com.
+Cou.
+Flickr30k
+Train
+1000
+-
+1000
+-
+Test
+2000
+496
+692
+2000
+81
+325
+200
+2000
+164
+1448
+1227
+2905
+1000
+Table 3. Dataset Statistics for Language and Multi-modal Tasks.
+tion tasks, HumanEval evaluation relies on unit tests rather
+than manual annotation. The dataset is not used for train-
+ing, and is solely employed to assess the model’s retention
+of original capabilities after multi-task continual learning.
+Since programming tasks demand a high degree of logical
+consistency, semantic accuracy, and structured reasoning,
+and these abilities are particularly vulnerable to degradation
+during multi-task training, performance changes on Hu-
+manEval provide a sensitive and reliable indicator of knowl-
+edge retention and forgetting in continual learning scenar-
+ios.
+A.2 Multi-modal Task Details
+The multi-modal tasks in this paper are derived from
+the VQA v2 dataset [19].
+To facilitate continual learn-
+ing experiments, we follow the task grouping scheme of
+VQACL [63], splitting the tasks by question type and ran-
+domly sampling 1,000 training examples per task while re-
+taining the original test sets. Based on performance im-
+provements and capability retention, we focus on the fol-
+lowing three question types in this study:
+• Action (Act.): Action recognition questions, which re-
+quire the model to understand the actions of people or
+objects in an image;
+• Commonsense (Com.): Commonsense reasoning ques-
+tions, which require the model to make judgments based
+on both visual information and general knowledge;
+• Count (Cou.): Counting questions, which require the
+model to accurately identify the number of target objects
+in an image.
+In addition, we use the Flickr30K dataset [61] to evalu-
+ate the model’s overall capability retention in multi-modal
+tasks. This dataset contains rich image–text pairs, with cap-
+tions typically longer than those in VQA tasks, making it
+suitable for assessing the model’s comprehensive perfor-
+mance in multi-modal understanding and generation.
+B Baselines and Implementation Details
+This section provides detailed descriptions of all contin-
+ual learning baselines compared in this work, including
+their core ideas and optimization objectives. The baselines
+fall into three categories: Regularization-based methods,
+Replay-based methods, and Parameter-Efficient Tuning
+(PET).
+B.1 Regularization-based Methods
+EWC (Elastic Weight Consolidation).
+EWC [24] estimates the importance of model parameters on
+previous tasks and applies a quadratic penalty to discourage
+significant updates on important parameters when learning
+new tasks. The overall objective for task t is :
+LEWC = Lt(θ) + λ
+X
+i
+Fi(θi −θ∗
+i )2,
+(14)
+where θ∗denotes the parameter values after training the pre-
+vious task, Fi is the Fisher information representing the im-
+portance of parameter i and λ controls the strength of the
+regularizer (set to 0.5 in our experiments).
+GEM (Gradient Episodic Memory).
+GEM [34] stores a small number of samples from previ-
+ous tasks in an episodic memory and constrains gradient
+updates so that the loss on old tasks does not increase. Dur-
+ing training on task t, GEM requires:
+⟨g, gk⟩≥0,
+∀k < t,
+(15)
+where g is the gradient for the current task and gk is the
+gradient computed on memory samples of task k. If this
+constraint is violated, i.e., ⟨g, gk⟩< 0, GEM solves the
+following quadratic program to obtain a projected gradient:
+min
+˜g
+∥˜g −g∥2
+s.t.
+⟨˜g, gk⟩≥0, ∀k < t.
+(16)
+The projected gradient ˜g is then used for parameter updates,
+ensuring no negative backward transfer.
+LwF (Learning without Forgetting).
+LwF [27] employs the predictions of the previous model
+as soft targets and introduces a distillation loss to constrain
+changes in the output distribution when learning new tasks:
+LLwF = LCE
+t
++ α · LKD,
+(17)
+where the distillation loss is:
+LKD = −
+X
+c
+pold
+c (T) log pnew
+c
+(T),
+(18)
+with softened probabilities computed using temperature T:
+pc(T) =
+exp(zc/T)
+P
+j exp(zj/T).
+(19)
+Following common practice, we set α = 0.5 and T = 2.
+2
+
+
+B.2 Replay-based Methods
+Replay-based methods mitigate forgetting by reusing data
+from previous tasks when training new ones. We imple-
+ment two representative replay strategies: Replay (offline
+replay). After completing training on the current task, we
+perform an additional replay phase where we uniformly
+sample 1% of data from each previous task stored in a uni-
+fied memory buffer. These real samples are used for extra
+gradient steps to reinforce previously learned knowledge.
+Replay-online (online replay) During each training itera-
+tion of a new task, we dynamically sample approximately
+1% of data from the same memory buffer and mix it with
+the current task’s mini-batch. This enables continuous re-
+hearsal throughout training, improving stability in knowl-
+edge retention.
+Both strategies rely solely on real data and share the
+same unified memory buffer. No synthetic data or auxil-
+iary generative models are used. We also enforce uniform
+sampling across tasks to ensure fairness in the replay pro-
+cess.
+B.3 Parameter-Efficient Tuning (PET) Baselines
+SeqLoRA (Sequential Low-Rank Adaptation):
+LoRA [21] introduces a trainable low-rank update to the
+weight matrix of attention layers. For a linear transforma-
+tion h = Wx, LoRA reparameterizes the weight as:
+W ′ = W + ∆W,
+∆W = BA,
+(20)
+where A ∈Rr×d, B ∈Rd×r,, and r = 8 is the rank used in
+our experiments. A scaling factor α is applied to stabilize
+optimization (set to 32):
+∆W = α
+r BA,
+(21)
+We follow common practice and apply LoRA to the atten-
+tion projection matrices q proj and v proj, with dropout set
+to 0.1. SeqLoRA shares the same LoRA parameters across
+all tasks, enabling a simple sequential PET baseline.
+O-LoRA (Orthogonal LoRA).
+O-LoRA [56] prevents interference across tasks by enforc-
+ing orthogonality between the LoRA subspaces of different
+tasks. For LoRA parameters Ai and Aj of task i and j, the
+orthogonality regularizer is:
+Lortho = γ
+A⊤
+i Aj
+2
+F .
+(22)
+and the final test-time weight combines LoRA updates from
+all tasks:
+Wtest = W0 +
+X
+t
+BtAt.
+(23)
+LoRA hyperparameters follow the same settings as Se-
+qLoRA, with orthogonality coefficient γ = 0.5.
+LayerNorm.
+LayerNorm [65] updates only the LayerNorm parameters
+while keeping all other model weights frozen.
+MIGU (MagnItude-based Gradient Updating for con-
+tinual learning).
+MIGU [14] is an unstructured PET method that selectively
+updates parameters based on their output magnitude. For a
+linear layer with weight W ∈Rdout×din and input x, the
+response of the i-th output channel is:
+hi = Wi · x
+(24)
+and its importance score is the L1 norm:
+ni = ∥hi∥1.
+(25)
+During training, only the top 0.1% parameters ranked by
+these scores are updated, while gradients on the remaining
+parameters are masked out, making the update pattern con-
+sistent with our proposed method.
+C Metrics
+Let the performance score of the model on task i after learn-
+ing task t be denoted as Rt,i. For classification tasks or
+question-answering tasks with single-token labels, the per-
+formance score is measured by accuracy; for other tasks,
+the performance score is the average of the Rouge-L and
+BLEU scores. We use the following metrics to assess the
+learning effects of different methods on sequential tasks:
+C.1 Overall Performance (OP)
+Overall performance measures the average performance of
+the model across all learned tasks after training task t:
+OPt = 1
+t
+t
+X
+i=1
+Rt,i
+(26)
+C.2 Backward Transfer (BWT)
+Backward transfer quantifies how learning new tasks affects
+the performance on previously learned tasks:
+BWTt = 1
+t
+t−1
+X
+i=1
+(Rt,i −Ri,i)
+(27)
+where Ri,i is the performance on task i immediately after
+its training. Positive BWT indicates that new task learning
+improves old tasks, while negative BWT indicates forget-
+ting. Note: OP and BWT are calculated only on sequential
+tasks to enable fair comparison with other baselines.
+C.3 Original Capability Retention
+Language Models (Programming Ability)
+For language models, we use the HumanEval dataset to
+3
+
+
+evaluate code generation ability. Pass@K is defined as:
+Pass@K = 1
+N
+N
+X
+i=1
+I(yi ∈{ˆy(1)
+i
+, ˆy(2)
+i
+, . . . , ˆy(K)
+i
+}),
+(28)
+where yi is the ground-truth code for the i-th test case, ˆy(k)
+i
+is the k-th generated sample, and K = 1 in this study.
+Multimodal Models (Image Captioning Ability)
+For multimodal models, we use the Flickr30K dataset,
+with performance measured as the average of Rouge-L and
+BLEU scores. BLEU-N is definded as:
+BLEUN = BP · exp
+ 
+1
+N
+N
+X
+n=1
+log pn
+!
+,
+BP =
+(
+1,
+c > r
+e1−r/c,
+c ≤r
+(29)
+where c is the length of the generated sequence, r is the
+reference sequence length, and pn is the n-gram precision.
+Rouge-L is definded as:
+ROUGE-L = (1 + β2) · P · R
+R + β2 · P
+,
+P = LCS(X, Y )
+|X|
+,
+R = LCS(X, Y )
+|Y |
+,
+β = 1
+(30)
+where X is the generated sequence, Y is the reference se-
+quence, and LCS(X, Y ) denotes the length of the longest
+common subsequence.
+D Extended Experimental Analysis
+This section provides additional experimental details and
+analyses, including the distribution of key parameters in the
+PIECE-F and PIECE-S models, as well as the overlap of
+importance parameters across tasks and their corresponding
+correlation coefficients, and it presents the PIECE training
+logs of selected models, to help readers gain a more com-
+prehensive understanding of how the proposed method op-
+erates.
+D.1 Distribution of Critical Parameters
+Figure 8-12 illustrate the distribution of critical parameters
+across different models. We adopt a unified set of abbrevia-
+tions for the major network modules within the model: the
+attention-related modules (q proj, k proj, v proj, o proj) are
+denoted as Q, K, V, and O, respectively; the feed-forward
+modules gate proj, up proj, and down proj are denoted as
+G, U, and D; the normalization layers input layernorm,
+Figure 8. Distribution of critical parameters under Gemma2-2B.
+Figure 9. Distribution of critical parameters under Qwen3-14B
+(k = 0.1%).
+post attention layernorm, and norm are denoted as IN, PN,
+and N; and the final output layer lm head is denoted as lm.
+These abbreviations are used consistently throughout the
+paper. To better observe the important parameters in large
+scale Qwen3-14B model, we expanded the proportion of se-
+lected important parameters from 0.1% to 1%, as shown in
+Figure 9 and 10.
+Experimental results indicate that architectural char-
+acteristics and task attributes all potentially influence
+the distribution of important parameters within a network.
+First, from the perspective of model architecture, the dis-
+tribution of important parameters differs significantly across
+architectures, while models within the same architecture ex-
+hibit a high degree of similarity. For example, despite no-
+table differences in task types, the distributions of important
+parameters across layers and submodules in Qwen3-VL-4B
+and Qwen3-14B are largely consistent in Figure 10 and 11.
+4
+
+
+Figure 10. Distribution of critical parameters under Qwen3-14B
+(k = 1%).
+Similarly, LLaVA-1.5-7B and Llama3-8B, which share the
+LLaMA architecture, show comparable patterns in Figure 3
+and 12. Moreover, Gemma2-2B has the similar updating
+submodules with LLaMA architecture in Figure 8.
+Second, tasks attributes likely constitute another key
+factor influencing the distribution of important param-
+eters. Take the Qwen series as an example, although the
+4B VLMs and 14B LMs share the same architecture, their
+preferences within feed-forward modules differ in Figure 10
+and 11. The 4B VLMs tends to select higher-importance pa-
+rameters in the up-proj (U) module, whereas the 14B LMs
+shows greater involvement in the gate-proj (G) module.
+Although different models may vary in their objectives
+and intensity of parameter “protection” due to architectural
+and task differences, all models consistently avoid up-
+dating certain parameters across layers and modules.
+We posit that this parameter protection mechanism is a
+key reason why unstructured parameter-efficient fine-tuning
+achieves strong performance in continual learning.
+Taken together, these observations suggest that model ar-
+chitecture and task attributes jointly influence the distribu-
+tion of important parameters. While these hypotheses re-
+quire further systematic investigation, they at least indicate
+that evaluating important parameters through manual
+design or fixed heuristics is extremely challenging, and
+they further highlight the practical significance of PIECE.
+D.2 Distribution Overlap and Correlation Across
+Tasks
+Figures 13-16 illustrate the coverage of important param-
+eters across tasks for various models. The results indicate
+that, in general, as model size increases, the proportion of
+parameters shared across tasks decreases, which aligns with
+intuition. Nevertheless, even for the smaller 2B model (Fig-
+Figure 11. Distribution of critical parameters under Qwen3-VL-
+4B.
+Figure 12. Distribution of critical parameters under LLaVA-1.5-
+7B.
+Gemma2-2B
+Llama3-8B
+Qwen3-14B
+PIECE-F PIECE-S PIECE-F PIECE-S PIECE-F PIECE-S
+Pearson r
+0.03
+-0.06
+0.01
+-0.04
+-0.39
+-0.30
+Pearson p
+0.88
+0.75
+0.96
+0.83
+0.45
+0.39
+Spearman ρ
+0.01
+-0.17
+0.06
+-0.01
+-0.42
+-0.29
+Spearman p
+0.97
+0.39
+0.77
+0.98
+0.39
+0.40
+Table 4. Importance Parameter Correlations Across Tasks. Pear-
+son r and Spearman ρ indicate correlation strength (closer to ±1 =
+stronger correlation, near 0 = weak/no correlation); p-values indi-
+cate significance (closer to 0 = significant, near 1 = not significant).
+ure 13), task-wise coverage remains relatively low. Across
+all model sizes, PIECE-S consistently exhibits lower cov-
+erage than PIECE-F, indicating greater task specificity in
+parameter allocation.
+Moreover, although the absolute coverage values differ
+across models, the relative overlap patterns between tasks
+5
+
+
+Figure 13. Parameter overlap across tasks under Gemma2-2B.
+Figure 14. Parameter overlap across tasks under Qwen3-14B.
+Figure 15. Parameter overlap across tasks under Qwen3-VL-4B.
+remain largely consistent. For instance, if two tasks show
+higher parameter overlap than other task pairs in one model,
+this relative trend tends to persist in other models as well,
+suggesting that certain task relationships are reflected ro-
+bustly in parameter sharing patterns, independent of model
+size.
+Table 4 further quantifies the relationship between cov-
+erage and task forgetting, showing that task forgetting is
+weakly or very weakly correlated with the extent of pa-
+rameter overlap. This indicates that while overlap exists
+between important parameters across tasks, it does not di-
+rectly predict forgetting, highlighting the complex relation-
+ship between parameter sharing and continual learning per-
+formance.
+Figure 16. Parameter overlap across tasks under LLaVA-1.5-7B.
+D.3 Training Logs and Parameter Dynamics
+We present several examples of PIECE training logs, as
+shown in Figures 17-19, which depict the loss trajectories
+of individual tasks throughout the continual learning pro-
+cess. To reduce computational overhead, we independently
+sampled 200 instances from each dataset that were not part
+of the training or test sets for loss evaluation. The dataset
+abbreviations on the horizontal axis indicate the task cur-
+rently being trained.
+The results suggest that, compared with SeqFT, PIECE
+effectively mitigates interference across tasks during train-
+ing, allowing the model to progressively improve its overall
+performance in a continual learning setting. Notably, the
+mathematical reasoning tasks Ngc. and Ngd. appear to be
+more strongly influenced by other tasks, which may indi-
+cate that these tasks impose higher demands on the model’s
+integrated reasoning capabilities.
+6
+
+
+Figure 17. Multi-task Training Loss Curves for Llama3-8B (SeqFT).
+Figure 18. Multi-task Training Loss Curves for Llama3-8B (PIECE-F).
+Figure 19. Multi-task Training Loss Curves for Llama3-8B (PIECE-S).
+7

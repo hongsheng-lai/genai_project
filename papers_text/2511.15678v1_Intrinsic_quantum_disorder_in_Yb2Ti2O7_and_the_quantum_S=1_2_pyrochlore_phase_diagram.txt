@@ -1,0 +1,3323 @@
+Intrinsic quantum disorder in Yb2Ti2O7 and the quantum S = 1/2 pyrochlore phase diagram
+Shang-Shun Zhang,1, ∗Anish Bhardwaj,2 S.M. Koohpayeh,3 D.M.
+Pajerowski,4 Jeffrey G. Rau,5 Hitesh J. Changlani,6, 7, † and Allen Scheie8, ‡
+1Department of Physics and Astronomy, The University of Tennessee, Knoxville, Tennessee 37996, USA
+2Department of Physics, St. Bonaventure University, New York 14778, USA
+3Institute for Quantum Matter and Department of Physics and Astronomy, Johns Hopkins University, Baltimore, MD 21218
+4Neutron Scattering Division, Oak Ridge National Laboratory, Oak Ridge, TN 37831, USA
+5Department of Physics, University of Windsor, 401 Sunset Avenue, Windsor, Ontario, N9B 3P4, Canada
+6National High Magnetic Field Laboratory, Tallahassee, Florida 32310, USA
+7Department of Physics, Florida State University, Tallahassee, Florida 32306, USA
+8MPA-Q, Los Alamos National Laboratory, Los Alamos, NM 87545, USA
+(Dated: November 20, 2025)
+We present an experimental and theoretical study of the anisotropic pyrochlore phase diagram. Inelastic
+field-dependent neutron scattering on Yb2Ti2O7 shows intrinsic broadening and a flat low-energy magnon mode
+which is partially captured by interacting magnon models. Exact diagonalization reveals the existence of an
+emergent quantum phase between ferromagnetism and antiferromagnetism, in which Yb2Ti2O7 Hamiltonian
+potentially resides. This behavior matches the phenomenology of quantum criticality in heavy fermion systems,
+and shows Yb2Ti2O7 is a clean system which can be field-tuned from well-defined magnons to a nontrivial
+quantum ground state. This suggests that quantum criticality is a generic feature of the dipolar phase diagram.
+I.
+INTRODUCTION
+Quasiparticles are one of the foundational concepts of con-
+densed matter physics. They successfully explain many dif-
+ferent kinds of materials behaviors, from bulk properties to
+spectral responses [1]. A frontier in condensed matter then is
+where quasiparticle picture breaks down. Trivially, this occurs
+in disordered systems which can no longer be described as a
+smoothly varying quantum field. However, a more interesting
+scenario is when quasiparticle breakdown occurs in a system
+without extrinsic disorder [2, 3]. It includes the fractional-
+ization of conventional quasiparticles into qualitatively differ-
+ent ones [4–6], characteristic features of novel phases such as
+quantum spin liquid, and also the cases where quasiparticles
+disappear entirely, as in quantum critical metals [7–11].
+In this context, we revisit a well-studied material Yb2Ti2O7.
+This compound has effective J = 1/2 magnetic Yb3+ ions ar-
+ranged in a highly frustrated pyrochlore lattice of corner shar-
+ing tetrahedra [12–14] (see Fig. 1). The cleanest crystals show
+ferromagnetic order at Tc = 270 mK [15–20] (although ∼2%
+crystalline disorder suppresses the magnetic order [21–28]).
+And yet, even in clean samples with robust magnetic order,
+the zero-field neutron spectrum (which measures the dynamic
+spin correlations) shows a diffuse continuum [29–32] instead
+of sharp magnon modes typically seen in well-ordered mag-
+nets [33]. Furthermore, above the magnetic ordering tran-
+sition there is anomalous thermal conductivity [34, 35] and
+quantum-critical-like scaling in the dynamic structure factor
+[36], indicating non-trivial physics at play.
+For a time, the strange behavior of Yb2Ti2O7 was inter-
+preted as evidence for a quantum spin ice state [30, 38–42],
+∗szhang57@utk.edu
+† hchanglani@fsu.edu
+‡ scheie@lanl.gov
+(a)
+1
+0
+1
+| |
+1
+0
+1
+| |
+/
+FM
+(b)
+=
+.
+= .
+Classical
+1
+0
+1
+| |
+/
+FM
+(c)
+Quantum
+J =
+
+J2
+J4 J4
+−J4 J1 J3
+−J4 J3 J1
+
+Figure 1. (a) Pyrochlore unit cell of corner sharing tetrahedra, with
+the nearest neighbor exchange matrix [30]. (b) Classical phase dia-
+gram [37]. (c) Quantum phase diagram from this study, where the
+white stars indicate phase boundaries from exact diagonalization.
+White regions are the emergent quantum phases surrounding clas-
+sical degeneracies.
+but refinements of its spin exchange Hamiltonian [31, 32, 43]
+and clear evidence of ferromagnetism [18–20] have refuted
+this idea. The refined spin exchange Hamiltonian is extremely
+close to a phase boundary between ferromagnetism (FM) and
+antiferromagnetism (AFM) [31, 32, 36, 37, 43, 44], suggest-
+ing that its exotic behavior is caused (in a manner not com-
+pletely clear) by “multiple phase competition” [37, 45]. Ac-
+arXiv:2511.15678v1  [cond-mat.str-el]  19 Nov 2025
+
+
+2
+cordingly, it was previously suggested that the diffuse spec-
+tral features were from a coexistence of FM and AFM in
+Yb2Ti2O7, perhaps within antiferromagnetic domain walls
+[32].
+To test these ideas, we study high-purity single crystal
+Yb2Ti2O7 with inelastic neutron spectroscopy in a magnetic
+field to suppress the magnetic domains. We also compare the
+inelastic data to models of interacting magnons. We finally
+use exact diagonalization calculations to map the quantum py-
+rochlore phase diagram and put Yb2Ti2O7 in context, to guide
+research into other dipolar pyrochlore systems. We find that
+at low fields, the broadened magnon modes are intrinsic to
+Yb2Ti2O7, and not the result of domains or phase coexistence.
+We also observe flattened magnon bands at low energy driven
+by quantum effects. Our phase diagram calculations show an
+extended region of emergent quantum phase, which explains
+the breakdown of magnon physics in Yb2Ti2O7, and bears and
+strong resemblance to quantum criticality.
+II.
+METHODS
+We now briefly summarize the experimental and theoreti-
+cal methods that were used in the paper. More details about
+these procedures can be found in the Supplemental Informa-
+tion [46].
+A.
+Neutron Experiments
+We measured the single crystal neutron spectrum of
+Yb2Ti2O7 using the CNCS spectrometer [47] at Oak Ridge
+National Laboratory’s Spallation Neutron Source. Two crys-
+tals (the same as those used in Refs.
+[19, 32, 36] grown
+with the traveling solvent floating zone technique [28]) were
+coaligned in the (hk0) scattering plane and mounted in a dilu-
+tion refrigerator in a vertical [001] magnetic field. (The [001]
+magnetic field was measured previously, but in a sample with
+some “stuffing” disorder [31] which introduces some extrinsic
+broadening from defects. Here we study a cleaner sample to
+reveal the intrinsic behavior [17, 28].) Further details on ex-
+perimental methods are in Appendix A. The data are shown in
+Fig. 2.
+B.
+Effective low-energy S = 1/2 dipolar Hamiltonian and
+parameters
+Following previous literature [14, 30, 48] (and references
+therein), the spin-1/2 low-energy effective Hamiltonian on
+the pyrochlore lattice for dipolar spins, with nearest neigh-
+bor interactions and Zeeman coupling to an external field
+h = (hx, hy, hz) is given by
+H = 1
+2
+X
+ij
+Jµν
+ij S µ
+i S ν
+j −µBhµ X
+i
+gµν
+i S ν
+i ,
+(1)
+where i, j are nearest neighbors and µ, ν refer to x, y, z, S µ
+i re-
+fer to the spin-1/2 components at site i, and Jij and gi are bond
+and site dependent spin-exchange interactions and coupling
+matrices respectively (whose components have been explic-
+itly written out in the SM). For example, for [1,1,0] bonds we
+have,
+J =
+
+J1
+J3
+J4
+J3
+J1
+J4
+−J4 −J4 J2
+,
+(2)
+where J1, J2, J3, J4 are used to parameterize the coupling
+matrices.
+Ref. [31] determined J1 = −0.028 meV, J2 =
+−0.326 meV, J3 = −0.272 meV, J4 = 0.049 meV and g-tensor
+gxy = 4.17, gz = 2.14. Although other parameter sets have
+been proposed [30, 32, 43], this set was fitted to the largest
+amount of data and at fields high enough to avoid nonlinear
+magnon effects which occur below 2 T [44]. While we have
+associated this specific parameter set with Yb2Ti2O7, we have
+also carried out an extensive scan of other Hamiltonian param-
+eters with multiple theoretical techniques (discussed below).
+C.
+Interacting Magnons: Nonlinear spin wave theory and
+truncated Hilbert space exact diagonalization
+We simulated the Yb2Ti2O7 inelastic neutron spectrum us-
+ing non-interacting linear spin wave theory (LSWT), perturba-
+tively interacting nonlinear spin wave theory (NLSWT) and a
+non-perturbative “truncated Hilbert space exact diagonaliza-
+tion” (THED) technique where magnon-magnon interactions
+are treated up to infinite order. The results of these calcula-
+tions are shown in Fig. 2.
+The LSWT calculations, which neglect magnon-magnon
+interactions, were performed using SpinW [49] on top of
+a canted ferromagnetic ground state.
+The NLSWT calcu-
+lations include magnon-magnon interactions perturbatively
+to next to leading order in 1/S .
+Details of these calcu-
+lations for Yb2Ti2O7 can be found in Ref. [44].
+These
+magnon-interaction corrections include the static “tadpole”
+and “Hartree” diagrams as well as the dynamical “bubble” that
+can describe spontaneous magnon decay [50]. For additional
+details, see the Supplemental Information [46] (in which is
+cited [51]).
+To capture strong interaction effects beyond perturbation
+theory, we employ a non-perturbative semiclassical approach
+that projects the full spin Hamiltonian onto a truncated Hilbert
+space containing at most two magnons, followed by exact
+diagonalization of this reduced Hamiltonian.
+We refer to
+this method as truncated Hilbert-space exact diagonalization
+(THED) [52, 53]. This approach is well justified when the
+single-magnon excitation possesses a finite energy gap much
+larger than the magnon-magnon interaction energy, ensuring
+that states with three or more magnons make negligible con-
+tributions to the low-energy sector. In Yb2Ti2O7, this con-
+dition holds under sufficiently strong external fields (≳1 T)
+but breaks down near zero field, where the single-magnon gap
+becomes small.
+To make contact with NLSWT, the “single-magnon states”
+in the above construction correspond to those defined within
+LSWT, while the “two-magnon states” are their product states
+
+
+3
+0
+1
+ (meV)
+(a)
+0.0 T
+(h)
+   0.0 T
+LSWT
+(o)
+   0.0 T
+NLSWT
+(v)
+calculation
+unstable
+   0.0 T
+THED
+0
+1
+ (meV)
+(b)
+0.15 T
+(i)
+   0.15 T
+(p)
+   0.15 T
+(w)
+   0.15 T
+0
+1
+ (meV)
+(c)
+0.3 T
+(j)
+   0.3 T
+(q)
+   0.3 T
+(x)
+   0.3 T
+0
+1
+ (meV)
+(d)
+0.45 T
+(k)
+   0.45 T
+(r)
+   0.45 T
+(y)
+   0.45 T
+0
+1
+ (meV)
+(e)
+0.6 T
+(l)
+   0.6 T
+(s)
+   0.6 T
+(z)
+   0.6 T
+0
+1
+ (meV)
+(f)
+1.0 T
+(m)
+   1.0 T
+(t)
+   1.0 T
+(aa)
+   1.0 T
+K
+X
+0
+1
+ (meV)
+(g)
+2.0 T
+K
+X
+(n)
+   2.0 T
+K
+X
+(u)
+   2.0 T
+K
+X
+(bb)
+   2.0 T
+0
+5
+10
+15
+20
+25
+30
+( , ) (
+/meV)
+Figure 2. Yb2Ti2O7 inelastic neutron scattering along high symmetry directions Γ(000) →K(220) →X(200) →Γ at T = 0.15 K at various
+fields between 0 T and 2 T along [001]. Panels (a)-(g) show experimental data. At 0 T the excitations are very broad and are most intense
+around K, but the smallest field completely suppresses the K-point low-energy scattering. As field increases, the modes gradually become
+sharper and less diffuse. Panels (h)-(n) show linear spin wave theory (LSWT) calculations of the inelastic spectrum using the Hamiltonian
+in Ref. [31]. Panels (o)-(u) show nonlinear spin wave theory (NLSWT) calculations using the same Hamiltonian (the zero field calculations
+around the K-point are unstable, and are shown by a grey region). Panels (v)-(bb) show the THED calculations with the same Hamiltonian. At
+zero field the THED calculations are unstable, but at finite fields they show a significant amount of broadening.
+in Fock space. The one- and two-magnon sectors are cou-
+pled via the cubic interaction vertex, responsible for the en-
+ergy renormalization and finite lifetime of single-magnon ex-
+citations in NLSWT. Meanwhile, interactions among two-
+magnon states are mediated by the quartic vertex, which in
+perturbative treatments leads to Hartree-Fock corrections to
+the single-magnon dispersion. Within THED, however, the
+quartic vertex is treated non-perturbatively, allowing for the
+emergence of bound or resonant states and redistribution of
+spectral weight within the energy window of an excitation
+continuum [52, 53].
+D.
+Exact Diagonalization Phase Diagram Calculations
+In both the NLSWT and THED procedures discussed
+above, the starting point is a classical spin-ordered state on
+top of which additional quantum fluctuations are incorporated.
+While this works well for many ordered magnets, it is inade-
+quate for capturing exotic physics where either long-range or-
+der is absent or the notion of well-defined quasiparticles com-
+pletely breaks down.
+With this motivation, we have carried out Lanczos ex-
+act diagonalization (ED) calculations on the Hamiltonian in
+Eq. (S1) to avoid the above restrictions. The major limitation
+is the accessible system sizes, in this work we have carried
+out calculations on N = 16 and N = 32 sites, with a major-
+ity of our assertions based on the latter. (More details about
+the geometry and the use of translational symmetry have been
+discussed in the Supplemental Information [46] and in previ-
+ous work [54].) We computed the equal-time spin correlations
+S (Q) across the nearest-neighbor exchange phase diagram,
+varying the elements of the nearest-neighbor exchange matrix
+in Eq. (2). Specifically, we varied J1 and J2 while keeping
+J3 and J4 fixed to J3 = −0.272 meV and J4 = 0.049 meV,
+corresponding to the Yb2Ti2O7 Hamiltonian reported in Ref.
+[31]. (In the Supplemental Information [46], we show the cal-
+culations repeated for J3 = −0.3 meV and J4 = 0.0.)
+From the ED calculations, we used correlation analysis to
+build a phase diagram. Choosing a representative structure
+factor S (Q) in the (hhℓ) scattering plane from deep inside each
+of the three ordered phases (FM, Ψ4, and Ψ3/Ψ2 [37]), we
+built a phase diagram by using the Pearson R coefficient to
+compute the pixel-by-pixel correlation with each of these rep-
+
+
+4
+resentative phase S (Q) (see the Supplemental Information for
+details [46] in which is cited Ref. [55]). We also computed the
+relative strength of the magnetic order (corresponding to the
+size of the static ordered moment) via the covariance between
+the calculated S (Q) and the representative S (Q). The results
+are shown in Fig. 3. Because the ED calculations are com-
+putationally expensive, we only calculated S (Q) for ∼450
+parameter sets, concentrating more calculations around the
+phase boundaries, interpolating between the computed points.
+From the ED results we also calculated the ground state
+energies across the phase diagram to define the phase bound-
+aries. We calculated three line scans across the three phase
+boundaries with densely spaced points (two varying J1, and
+one varying J2), allowing us to calculate the first and second
+derivatives with respect to the exchange parameters. These
+results are shown in Fig. 4, and reveal phase boundaries by
+discontinuities in the first or second derivatives of the energy.
+III.
+RESULTS
+The results of the inelastic neutron experiment are striking.
+The spectrum in Fig. 2 smoothly evolves from a very dif-
+fuse spectrum at zero field to a sharp, well-defined magnon
+spectrum at 2 T. Such behavior has been reported before
+[30, 31], but here we observe it using high-purity samples,
+where defects and disorder are negligible. The fact that sig-
+nificant broadening exists at 0.15 T (where a ferromagnetic
+monodomain is stabilized [20]) falsifies the hypothesis that
+the broadening is from phase coexistence or domain effects.
+Rather, the broadening is intrinsic to the ferromagnetic ground
+state. What is more, these results indicate that a [001] mag-
+netic field smoothly tunes Yb2Ti2O7 from a regime with well-
+defined magnons to one where the magnon picture breaks
+down.
+At 2 T, the experimental data and all the theoretical simu-
+lations are in excellent agreement (though perhaps a slightly
+better description is found in NLSWT than LSWT), showing
+that magnon interactions are perturbative and that spin wave
+theory offers an accurate description at high fields. However,
+as the field decreases, the experimental data increasingly de-
+viate from LSWT predictions. The primary discrepancies are
+(i) significant broadening of the magnon modes, and (ii) the
+magnon band between X and Γ is much flatter and much lower
+energy in experiment than in LSWT. NLSWT successfully ac-
+counts for the flattening of the X →Γ magnon mode and
+the magnon peak broadening. However, there are still impor-
+tant differences with experiment. Namely, (i) the low-field
+experimental spectrum has much less spectral weight in the
+magnon branches and much more weight in the continuum,
+(ii) broadening at low-fields spans nearly the entire single-
+magnon spectrum, and (iii) at zero-field the NLSWT predicts
+sharp low-energy magnon modes whereas none are observed
+in experiment (although the zero-field calculation is weakly
+unstable near the K wavevector, see Appendix F). Clearly,
+Yb2Ti2O7 low-field magnetism cannot be fully modeled with
+perturbative corrections.
+This conclusion is bolstered by comparison with the non-
+perturbative THED spin-wave calculations in Fig. 2. At mag-
+netic fields (B ≳1 T), THED reproduces both the high-energy
+magnon damping and the flattening of the lowest magnon
+band, consistent with the success of perturbative NLSWT
+in this regime.
+As the field decreases, however, the sharp
+magnon spectral features progressively lose intensity, which is
+transferred to the two-magnon continuum. This intensity re-
+distribution, characterized by diminished single-magnon sig-
+nals and enhanced two-magnon spectral weight, aligns very
+well with experimental observations. However, the match is
+still imperfect. In particular, (i) the intense flat feature at K is
+missing in the low-field THED simulations [Fig. 2(w)], and
+(ii) below 1 T the simulated low-energy magnon bands at all
+wavevectors are lower energy than experiment [Fig. 2(w)-(z)].
+This discrepancy can be attributed to our calculation’s trun-
+cated Hilbert space limited to one- and two-magnon states,
+which means only the single-magnon energies experience a
+downward renormalization, while the two-magnon energies
+do not. Consequently, the lowest magnon modes remain out-
+side the two-magnon continuum at all fields and remain sharp,
+unlike in experiment.
+Including three-magnon states in the truncated Hilbert
+space would correct this discrepancy by renormalizing the
+two-magnon continuum downward. In particular, the emer-
+gence of a nearly flat band at low energies is expected to gen-
+erate a renormalized two-magnon continuum across a wide
+energy range, covering the full energy scale of the single-
+magnon modes and thereby enabling the kinematic condi-
+tions for magnon decay observed experimentally across all
+energies. However, substantial contribution of three-magnon
+states is highly unconventional and such a calculation is be-
+yond the scope of the present work. To go beyond the magnon
+picture entirely, we turn to ED simulations.
+The ED simulated phase diagram in Fig. 3 makes situa-
+tion even more interesting. Figure 3(a) shows the phase cor-
+relations with the classical phase boundaries (from Ref. [37])
+superimposed. For the most part, the phases follow the classi-
+cal bounds, although there are some differences. Interestingly,
+the Ref. [31] Yb2Ti2O7 Hamiltonian is in the FM phase classi-
+cally, but appears to be in the Ψ3/Ψ2 phase quantum mechan-
+ically. (This is consistent with previous semi-classical [45],
+series expansion [45], exact-diagonalization [45], nonlinear
+spin wave calculations [44], and more recent pseudo-fermion
+functional renormalization group (pf-FRG) calculations [56]
+showing that quantum effects move the boundary from the
+classical values.)
+However, a striking departure from the classical phase di-
+agram is the strength of the magnetic order in Fig.
+3(b).
+This reveals significant static moment suppression along the
+boundary between FM and AFM order (both Ψ3/Ψ2 and Ψ4).
+Classical simulations show a first-order boundary between the
+FM and Ψ3/Ψ2 phases [36, 43] rather than a regime of sup-
+pressed order.
+The line scans in Fig. 4 reveal more details about the phase
+boundaries. These calculations show that the phase bound-
+aries between the FM and AFM phases split into two, with
+a double minimum in the second derivative in energy.
+In
+the case of the FM-Ψ3/Ψ2 boundary (left column), it appears
+
+
+5
+1
+0
+1
+| |
+1.5
+1.0
+0.5
+0.0
+0.5
+1.0
+1.5
+| |
+/
+FM
+Classical
+boundary
+=
+.
+= .
+(a)
+Phase Correlation
+1
+0
+1
+| |
+/
+FM
+=
+.
+= .
+(b)
+Ordered moment
+2
+0
+2
+(
+)
+FM
+/
+(c)
+2
+0
+2
+(
+)
+/
+(d)
+4
+2 0
+2
+4
+(
+)
+2
+0
+2
+(
+)
+/
+/
+(e)
+4
+2 0
+2
+4
+2
+0
+2
+(
+)
+Center
+(f)
+4
+2 0
+2
+4
+(
+)
+2
+0
+2
+(
+)
+     Heisenberg
+QSL
+(g)
+0.0
+0.2
+0.4
+0.6
+0.8
+1.0
+fraction ordered (covariance)
+0
+2
+4
+6
+8
+10
+12
+( ) (arb. u.)
+Figure 3. Calculated pyrochlore phase diagram assuming J3 = −0.272 meV, J4 = 0.049 meV (the Yb2Ti2O7 parameters in Ref. [31]). Panel
+(a) shows the phases determined by Pearson R correlations. Panel (b) shows the size of the ordered moment, calculated as the covariance
+with the reference S (Q). The black circles in panels (a) and (b) indicate parameters which were explicitly calculated; regions in between
+were interpolated. Panels (c)-(e) show the reference S (Q) for FM (J = [−0.5, −0.5, J3, J4]), Ψ4 (J = [0, 0.5, J3, J4]), and Ψ3/Ψ2 (J =
+[0.5, −0.5, J3, J4]). Panel (f) shows the structure factor for the center of the phase diagram, J = [−0.05, 0.0, J3, J4]. Panel (g) shows the
+structure factor for the Heisenberg quantum spin liquid region J = [0.5, 0.5, J3, J4].
+0.0
+0.5
+1.0
+Phase
+Correlation
+FM
+/
+(a)
+0.0
+0.5
+1.0
+FM
+/
+(b)
+0.0
+0.5
+1.0
+FM
+(c)
+7
+6
+(d)
+6
+4 (e)
+5.5
+5.0
+(f)
+10
+0
+10
+/
+(g)
+10
+0
+10 (h)
+5
+0
+5
+/
+(i)
+0.50
+0.25
+0.00
+0.25
+0.50
+/| |
+500
+250
+0
+/
+=
+.
+=
+.
+= .
+(j)
+1
+0
+1
+/| |
+200
+100
+0
+= .
+=
+.
+= .
+(k)
+0.5
+0.0
+0.5
+1.0
+/| |
+100
+50
+0
+/
+=
+.
+=
+.
+= .
+(l)
+Figure 4. Line scans obtained by ED calculations using 32 sites through the phase boundaries in the J3 = −0.272 meV, J4 = 0.049 meV phase
+diagram (Fig. 3). The top row (a)-(c) shows phase correlation with the three ordered phases. The second row (d)-(f) shows the ground state
+energy (in arbitrary units) across the line scan. The third row (g)-(i) show the first derivative in energy, while the fourth row (j)-(l) shows the
+second derivative in energy. The boundary between Ψ4 and Ψ3/Ψ2 is very clearly first-order with an abrupt transition and a discontinuity in
+the first derivative. However, the boundary between FM and both AFM phases involves two distinct transitions with an intermediate phase in
+between. The FM-Ψ3/Ψ2 boundary appears to involve one second order transition and one weakly first-order transition, whereas the FM-Ψ4
+boundary involves two second order transitions. The discontinuities of the phase boundaries are also visible in the phase correlation scans.
+that one boundary is second-order and one is weakly first-
+order, with a slight discontinuity visible in the first deriva-
+tive. For the FM-Ψ4 boundary (right column), both transitions
+appear to be continuous and second-order. (Meanwhile the
+Ψ4-Ψ3/Ψ2 transition is sharp, discontinuous, and clearly first-
+order.) Examining the phase correlations (Fig. 4 top row),
+one can see the discontinuities in the phase correlations them-
+selves, and the intermediate region between the two phase
+boundaries has strongly suppressed phase correlation. This
+indicates a finite phase without magnetic order on the bound-
+ary between FM and AFM.
+This extensive phase diagram allows us to go beyond
+merely describing Yb2Ti2O7. These calculations reveal the
+onset of the quantum phase near the Heisenberg limit J1 =
+
+
+6
+0.0
+0.2
+0.4
+0.6
+0.8
+1.0
+ (T)
+0.0
+0.2
+0.4
+0.6
+ point gap (meV)
+LSWT FM
+Yb Ti O
+THED
+NLSWT
+Figure 5. The gap at the X point to the intense flat mode versus [001]
+magnetic field for Yb2Ti2O7, the THED calculation, the NLSWT cal-
+culation, and the LSWT model.
+J2 > |J3| [upper right corner of Fig.
+3(b)].
+The Heisen-
+berg S = 1/2 pyrochlore model is known to have a non-
+magnetically-ordered ground state (though the precise ground
+state is debated [57–63]). However the largest region of quan-
+tum disorder is the FM-AFM phase boundary, which has a
+distinct emergent quantum phase.
+IV.
+DISCUSSION
+Our results shed light on the Yb2Ti2O7 spectrum and pose
+some intriguing puzzles. At high fields, the Yb2Ti2O7 spin
+dynamics are well described by a weakly interacting magnon
+picture, but near zero field even the infinite-order two-magnon
+simulations fail to describe the data. The need for magnon in-
+teractions to infinite order and beyond two-magnons makes
+one question whether it is meaningful to be talking about
+magnons at all in zero-field Yb2Ti2O7. The magnon picture
+appears to completely break down in low-field.
+Accompanying this magnon breakdown at low fields is the
+flat X →Γ magnon mode whose energy progressively de-
+creases as the field decreases to zero. Figure 5 shows the field
+evolution of this quasi-flat mode’s energy compared with the
+theoretical calculations. The experimental data for Yb2Ti2O7
+shows a linear dependence but with a positive energy intercept
+after linearly extrapolating to zero field. In comparison, the
+LSWT predicts a higher energy band, which is pushed down
+to a lower energy when magnon-magnon interaction is taken
+into account, as revealed by both NLSWT and THED calcula-
+tions. The NLSWT has a remarkable agreement with the data,
+while THED overestimates the downward energy renormal-
+izaiton. This mismatch arises from different treatment of the
+anomalous self-energy corrections between the two theoreti-
+cal frameworks. This analysis suggests that Yb2Ti2O7 seems
+to be immune to the potential instability induced by the soft-
+ening of the quasi-flat band. However, in zero field spectrum
+(Fig. 2) the flat band has vanished—either because it has no
+intensity, has broadened beyond detection, or collapsed into
+the elastic line.
+In general, low-energy flat bands are harbingers of strong
+correlations and exotic physics [64, 65], and the presence of
+a quasi-flat band here provides the necessary kinematic con-
+dition for the intrinsic broadening of magnon excitations at
+the full energy scales.
+In the pyrochlores, the low-energy
+X →Γ flat magnon mode indicates proximity to an extensive
+degeneracy. Classically, a “pinch-line” spin liquid exists at
+the meeting point of the FM and two AFM pyrochlore phases
+[37, 66], and a “spin-nematic” phase exists on the boundary
+between the FM and Ψ4 phases [67, 68] where the magnon
+energies go to zero along certain reciprocal space directions
+[56, 67]. To clarify the situation at zero field, we adopted a
+fully quantum treatment, the ED study of the ground state.
+The ED simulations show that quantum effects create an
+emergent quantum phase on the boundary with FM order with
+suppressed magnetic order. (This is reminiscent of the 2D
+triangular quantum spin liquid, where a sharp boundary be-
+tween competing classical orders becomes an extended spin
+liquid phase in the quantum limit [69–75].) A similar inter-
+mediate phase on the pyrochlore phase diagram was indepen-
+dently found with pf-FRG calculations (both on the FM-AFM
+boundary [56] and elsewhere on the pyrochlore phase diagram
+[76]), which strongly suggests that our conclusions persist be-
+yond the 32-site system we calculated. We also see evidence
+of similarities for most parts of the phase diagram with smaller
+system sizes as well, see Appendix D.
+The obvious next question is: what is the nature of the
+emergent quantum phase? The analysis here is insufficient to
+distinguish a quantum spin liquid from other forms of quan-
+tum non-magnetic-order (like valence bond crystals [77]).
+However, we note that the intermediate phase displays the
+“rods” of scattering along {111} reciprocal space directions,
+shown in Fig. S.7 (and in further detail in the Supplemental
+Information [46]).
+Diffuse {111} scattering rods, similar to what is calculated
+here, have been measured in previous neutron experiments on
+Yb2Ti2O7 [16, 27, 29, 36, 78, 79] which indicate reduced di-
+mensional correlations to 2D Kagome planes within the py-
+rochlore lattice. This suggests a long-range collective effect
+rather than short-range singlets. (Note that these intermedi-
+ate quantum phases are far from the quantum spin ice region,
+which is at J1 = −J2 = J3 = J4 < 0 [30].) Furthermore, the
+intermediate quantum phase is continuously connected to the
+center degenerate point, which is a classical spin liquid [66]
+and exhibits symmetry-breaking “nematic” disorder in classi-
+cal spin simulations [67].
+Intriguingly, the most comprehensive spin Hamiltonian fit
+[31] (J1 = −0.028 meV, J2 = −0.326 meV) puts Yb2Ti2O7
+within the emergent quantum phase (Fig.
+4).
+Of course
+experimental uncertainty and finite size calculations may
+change the precise location of the phase boundaries and the
+Yb2Ti2O7 Hamiltonian. Indeed, experiments unambiguously
+demonstrate that our samples possess a ferromagnetic ground
+state [28, 32]. Taken together, our study suggests two possible
+scenarios. First, the emergent quantum phase retains vestiges
+of ferromagnetism. Notably, the experimental 0.1 K energy-
+integrated (hk0) scattering in Fig. S.7 shows a striking agree-
+ment with the ED calculated S (Q) within this intermediate
+
+
+7
+2 0
+2
+(
+)
+4
+2
+0
+2
+4
+(
+)
+(h)
+2 0
+2
+(
+)
+(i)
+2 0
+2
+(
+)
+(j)
+2 0
+2
+(
+)
+(k)
+2 0
+2
+(
+)
+(l)
+2 0
+2
+(
+)
+(m)
+2 0
+2
+(
+)
+(n)
+2 0
+2
+(
+)
+4
+2
+0
+2
+4
+(
+)
+(a)
+=
+.
+=
+.
+2 0
+2
+(
+)
+(b)
+=
+.
+=
+.
+2 0
+2
+(
+)
+(c)
+=
+.
+=
+.
+2 0
+2
+(
+)
+(d)
+=
+.
+=
+.
+2 0
+2
+(
+)
+(e)
+=
+.
+=
+.
+2 0
+2
+(
+)
+(f)
+=
+.
+=
+.
+2 0
+2
+(
+)
+(g)
+=
+.
+=
+.
+2
+0
+2
+(
+)
+2
+0
+2
+(
+)
+(o)
+0
+5
+10
+15
+( ) (
+)
+Figure 6. Evolution of S (Q) tuning across the FM - Ψ3/Ψ2 phase boundary with J2 = −0.326, J3 = −0.272, J4 = 0.049 (from the fitted
+Yb2Ti2O7 exchange Hamiltonian [31]). Panels (a)-(g) show the (hk0) scattering plane, while panels (h)-(n) show the (hhℓ) scattering plane.
+(Note the asymmetric elongation in the (hk0) structure factor is due to the ED supercell geometry, see Supplemental Information [46].) Panel
+(o) shows the experimental energy-integrated zero-field Yb2Ti2O7 spectrum at 0.1 K, which resembles the scattering pattern intermediate to
+the two phases.
+phase. Alternatively, Yb2Ti2O7 may lie firmly within the FM
+phase but in close proximity to the emergent phase revealed
+by ED. Such proximity could be sufficient to induce emergent
+phenomena at finite energy scales, even within an ordered fer-
+romagnetic ground state [80].
+The picture emerging from this study begins to explain
+many things about Yb2Ti2O7, and suggests a new view of py-
+rochlore physics. Yb2Ti2O7 magnon broadening is intrinsic
+to its Hamiltonian rather than an extrinsic effect of domains.
+It appears to be associated with very low energy flat bands in
+the spectrum. This in turn creates a phase diagram remarkably
+similar to quantum critical electronic phases, in five respects.
+First, the competition between the FM and AFM phases sup-
+presses the order parameters, producing an extended zero tem-
+perature phase (analogous to unconventional superconductiv-
+ity [81]). Second, extensive degeneracy in the ground state
+is present with flat bands near zero energy, closely parallel-
+ing the physics of heavy-fermion materials [82, 83]. Third,
+scale-free fluctuations are observed at finite temperatures [36].
+Fourth, dimensional reduction (witnessed by rods of scat-
+tering) occurs near the phase boundary (c.f.
+CeCu6 [84]).
+Fifth, the magnon quasiparticle picture seems to break down
+[31, 32]. These five features show striking resemblance to
+correlated electron quantum criticality. Importantly for exper-
+imental studies, Yb2Ti2O7 can be continuously tuned with a
+modest magnetic field from semiclassical physics to its non-
+trivial quantum ground state.
+The emergent quantum phase here is unusual, because
+quantum fluctuations typically lift degeneracies by order-by-
+disorder [85]. Here we observe quantum fluctuations doing
+the opposite: stabilizing a degeneracy at a first-order phase
+boundary, and creating quantum critical behavior [86].
+Our experiments focused on only one model system,
+Yb2Ti2O7. However, this dipolar phase diagram covers many
+other pyrochlore materials as well [87–90]. Furthermore, sim-
+ilar systematic calculations may also be useful for multipo-
+lar magnets like the cerium-based pyrochlores [91–98], which
+also have a rich phase diagram [95]. This offers an opportunity
+to study exotic phases of many-body systems with a precisely-
+known underlying Hamiltonian—a luxury not always avail-
+able for other quantum critical systems like unconventional
+superconductors.
+V.
+CONCLUSIONS
+We have experimentally and theoretically explored the
+quantum limit of the anisotropic S = 1/2 pyrochlore model,
+showing an emergent quantum disordered phase on the bound-
+ary between the FM phase and the two AFM phases. In this
+phase the magnetic order is strongly suppressed and scatter-
+ing rods emerge which indicate reduced dimensional corre-
+lations. The scattering pattern computed from theory (ED)
+in this phase strongly resembles the experimental Yb2Ti2O7
+scattering pattern, which according to the spin wave model
+may lie within this the emergent quantum phase.
+The results of this study strongly suggest that the phe-
+nomenology of quantum criticality applies to Yb2Ti2O7, as an
+insulating system with scale-free fluctuations and quasiparti-
+cle breakdown. This offers a remarkable opportunity to con-
+tinuously tune from well-defined magnons to magnon break-
+down in a well-understood and clean system. Our study stim-
+ulates the further exploration of the nature of quantum critical-
+ity along the FM/AFM phase boundary. The theoretical meth-
+ods employed in this work each have unique limitations which
+restricts the extent to which we can reproduce the experimen-
+tal low-field Yb2Ti2O7 spectrum. However, we believe this
+system could be a benchmark for many-body quantum simu-
+lation methods (including quantum computers) [99].
+The most important result of this study is placing Yb2Ti2O7
+in context: in fact there are many regions where such exotic
+physics can be expected from pyrochlores, along the entire
+phase boundary between FM and AFM order. This puts for-
+ward the pyrochlore lattice generically (and Yb2Ti2O7 specif-
+ically) as a case where emergent physics— potentially insu-
+lating quantum criticality—can be studied in a system with a
+well-understood underlying Hamiltonian.
+
+
+8
+Acknowledgments
+A portion of this research used resources at the Spallation
+Neutron Source, a DOE Office of Science User Facility oper-
+ated by the Oak Ridge National Laboratory. The beam time
+was allocated to CNCS on proposal number IPTS-24263.1.
+AS acknowledges support from the U.S. Department of En-
+ergy, Office of Basic Energy Sciences, Division of Materi-
+als Science and Engineering under project “Quantum Fluc-
+tuations in Narrow-Band Systems.”
+Sample synthesis was
+supported through the Institute for Quantum Matter at Johns
+Hopkins University, by the U.S. Department of Energy, Divi-
+sion of Basic Energy Sciences, Grant DE-FG02-08ER46544.
+H.J.C. acknowledges funding from National Science Founda-
+tion Grant No. DMR 2046570 and the National High Mag-
+netic Field Laboratory (NHMFL). NHMFL is supported by
+the National Science Foundation through NSF/DMR-1644779
+and DMR-2128556 and the state of Florida. J.G.R. acknowl-
+edges funding from the Natural Sciences and Engineering Re-
+search Council of Canada (NSERC). A.B. and H.J.C. thank
+the Research Computing Center (RCC) and the Planck clus-
+ter at Florida State University for computational resources.
+This work also used Bridges-2 at Pittsburgh Supercomput-
+ing Center through allocation PHY240324 (Towards predic-
+tive modeling of strongly correlated quantum matter) from
+the Advanced Cyberinfrastructure Coordination Ecosystem:
+Services and Support (ACCESS) program, which is sup-
+ported by U.S. National Science Foundation grants #2138259,
+#2138286, #2138307, #2137603, and #2138296.
+We ac-
+knowledge helpful discussions with Nic Shannon and Cristian
+Batista.
+Appendix A: Neutron experiment details
+The sample used for this experiment, shown in Fig. 7, was
+the same crystals as was used in ref. [32] reoriented so that
+[001] is vertical. Total sample mass was 4.8 g. Data were
+measured rotating over 180◦in 0.5◦steps. We collected data
+using Ei = 3.32 meV neutrons (disc chopper frequency 300
+Hz, for an elastic line energy resolution ∆ℏω = 0.11 meV,
+taken from the FWHM of the experimental data) at several
+magnetic fields between 0 T and 2 T. We also briefly collected
+data with Ei = 2.49 meV neutrons (disc chopper frequency
+240 Hz, for an elastic line energy resolution ∆ℏω = 0.05 meV
+from the FWHM of experimental data) at angles around (220)
+in order to measure the gap at (220).
+Data were background-subtracted by a measured 12 K
+Yb2Ti2O7 background. Prior to subtraction, inelastic 12 K
+data (above 0.15 meV) were subtracted by the median 12 K in-
+tensity in the scattering plane, which empirically works well
+in removing artifacts whilst preserving the magnetic scatter-
+ing features. In the high-symmetry cuts plotted in Fig. 2, the
+out-of-plane binning was ±0.1 reciprocal lattice units (RLU)
+along [001] and ±0.05 RLU along the transverse in-plane di-
+rection.
+The higher resolution data around the (220) wavevector
+with Ei = 2.49 meV are shown in Fig.8 (for full colormaps,
+Figure 7.
+Yb2Ti2O7 sample used in the CNCS experiment: two
+coaligned crystals wrapped in copper foil and tied to a copper sample
+holder.
+0.05
+0.10
+0.15
+0.20
+0.25
+ (meV)
+0.05
+0.00
+0.05
+0.10
+0.15
+(
+)  (arb. u.)
+,   2 T subtracted
+elastic line
+0.35 K
+0.15 K
+Figure 8. Yb2Ti2O7 scattering measured with Ei = 2.49 meV neu-
+trons at (220), with a 2 T background subtracted. Here we show
+the highest measured and the lowest measured temperatures in this
+configuration, which clearly reveals the presence of a 0.11 meV res-
+onance at 0.15 K. The grey region indicates an oversubtraction from
+the 2T background data, which has nonzero Bragg intensity at (220).
+see the Supplemental Information [46]). These data have a
+noisier signal than Ei = 3.32 meV due to the lower flux, but
+the resonance at 0.11 meV is visible and outside error bars at
+the lowest temperatures.
+Appendix B: Absolute unit conversion and entanglement
+We are able to calculate the Quantum Fisher Information
+(QFI) of Yb2Ti2O7 by normalizing the inelastic scattering to
+be in absolute units using the intensity of the 2 T spin wave
+modes. This is done by integrating over the inelastic scattering
+
+
+9
+0.0
+0.5
+1.0
+1.5
+2.0
+ (T)
+0.0
+0.5
+1.0
+1.5
+2.0
+nQFI
+LSWT
+NLSWT
+THED
+Figure 9. Quantum Fisher Information (QFI) of Yb2Ti2O7 at 0.1 K as
+a function of magnetic [001] field. The reported values are the maxi-
+mal QFI along the high-symmetry cuts. At B = 0 QFI is maximal at
+K, but at nonzero fields QFI is maximal at the midpoint between K
+and Γ.
+via
+nQFI[Q, T] =
+1
+2S 2
+Z ∞
+0
+d(ℏω)
+
+tanh
+ ℏω
+2kBT
+!
+
+1 −e−ℏω/kBT ˜S (Q, ω)
+
+(B1)
+where S is the quantum spin number (here we normalize the
+Yb3+ effective crystal field doublet to S = 1/2), T is temper-
+ature, and ˜S (Q, ω) is the unpolarized neutron structure factor
+[100, 101]. nQFI provides a lower bound to entanglement
+depth such that nQFI > m indicates a system with at least
+m + 1 partite entanglement [102, 103]. The calculated nQFI
+versus field is shown in Fig. 9.
+At B = 0 the largest intensity (and correspondingly the
+largest QFI) is concentrated around K, giving nQFI = 1.9 ±
+0.4. This witnesses at least bipartite entanglement per spin,
+consistent with a nontrivial quantum state. This value is al-
+most certainly an underestimate, for three reasons. First, due
+to large uncertainties near the elastic line, we excluded all
+scattering below 0.07 meV, which would otherwise partici-
+pate in the integral in Eq. (B1). Second resolution effects
+are probably at play, which tends to broaden signals and sup-
+press QFI values [101].
+Third, in Eq.
+(B1) we have as-
+sumed the isotropic approximation S xx(Q, ω) = S yy(Q, ω) =
+S zz(Q, ω) =
+1
+2 ˜S (Q, ω), however the linear spin wave model
+shows that this approximation suppresses QFI by 36% (see
+Fig. 10).
+The inelastic scattering data were normalized to absolute
+units by the integrated intensity of the 2 T magnons at the K
+point to LSWT calculations (similar to how phonon intensities
+are used in Ref. [104]). Rather than normalizing to µB/meV
+(for a M = g · S model where g is the g-tensor), we normal-
+ized to meV−1 for an effective S = 1/2 model such that the
+sum rule
+R
+BZ dqdωS (q, ω) = S (S + 1) is satisfied. This is nec-
+essary in order to apply the quantum entanglement measures
+that have been defined for S = 1/2 [101].
+Aside from an overall scale factor, the differences between
+the LSWT simulations are minor: mainly that the weaker
+modes have more intensity with the g-tensor included (see
+Supplemental Information [46] for more plots). Thus we con-
+fidently use the 2 T simulations to normalize the experimental
+data to the S = 1/2 model. (This normalization comes with
+a statistical uncertainty of 22%, which is a typical value for
+absolute unit conversion [104]).
+Normalized QFI (nQFI) of the experimental and simulated
+scattering is calculated via Eq. (6) of Ref. [101]. Because the
+polarized scattering S αα was not measured, we have assumed
+the isotropic approximation
+S αα = 1
+2
+˜S
+(B2)
+to get Eq. (B1).
+As noted above, we have assumed the isotropic S approxi-
+mation for the QFI calculation as the most conservative way to
+estimate QFI from unpolarized scattering data. Although we
+cannot separate the experimental polarization components, we
+can use LSWT to estimate the influence of the different polar-
+ization channels. Figure 10 shows the effect in LSWT of the
+different polarization channels. In this model, the S zz channel
+would have given an nQFI over 50% higher than the unpo-
+larized ˜S data. Taking this as an estimate for experimental
+polarization correction (like Ref. [105]) gives an estimated
+experimental B = 0 QFI ≥2.9(6), witnessing ≥3-partite en-
+tanglement in Yb2Ti2O7. We suspect that in the real Yb2Ti2O7
+polarization factor correction would be even greater, as the
+gap in Yb2Ti2O7 is much smaller than in LSWT and intensi-
+ties tend to diverge as gaps close.
+Appendix C: Entropy from specific heat
+Figure 11 shows the integrated entropy from zero-field spe-
+cific heat reported in Ref. [28]. The entropy of the short-
+ranged correlated phase just above Tc = 270 mK goes below
+the spin ice Pauling entropy of R/2 ln(3/2) [106] and reaches
+R/4 ln(2). There is not a clear saturation of entropy, but this
+value is consistent with decoupled 2D kagome planes on the
+pyrochlore lattice wherein 1/4 of the spins are disordered and
+fluctuating.
+Appendix D: Effects of Finite Size
+In order to assess the effects of finite system size, we have
+evaluated the ground-state energy with ED, by using two sys-
+tem sizes, N = 16×13 = 16 sites (cubic unit cell with a 16 site
+basis) and N = 4 × 23 = 32 (FCC unit cell with a 4 site basis).
+These geometries have been employed in previous work on
+pyrochlore magnets [54], and have been further discussed in
+the Supplemental Information [46]. We used the energies to
+numerically compute their derivatives and second derivatives
+with respect to varying a parameter in the Hamiltonian.
+Fig. 12(a)-(i) shows our ED results for both sizes for three
+different line scans (see also Fig. 4). We find that the energy
+
+
+10
+0
+1 (a)
+0
+1 (b)
+0
+1 (c)
+0
+1 (d)
+K
+X
+0
+2
+nQFI
+(e)
+0
+1
+2
+3
+( , ) (meV
+)
+Figure 10. LSWT calculated B = 0 scattering along different po-
+larization channels (a)-(c) and the ˜S with polarization factor applied
+(d), and the resulting nQFI calculated from these spectra. The S zz
+channel nQFI is 1.55 times the ˜S nQFI (calculated with the isotropic
+approximation).
+10
+1
+100
+101
+ (K)
+0
+1
+2
+3
+4
+5
+6
+ (J mol
+ K
+)
+( )
+/
+( )
+/
+( / )
+Figure 11. Yb2Ti2O7 entropy from zero-field heat capacity. From
+the paramagnetic phase to Tc = 270 mK, the specific heat recovers
+3/4R ln(2) entropy, in accord with ordered 2D kagome planes with
+intervening disordered spins.
+per site agree reasonably well with each other for all the three
+line scans. We also observed than the N = 16 system (like the
+N = 32 site cluster) captures the first order phase transition
+at the Ψ4 and Ψ3/Ψ2 boundary. However, the smaller sized
+system does not show any signature of any phase transition
+near the FM and Ψ3/Ψ2 boundary when moving along the line
+with J2 fixed at -0.326, see Fig. 12(g). As mentioned in the
+main text, the N = 32 site cluster shows a transition in the
+form of a second order transition near this boundary.
+Appendix E: S (Q) across phase boundaries
+In this section we show the computed S (Q) along and
+across the phase boundaries in the phase diagram. Figure 13
+shows the structure factor along the line scans explored in the
+main text, showing the onset of rod-like scattering at the phase
+boundary. Figure 14 shows the evolution of the structure fac-
+tor along the entire FM-AFM phase boundary, showing the
+universality of the rod-like features—although they are the
+clearest and most rod-like nearest the degenerate point at the
+middle. That said, the scattering right at the degenerate point
+is less rod-like, and is more of a superposition of the Heisen-
+berg QSL scattering and the FM-AFM rods.
+Appendix F: NLSWT stability
+As noted in the main text the NLSWT calculations are un-
+stable around the K wavevector at B = 0, at least for the pa-
+rameters in Ref. [31]. In Fig. 15, we modify the Hamiltonian
+by tuning J1 further into the FM phase. We find that a tiny
+modification allows numerical stability, and also gaps the ex-
+citations at K. This gap does not reproduce the intense flat
+mode shown in Fig. 8 or in Ref. [107], so there are still clear
+deficiencies in the NLSWT calculation even with parameters
+tuned so the FM phase is stable.
+
+
+11
+-0.23
+-0.21
+-0.18
+E (per site)
+(a)
+16 sites
+32 sites
+-0.29
+0.00
+0.30
+E/ J1 (per site)
+(d)
+0.50
+0.25
+0.00
+0.25
+0.50
+J1/|J3|
+-15.7
+-9.3
+-2.9
+2E/ J2
+1 (per site)
+J2=-0.326
+J3=-0.272
+J4=0.049
+(g)
+-0.26
+-0.20
+-0.14 (b)
+-0.38
+-0.03
+0.33 (e)
+1
+0
+1
+J1/|J3|
+-31.5
+-18.2
+-4.9
+J2=0.1
+J3=-0.272
+J4=0.049
+(h)
+-0.20
+-0.18
+-0.16 (c)
+-0.16
+-0.00
+0.16
+E/ J2 (per site)
+(f)
+0.5
+0.0
+0.5
+1.0
+J2/|J3|
+-2.3
+-1.4
+-0.6
+2E/ J2
+2 (per site)
+J1=-0.175
+J3=-0.272
+J4=0.049
+(i)
+Figure 12. Comparison of energy scans obtained by using 16 sites (blue) and 32 sites (red) system. The first row compares the ground state
+energy (per particle) across the line scans. The second and third rows compare the derivative and the second derivative in Energy respectively.
+2
+0
+2
+(
+)
+=
+.
+, 
+=
+.
+(a)
+=
+.
+, 
+=
+.
+(b)
+=
+.
+, 
+=
+.
+(c)
+=
+.
+, 
+=
+.
+(d)
+=
+.
+, 
+=
+.
+(e)
+=
+.
+, 
+=
+.
+(f)
+=
+.
+, 
+=
+.
+(g)
+2
+0
+2
+(
+)
+=
+.
+, 
+=
+.
+(h)
+=
+.
+, 
+=
+.
+(i)
+=
+.
+, 
+=
+.
+(j)
+=
+.
+, 
+=
+.
+(k)
+=
+. , 
+=
+.
+(l)
+= .
+, 
+=
+.
+(m)
+= .
+, 
+=
+.
+(n)
+2
+0
+2
+(
+)
+2
+0
+2
+(
+)
+=
+.
+, 
+=
+.
+(o)
+2
+0
+2
+(
+)
+=
+.
+, 
+=
+.
+(p)
+2
+0
+2
+(
+)
+=
+.
+, 
+=
+.
+(q)
+2
+0
+2
+(
+)
+=
+.
+, 
+=
+.
+(r)
+2
+0
+2
+(
+)
+=
+.
+, 
+=
+.
+(s)
+2
+0
+2
+(
+)
+=
+.
+, 
+=
+.
+(t)
+2
+0
+2
+(
+)
+=
+.
+, 
+=
+.
+(u)
+0
+5
+10
+15
+20
+25
+( ) (arb. u.)
+Figure 13. Calculated S (Q) along the lines in main text Fig. 4, tuning from FM →Ψ2/Ψ3 (a)-(g), FM →Ψ4 →Ψ2/Ψ3 (h)-(n), FM →Ψ4
+(o)-(u). Note the existence of rod-like scattering in the crossover between FM and AFM scattering.
+[1] A. Altland and B. D. Simons, Condensed matter field theory
+(Cambridge university press, 2010).
+[2] L. Pitaevskii, Sov. Phys. JETP 9, 830 (1959).
+[3] M. D. Nichitiu, C. Brown, and I. A. Zaliznyak, Phys. Rev. B
+109, L060502 (2024).
+[4] R. B. Laughlin, Rev. Mod. Phys. 71, 863 (1999).
+[5] C. Broholm, R. J. Cava, S. Kivelson, D. Nocera, M. Norman,
+and T. Senthil, Science 367, eaay0668 (2020).
+[6] M. B. Stone, I. A. Zaliznyak, T. Hong, C. L. Broholm, and
+D. H. Reich, Nature 440, 187 (2006).
+[7] H. Hu, L. Chen, and Q. Si, Nature Physics , 1 (2024).
+[8] A. Abanov, A. V. Chubukov, and J. Schmalian, Advances in
+Physics 52, 119 (2003).
+[9] A. Abanov and A. V. Chubukov, Phys. Rev. B 102, 024524
+(2020).
+[10] A. Eberlein, I. Mandal, and S. Sachdev, Phys. Rev. B 94,
+045133 (2016).
+[11] S. A. Hartnoll, D. M. Hofman, M. A. Metlitski, and
+S. Sachdev, Phys. Rev. B 84, 125115 (2011).
+[12] H. Blöte, R. Wielinga, and W. Huiskamp, Physica 43, 549
+(1969).
+
+
+12
+1
+0
+1
+| |
+1
+0
+1
+| |
+  (a)
+  (b)
+  (c)
+  (d)
+  (e)
+  (f)
+2
+0
+2 (a)
+=
+. ,
+= .
+(b)
+=
+. ,
+= .
+2
+0
+2 (c)
+=
+.
+,
+= .
+(d)
+= .
+,
+=
+.
+2 0
+2
+2
+0
+2 (e)
+=
+.
+,
+=
+.
+2 0
+2
+(f)
+=
+.
+,
+=
+.
+0.0
+0.5
+1.0
+Covariance
+0
+2
+4
+6
+8
+10
+12
+14
+( ) (arb. u.)
+Figure 14. Calculated S (Q) along the FM-AFM boundary, showing
+the points on the covariance phase diagram (left) and the computed
+S (Q) (right). Note the rod-like scattering is most prevalent nearest
+the center degenerate point. At the degenerate point (d) the scattering
+takes on a different pattern, more akin to a superposition of the rod-
+like scattering and the Heisenberg QSL scattering.
+[13] J. A. Hodges, P. Bonville, A. Forget, M. Rams, K. Krolas, and
+G. Dhalenne, Journal of Physics: Condensed Matter 13, 9301
+(2001).
+[14] S. Onoda, Journal of Physics: Conference Series 320, 012065
+(2011).
+[15] Y. Yasui, M. Soda, S. Iikubo, M. Ito, M. Sato, N. Hamaguchi,
+T. Matsushita, N. Wada, T. Takeuchi, N. Aso, and K. Kakurai,
+Journal of the Physical Society of Japan 72, 3014 (2003).
+[16] L.-J. Chang, S. Onoda, Y. Su, Y.-J. Kao, K.-D. Tsuei, Y. Yasui,
+K. Kakurai, and M. R. Lees, Nature Communications 3, 992
+(2012).
+[17] Z. Shafieizadeh, Y. Xin, S. M. Koohpayeh, Q. Huang, and
+H. Zhou, Scientific Reports 8, 17202 (2018).
+[18] A. Yaouanc, P. D. de Réotier, L. Keller, B. Roessli, and A. For-
+get, Journal of Physics: Condensed Matter 28, 426002 (2016).
+[19] A. Scheie, J. Kindervater, S. Säubert, C. Duvinage, C. Pflei-
+derer, H. J. Changlani, S. Zhang, L. Harriger, K. Arpino, S. M.
+Koohpayeh, O. Tchernyshyov, and C. Broholm, Phys. Rev.
+Lett. 119, 127201 (2017).
+[20] S. Säubert, A. Scheie, C. Duvinage, J. Kindervater, S. Zhang,
+H. J. Changlani, G. Xu, S. M. Koohpayeh, O. Tchernyshyov,
+C. L. Broholm, and C. Pfleiderer, Phys. Rev. B 101, 174434
+(2020).
+[21] A. Yaouanc, P. Dalmas de Réotier, C. Marin, and V. Glazkov,
+Phys. Rev. B 84, 172408 (2011).
+[22] K. A. Ross, L. R. Yaraskavitch, M. Laver, J. S. Gardner, J. A.
+Quilliam, S. Meng, J. B. Kycia, D. K. Singh, T. Proffen,
+H. A. Dabkowska, and B. D. Gaulin, Phys. Rev. B 84, 174442
+(2011).
+[23] K. A. Ross, T. Proffen, H. A. Dabkowska, J. A. Quilliam, L. R.
+Yaraskavitch, J. B. Kycia, and B. D. Gaulin, Phys. Rev. B 86,
+174424 (2012).
+[24] J. Gaudet, D. D. Maharaj, G. Sala, E. Kermarrec, K. A. Ross,
+H. A. Dabkowska, A. I. Kolesnikov, G. E. Granroth, and B. D.
+Gaulin, Phys. Rev. B 92, 134420 (2015).
+[25] A. Mostaed, G. Balakrishnan, M. R. Lees, Y. Yasui, L.-J.
+Chang, and R. Beanland, Phys. Rev. B 95, 094431 (2017).
+[26] R. M. D’Ortenzio, H. A. Dabkowska, S. R. Dunsiger, B. D.
+Gaulin, M. J. P. Gingras, T. Goko, J. B. Kycia, L. Liu, T. Med-
+ina, T. J. Munsie, D. Pomaranski, K. A. Ross, Y. J. Uemura,
+T. J. Williams, and G. M. Luke, Phys. Rev. B 88, 134428
+(2013).
+[27] D. F. Bowman, E. Cemal, T. Lehner, A. R. Wildes, L. Mangin-
+Thro, G. J. Nilsen, M. J. Gutmann, D. J. Voneshen, D. Prab-
+hakaran, A. T. Boothroyd, D. G. Porter, C. Castelnovo, K. Ref-
+son, and J. P. Goff, Nature Communications 10, 637 (2019).
+[28] K. E. Arpino, B. A. Trump, A. O. Scheie, T. M. McQueen, and
+S. M. Koohpayeh, Phys. Rev. B 95, 094407 (2017).
+[29] K. A. Ross, J. P. C. Ruff, C. P. Adams, J. S. Gardner, H. A.
+Dabkowska, Y. Qiu, J. R. D. Copley, and B. D. Gaulin, Phys.
+Rev. Lett. 103, 227202 (2009).
+[30] K. A. Ross, L. Savary, B. D. Gaulin, and L. Balents, Phys. Rev.
+X 1, 021002 (2011).
+[31] J. D. Thompson, P. A. McClarty, D. Prabhakaran, I. Cabrera,
+T. Guidi, and R. Coldea, Phys. Rev. Lett. 119, 057203 (2017).
+[32] A. Scheie, J. Kindervater, S. Zhang, H. J. Changlani, G. Sala,
+G. Ehlers, A. Heinemann, G. S. Tucker, S. M. Koohpayeh,
+and C. Broholm, Proceedings of the National Academy of Sci-
+ences 117, 27245 (2020).
+[33] R. S. Fishman, J. A. Fernandez-Baca, and T. Rõõm, Spin-Wave
+Theory and its Applications to Neutron Scattering and THz
+Spectroscopy (Morgan & Claypool Publishers, 2018).
+[34] Y. Tokiwa, T. Yamashita, M. Udagawa, S. Kittaka, T. Sakak-
+ibara, D. Terazawa, Y. Shimoyama, T. Terashima, Y. Yasui,
+T. Shibauchi, and Y. Matsuda, Nature Communications 7,
+10807 (2016).
+[35] M. Hirschberger, P. Czajka, S. Koohpayeh, W. Wang, and N. P.
+Ong, arXiv preprint arXiv:1903.00595 (2019).
+[36] A. Scheie, O. Benton, M. Taillefumier, L. D. C. Jaubert,
+G. Sala, N. Jalarvo, S. M. Koohpayeh, and N. Shannon, Phys.
+Rev. Lett. 129, 217202 (2022).
+[37] H. Yan, O. Benton, L. Jaubert, and N. Shannon, Phys. Rev. B
+95, 094422 (2017).
+[38] N. R. Hayre, K. A. Ross, R. Applegate, T. Lin, R. R. P. Singh,
+B. D. Gaulin, and M. J. P. Gingras, Phys. Rev. B 87, 184423
+(2013).
+[39] N. Hamachi, Y. Yasui, K. Araki, S. Kittaka, and T. Sakakibara,
+AIP Advances 6, 055707 (2016).
+[40] L. Pan, N. J. Laurita, K. A. Ross, B. D. Gaulin, and N. P.
+Armitage, Nat Phys 12, 361 (2016).
+[41] R. Applegate, N. R. Hayre, R. R. P. Singh, T. Lin, A. G. R.
+Day, and M. J. P. Gingras, Phys. Rev. Lett. 109, 097205
+(2012).
+[42] M. J. P. Gingras and P. A. McClarty, Reports on Progress in
+Physics 77, 056501 (2014).
+[43] J. Robert, E. Lhotel, G. Remenyi, S. Sahling, I. Mirebeau,
+C. Decorse, B. Canals, and S. Petit, Phys. Rev. B 92, 064425
+(2015).
+[44] J. G. Rau, R. Moessner, and P. A. McClarty, Phys. Rev. B 100,
+104423 (2019).
+[45] L. D. C. Jaubert, O. Benton, J. G. Rau, J. Oitmaa, R. R. P.
+Singh, N. Shannon, and M. J. P. Gingras, Phys. Rev. Lett. 115,
+267208 (2015).
+[46] See Supplemental Material at [URL will be inserted by pub-
+lisher] for more details of the experiments and calculations.
+[47] G. Ehlers, A. A. Podlesnyak, J. L. Niedziela, E. B. Iverson,
+and P. E. Sokol, Review of Scientific Instruments 82, 085108
+(2011).
+[48] S. H. Curnoe, Phys. Rev. B 75, 212404 (2007).
+[49] S. Toth and B. Lake, Journal of Physics: Condensed Matter
+27, 166002 (2015).
+[50] M. E. Zhitomirsky and A. L. Chernyshev, Rev. Mod. Phys. 85,
+219 (2013).
+[51] M. Mourigal, W. T. Fuhrman, A. L. Chernyshev, and M. E.
+Zhitomirsky, Phys. Rev. B 88, 094407 (2013).
+
+
+13
+0
+1
+ (meV)
+(a)
+| | =
+.
+(d)
+| | =
+.
+NLSWT
+(g)
+| | =
+.
+0
+1
+ (meV)
+(b)
+| | =
+.
+(e)
+| | =
+.
+(h)
+| | =
+.
+K
+X
+0
+1
+ (meV)
+(c)
+| | =
+.
+K
+X
+(f)
+| | =
+.
+K
+X
+(i)
+| | =
+.
+0
+1
+2
+3
+( , ) (meV
+)
+Figure 15. Zero-field nonlinear spin wave theory (NLSWT) calculations of the Yb2Ti2O7 Hamiltonian from Ref. [31], where J1 is tuned
+systematically from the fitted J1/|J3| = −0.1 meV in panel (a) further into the FM phase in panels (b)-(i). A very slight modification yields
+numerical stability, and gaps the excitations at K.
+[52] A. Legros, S.-S. Zhang, X. Bai, H. Zhang, Z. Dun, W. A. Phe-
+lan, C. D. Batista, M. Mourigal, and N. P. Armitage, Phys.
+Rev. Lett. 127, 267201 (2021).
+[53] H. Zhang, T. Huang, A. O. Scheie, M. Zhu, T. Xie,
+N. Murai,
+S.
+Ohira-Kawamura,
+A. Zheludev,
+A.
+M.
+Läuchli, and C. D. Batista, arXiv preprint arXiv:2508.21142
+10.48550/arXiv.2508.21142 (2025).
+[54] H.
+J.
+Changlani,
+arXiv
+preprint
+arXiv:1710.02234
+10.48550/arXiv.1710.02234 (2017).
+[55] P. Virtanen,
+R. Gommers,
+T. E. Oliphant,
+M. Haber-
+land, T. Reddy, D. Cournapeau, E. Burovski, P. Peterson,
+W. Weckesser, J. Bright, et al., Nature methods 17, 261 (2020).
+[56] L. Gresista, D. Lozano-Gómez, M. Vojta, S. Trebst, and
+Y. Iqbal, arXiv preprint arXiv:2503.03749 (2025).
+[57] B. Canals and C. Lacroix, Phys. Rev. Lett. 80, 2933 (1998).
+[58] P. Müller, A. Lohmann, J. Richter, and O. Derzhko, Phys. Rev.
+B 100, 024424 (2019).
+[59] I. Hagymási, R. Schäfer, R. Moessner, and D. J. Luitz, Phys.
+Rev. Lett. 126, 117204 (2021).
+[60] N. Astrakhantsev, T. Westerhout, A. Tiwari, K. Choo,
+A. Chen, M. H. Fischer, G. Carleo, and T. Neupert, Phys. Rev.
+X 11, 041021 (2021).
+[61] M. Hering, V. Noculak, F. Ferrari, Y. Iqbal, and J. Reuther,
+Phys. Rev. B 105, 054426 (2022).
+[62] R. Schäfer, B. Placke, O. Benton, and R. Moessner, Phys. Rev.
+Lett. 131, 096702 (2023).
+[63] R.
+Pohle,
+Y.
+Yamaji,
+and
+M.
+Imada,
+arXiv
+preprint
+arXiv:2311.11561 (2023).
+[64] J.-W. Rhim and B.-J. Y. and, Advances in Physics: X 6,
+1901606 (2021).
+[65] J. G. Checkelsky, B. A. Bernevig, P. Coleman, Q. Si, and
+S. Paschen, Nature Reviews Materials 9, 509 (2024).
+[66] O. Benton, L. D. C. Jaubert, H. Yan, and N. Shannon, Nature
+Communications 7, 11572 (2016).
+[67] N. Francini, L. Janssen, and D. Lozano-Gómez, Phys. Rev. B
+111, 085140 (2025).
+[68] K. T. K. Chung, arXiv preprint arXiv:2411.03429 (2024).
+[69] Z. Zhu and S. R. White, Phys. Rev. B 92, 041105 (2015).
+[70] W.-J. Hu, S.-S. Gong, W. Zhu, and D. N. Sheng, Phys. Rev. B
+92, 140403 (2015).
+[71] Y. Iqbal, W.-J. Hu, R. Thomale, D. Poilblanc, and F. Becca,
+Phys. Rev. B 93, 144411 (2016).
+[72] S. N. Saadatmand and I. P. McCulloch, Phys. Rev. B 94,
+121111 (2016).
+[73] A. Wietek and A. M. Läuchli, Phys. Rev. B 95, 035141 (2017).
+[74] S.-S. Gong, W. Zhu, J.-X. Zhu, D. N. Sheng, and K. Yang,
+Phys. Rev. B 96, 075116 (2017).
+[75] S. Hu, W. Zhu, S. Eggert, and Y.-C. He, Phys. Rev. Lett. 123,
+207203 (2019).
+[76] D. Lozano-Gómez, V. Noculak, J. Oitmaa, R. R. P. Singh,
+Y. Iqbal, J. Reuther, and M. J. P. Gingras, Proceedings of the
+National Academy of Sciences 121, e2403487121 (2024).
+[77] J.-B. Fouet, M. Mambrini, P. Sindzingre, and C. Lhuillier,
+Phys. Rev. B 67, 054411 (2003).
+[78] P. Bonville, J. A. Hodges, E. Bertin, J.-P. Bouchaud, P. Dal-
+mas de Réotier, L.-P. Regnault, H. M. Rønnow, J.-P. Sanchez,
+S. Sosin, and A. Yaouanc, Hyperfine Interactions 156, 103
+(2004).
+[79] J. D. Thompson, P. A. McClarty, H. M. Rønnow, L. P. Reg-
+nault, A. Sorge, and M. J. P. Gingras, Phys. Rev. Lett. 106,
+187202 (2011).
+[80] L. E. Chern and Y. B. Kim, Scientific Reports 9, 10974 (2019).
+[81] S. Sachdev, Physica C: Superconductivity and its Applications
+633, 1354707 (2025).
+[82] P. Aynajian, E. H. da Silva Neto, A. Gyenis, R. E. Baumbach,
+J. Thompson, Z. Fisk, E. D. Bauer, and A. Yazdani, Nature
+486, 201 (2012).
+[83] B. B. Zhou, S. Misra, E. H. da Silva Neto, P. Aynajian, R. E.
+Baumbach, J. Thompson, E. D. Bauer, and A. Yazdani, Nature
+physics 9, 474 (2013).
+[84] O. Stockert, H. v. Löhneysen, A. Rosch, N. Pyka, and
+M. Loewenhaupt, Phys. Rev. Lett. 80, 5627 (1998).
+[85] A. G. Green, G. Conduit, and F. KrÃŒger, Annual Review of
+Condensed Matter Physics 9, 59 (2018).
+[86] Z. M. Raines, L. I. Glazman, and A. V. Chubukov, Phys. Rev.
+Lett. 133, 146501 (2024).
+[87] A. M. Hallas, J. Gaudet, and B. D. Gaulin, Annual Review of
+Condensed Matter Physics 9, 105 (2018).
+[88] C. L. Sarkis, J. G. Rau, L. D. Sanjeewa, M. Powell, J. Kolis,
+J. Marbey, S. Hill, J. A. Rodriguez-Rivera, H. S. Nair, D. R.
+Yahne, S. Säubert, M. J. P. Gingras, and K. A. Ross, Phys. Rev.
+B 102, 134418 (2020).
+[89] D. Wulferding, J. Kim, M. K. Kim, Y. Yang, J. H. Lee,
+D. Song, D. Oh, H.-S. Kim, L. E. Chern, Y. B. Kim, M. Noh,
+H. Choi, N. B. Perkins, C. Kim, and S. R. Park, npj Quantum
+
+
+14
+Materials 8, 40 (2023).
+[90] Y. Xu, Y. Yang, J. Teyssier, T. Ohtsuki, Y. Qiu, S. Nakatsuji,
+D. van der Marel, N. B. Perkins, and N. Drichko, npj Quantum
+Materials 10, 88 (2025).
+[91] J. Gaudet, E. M. Smith, J. Dudemaine, J. Beare, C. R. C.
+Buhariwalla, N. P. Butch, M. B. Stone, A. I. Kolesnikov,
+G. Xu, D. R. Yahne, K. A. Ross, C. A. Marjerrison, J. D. Gar-
+rett, G. M. Luke, A. D. Bianchi, and B. D. Gaulin, Phys. Rev.
+Lett. 122, 187201 (2019).
+[92] B. Gao, T. Chen, D. W. Tam, C.-L. Huang, K. Sasmal, D. T.
+Adroja, F. Ye, H. Cao, G. Sala, M. B. Stone, C. Baines, J. A. T.
+Verezhak, H. Hu, J.-H. Chung, X. Xu, S.-W. Cheong, M. Nal-
+laiyan, S. Spagna, M. B. Maple, A. H. Nevidomskyy, E. Mo-
+rosan, G. Chen, and P. Dai, Nature Physics 15, 1052 (2019).
+[93] E. M. Smith, O. Benton, D. R. Yahne, B. Placke, R. Schäfer,
+J. Gaudet, J. Dudemaine, A. Fitterman, J. Beare, A. R. Wildes,
+S. Bhattacharya, T. DeLazzer, C. R. C. Buhariwalla, N. P.
+Butch, R. Movshovich, J. D. Garrett, C. A. Marjerrison, J. P.
+Clancy, E. Kermarrec, G. M. Luke, A. D. Bianchi, K. A. Ross,
+and B. D. Gaulin, Phys. Rev. X 12, 021015 (2022).
+[94] A. Bhardwaj, S. Zhang, H. Yan, R. Moessner, A. H. Nev-
+idomskyy, and H. J. Changlani, npj Quantum Materials 7, 51
+(2022).
+[95] M. Hosoi, E. Z. Zhang, A. S. Patri, and Y. B. Kim, Phys. Rev.
+Lett. 129, 097202 (2022).
+[96] V. Porée, H. Yan, F. Desrochers, S. Petit, E. Lhotel, M. Appel,
+J. Ollivier, Y. B. Kim, A. H. Nevidomskyy, and R. Sibille,
+Nature Physics 21, 83 (2025).
+[97] V. Porée, A. Bhardwaj, E. Lhotel, S. Petit, N. Gauthier, H. Yan,
+V. Pomjakushin, J. Ollivier, J. A. Quilliam, A. H. Nevidom-
+skyy, H. J. Changlani, and R. Sibille, Phys. Rev. B 112,
+L180404 (2025).
+[98] A. Bhardwaj, V. Porée, H. Yan, N. Gauthier, E. Lhotel, S. Pe-
+tit, J. A. Quilliam, A. H. Nevidomskyy, R. Sibille, and H. J.
+Changlani, Phys. Rev. B 111, 155137 (2025).
+[99] A. Bärtschi, F. Caravelli, C. Coffrin, J. Colina, S. Eidenbenz,
+A. Jayakumar, S. Lawrence, M. Lee, A. Y. Lokhov, A. Mishra,
+et al., arXiv preprint arXiv:2406.06625 (2024).
+[100] P. Laurell, A. Scheie, E. Dagotto, and D. A. Tennant, Ad-
+vanced Quantum Technologies 8, 2400196 (2025).
+[101] A. Scheie, P. Laurell, W. Simeth, E. Dagotto, and D. A. Ten-
+nant, Materials Today Quantum , 100020 (2024).
+[102] P. Hauke, M. Heyl, L. Tagliacozzo, and P. Zoller, Nature
+Physics 12, 778 (2016).
+[103] A. Scheie, P. Laurell, A. M. Samarakoon, B. Lake, S. E. Na-
+gler, G. E. Granroth, S. Okamoto, G. Alvarez, and D. A. Ten-
+nant, Phys. Rev. B 103, 224434 (2021).
+[104] G. Xu, Z. Xu, and J. M. Tranquada, Review of Scientific In-
+struments 84, 083906 (2013).
+[105] P. Laurell, A. Scheie, C. J. Mukherjee, M. M. Koza, M. En-
+derle, Z. Tylczynski, S. Okamoto, R. Coldea, D. A. Tennant,
+and G. Alvarez, Phys. Rev. Lett. 127, 037201 (2021).
+[106] A. P. Ramirez, A. Hayashi, R. J. Cava, R. Siddharthan, and
+B. Shastry, Nature 399, 333 (1999).
+[107] V. Peçanha-Antonio, E. Feng, Y. Su, V. Pomjakushin, F. Dem-
+mel, L.-J. Chang, R. J. Aldus, Y. Xiao, M. R. Lees, and
+T. Brückel, Phys. Rev. B 96, 214415 (2017).
+[108] D. Lozano-Gómez, O. Benton, M. J. Gingras, and H. Yan,
+arXiv preprint arXiv:2411.03547 10.48550/arXiv.2411.03547
+(2024).
+
+
+15
+SUPPLEMENTAL INFORMATION FOR INTRINSIC
+QUANTUM DISORDER IN YB2TI2O7 AND THE QUANTUM
+S = 1/2 PYROCHLORE PHASE DIAGRAM
+I. PYROCHLORE GEOMETRY AND EFFECTIVE SPIN-1/2
+DIPOLAR HAMILTONIAN
+We summarize here some key details of the pyrochlore ge-
+ometry and low-energy effective spin-1/2 dipolar Hamilto-
+nian. Some of these details overlap with what has been re-
+ported in previous work (for example, see Refs. [19, 30, 32,
+37, 54]) – we restate them here for completeness.
+The pyrochlore lattice has four sublattices, which we la-
+bel as 0, 1, 2, 3, and we take the relative locations of the
+sites on a single tetrahedron to be, (in units of lattice con-
+stant a) r0 = (1/8, 1/8, 1/8), r1 = (1/8, −1/8, −1/8), r2 =
+(−1/8, 1/8, −1/8) and r3 = (−1/8, −1/8, 1/8). The centers of
+each such tetrahedron lie on the vertices of a FCC lattice. Thus
+a finite size cluster would have 4L3 sites where L corresponds
+to the number of translations along each of the primitive lat-
+tice vectors. Our 32 site system corresponds to L = 2, see
+Fig. S.1. Alternatively, the sites of a pyrochlore lattice can be
+Figure S.1. 32 site cluster used in the ED calculations.
+thought of as those derived from a simple cubic lattice with a
+16 site unit cell. A simple cubic lattice with edge length L has
+16L3 sites, and thus our 16 site system corresponds to the case
+of L = 1. Periodic boundary conditions along the directions of
+the primitive lattice vectors of the underlying Bravais lattice
+are considered in both cases.
+As mentioned in the main text, the spin 1/2 low-energy
+effective Hamiltonian on the pyrochlore lattice, with near-
+est neighbor interactions and Zeeman coupling to an external
+field (h = (hx, hy, hz)) is given by,
+H = 1
+2
+X
+ij
+Jµν
+ij S µ
+i S ν
+j −µBhµ X
+i
+gµν
+i S ν
+i
+(S1)
+where i, j are nearest neighbors and µ, ν refer to x, y, z, S µ
+i re-
+fer to the spin-1/2 components at site i, and Jij and gi are bond
+and site dependent interactions and coupling matrices respec-
+tively. Symmetry considerations dictate that Ji j and gi are
+completely described by four (J1, J2, J3, J4) and two (gxy,gz)
+scalars respectively. Ji j depends only on the sublattices that
+i, j belong to, similarly gi depends only on the sublattice of
+site i, and thus we use the notation in terms of i, j = 0, 1, 2, 3.
+Also, since Ji j = JT
+ji, we write out only the i < j matrices. The
+Ji j matrices are,
+J01 ≡
+
+J2
+J4 J4
+−J4 J1 J3
+−J4 J3 J1
+,
+J02 ≡
+
+J1 −J4 J3
+J4
+J2
+J4
+J3 −J4 J1
+,
+J03 ≡
+
+J1 J3 −J4
+J3 J1 −J4
+J4 J4
+J2
+,
+J12 ≡
+
+J1
+−J3
+J4
+−J3
+J1
+−J4
+−J4
+J4
+J2
+,
+J13 ≡
+
+J1
+J4
+−J3
+−J4
+J2
+J4
+−J3 −J4
+J1
+,
+J23 ≡
+
+J2
+−J4
+J4
+J4
+J1
+−J3
+−J4 −J3
+J1
+.
+Defining g+ =
+1
+3(2gxy + gz) and g−=
+1
+3(gxy −gz), the gi
+matrices read as,
+g0 ≡
+
+g+
+−g−−g−
+−g−
+g+
+−g−
+−g−−g−
+g+
+,
+g1 ≡
+
+g+
+g−
+g−
+g−
+g+
+−g−
+g−−g−
+g+
+,
+g2 ≡
+
+g+
+g−−g−
+g−
+g+
+g−
+−g−g−
+g+
+,
+g3 ≡
+
+g+
+−g−g−
+−g−
+g+
+g−
+g−
+g−
+g+
+.
+II. ADDITIONAL NEUTRON SCATTERING DATA
+The scattering data shown in the main text are cuts along
+high-symmetry directions in reciprocal space. In Fig. S.2 we
+plot the full [hk0] scattering plane of data. The higher reso-
+lution data with Ei = 2.49 meV along the hh0 direction are
+shown in Fig. S.3. Even in the colormap plots, the resonance
+at 0.11 meV is distinctly visible at low temperatures.
+In Appendix B we compute the Quantum Fisher Informa-
+tion (QFI) of Yb2Ti2O7 as a function of magnetic field. QFI is
+a wavevector-dependent quantity [101], and in Figure S.4 we
+plot the nQFI [normalized QFI, main text Eq. (B1)] along the
+high symmetry directions. Interestingly, the peak QFI is dif-
+ferent between zero field and the finite field data. In Appendix
+B, we plot the maximal QFI across the Brillouin zone to give
+the most stringent bound on multipartite entanglement.
+An important part of the absolute unit conversion to S =
+1/2 (and thus being able to compute nQFI) is normalizing
+the g-tensor, as discussed in Appendix B. Figure S.5 shows
+the data compared to LSWT calculations with and without the
+anisotropic g-tensor gxx = gyy = gxy = 4.17, gzz = gz = 2.14
+[31] included in the intensity calculation. To a rough approx-
+imation, the LSWT without a g-tensor is a simple intensity
+rescaling (though some details differ, particularly the visibil-
+ity of the weak low-energy modes).
+
+
+16
+2
+0
+(
+)
+0.0 T
+(a)
+= .  meV
+(h)
+= .
+ meV
+(o)
+= .  meV
+(v)
+= .
+ meV
+(cc)
+= .  meV
+(jj)
+= .
+ meV
+(qq)
+= .  meV
+2
+0
+(
+)
+0.15 T
+(b)
+(i)
+(p)
+(w)
+(dd)
+(kk)
+(rr)
+2
+0
+(
+)
+0.3 T
+(c)
+(j)
+(q)
+(x)
+(ee)
+(ll)
+(ss)
+2
+0
+(
+)
+0.45 T
+(d)
+(k)
+(r)
+(y)
+(ff)
+(mm)
+(tt)
+2
+0
+(
+)
+0.6 T
+(e)
+(l)
+(s)
+(z)
+(gg)
+(nn)
+(uu)
+2
+0
+(
+)
+1.0 T
+(f)
+(m)
+(t)
+(aa)
+(hh)
+(oo)
+(vv)
+2
+0
+2
+(
+)
+2
+0
+(
+)
+2.0 T
+(g)
+2
+0
+2
+(
+)
+(n)
+2
+0
+2
+(
+)
+(u)
+2
+0
+2
+(
+)
+(bb)
+2
+0
+2
+(
+)
+(ii)
+2
+0
+2
+(
+)
+(pp)
+2
+0
+2
+(
+)
+(ww)
+0.0
+0.5
+1.0
+1.5
+2.0
+( , ) (meV
+)
+Figure S.2. Constant energy slices of (hk0) scattering in Yb2Ti2O7. The rows show the seven measured fields from 0 T to 2 T, and the columns
+indicate different constant energy ranges, with a bin width ℏω ± 0.05 meV. A 12 K background was subtracted, as described in main text
+Appendix A.
+1.5
+2.0
+0.2
+0.0
+0.2
+0.4
+ (meV)
+(a)
+0.15 K
+1.5
+2.0
+(b)
+0.2 K
+1.5
+2.0
+(c)
+0.25 K
+1.5
+2.0
+(d)
+0.3 K
+1.5
+2.0
+(e)
+0.35 K
+0
+1
+2
+ (arb. u.)
+Figure S.3. Yb2Ti2O7 scattering measured with Ei = 2.49 meV neutrons at temperatures between 0.15 K and 0.35 K, with 2 T scattering
+subtracted as a background. Note the resonance at 0.11 meV below Tc = 0.27 K which disappears above the phase transition. Line cuts of this
+feature are shown in main text Fig. 8.
+III. DETAILS OF NONLINEAR SPIN WAVE THEORY
+(NLSWT) CALCULATIONS
+Our NLSWT calculations are carried out in the basis of
+the original Holstein-Primakoff bosons with both the nor-
+mal and anomalous parts of the Green’s functions kept at
+each stage of the calculation.
+For the dynamical struc-
+ture factor the nonlinear spin-wave corrections both renor-
+malize the transverse-transverse spin-spin correlation func-
+tion that appears in linear spin-wave theory, but also provide
+contributions to the longitudinal-longitudinal and transverse-
+longitudinal spin-spin correlation functions [51]. We calcu-
+lated the field-dependent spectra for a wavevector grid cor-
+responding to a finite system of size N = 4L3 with L = 32,
+with the self-energy and other dynamical correlation functions
+discretized on a dense frequency grid. The relevant matrix
+Green’s functions are computed directly with a very small ar-
+tificial broadening and the final dynamical structure factor is
+then convolved with a Gaussian of width comparable to the
+experimental energy resolution.
+
+
+17
+0.0
+0.5
+1.0
+ (meV)
+(a)
+0.0 T
+0
+1
+2
+nQFI
+(h)
+0.0
+0.5
+1.0
+ (meV)
+(b)
+0.15 T
+0
+1
+2
+nQFI
+(i)
+0.0
+0.5
+1.0
+ (meV)
+(c)
+0.3 T
+0
+1
+2
+nQFI
+(j)
+0.0
+0.5
+1.0
+ (meV)
+(d)
+0.45 T
+0
+1
+2
+nQFI
+(k)
+0.0
+0.5
+1.0
+ (meV)
+(e)
+0.6 T
+0
+1
+2
+nQFI
+(l)
+0.0
+0.5
+1.0
+ (meV)
+(f)
+1.0 T
+0
+1
+2
+nQFI
+(m)
+K
+X
+0.0
+0.5
+1.0
+ (meV)
+(g)
+2.0 T
+K
+X
+0
+1
+2
+nQFI
+(n)
+LSWT
+NLSWT
+THED
+ 
+0
+1
+2
+3
+( , ) (meV
+)
+Figure S.4. Quantum Fisher Information versus wavevector along high symmetry cuts. Panels (a)-(g) show the inelastic intensity normalized
+to S = 1/2, and panels (h)-(n) show the calculated QFI of Yb2Ti2O7 compared to different theoretical models.
+IV. DETAILS OF THE EXACT DIAGONALIZATION
+CALCULATIONS
+As stated in the main text, we have carried out Lanczos
+exact diagonalization (ED) calculations on two system sizes,
+N = 16 and N = 32 sites (see Sec. F), with our main conclu-
+sions based on the latter. For N = 32 = 4×23, our ED calcula-
+tions used translational symmetry, that block diagonalized the
+Hamiltonian into 8 sectors, each with a Hilbert space dimen-
+sion of approximately 536 million. The sectors are labeled
+according to three dimensional momenta (k1, k2, k3), where
+ki = 0, π.
+We work with the effective spin-1/2 nearest neighbor
+Hamiltonian (see main text and Sec. F) and simulate approx-
+imately 450 parameter sets, sampling more points near phase
+boundaries. For all the parameter sets considered in this study,
+we find the ground state from ED to be in the (0, 0, 0) sector.
+Expectation values of spin operators (static spin correlations)
+were computed in the ground state for each parameter set.
+These correlations were processed by utilizing the relation-
+ship between magnetic moments and spins (dipoles) given by,
+M(i)
+µ =
+X
+ρ
+g(i)
+µ,ρS (i)
+ρ
+(S2)
+where i is a site label and µ, ν refer to x, y, z (in the global
+frame). This yields,
+⟨M(i)
+µ M( j)
+ν ⟩=
+X
+ρ,γ
+g(i)
+µ,ρg( j)
+ν,γ⟨S (i)
+ρ S ( j)
+γ ⟩
+(S3)
+where ⟨...⟩indicates expectation values computed in the
+ground state. Note that even though our ED based theoret-
+ical phase diagram was constructed for the case of zero ex-
+ternal field, the g matrices are required for the transformation
+between spins to magnetic moments.
+
+
+18
+0.0
+0.5
+1.0
+ (meV)
+(a)
+0.0 T
+(e)
+ 0.0 T
+intensity/13
+LSWT
+(i)
+0.0 T
+LSWT, no 
+0.0
+0.5
+1.0
+ (meV)
+(b)
+0.3 T
+(f)
+ 0.3 T
+intensity/13
+(j)
+0.3 T
+0.0
+0.5
+1.0
+ (meV)
+(c)
+1.0 T
+(g)
+ 1.0 T
+intensity/13
+(k)
+1.0 T
+K
+X
+0.0
+0.5
+1.0
+ (meV)
+(d)
+2.0 T
+K
+X
+(h)
+ 2.0 T
+intensity/13
+K
+X
+(l)
+2.0 T
+0
+1
+2
+3
+( , ) (meV
+)
+Figure S.5. Comparison of the inelastic spectrum of Yb2Ti2O7 experiment (a)-(d), with the g-tensor (e)-(h), and without the g-tensor (i)-(l).
+(The simulations with the g-tensor were plotted with intensity divided by a factor of 13 to keep all plots on the same color scale.) At all fields
+there are only minor differences between the LSWT calculations, and so we normalize the 2 T neutron scattering to the LSWT calculation in
+panel (l).
+These correlations were then Fourier transformed to com-
+pare our results with the measurements of energy-integrated
+neutron scattering.
+S (Q) = 1
+N
+X
+µ,ν
+
+δµν −QµQν
+Q2
+
+eiQ·(ri−r j)⟨M(i)
+µ M(j)
+ν ⟩
+(S4)
+V. CORRELATION ANALYSIS
+We construct the phase diagram from the calculated S (Q)
+structure factors by computing correlation statistics with char-
+acteristic S (Q) as shown in Fig. S.6. The method is as fol-
+lows: we select a “characteristic structure factor” from each
+phase deep inside the phase as defined by the classical phase
+boundaries found in Ref. [37]. We then create a 1D vector
+of pixel intensities of each structure factor S (Q), and compute
+the correlation with each of the characteristic spectra using
+the covariance and Pearson R statistic (as implemented in the
+Scipy package [55]).
+From this, we build a phase diagram by assigning the Pear-
+son R correlation with Ψ3/Ψ2, Ψ4, and FM as red, green, and
+blue values respectively.
+By plotting the colors on a grid,
+the phase diagram naturally emerges.
+We then interpolate
+between the calculated points to fill out the phase diagram
+(the Ψ3/Ψ2 phase appears as orange because there is nonzero
+correlation with Ψ4 antiferromagnetism even deep inside the
+phase).
+The only assumption we have made in this analysis is that
+there are three phases, but the boundaries between them are
+very clear. The weakness of this approach is also that we have
+assumed only three phases. The existence of a small region
+in the center of the phase diagram where no phase seems to
+be stabilized is an indication of a quantum disordered phase,
+as is the Heisenberg spin liquid region in the upper right hand
+side of the phase diagram.
+An alternative view of this data is plotting the covariance,
+which takes into account not only the correlation between dif-
+ferent S (Q), but the relative intensities of the correlated fea-
+tures. As such, this is an approximate way to estimate the
+strength of the ordered moment. From this, we see the dra-
+matic moment reduction along the FM/AFM phase boundary
+discussed in the main text.
+Figure S.7 shows the correlation analysis of the Yb2Ti2O7
+phase diagram including a colormap of the energy land-
+scape. Figure S.8 shows the same phase diagram with J3 =
+−0.3 meV, J4 = 0.0 instead of the Yb2Ti2O7 values. This is
+very similar to the Yb2Ti2O7 phase diagram, although here the
+difference between the classical and quantum phase bound-
+aries is slightly greater.
+
+
+19
+2.5
+0.0
+2.5
+(
+)
+4
+2
+0
+2
+4
+(
+)
+(a)
+=
+.
+=
+.
+Sample
+2.5
+0.0
+2.5
+(
+)
+2.5
+0.0
+2.5
+(
+)
+(b)
+FM
+2.5
+0.0
+2.5
+(
+)
+2.5
+0.0
+2.5 (c)
+2.5
+0.0
+2.5
+(
+)
+2.5
+0.0
+2.5 (d)
+/
+0
+50
+(FM)
+0
+10
+20
+30
+ (sample)
+Cov = 43.613
+Pearson R = 0.974
+(e)
+0
+20
+40
+(
+)
+Cov = 4.48
+Pearson R = 0.129
+(f)
+0
+20
+40
+(
+/
+)
+Cov = 7.936
+Pearson R = 0.218
+(g)
+1
+0
+1
+| |
+1
+0
+1
+| |
+sample 
+/
+FM
+(h)
+=
+.
+,  
+= .
+Figure S.6.
+Correlation analysis to construct the phase diagram.
+Panel (a) shows a sample calculated S (q) spectrum with J
+=
+{−0.1, −0.05, −0.272, 0.049} meV. Panel (b) shows the characteristic FM spectrum at J = {−0.5, −0.5, −0.272, 0.049} meV, panel (c)
+shows the characteristic Ψ4 structure factor J = {0.0, 0.5, −0.272, 0.049} meV, and panel (d) shows the characteristic Ψ3/Ψ2 spectrum
+J = {0.5, −0.5, −0.272, 0.049} meV. Panels (e)-(f) show the pixel intensities of the sample S (Q) plotted against the FM, Ψ4, and Ψ3/Ψ2
+spectra. Each panel shows the covariance and Pearson R statistic, showing clearly that the spectra is dominantly FM. Panel (h) shows the phase
+diagram constructed from the correlation analysis.
+1
+0
+1
+| |
+1.5
+1.0
+0.5
+0.0
+0.5
+1.0
+1.5
+| |
+/
+FM
+Classical
+boundary
+(a)
+Phase Correlation
+1
+0
+1
+| |
+/
+FM
+(b)
+Ordered moment
+1
+0
+1
+| |
+=
+.
+= .
+(c)
+Energy
+0.0
+0.2
+0.4
+0.6
+0.8
+1.0
+fraction ordered (covariance)
+101
+100
+Ground state energy
+Figure S.7. Calculated pyrochlore phase diagram assuming J3 = −0.272 meV, J4 = 0.049 meV (the Yb2Ti2O7 parameters in Ref. [31]). Panel
+(a) shows the phases determined by Pearson R correlations. Panel (b) shows the size of the ordered moment calculated via covariance with
+the reference S (Q). Panel (c) shows the ground state energy; interestingly, the maximum energy is within the Ψ4 phase rather than on a phase
+boundary. Black circles indicate parameters which were explicitly calculated, pixels in between were interpolated, solid lines are the classical
+phase boundary [37].
+Classical phase boundaries
+Overtop the phase diagram computed from ED, we also plot
+the phase boundaries derived in Ref. [37]:
+J2 = J1 −2J4
+J2 = −J1J3 + 2J1J4 −2J3J4 + 2J2
+4
+J3 −2J4
+J2 = 4J2
+1 −5J1J3 −2J1J4 + 2J3J4
+4J1 −J3 −2J4
+where the degenerate point at the center of the phase diagram
+is at J1 = J2
+4/(2J4 −J3).
+VI. ADDITIONAL LINE SCANS FOR TRACKING THE
+INTERMEDIATE PHASE
+Figure 1 of the main text shows our phase diagram with
+multiple boundaries; these were determined by analyses of the
+type shown in Fig. 3 and 4, and Fig.S.9. Here we build on the
+observation that the second derivative of the energy with J1,
+for fixed J2=-0.326 meV, shows a spike near the FM/AFM
+phase boundary. [The magnitude of the spike is largely con-
+trolled by the size of the spacing of the parameter grid cho-
+sen.] Importantly, its presence indicates an additional inter-
+mediate phase between FM and AFM (Ψ3/Ψ2).
+
+
+20
+1
+0
+1
+| |
+1.5
+1.0
+0.5
+0.0
+0.5
+1.0
+1.5
+| |
+/
+FM
+Classical
+boundary
+=
+.
+= .
+(a)
+Phase Diagram
+1
+0
+1
+| |
+/
+FM
+=
+.
+= .
+(b)
+Ordered moment
+2
+0
+2
+(
+)
+FM
+/
+(c)
+2
+0
+2
+(
+)
+/
+(d)
+4
+2 0
+2
+4
+(
+)
+2
+0
+2
+(
+)
+/
+/
+(e)
+4
+2 0
+2
+4
+2
+0
+2
+(
+)
+Center
+(f)
+4
+2 0
+2
+4
+(
+)
+2
+0
+2
+(
+)
+     Heisenberg
+QSL
+(g)
+0.0
+0.2
+0.4
+0.6
+0.8
+1.0
+fraction ordered (covariance)
+0
+2
+4
+6
+8
+10
+12
+( ) (arb. u.)
+Figure S.8. Calculated pyrochlore phase diagram assuming J3 = −0.3 meV, J4 = 0.0. Panel (a) shows the phases determined by Pearson R
+correlations. Panel (b) shows the size of the ordered moment calculated via covariance with the reference spectra. Panels (c)-(e) show the
+reference S (Q) for FM, Ψ4, and Ψ3/Ψ2. Panel (f) shows the spectrum for the center of the phase diagram, and panel (g) shows the spectrum
+for the Heisenberg quantum spin liquid region at the top right. Qualitatively, these results are the same as in main text Fig. 2, but in this case
+the phase boundaries are shifted more from the classical values.
+8
+6 (a)
+= . ,
+= .
+,
+= .
+10
+0
+10
+/
+(b)
+0.50
+0.25
+0.00
+0.25
+0.50
+ (meV)
+75
+50
+25
+/
+(c)
+7.5
+5.0 (d)
+= . ,
+= .
+,
+= .
+10
+0
+10
+/
+(e)
+0.50
+0.25
+0.00
+0.25
+0.50
+ (meV)
+100
+0
+/
+(f)
+7.5
+5.0 (g)
+= . ,
+= .
+,
+= .
+10
+0
+10 (h)
+0.50
+0.25
+0.00
+0.25
+0.50
+ (meV)
+100
+0
+(i)
+5
+4 (j)
+= .
+,
+= .
+,
+= .
+10
+0
+10 (k)
+0.2
+0.1
+0.0
+0.1
+ (meV)
+100
+50 (l)
+10
+5 (m)
+= ,
+= .
+,
+= .
+10
+0
+10 (n)
+0.50
+0.25
+0.00
+0.25
+0.50
+ (meV)
+200
+0 (o)
+10
+5 (p)
+=
+. ,
+= .
+,
+= .
+10
+0
+10 (q)
+0.50
+0.25
+0.00
+0.25
+0.50
+ (meV)
+200
+0 (r)
+ED results
+Lorentzian fit
+Figure S.9. Energy scans used to identify phase boundaries in main text Fig. 1. Energy and its derivatives are plotted against J1 for six different
+J2 values. The boundary itself is identified by fitting the minimum in the second derivative with a Lorentzian lineshape. All energy units are
+in meV.
+To build confidence in the numerical results, we have car-
+ried out additional line scans with J1 at other fixed values of
+J2 (-0.29 meV,-0.31 meV,-0.33 meV and -0.35 meV). The J1
+values for each of these J2 were varied from 0 to -0.02 meV
+in increments of 0.001 meV. Our results for the ground state
+energy, and its first and second derivatives with J1 are shown
+in Fig. S.10 and clearly demonstrate that such spikes are also
+present at other values of J2 near the FM/AFM phase bound-
+ary. We note that lowering J2 from −0.29 to −0.35 meV leads
+to a movement of this feature to lower (more negative) val-
+ues of J1, consistent with the shape of the intermediate/AFM
+phase boundary shown in Fig. 1 of the main text.
+VII. CLASSICAL SPIN LIQUIDS
+It is natural to ask whether the X →Γ flat band ob-
+served at 0.15 T in Yb2Ti2O7 can be reproduced by any of
+
+
+21
+(a)
+(c)
+(b)
+(d)
+Figure S.10.
+Ground state energy and its first and second derivative with J1, as a function of J1/|J3| for J2 values fixed at (a)
+−0.29 meV,(b)−0.31 meV, (c) −0.33 meV and (d) −0.35 meV. J3 = −0.272 meV and J4 = 0.049 meV, which correspond to the Yb2Ti2O7
+Hamiltonian, were kept fixed. All energy units are in meV.
+the highly degenerate points in the pyrochlore phase diagram
+[67, 68, 108]. In Fig. S.11 we plot the LSWT calculated spec-
+tra of the nine classical spin liquids (CSLs) from Ref. [108]
+in a µ0H = 0.15 T field along [001]. Although there are many
+intense flat bands near zero energy which correpond to ex-
+tensive degeneracies, none of them match precisely the flat
+modes observed in Yb2Ti2O7. Therefore, despite the fact that
+the extended quantum phase is continuously connected to the
+“pinch-line” spin liquid (CSL 7 in Fig. S.11) it is not possible
+to simplistically associate these features with this particular
+spin liquid.
+It is also worth asking whether one of the line-degeneracies
+(specifically the line where J2 = −J1) reproduces the flat
+Γ →X mode. In Fig. S.12 we tune along this J2 = −J1
+“nematic phase” boundary [67, 68] connecting the CSL 3 to
+CSL 7 (pinch line) spin liquids [108], but do not find a clear
+region where the flat Γ →X mode is reproduced.
+The failure of this exercise is not surprising as LSWT ne-
+glects interactions between magnons. Nevertheless, it would
+have been useful to know whether tuning to a known classi-
+cal degeneracy would have reproduced the flat modes which
+seem to be driving the Yb2Ti2O7 to its exotic behaviors.
+
+
+22
+0.0
+0.5
+1.0
+ (meV)
+(a) CSL 1: Spin ice
+= [ , , , ]
+ 
+= [
+/ , / ,
+/ ,
+/ ]
+(b) CSL 2: SL
+= [ , , ,
+.
+]
+ 
+= [
+/ , / , / , / ]
+(c) CSL 3: pHAF
+= [ . , , ,
+.
+]
+ 
+= [
+. , . , , ]
+0.0
+0.5
+1.0
+ (meV)
+(d) CSL 4: R -R
+= [ . ,
+. , , . ]
+ 
+= [
+. ,
+. , ,
+. ]
+(e) CSL 5: R -R
+= [ .
+, .
+, , .
+]
+ 
+= [ .
+, .
+,
+/ ,
+/
+]
+(f)
+CSL 6: SV-R2U1
+= [ , .
+, .
+, .
+]
+ 
+= [ .
+, .
+, .
+,
+.
+]
+K
+X
+0.0
+0.5
+1.0
+ (meV)
+(g) CSL 7: PL
+= [ / , / ,
+.
+, /
+]
+ 
+= [ , ,
+. , ]
+K
+X
+(h) CSL 8: HAFM
+= [
+. , . , .
+, . ]
+ 
+= [ . , . , , ]
+K
+X
+(i)
+CSL 9: HAFM
+= [
+. , . ,
+.
+, . ]
+ 
+= [ .
+,
+.
+,
+.
+, .
+]
+0
+5
+10
+15
+20
+( , ) (
+/mev)
+Figure S.11. LSWT calculations of the nine classical spin liquids in Ref. [108] in a µ0H = 0.15 T field along the c axis. The Hamiltonians of
+each are listed in the upper right in the global basis JG = [Jzz, J±±, Jz±, J±] local basis JL = [J1, J2, J3, J4]. None of these spectra resemble the
+experimental Yb2Ti2O7 spectra where an intense flat band runs from X to Γ.
+0
+1
+ (meV)
+(a)
+= [
+. , . , , ]
+(e)
+= [
+. , . , . , ]
+(i)
+= [
+. , . , . , ]
+0
+1
+ (meV)
+(b)
+= [
+.
+, .
+, .
+, ]
+(f)
+= [
+.
+, .
+, .
+, ]
+(j)
+= [
+.
+, .
+, .
+, ]
+0
+1
+ (meV)
+(c)
+= [
+. , . , . , ]
+(g)
+= [
+. , . , . , ]
+K
+X
+(k)
+= [ , , . , ]
+K
+X
+0
+1
+ (meV)
+(d)
+= [
+.
+, .
+, .
+, ]
+K
+X
+(h)
+= [
+.
+, .
+, .
+, ]
+0
+5
+10
+15
+20
+( , ) (
+/mev)
+Figure S.12. LSWT calculations in a µ0H = 0.15 T field along c tuning from Ref. [108] Classical Spin Liquid (CSL) 3 to CSL 7 (Fig. S.11).
+None of the simulations reproduce the flat Γ →X mode noted in Yb2Ti2O7 and the interacting-magnon simulations.

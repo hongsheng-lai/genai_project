@@ -1,0 +1,829 @@
+Game Master LLM: Task-Based Role-Playing for Natural Slang
+Learning
+Amir Tahmasbi
+Purdue University
+atahmasb@purdue.edu
+Milad Esrafilian
+Purdue University
+mesrafil@purdue.edu
+Judson Wright
+Purdue University
+wrigh703@purdue.edu
+Sooyeon Jeong
+Purdue University
+sooyeonj@purdue.edu
+Aniket Bera
+Purdue University
+aniketbera@purdue.edu
+Abstract
+Natural and idiomatic expressions are essential for fluent, everyday
+communication, yet many second-language learners struggle to
+acquire and spontaneously use casual slang despite strong formal
+proficiency. To address this gap, we designed and evaluated an LLM-
+powered, task-based role-playing game in which a GPT-4o-based
+Game Master guides learners through an immersive, three-phase
+spoken narrative. After selecting five unfamiliar slang phrases to
+practice, participants engage in open-ended dialogue with non-
+player characters; the Game Master naturally incorporates the tar-
+get phrases in rich semantic contexts (implicit input enhancement)
+while a dedicated Practice Box provides real-time explicit track-
+ing and encouragement. Post-session, learners receive multi-level
+formative feedback analyzing the entire interaction.
+We evaluated the system in a between-subjects study with 14
+international graduate students, randomly assigned to either the
+RPG condition or a control condition consisting of a traditional
+AI-led virtual classroom. Results from an immediate post-test show
+that the RPG group achieved greater gains in both comprehension
+of the target phrases and their accurate, contextual use in sentences.
+Quantitative analysis of in-activity word-usage frequency, com-
+bined with qualitative survey responses, further indicates that the
+game-based approach provided more practice opportunities and
+higher perceived engagement, resulting in a more natural learning
+experience. These findings highlight the potential of narrative-
+driven LLM interactions in vocabulary acquisition.
+1
+Introduction
+Language is a fundamental tool for human communication, en-
+abling individuals to share information, convey ideas, and interact
+socially and professionally [41, 47]. In a globalized world, effec-
+tive communication across cultural and linguistic boundaries is
+essential for both collaboration and coexistence. Universities pro-
+vide a clear illustration of this need, as individuals from diverse
+backgrounds come together to learn, research, and exchange ideas.
+In the 2023-2024 academic year alone, over 1.1 million interna-
+tional students were enrolled in U.S. higher education institutions,
+comprising approximately 6% of the total student population [34].
+Despite general proficiency as measured by standardized language
+assessments such as TOEFL [45] and IELTS [18] many learners con-
+tinue to face challenges in using language actively across diverse
+and spontaneous interaction settings. The speaking components of
+these exams tend to reflect structured, academic scenarios, offering
+Figure 1: Overview of the LLM-powered RPG interaction
+loop. Spoken user input is transcribed by Whisper and sent
+to the GPT-4o Game Master along with the current game
+state, predefined scene assets as well as descriptions of NPCs.
+The Game Master dynamically advances the narrative, se-
+lects and displays the appropriate background and speak-
+ing/companion NPC(s) based on the player’s actions and lo-
+cation, updates visual elements, and naturally recasts the
+learner’s target slang phrases in meaningful contexts when
+situationally appropriate.
+only a partial view of a learner’s communicative ability in infor-
+mal, imaginative, or less predictable conversations [19]. As a result,
+students may score well on these exams yet continue to struggle
+with real-time conversations and natural syntax use in academic or
+social settings.
+Language teaching methods have continuously evolved over
+the centuries. Traditional approaches began with the Grammar-
+Translation Method (GTM) [7], which emphasized grammatical
+arXiv:2511.15504v1  [cs.HC]  19 Nov 2025
+
+
+Amir Tahmasbi, Milad Esrafilian, Judson Wright, Sooyeon Jeong, and Aniket Bera
+structures and the translation of texts from the learner’s native
+language into the target language. This was followed by the Audio-
+Lingual Method [33], which focused on memorization of dialogues
+and the use of repetitive drills to develop listening and speaking
+skills, with special emphasis on pronunciation. The focus then
+shifted to the Direct Method [11], which emphasized instruction en-
+tirely in the target language. In this approach, comprehension was
+developed without explicit grammar instruction. An offshoot of the
+Direct Method was Content-Based Instruction (CBI), including mod-
+els like CLIL (Content and Language Integrated Learning) [3, 12],
+which borrowed from immersion programs and prioritized spoken
+communication through topic-based curricula rather than grammar
+or vocabulary drills. These traditional and early modern methods
+typically positioned the teacher as the central source of knowledge,
+with students playing passive roles. However, with the emergence
+of more modern pedagogical frameworks, the teacher’s role grad-
+ually shifted to that of a facilitator, supporting students in more
+active, collaborative learning such as cooperative learning [10, 42],
+which integrates academic and social activities, and Community
+Language Learning [22, 49], which emphasizes trust and student
+autonomy, embody this shift. The Task-Based Learning Method
+(TBLT) [13, 27], which has gained renewed attention in recent years,
+focuses on the use of authentic language to accomplish meaningful
+tasks in the target language. These modern methods have been fur-
+ther enhanced by technological advancements: virtual reality[51],
+artificial intelligence [43], and gamification [48] are increasingly
+being integrated into language education to create more immersive
+experiences that support engagement through learner-driven nar-
+ratives.
+Game-based learning, which has gained popularity in recent years,
+demonstrates moderate to large effects on cognitive, social, emo-
+tional, motivational, and engagement outcomes, making it a promis-
+ing educational tool [29]. Studies have reported significant increases
+in both learner motivation and retention within gamified learning
+environments [25, 50], along with a notable reduction in language
+learning anxiety over time [8]. With the advancement of large lan-
+guage models (LLMs) [35], including models like ChatGPT-4o, their
+application in language learning has become increasingly popular
+due to their capabilities in refining student writing and enhancing
+the quality of instructional feedback. Beyond instructional uses,
+ChatGPT serves as a self-learning tool, enabling independent lan-
+guage acquisition and cultural exploration [32]. Concurrently, in
+game design, LLMs are naturally suited for facilitating natural lan-
+guage conversations, functioning as non-player character (NPC)
+dialogue systems, and assuming mastering or assistive roles within
+games [14]. This convergence presents a compelling opportunity to
+integrate these domains, leveraging LLMs to create immersive, inter-
+active, and student-centric language learning experiences through
+game-based environments.
+In this work, we aim to develop a task-based, interactive language
+learning system that leverages a large language model (LLM) agent
+as the master of an immersive, storytelling-driven Dungeons &
+Dragons-style role-playing game. The system is designed to encour-
+age learners to engage in active spoken interaction using casual
+slang phrases as target expressions in their responses. Following
+the interaction, the system provides targeted quantitative and qual-
+itative feedback on grammar and usage of the target vocabulary to
+support reinforcement and further language development.
+Our key contributions are as follows:
+• We designed and developed a domain-specific game-based
+language learning system that integrates an LLM-driven
+narrative with dynamic visual and verbal interaction cues.
+The system updates visual elements in real time based on
+story progression and learner performance, enabling an
+immersive experience.
+• We incorporate a hybrid language learning approach that
+combines implicit and explicit feedback mechanisms. Dur-
+ing gameplay, the agent subtly reinforces target expressions
+through natural recasting, and the system continuously
+tracks the learner’s usage of target slang words. The Post-
+interaction modules then provide explicit feedback through
+usage summaries, targeted corrections, and structured prac-
+tice opportunities.
+2
+Related Work
+In this section, we review the advancement of AI technologies in
+language learning, with a focus on the capabilities of large lan-
+guage models (LLMs), and explore the pedagogical potential of role-
+playing games as interactive, engaging environments that align
+well with communicative learning objectives.
+2.1
+AI in Language Learning
+The history of AI in language learning largely began with chatbot-
+style systems, grounded in early advances in natural language
+processing (NLP) and machine learning [6]. Early systems such as
+ELIZA [52] were based on rule-based pattern matching and lacked
+the ability to interpret the meaning of user input. These systems
+simulated conversation but offered little in terms of contextual
+understanding or dynamic feedback. Subsequent developments
+included systems like Gengobot, a grammar dictionary chatbot
+designed for Japanese language learning [16], and CSIEC, which
+could generate simple communicative responses based on user in-
+put [21]. With the rise of deep learning and more advanced NLP
+techniques, conversational AI systems evolved to comprehend user
+intent, context, and sentiment, leading to more natural and flex-
+ible interactions. Commercial tools such as Quizlet, Ginger, and
+ProWritingAid began incorporating these capabilities to provide
+intelligent support in vocabulary acquisition, grammar correction,
+and writing enhancement [37].
+Large Language Model (LLM)-based chatbots now offer a wide
+range of capabilities that can enhance the language learning process.
+Several studies have examined their potential to serve as real-time
+conversational partners, helping learners practice speaking and
+writing, understand idiomatic expressions and cultural references,
+and build fluency and confidence [1, 4, 9, 17, 20, 24, 26]. In [38],
+the authors developed an LLM-powered chatbot fine-tuned specifi-
+cally for English as a Foreign Language (EFL) learners. The system
+initiates dialogue based on real-world themes (e.g., ordering food,
+job interviews). Learners speak or type responses, and the system
+generates contextually appropriate replies. It offers subtle feedback
+
+
+Game Master LLM: Task-Based Role-Playing for Natural Slang Learning
+and rephrasing options, and learners can also ask grammar-related
+questions to receive in-depth explanations. In [44], the authors
+introduced Ruffle&Riley, a conversational tutoring system that cre-
+ates a dialogue-driven learning environment using LLMs. After
+selecting a lesson topic, the system automatically generates a tu-
+toring script and facilitates a conversation between two AI agents,
+Ruffle (student) and Riley (tutor). Learners can observe or assume
+the role of Ruffle, interacting with Riley in a goal-focused dialogue.
+Throughout the session, the system prompts learners with reflective
+questions (e.g., “What do you think the main argument in this para-
+graph is?”), and provides feedback on engagement, comprehension,
+and suggested follow-ups.
+In [36], they present ELLMA-T, an embodied LLM-powered avatar
+integrated into a social virtual reality (VR) environment. Learners
+enter immersive scenarios such as restaurants, airports, or class-
+rooms, and engage in natural voice-based interactions. The agent
+is capable of real-time multi-turn conversations, adjusting its be-
+havior based on learner proficiency and task context (e.g., giving a
+presentation versus casual dialogue). Sessions may be recorded and
+reviewed post-hoc, with feedback provided on vocabulary usage,
+missed speech opportunities, and overall performance.
+In general, the recent trend in language education technology re-
+flects a shift from isolated features such as grammar correction
+toward more immersive, interaction-driven experiences, an evo-
+lution that aligns closely with modern pedagogical approaches
+emphasizing communicative competence and learner-centered en-
+gagement.
+2.2
+Linguistic Assessment and Feedback
+Methods
+In the analysis of language proficiency, accuracy is considered
+one of the major dimensions [5]. It refers to the extent to which
+a learner’s output adheres to the grammatical rules, vocabulary
+usage, and phonological or orthographic conventions of the tar-
+get language. In this dimension, various types of feedback have
+been proposed to enhance learning outcomes. These include gen-
+eral feedback, which conveys overall information about errors (e.g.,
+number, type); specific feedback, which provides sentence-based
+analysis with explanations and correction suggestions; and for-
+mative feedback, which summarizes errors and strengths while
+suggesting pathways for improvement [46]. In terms of instruc-
+tional approaches, language learning can be supported through
+both implicit and explicit strategies. Implicit feedback techniques,
+such as recasts, prompts, or clarification requests, encourage learn-
+ers to use target phrases through natural interaction without direct
+correction, allowing patterns to be acquired subconsciously. In
+contrast, explicit feedback conveys corrective information directly,
+making the learner consciously attend to the target form. Studies
+have shown that these approaches differ in their effects: explicit
+feedback often leads to stronger immediate gains, whereas implicit
+feedback tends to yield better long-term retention[28].
+2.3
+Role-Playing Games
+Role-playing games (RPGs) are a popular and widely varied cate-
+gory of games. Due to their broad and diverse formats, they can
+be difficult to define precisely; however, there are key properties
+that distinguish them from other game types. At their core, RPGs
+involve "playing a role", that is, embodying someone else’s perspec-
+tive in an interactive process of defining and re-defining the state,
+properties, and contents of an imaginary game world [53]. This
+emphasis on freedom, character embodiment, and player-centric
+mechanics, makes RPGs well aligned with modern language learn-
+ing methodologies that prioritize communication, and contextual
+engagement. Several studies [2, 23, 30, 31, 39] support this claim,
+showing that role-playing not only enhances language instruction,
+particularly in developing speaking skills, but also fosters posi-
+tive learner behaviors, attitudes, and overall engagement with the
+learning process beyond just English proficiency.
+3
+Hypotheses and Research Questions
+We hypothesize that integrating a task-based language learning
+framework within a role-playing game environment, guided by
+a large language model (LLM), can enhance learners’ active lan-
+guage use, engagement, and awareness of their own performance.
+Specifically, we propose that:
+(H1) Learners who interact with the LLM-driven role-playing
+game will demonstrate a better understanding of the mean-
+ings of target words, higher accuracy in their use and asso-
+ciated syntactic structures.
+(H2) The immersive, narrative-driven structure of the game will
+result in higher learner engagement, as evidenced by self-
+reported measures and interaction activity data.
+4
+Methodology
+In this section, we first provide a high-level overview of the user-
+facing design and interaction flow for both the experimental (RPG-
+based) and control (traditional AI classroom) conditions. We then
+describe the shared technical architecture that powers the system,
+followed by the experimental procedure, participant details, and
+evaluation measures.
+4.1
+System Overview
+4.1.1
+Experimental Group. The system operates as a dyadic [54],
+spoken turn-based interaction, where communication is understood
+as a mutual and evolving exchange between two agents: the user
+and a GPT-based Master of the game. The main goal of this ex-
+change is to collaboratively move the narrative forward. The Game
+Master (GM) establishes and dynamically adjusts the game world
+and its consequences, while the player drives the plot forward by
+making decisions and taking actions within that environment. The
+introduction of the game follows two principles: world-building
+and role embodiment. World-building is delivered through a short
+animated video that conveys the background and central mission.
+Role embodiment is fostered by letting participants choose one of
+four distinct heroes, each introduced with unique visuals and a
+short description of their special abilities. In each turn, the user re-
+ceives the current narrative state of the game through the Master’s
+Dialogue Box, then responds verbally by pressing record button
+(Fig. 4). The system processes the input and advances the narrative,
+updating both verbal and non-verbal cues, such as the background
+environment and the NPCs’ persona, according to the evolving
+game state. A dedicated Practice Box (right side of the interface,
+
+
+Amir Tahmasbi, Milad Esrafilian, Judson Wright, Sooyeon Jeong, and Aniket Bera
+Figure 2: Overview of Game Modules and LLM Narrative Generation: The agent receives the core game materials, including a
+set of NPC characters with brief descriptions to guide narrative progression, the current game state with possible locations and
+encounters, the set of target phrases, and the player’s chosen hero with its associated abilities and decision history. Based on
+these inputs, the model generates the next narrative segment, integrates the target phrases along with contextual explanations,
+and outputs the next game state and the next speaking NPC. The visual interface is then updated according to the agent’s
+interpretation.
+Figure 4) displays the five selected target slang phrases along with
+their meanings and example sentences. The system automatically
+detects and tracks each phrase’s usage in the learner’s spoken input,
+updating a real-time color-coded progress indicator: red after one
+detected use and green after two. Our design goal is for each target
+phrase to be practiced at least twice during the 12-turn game; al-
+though usage does not affect narrative progression, the box serves
+as a persistent visual scaffold, and occasional pop-up reminders gen-
+tly encourage learners to incorporate unused or once-used phrases.
+In addition to the explicit support from the Practice Box, the Game
+Master regularly uses the target slang phrases in its own dialogue
+throughout all game phases. These phrases appear in meaningful
+context or are paired with synonyms (e.g., “Do you really want to
+go in without preparation and wing it?”), giving learners repeated,
+authentic exposure to correct meaning and situational usage. An
+overview of the core modules and information flow that enable
+the Game Master to generate coherent, context-aware narrative
+responses is shown in Figure 2.
+The narrative structure follows a phase-based design, where each
+phase presents distinct goals and challenges. The game’s educa-
+tional structure is built around three main phases. Throughout the
+game, the user interacts with a predefined set of in-game characters.
+as shown in Fig. 3:
+• Phase 1: Preparation and Information Gathering The
+initial stage requires players to engage in dialogue with
+characters to ask for guidance. This phase also allows play-
+ers to form a group with the non playable characters (NPCs)
+for the subsequent adventure.
+• Phase 2: Exploration and Problem-Solving This stage
+presents players with a series of puzzles and challenges.
+Successfully solving them grants specific abilities or skills
+for later use. Players can also explore the environment to
+find equipment and weapons.
+• Phase 3: Strategy and Leadership The final phase in-
+volves a tactical battle. Victory depends on the player’s
+ability to strategically use their character’s acquired skills
+and resources to lead their party.
+This three-phase design is intended to place language learners
+in diverse communication scenarios. The narrative structure allows
+for branching: while player decisions create different paths within
+each phase, all paths converge at a single point before the narrative
+advances to the next stage. Final outcomes are determined based on
+a combination of checkpoint values and the Master’s assessment.
+4.1.2
+Control Group. The control group also follows a 12-turn,
+level-based structure divided into an introduction, ten steps of prac-
+ticing target words, and a final summary step. In the introduction,
+the agent presents itself as an AI teacher, and during the ten practice
+
+
+Game Master LLM: Task-Based Role-Playing for Natural Slang Learning
+Figure 3: Narrative flow structure of the role-playing game.
+The game is organized into sequential phases, each contain-
+ing distinct communicative goals and challenges. Within
+each phase, player responses drive branching interactions
+(illustrated by multiple paths and NPC portraits). All paths
+converge at a checkpoint before advancing to the next phase.
+Figure 4: Figure 4: Interface of the Game. Colored circles
+highlight the main elements: White – Game State (top
+background), yellow - Narration / Mentor’s Dialogue Box
+(bottom-middle, AI-generated text and prompts), magenta -
+NPC/mentor portrait (bottom-left, updates with tone), cyan -
+Recording Button, red - Target Words Tracker (right panel,
+lists the five slang phrases with meanings; each phrase turns
+red after one spoken use and green after two).
+steps, each target word is covered over two turns: first, the agent
+introduces the word and its meaning and asks the user to produce a
+sentence with it; then, after receiving the user’s response, the agent
+analyzes the sentence and provides explicit feedback on meaning
+accuracy or grammatical issues. It then proceeds to the next word.
+The session concludes with an outro summarizing the interaction.
+4.2
+System Architecture
+To enable seamless, interactive gameplay and language learning,
+user speech is first transcribed using Whisper, a multilingual auto-
+matic speech recognition (ASR) model developed by OpenAI [40].
+The transcribed input is then processed by GPT-4o, which generates
+narrative responses grounded in the current game context. These
+Figure 5: The visual interface of the AI english class. The
+Mentor’s Dialogue Box (bottom-middle) displays the AI-
+generated narrative and prompts in response to user input.
+Players use the Recording Button (bottom-center) to speak
+their replies.
+responses are vocalized using Google Cloud Text-to-Speech, pro-
+ducing real-time, natural-sounding audio output [15]. To support
+accessibility and reinforce comprehension, subtitles are displayed
+alongside audio responses, offering users dual verbal cues.
+For non-verbal feedback, we utilize two main channels: dynamic
+game state visuals and character state indicators. Each game state
+(e.g., combat, negotiation, exploration) is associated with pregen-
+erated visual assets, which are selected and updated based on the
+agent’s internal narrative evaluation. This visual system ensures
+that the environment remains responsive and contextually coherent
+throughout the interaction.
+4.3
+Experimental Setup
+4.3.1
+Participants. We recruited 16 international students (aged
+21-30), all of whom had met the English language proficiency re-
+quirement for university admission (minimum TOEFL score of
+90) and were actively engaged in English learning. Participants
+were randomly assigned to either the experimental group (LLM-
+assisted RPG interaction) or the control group. Two participants
+failed to complete the full session (one from each condition) and
+were excluded from the analysis. The remaining 14 participants
+were randomly assigned to either the experimental condition (RPG
+interaction, n=7) or the control condition (AI classroom, n=7).
+4.3.2
+Task Flow. The overall task flow is the same for both the
+experimental and control groups and is shown in Figure 6. First, the
+system presents 12 predefined slang phrases and asks participants
+to select 5 phrases they are unfamiliar with or less comfortable
+using. These phrases were chosen based on recommendations from
+English instructors at Purdue who work with international stu-
+dents and frequently observe difficulties with these expressions.
+After selecting 5 phrases, the system asks participants to indicate
+whether they are completely unfamiliar with each word, somewhat
+familiar with it, or able to guess its meaning. To more precisely
+assess partial knowledge, participants who claimed they partially
+knew a word were asked to verbally define its meaning and use it
+in a sentence.
+After the initial assessment, participants were assigned to either
+
+
+Amir Tahmasbi, Milad Esrafilian, Judson Wright, Sooyeon Jeong, and Aniket Bera
+Figure 6: Task Flow: (1) Initial assessment: participants are
+shown 12 slang phrases and select 5 they are unfamiliar with
+or less comfortable using. (2) Participants are then randomly
+assigned to either the experimental or control group and
+complete a 12-turn activity with the AI agent. (3) After the
+activity, explicit post-interaction feedback is provided based
+on the participant’s responses. (4) Final assessment: partici-
+pants define and use the phrases again.
+the control or experimental group to practice their selected phrases
+with the AI agent, either through a virtual English class or through
+the game setup described in the previous sections. Both groups
+completed a 12-turn dialogue with the AI agent, which lasted ap-
+proximately 30 minutes on average.
+The activity is followed by a post-interaction feedback phase, whose
+goal is to provide a general assessment of the interaction with a
+focus on the Accuracy dimension. The agent is prompted to deliver
+multi-level written feedback, which includes: (1) general feedback
+summarizing the number and types of errors; (2) specific feedback
+offering sentence-level corrections and explanations; and (3) forma-
+tive feedback that revisits the target word list, evaluates whether
+each term was used, and, when applicable, analyzes its correctness
+and appropriateness while optionally providing examples or revised
+uses. Then in a immediate assessment, participants are asked to
+define the meaning of each phrase and use it in a sentence, and
+they receive brief textual feedback on their usage.
+4.3.3
+Measures. In this study, we use multiple sources for ana-
+lyzing linguistic performance and engagement. For the language-
+related measures, we evaluate participants’ understanding and use
+of the target words across the initial assessment and the immedi-
+ate post-test. These measures include word meaning accuracy and
+contextual appropriateness, meaning that even if there are some
+issues such as grammar, the intended meaning and situational use
+are correct. Engagement was evaluated using a self-reported sur-
+vey administered immediately after the post-test, supplemented by
+thematic analysis of participants’ open-ended responses.
+5
+Results & Discussion
+In this section, we present both qualitative and quantitative findings.
+We organize our preliminary results into two parts: (1) language
+learning performance, with immediate post-intervention gains (2)
+engagement outcomes based on self-reported surveys; and qualita-
+tive feedback and observations.
+5.1
+Language Learning Performance
+To evaluate linguistic performance, we quantified participants’ un-
+derstanding of the target phrases using a three-tiered scoring rubric.
+A score of 1.0 was awarded for a correct and comprehensive defini-
+tion, 0.5 for a partially correct definition, and 0.0 for an incorrect
+definition or if the participant was unable to provide one. The as-
+sessment of semantic accuracy for both the definitions and the
+participant-generated sentences was performed using GPT-4o. This
+evaluation was specifically calibrated to prioritize contextual ap-
+propriateness and intended meaning, disregarding grammatical
+errors that did not impede comprehension, consistent with our
+measurements.
+Analysis of the pre-test data indicated a baseline imbalance be-
+tween cohorts; the experimental group demonstrated a slightly
+higher initial proficiency with the target phrases compared to the
+control group, scoring 1.50 compared to 1.12. To account for this
+discrepancy and accurately measure gains relative to each group’s
+starting point, we calculated a normalized growth rate. This ap-
+proach mitigates the ceiling effect for participants with higher
+pre-test scores. The formula is defined as:
+𝐺𝑟𝑜𝑤𝑡ℎ𝑅𝑎𝑡𝑒= 𝑃𝑜𝑠𝑡𝑆𝑐𝑜𝑟𝑒−𝑃𝑟𝑒𝑆𝑐𝑜𝑟𝑒
+𝑀𝑎𝑥𝑆𝑐𝑜𝑟𝑒−𝑃𝑟𝑒𝑆𝑐𝑜𝑟𝑒
+(1)
+where scores ranged from 0 (completely incorrect or no response)
+to 5 (perfect definition and appropriate contextual use), making
+5 the maximum possible score. We applied this formula to the
+average scores for both definition accuracy and correct sentence
+generation. The resulting normalized growth rates for both cohorts
+are presented in Table 1. The data indicates that the RPG group
+achieved a higher growth rate in both measures.
+Table 1: Normalized Growth Rate by Group and Task
+Assessment Task
+Control Group
+RPG Group
+Definition Accuracy
+0.822
+0.880
+Correct Sentence Generation
+0.919
+0.952
+While both cohorts demonstrated substantial improvement, these
+findings suggest that the immersive, task-based RPG framework
+was comparatively more effective in enhancing learners’ semantic
+understanding and contextual application of the target phrases.
+
+
+Game Master LLM: Task-Based Role-Playing for Natural Slang Learning
+Furthermore, a disparity in active language application was ob-
+served. As detailed in Table 2, the experimental (RPG) group utilized
+the target phrases substantially more often than the control group,
+Table 2: Mean Frequency of Target Vocabulary Usage
+Group
+Mean Usage Count
+Control Group
+6.12
+RPG Group
+10.14
+While the control group was explicitly required to use each target
+phrase (with the AI teacher directly prompting its incorporation in
+every turn), participants in the game condition were never obliged
+to do so. The Game Master frequently modelled the phrases and
+occasional pop-up reminders encouraged their use, but incorpo-
+ration remained entirely optional and had no effect on narrative
+progression or story outcomes. We hypothesize that the immersive,
+task-based environment of the game provided a compelling con-
+text and a functional incentive for this increased application. Also,
+the design, which features the "Practice Words" box as a persis-
+tent visual aid, explicitly tracks performance and visually indicates
+which phrases have been used. This scaffolding mechanism likely
+prompted learners to actively and repeatedly integrate the target
+vocabulary within the narrative context to satisfy the task-based
+requirements.
+In the post-test sentence-creation task, the two most highly en-
+gaged participants from RPG group (identified by response length
+and narrative creativity) spontaneously transferred elements of the
+game’s fictional world into their examples, incorporating references
+to the game. In contrast, the majority of participants across both
+conditions contextualized the target slang within familiar daily
+routines, For example P6 said:
+"As I’m reaching the deadline, I think there’s no time
+and I need to wing it."
+or P8:
+"Every day after work, I take a shower. It helps me
+shake off the stress."
+This pattern suggests that, while deep story immersion can foster
+creative transfer of the game context for highly engaged learners,
+most users default to real-life scenarios. A promising direction
+for future work would therefore be personalized storytelling that
+adapts the narrative to each learner’s own daily routines and con-
+cerns, which may yield even stronger and more personally relevant
+learning outcomes.
+5.2
+Engagement Outcomes
+To evaluate subjective engagement and user experience, we an-
+alyzed participant responses to a post-activity survey. All self-
+reported data was quantified using a five-point Likert scale, cor-
+responding to the following mapping: (1) "Strongly disagree," (2)
+"Somewhat disagree," (3) "Neither agree nor disagree," (4) "Some-
+what agree," and (5) "Strongly agree."
+As illustrated in Fig. 7, the experimental (RPG) group reported
+a more positive experience than the control group across all mea-
+sures. Specifically, participants in the game group perceived the
+environment as more engaging, found the narrative contexts more
+useful for understanding vocabulary, and felt the system provided
+a superior opportunity to practice the target phrases.
+Beyond the quantitative ratings, qualitative feedback from the
+experimental group further elucidates why the game was perceived
+as more engaging and effective. A recurring theme was the system’s
+narrative autonomy and its impact on contextual application. Par-
+ticipants appreciated that the game’s adaptive storyline provided
+a meaningful framework for deciding how and when to use the
+target phrases. As P1 explained:
+"It adapts to the user’s response and let’s the user cre-
+ate his own unique story (though within the general
+synopsis of the story), which I find very helpful in
+letting me decide where to use what words."
+A second prominent theme was the value of active language
+production over the passive reception of information. Participants
+felt the game’s task-based mechanics, which required them to use
+the vocabulary to advance, were more effective than traditional
+drill-based methods. P7 articulated this distinction:
+"It didn’t feel like the vocabs were spoon fed to me
+since I was required to produce language through
+making sentences and speaking them out."
+These comments suggest that the RPG framework successfully
+created an environment where learners were intrinsically motivated
+to use the target language.
+Q1
+Q2
+Q3
+Q4
+0
+2
+4
+3.63
+4.13
+3.88
+4.13
+4.29
+4.57
+4.71
+4.71
+Average Rating (1-5 Scale)
+Participant Engagement and Feedback Survey
+Control Group
+Game Group
+Figure 7: Comparison of self-reported engagement and feed-
+back between the Control and Game groups. The four mea-
+sured items correspond to: (Q1) “I was engaged during the
+activity,” (Q2) “The examples and contexts helped me under-
+stand the vocabulary,” (Q3) “I had enough opportunity to
+use the vocabulary,” and (Q4) “The way the AI mentor/Game
+Master used the target words helped me understand them.”
+6
+Conclusion
+In this work, we designed, developed, and evaluated an LLM-powered
+role-playing game that employs a task-based language learning
+framework to enhance learners’ acquisition and spontaneous use
+of casual English slang vocabulary. Our findings demonstrate that
+
+
+Amir Tahmasbi, Milad Esrafilian, Judson Wright, Sooyeon Jeong, and Aniket Bera
+while both interactive methods, role-playing style and traditional
+virtual classroom instruction, are effective, the task-based RPG
+framework yields superior results in both linguistic performance
+and learner engagement. Quantitatively, the experimental RPG co-
+hort exhibited higher normalized growth rates for both definition
+accuracy, and correct sentence generation. Furthermore, the RPG
+group demonstrated significantly higher active vocabulary usage,
+applying the target phrases much more frequently during the activ-
+ity than the control group. The qualitative survey results suggest
+that participants perceived the game environment as more engag-
+ing. Furthermore, the data indicates that the examples and narration
+provided within the game were more effective in supporting their
+learning compared to the control group.
+7
+Limitations & Future Work
+Having more participants would yield more robust and reliable
+statistical insights, so we plan to continue our work by recruit-
+ing additional subjects. Another aspect that can be measured is
+long-term retention, which we intend to evaluate by repeating the
+post-test approximately one week after the activity. For future work,
+several directions are possible: expanding feedback modalities to
+include not only accuracy but also complexity, fluency, and pronun-
+ciation of the target phrases; and exploring alternative storytelling
+and game-mechanic designs that can be implemented and tested.
+References
+[1] R. Atlas. 2023. Intelligent Chatbots in Language Learning: Opportunities and
+Limitations. Journal of Applied Linguistics and Language Research (2023).
+[2] Yasin Babazade. 2024. The Impact of Digital Tools on Vocabulary Development
+in Second Language Learning. Journal of Azerbaijan Language and Education
+Studies 1 (11 2024), 35–41. doi:10.69760/jales.2024.00103
+[3] Donna M. Brinton, Marguerite Ann Snow, and Marjorie Bingham Wesche. 1989.
+Content-Based Second Language Instruction. Newbury House Publishers.
+[4] P. Brown. 2020. Chatbots and L2 Fluency Development: A Case for Real-Time
+Dialogue. Modern Language Journal 104, 4 (2020), 601–621.
+[5] Gavin Bui and Peter Skehan. 2018. Complexity, Accuracy, and Fluency. Wiley.
+doi:10.1002/9781118784235.eelt0046
+[6] Guendalina Caldarini, Sardar F. Jaf, and Kenneth J. McGarry. 2021. A Literature
+Survey of Recent Advances in Chatbots. Information 13, 1 (2021), 41. doi:10.3390/
+info13010041
+[7] Shih-Chuan Chang. 2011. A Contrastive Study of Grammar Translation Method
+and Communicative Approach in Teaching English Grammar. English Language
+Teaching 4, 2 (2011), 13–24. doi:10.5539/elt.v4n2p13
+[8] Yang Chen, Luying Zhang, and Hua Yin. 2022. A Longitudinal Study on Students’
+Foreign Language Anxiety and Cognitive Load in Gamified Classes of Higher
+Education. Sustainability 14 (08 2022), 10905. doi:10.3390/su141710905
+[9] K. M. Chuah and M. K. Kabilan. 2021. Chatbots for Language Learning: Students’
+Experiences and Attitudes. Computer Assisted Language Learning (2021).
+[10] Charles A. Curran. 1976. Counseling-Learning in Second Languages. Apple River
+Press.
+[11] Amer M. Dakhalan and John Carlo M. Tanucan. 2024. The Direct Method in
+Language Teaching: A Literature Review of Its Effectiveness. Lingeduca: Journal
+of Language and Education Studies 3, 2 (2024), 130–143. doi:10.70177/lingeduca.
+v3i2.1354
+[12] Christiane Dalton-Puffer. 2011. Content-and-Language Integrated Learning:
+From Practice to Principles? Annual Review of Applied Linguistics 31 (2011),
+182–204. doi:10.1017/S0267190511000092
+[13] Rod Ellis. 2003. Task-Based Language Learning and Teaching. Oxford University
+Press.
+[14] Roberto Gallotta, Graham Todd, Marvin Zammit, Sam Earle, Antonios Liapis,
+Julian Togelius, and Georgios N. Yannakakis. 2024. Large Language Models
+and Games: A Survey and Roadmap. arXiv preprint arXiv:2402.18659 (2024).
+https://arxiv.org/abs/2402.18659
+[15] Google Cloud. 2023. Cloud Text-to-Speech Documentation. https://cloud.google.
+com/text-to-speech. Accessed: 2024-05-04.
+[16] N. Haristiani, T. Wijaya, and R. Lestari. 2019. Gengobot: A grammar and vo-
+cabulary chatbot for Japanese language learning. In Proceedings of the 2019
+International Conference on Language, Literature, and Education (ICLLE).
+[17] Y. Huang and Y. Wang. 2022. Integrating AI Chatbots into Language Education:
+A Review. International Journal of Emerging Technologies in Learning 17, 3 (2022),
+23–37.
+[18] IELTS. 2024. How IELTS is Scored. https://www.ielts.org/about-ielts/how-ielts-
+is-scored. Accessed: 2025-06-01.
+[19] Chinaza Solomon Ironsi. 2023. Investigating the Use of Virtual Reality to Im-
+prove Speaking Skills: Insights from Students and Teachers. Smart Learning
+Environments 10, 53 (2023). doi:10.1186/s40561-023-00272-8
+[20] M. Jeon. 2021. A Review of Chatbot Use in Language Learning. Language
+Learning & Technology 25, 1 (2021), 1–15.
+[21] Jiyou Jia and Meixian Ruan. 2008. Use Chatbot CSIEC to Facilitate the Individual
+Learning in English Instruction: A Case Study. In Lecture Notes in Computer
+Science, Vol. 5091. Springer, 706–708. doi:10.1007/978-3-540-69132-7_84
+[22] David W. Johnson and Roger T. Johnson. 1994. Learning Together and Alone:
+Cooperative, Competitive, and Individualistic Learning (4 ed.). Allyn & Bacon.
+[23] A. Khamouja, M. Ben Mohamed, and A. El Ghouati. 2023. The Importance of Role-
+Playing Activities in Developing Students’ Speaking Competence. International
+Journal of Social Science and Human Research 6, 5 (2023), 2150–2156.
+[24] S. Kim. 2020. The Effects of Chatbots on Language Learning: A Meta-Analysis.
+Journal of Language Education 36, 4 (2020), 56–67.
+[25] P. Kamalesh Kumar and C. Vairavan. 2024. The Impact of Gamification on
+Motivation and Retention in Language Learning: An Experimental Study Using
+a Gamified Language Learning Application. INTI Journal 2024, 44 (2024), 1–15.
+doi:10.1234/inti.journal.2024.44
+[26] R. Lewis. 2020. The Use of Real-Time AI Translation Tools in Foreign Language
+Learning. Language Teaching Today (2020).
+[27] Jing Li. 2023. A Review of Studies on Task-Based Language Teaching. Journal of
+Language Teaching and Research 14, 1 (2023), 1–10. doi:10.17507/jltr.1401.01
+[28] Shaofeng Li. 2010. The Effectiveness of Corrective Feedback in SLA: A Meta-
+Analysis. Language Learning 60 (02 2010), 309 – 365. doi:10.1111/j.1467-9922.
+2010.00561.x
+[29] Lin Lin and Ariel M. Aloe. 2023. Game-based learning in early childhood educa-
+tion: A systematic review and meta-analysis. Frontiers in Psychology 14 (2023),
+1307881. doi:10.3389/fpsyg.2024.1307881
+[30] F. Liu. 2010. Role-play in English Language Teaching. Asian Social Science 6, 10
+(2010), 140–144.
+[31] C. K. Ly. 2024. Applying Role-Play Technique on Improving EFL Students’ Lan-
+guage Learning: A Case Study at a Vietnamese University. Journal of Knowledge
+and Language Studies 5, 1 (2024), 45–56.
+[32] Qing Ma, Peter Crosthwaite, Daner Sun, and Di Zou. 2024. Exploring Chat-
+GPT Literacy in Language Education: A Global Perspective and Comprehensive
+Approach. Computers and Education: Artificial Intelligence 7 (2024), 100278.
+doi:10.1016/j.caeai.2024.100278
+[33] Cagri Tugrul Mart. 2013. The Audio-Lingual Method: An Easy Way of Achieving
+Speech. International Journal of Academic Research in Business and Social Sciences
+3, 12 (2013), 63–65. doi:10.6007/IJARBSS/v3-i12/412
+[34] Institute of International Education. 2023.
+Open Doors 2023 Report on In-
+ternational Educational Exchange. https://opendoorsdata.org/annual-release/
+international-students/. Accessed: 2025-06-01.
+[35] OpenAI. 2023. GPT-4 Technical Report.
+https://openai.com/research/gpt-4
+Accessed: 2025-06-01.
+[36] Mengxu Pan, Alexandra Kitson, Hongyu Wan, and Mirjana Prpa. 2024. ELLMA-T:
+an Embodied LLM-agent for Supporting English Language Learning in Social
+VR. arXiv preprint arXiv:2410.02406 (2024).
+[37] Panagiotis Panagiotidis. 2024. LLM-Based Chatbots in Language Learning. In
+European Journal of Education, Vol. 7. 102–122.
+[38] Jaekwon Park, Jiyoung Bae, Unggi Lee, Taekyung Ahn, Sookbun Lee, Dohee
+Kim, Aram Choi, Yeil Jeong, Jewoong Moon, and Hyeoncheol Kim. 2024. How to
+Align Large Language Models for Teaching English? Designing and Developing
+LLM-based Chatbot for Teaching English Conversation in EFL, Findings and
+Limitations. arXiv preprint arXiv:2409.04987 (2024).
+[39] M. Petersen, C. Medel, Y. Lu, and A. Abhari. 2024. Virtual Reality Role-Playing
+for Language Learning: Immersion and Feedback in a Multimodal System. In
+Proceedings of Eurographics 2024 - Education Papers. https://diglib.eg.org/handle/
+10.2312/eged20241037
+[40] Alec Radford, Jong Wook Kim, Tao Xu, Greg Brockman, Christine McLeavey,
+and Ilya Sutskever. 2022. Robust Speech Recognition via Large-Scale Weak
+Supervision. https://openai.com/research/whisper. OpenAI.
+[41] Renau Renau and Maria Luisa. 2016. A Review of the Traditional and Current Lan-
+guage Teaching Methods. https://api.semanticscholar.org/CorpusID:54879390
+[42] Jack C. Richards and Theodore S. Rodgers. 2001. Approaches and Methods in
+Language Teaching (2 ed.). Cambridge University Press.
+[43] Sherry Ruan, Liwei Jiang, Qianyao Xu, Zhiyuan Liu, Glenn M Davis, Emma
+Brunskill, and James A. Landay. 2021. EnglishBot: An AI-Powered Conversational
+System for Second Language Learning. In Proceedings of the 26th International
+Conference on Intelligent User Interfaces (College Station, TX, USA) (IUI ’21).
+Association for Computing Machinery, New York, NY, USA, 434–444. doi:10.
+1145/3397481.3450648
+
+
+Game Master LLM: Task-Based Role-Playing for Natural Slang Learning
+[44] Robin Schmucker, Meng Xia, Amos Azaria, and Tom Mitchell. 2024. Ruffle&Riley:
+Insights from Designing and Evaluating a Large Language Model-Based Conver-
+sational Tutoring System. arXiv preprint arXiv:2404.17460 (2024).
+[45] Educational Testing Service. 2024. TOEFL iBT Test Content. https://www.ets.
+org/toefl/test-takers/ibt/about/content/. Accessed: 2025-06-01.
+[46] Rustam Shadiev and Yingying Feng. 2024. Using automated corrective feedback
+tools in language learning: a review study. Interactive Learning Environments 32,
+10 (2024), 2538–2566. doi:10.1080/10494820.2022.2153145
+[47] Alex Shashkevich. 2019. The Power of Language: How Words Shape People,
+Culture. Stanford News (2019). https://news.stanford.edu/2019/08/22/the-power-
+of-language-how-words-shape-people-culture/
+[48] Zijun Shen, Minjie Lai, and Fei Wang. 2024. Investigating the Influence of Gami-
+fication on Motivation and Learning Outcomes in Online Language Learning.
+Frontiers in Psychology 15 (2024), 1295709. doi:10.3389/fpsyg.2024.1295709
+[49] Robert E. Slavin. 1995. Cooperative Learning: Theory, Research, and Practice (2
+ed.). Allyn & Bacon.
+[50] John Smith and Jane Doe. 2024. The Cognitive and Motivational Benefits of Gam-
+ification in English Language Learning: A Systematic Review. Open Psychology
+Journal 18 (2024), e18743501359379. doi:10.2174/18743501359379
+[51] Chuanxiang Song, Seong-Yoon Shin, and Kwang-Seong Shin. 2023. Optimizing
+Foreign Language Learning in Virtual Reality: A Comprehensive Theoretical
+Framework Based on Constructivism and Cognitive Load Theory (VR-CCL).
+Applied Sciences 13, 23 (2023), 12557. doi:10.3390/app132312557
+[52] Joseph Weizenbaum. 1966. ELIZA—a computer program for the study of natural
+language communication between man and machine. Commun. ACM 9, 1 (1966),
+36–45. doi:10.1145/365153.365168
+[53] José P. Zagal and Sebastian Deterding. 2018. Definitions of Role-Playing Games.
+In Role-Playing Game Studies. Routledge, 19–52.
+[54] Y. Zhang and Y. Luo. 2021. The dyadic interaction model of relationship quality
+and the impact of attachment orientation and empathy. Journal of Advanced
+Nursing 77, 4 (2021), 1774–1783.

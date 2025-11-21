@@ -1,0 +1,3182 @@
+Prepared for submission to JCAP
+ULB-TH/25-09
+21 cm Cosmology Sensitivity to
+Small-Scale Structure: Warm vs
+Neutrino-Interacting Dark Matter
+V. Dandoy,a C. Döring,a G. Facchinetti,a L. Lopez-Honorez,a,b J.
+R. Schwagereit,a
+aService de Physique Théorique & Brussels Laboratory of the Universe BLU-ULB, CP 225,
+Université Libre de Bruxelles, Boulevard du Triomphe, B-1050 Brussels, Belgium
+bTheoretische Natuurkunde & The International Solvay Institutes,
+Vrije Universiteit Brussel, Pleinlaan 2, B-1050 Brussels, Belgium
+E-mail: justus.roman.schwagereit@ulb.be, gaetan.facchinetti@ulb.be,
+llopezho@ulb.be, virgile1997@hotmail.com, christian.doering1990@gmx.de
+Abstract. The 21 cm signal originating from Cosmic Dawn to the Epoch of Reionisation
+is highly sensitive to the processes governing star formation in the early universe as well as
+new physics. In this work, we focus on the imprint of non-cold dark matter (DM), which
+impacts the formation of the smallest halos.
+Our goal in particular is to clarify whether
+near-future radio telescopes such as the Hydrogen Epoch of Reionisation Array (HERA), will
+be able to distinguish between free-streaming dark matter, specifically in the form of thermal
+warm DM (WDM), and collisional damping due to neutrino-DM (νDM) interactions giving
+rise to larger overdensities on small scales. For that purpose we first implement a mapping
+between the two models in terms of a cutoff scale and determine detection thresholds for
+the two DM models. Using Fisher matrix forecasts, we show that νDM interaction strengths
+down to σνDM ∼3 × 10−35 cm2 could be probed by 21 cm cosmology when considering two
+populations of galaxies for a GeV mass DM. This would allow to either confirm or rule out
+a recent claimed preference for a non-zero νDM interaction in Lyman-α data. Furthermore,
+we find that HERA will not be able to distinguish between νDM and WDM. In the latter
+context, the threshold for detection of νDM interactions translates into WDM with mass up
+to mWDM ∼9 keV that could be detected by HERA.
+Keywords: dark matter theory, particle physics - cosmology connection, physics of the early
+universe, high redshift galaxies
+arXiv:2511.15430v1  [astro-ph.CO]  19 Nov 2025
+
+
+Contents
+1
+Introduction
+1
+2
+NCDM scenarios and linear perturbations
+3
+3
+Halo mass functions
+6
+4
+NCDM imprint on the 21 cm signal
+9
+5
+Analysis
+14
+6
+Results
+16
+7
+Conclusion
+21
+A Cosmology, NCDM and Astrophysics details
+23
+B Effect of WDM vs νDM
+28
+C Fisher matrix analysis and results
+29
+1
+Introduction
+With the unprecedented volume and redshift range that will soon be accessible, the 21 cm
+signal – arising from redshifted 21 cm line emissions in atomic hydrogen and detectable by
+radio telescopes on Earth – is expected to provide a new and unparalleled probe of our
+universe at the Epoch of Reionisation (EoR, z ∼5) and Cosmic Dawn (CD, z ∼10 −20) [1].
+The current generation of interferometers, such as the Hydrogen Epoch of Reionisation Array
+(HERA), now fully deployed [2], is expected in the near future to detect fluctuations in the
+21 cm signal through its power spectrum, across the redshift range z ∼5–20. Preliminary
+results from HERA, based on data from 71 of its 331 antennas collected over 94 nights, have
+already provided the most stringent upper limits to date on the 21 cm power spectrum at
+z = 8 and z = 10 [3]. These observations will open a new window on a largely unexplored
+era of cosmic history, when the first dark matter (DM) halos were forming.
+DM halos are a consequence of the growth and collapse of overdensities in the matter
+distribution. Acting as gravitational potential wells, they drive the formation of galaxies and
+their subsequent effect onto the late-time universe. Therefore, as 21 cm cosmology experi-
+ments will probe the intergalactic medium (IGM), they will additionally indirectly probe the
+fundamental properties of DM that can affect the halo distribution. Here, we focus on DM
+properties that suppress structure formation on small scales. In particular, thermal warm
+dark matter (WDM), produced through relativistic freeze-out in the early universe, can free-
+stream out of the shallow potential wells of the tiniest overdensities due to its non-negligible
+velocity dispersion at the time of structure formation. As such, WDM represents the standard
+benchmark for non-cold dark matter (NCDM), and in particular of free-streaming NCDM.1
+1WDM has been long proposed as a solution to some of the small-scale discrepancies between cold-DM-only
+simulations and observations of dwarf galaxies [4–7]. Although today the addition of baryonic feedback effects
+– 1 –
+
+
+DM could also suppress structures at small scales due to interactions with light degrees of
+freedom. Pressure forces can indeed further dampen the small-scale fluctuations of the matter
+density field [15–19] (similarly to the Silk damping on baryons [20]). This effect is referred
+to as collisional damping. A variety of such scenarios has been investigated in the literature.
+These include interactions of dark matter with photons [16–18, 21–34] as well as with neu-
+trinos [16–18, 32, 35–42], and more recently with a dark sector radiation species [21, 43–54].
+Probing the abundance and distribution of small-scale structures provides a powerful means
+to constrain the fundamental nature of dark matter. In this paper, we investigate whether
+a near-future radio telescope array that probes the fluctuations in the 21 cm signal could
+help to discriminate between collisionless and collisional damping, focusing on two concrete
+scenarios: thermal WDM and neutrinos-dark matter interactions (referred to as νDM in the
+following). Here we consider the configuration of the HERA telescope for our forecasts.
+On the astrophysics side, efficient galaxy formation scenarios involving molecular cooling
+give rise to the earliest luminous objects – responsible for initiating CD at redshifts z > 10
+– which could form in halos with masses as low as 105−6 M⊙at z ∼15 [55, 56]. These
+are referred to as molecular cooling galaxies (MCGs), while more massive halos which allow
+atomic cooling, host atomic cooling galaxies (ACGs) with mass greater than 108M⊙. The
+abundance of MCGs, as well as the smallest ACGs, depends on the small-scale matter power
+spectrum and thus on the properties of DM. Conversely, the sensitivity of 21 cm cosmology
+towards the properties of DM depends on the properties of the first CD galaxies. In this
+paper, we will consider two populations of galaxies (ACGs and MCGs) and highlight how
+their specific properties can affect the reconstruction of the DM properties and vice-versa.
+Lyman-α forest observations set a stringent lower bound on the WDM mass [57, 58] of
+mLyα
+WDM > 5.7 keV
+(1.1)
+at 95% confidence level, see Ref. [59]. Other recent constraints on WDM from other probes
+can also be found in e.g. [60–62] and references therein. Here we use the exclusion of WDM
+with masses mWDM ≲5.7 keV at 95% CL from [59] as a reference. Simultaneously, for the
+case of neutrino-DM interactions that are governed by a temperature-independent scattering
+cross-section σνDM, an upper limit on the interaction strength of σνDM ≲10−33 cm2 for GeV
+DM was obtained in [37] using Lyman-α data and assuming massless neutrinos. This bound
+was updated in [40] using CMB and SDSS BAO data and considering massive neutrinos.
+The presence of massive neutrinos led to a looser bound of σνDM ≲2.2 × 10−30 cm2 for
+GeV-mass DM. Furthermore, using Lyman-α flux power spectrum data, Ref. [41] reported a
+preference for a non-zero interaction strength of σνDM ∼3.7 × 10−32 cm2 for GeV mass DM.
+Some previous analyses have already investigated the ability of 21 cm data to help improve
+constraints on the NCDM models we consider here, namely [54, 63–68] for WDM and [69, 70]
+for νDM. Our analysis differs from those either in that we focus on the 21 cm power spectrum
+and not the global signal, in the implementation of the NCDM imprint onto the 21 cm signal,
+or in the modelling of the astrophysics in that we consider two galaxy populations.
+Our
+approach to the NCDM implementation is most similar to that of e.g. [54, 64] in that we
+use a sharp-k cutoff in the calculation of the halo mass function. In this work, we perform a
+statistical analysis by means of Fisher matrix forecasts to assess the sensitivity of HERA to
+to the simulations alleviates the tensions [8–14], the WDM model remains a plausible and interesting scenario
+due to its simplicity and minimality. Yet, if WDM with a – still allowed – mass of a few keV is to account
+for the entirety of the DM in the universe, the introduction of O(1000) extra relativistic degrees of freedom is
+required at the time of production.
+– 2 –
+
+
+both scenarios and determine whether it would be possible to distinguish between them if a
+signal was detected. To that end, we give thorough attention to the description of the halo
+population and the computation of the halo mass function in scenarios with a damped matter
+power spectrum. Note, however, that [69], who focused on the 21 cm signal at lower redshift
+(with the SKA experiment), already suggested that WDM might closely mimic νDM for
+z ≲10, which would make it impossible to distinguish between those scenarios observationally.
+The paper is organised as follows.
+In section 2, we introduce the WDM and νDM
+models and examine and compare the linear matter power spectra obtained in both cases.
+In section 3, we relate the power spectrum to the halo distribution and, subsequently, to the
+astrophysical sources imprinted on the 21 cm signal. The astrophysical modelling is more
+specifically addressed in section 4. We discuss our methodology and results in sections 5
+and 6 respectively. Finally, we conclude in section 7. Further technical details are given in
+the appendices A to C.
+2
+NCDM scenarios and linear perturbations
+In this work, we focus on the WDM and νDM scenarios which suppress the linear matter
+power spectrum on small scales and hence impact the 21 cm power spectrum by reducing the
+population of star-forming halos during cosmic dawn. This section is devoted to the different
+damping mechanisms and the introduction of a conveniently defined transfer function. The
+impact on the halo distribution and on the evolution of the IGM will be addressed in the next
+two sections.
+2.1
+Thermal warm dark matter
+WDM suppresses structure formation on small scales through collisionless damping of the
+perturbations.
+Particles that kinetically decouple from the thermal bath homogenise the
+cosmic fluid by streaming from overdense to underdense regions. The thermal velocity of the
+particles determines the comoving free streaming length λfs, below which perturbations are
+damped, defined as:
+λfs ≡
+Z a
+akd
+da′
+a′2H(a′)
+p(a′)
+p
+m2 + p2(a′)
+,
+(2.1)
+i.e. the comoving distance travelled by the DM since kinetic decoupling (kd). This corre-
+sponds to the time at which the elastic scattering rate between the DM particles and the
+species populating the thermal plasma becomes smaller than the expansion rate. The corre-
+sponding comoving wave number kfs = 2π/λfs depends mainly on the mass of the particle,
+mWDM. As shown in appendix A.1, (see also e.g. Ref. [58] for a fit on numerical simulations),
+it is approximately given by
+kfs ≃4.1
+r
+1 + 0.15 ln r h/Mpc
+with
+r ≡
+mWDM
+keV
+ Tγ,0
+Td,0
+
+,
+(2.2)
+where Tγ,0 is the photon temperature today and Td,0 ≡Tkdakd is the decoupling temperature
+today (product of the temperature and scale factor at decoupling). In the vanilla fermionic
+WDM model, the latter can be written [57],
+Td,0 =
+ 4π2
+3ζ(3)
+0.12
+gDM
+ρc,0
+Tγ,0
+1
+keV
+1/3 ΩDMh2
+0.12
+keV
+mWDM
+1/3
+Tγ,0
+≃0.160
+ΩDMh2
+0.12
+keV
+mWDM
+1/3
+Tγ,0 ,
+(2.3)
+– 3 –
+
+
+102
+k [h/Mpc]
+10−9
+10−7
+10−5
+10−3
+10−1
+101
+P(k, z = 0) [(Mpc/h)3]
+CDM
+λcut = 2 × 10−3 Mpc/h
+λcut = 4 × 10−3 Mpc/h
+Transfer Function
+Warm Dark Matter
+ν −DM Interactions
+101
+102
+k [h/Mpc]
+0.0
+0.2
+0.4
+0.6
+0.8
+1.0
+T(k, z = 0)
+Figure 1. Left: The matter power spectrum at z = 0 as a function of the comoving wavenumber.
+The ΛCDM+3mν scenario is shown as the black solid line for reference. The matter power spectra of
+each of the three scenarios that we consider, WDM, νDM and the fitted transfer function, are shown
+as dotted, dashed and solid lines respectively for two values of the cutoff scale λcut = 2 × 10−3 Mpc/h
+(red) and λcut = 4×10−3 Mpc/h (yellow). The corresponding mWDM and uνDM are shown in Table 2.
+Right: The square root of the ratios between the matter power spectra of the three scenarios shown
+in the left plot and the ΛCDM + 3mν matter power spectrum.
+This corresponds to the transfer
+functions as defined in Eq. (2.5) for i = WDM (dotted) and νDM (dashed) as well as the analytical
+expression for the transfer function given in Eq. (2.6) (solid).
+where ρc,0 is the critical density of the Universe today and the number of DM degrees of
+freedom is taken to be gDM = 2. The free-streaming wavenumber of a 1 keV DM particle is
+thus kfs ≃20 h/Mpc. For comparison, the free-streaming scale of a cold dark matter (CDM)
+candidate with mass mWDM = 10 GeV that decoupled thermally at a temperature Tkd =
+100 MeV is kfs ∼106 h/Mpc [51, 71–73] – five orders of magnitude larger. The effect of WDM
+free-streaming on the matter power spectrum, as computed by the public Boltzmann solver
+code CLASS [74, 75], is shown in the dotted lines in the left panel of Fig. 1 for mWDM ∼5.1
+(red) and 2.8 keV (yellow) in red. It can be seen that the WDM additionally generates acoustic
+oscillations at scales k > 2kfs and a dark integrated Sachs-Wolfe effect [76]. Nonetheless, as
+shown in the figure, these effects are minor in comparison to the sharp free-streaming cutoff.
+In Fig. 1, the case of the CDM and νDM are shown for comparison with continuous black
+line and coloured dashed lines respectively, see discussion below.
+2.2
+Neutrino - dark matter interactions
+The pressure induced by neutrino-dark matter interactions balances gravitational forces in
+the primordial plasma and prevents the growth of overdensities. This process is similar to
+the photon-baryon scattering which kept the baryon density fluctuations oscillating before
+decoupling and prevented them from collapsing gravitationally. This results in a suppression
+of the matter power spectrum that is referred to as collisional damping. More precisely, all
+modes inside the horizon until dark matter-neutrino decoupling or, said differently, below the
+diffusion scale set by the interaction efficiency, are damped. For a temperature-independent
+– 4 –
+
+
+scattering cross-section, the interaction strength can be characterised by [17]
+uνDM = σνDM
+σTh.
+
+mDM
+100 GeV
+−1
+,
+(2.4)
+where σνDM and σTh. are the DM-neutrino scattering and Thomson cross-sections, respec-
+tively while mDM refers to the mass of the interacting DM (which is not assumed to be WDM).
+A GeV mass candidate with a νDM interaction strength of uνDM = 3.3 × 10−4, excluded by
+the most recent CMB+BAO bound [40] when considering massive neutrinos, corresponds thus
+to a scattering cross-section of σνDM = 2.2 × 10−30 cm2 for a GeV DM candidate, as reported
+in Sec. 1. Notice that throughout this paper, we assume that all three Standard Model (SM)
+neutrinos are massive with the same mass mν = 0.02 eV when considering ΛCDM + 3mν
+(CDM for short), WDM and νDM cosmologies.
+Interestingly, beyond a mere damping of the matter power spectrum on small scales, the
+competition between pressure and gravity further leads to the propagation of dark acoustic
+oscillations, similar to the baryon acoustic oscillations. These leave a sizeable imprint at a
+scale around the sound horizon of neutrinos at decoupling that is clearly visible in the dashed
+lines in both panels of Fig. 1, obtained with CLASS for two different interaction strengths of
+uν,DM ∼1.65 × 10−8 (red) and 6.68 × 10−8 (yellow). Although the onset of the small scale
+damping looks similar in both the WDM and νDM scenarios, the presence of oscillations in
+the latter case may help distinguish them, see e.g. [21, 54, 69].
+2.3
+Transfer function
+The difference between the linear matter power spectrum of a NCDM model and that of CDM
+can be encoded in the transfer function
+Ti(k) ≡
+s
+Pi(k)
+PCDM(k) ,
+(2.5)
+with i = WDM or νDM in this paper. In both scenarios, the transfer function can be fit with
+f(k, λcut) ≡{1 + (λcutk)γ}−δ ,
+(2.6)
+in rather good approximation. The cutoff scale is defined as
+λcut ≡
+
+
+
+
+
+
+
+
+
+aWDM
+ 1 keV
+mWDM
+bWDM
+Mpc/h
+in the WDM scenario
+aνDM
+
+uνDM
+8.5 × 10−7
+bνDM
+Mpc/h
+in the νDM scenario,
+(2.7)
+see e.g. [7, 25, 57]. Here we take {ai, bi, γ, δ} as free parameters. The functional form of
+Eq. (2.7) mainly captures the initial drop in the transfer functions. From the expression in
+Eq. (2.2) and assuming that λcut scales as 1/kfs, we expect that aWDM ∼0.05 and bWDM ≃1.2.
+Similarly, because the diffusion scale in a coupled fluid is proportional to the square root of
+the cross-section, we expect that bνDM ∼0.5. To work in a consistent framework for both
+scenarios together, as will be necessary for our analysis (see section 5), we simultaneously
+fit all six parameters to the Ti(k) calculated by CLASS according to the method described in
+appendix A.2. The best-fit values are reported in Tab. 1 and are in agreement with the above
+– 5 –
+
+
+ai
+bi
+γ
+δ
+WDM
+0.013565
+1.1701
+1.9787
+38.974
+νDM
+0.014115
+0.49566
+Table 1.
+Best-fit values for the transfer function fit of Eqs. (2.6) and (2.7).
+The value of the
+parameters ai and bi depends on the model i =WDM or νDM while γ and δ are shared.
+λcut [Mpc/h]
+1 × 10−3
+2 × 10−3
+4 × 10−3
+mWDM [keV]
+9.29
+5.13
+2.84
+uνDM
+4.07 × 10−9
+1.65 × 10−8
+6.68 × 10−8
+Table 2. Corresponding mWDM (center) and uνDM (bottom) to a selection of values of λcut (top).
+estimates. Therefore, using this global fit, we establish a one-to-one correspondence between
+values of λcut and both mWDM and uνDM.
+In the left panel of Fig. 1, we show the CDM + 3mν, WDM and νDM linear matter
+power spectra in solid black, dotted red and yellow and dashed red and yellow, respectively.
+The solid lines show the fitted transfer function for two values of λcut (or mWDM or uνDM) of
+Eq. (2.6) using the best-fit values we obtained. The red and dashed yellow sets of lines refer
+to two different values of the cutoff scale λcut, which we either translate to mWDM or uνDM
+respectively using Eq. (2.7). In Tab. 2, we provide a conversion between three benchmark
+values of λcut used in the plots of this paper and the corresponding mWDM and uνDM. We use
+those values to compute the matter power spectrum using CLASS (in the dotted and dashed
+cases) or plug them into Eq. (2.6) (in the solid case). The right panel of Fig. 1 shows the
+corresponding transfer functions.
+In Section 5.1, we will use Eq. (2.7) to ensure consistency in our Fisher matrix sensitivity
+analysis across both NCDM scenarios. This approach also allows us to assess whether Eq. (2.6)
+adequately captures the relevant features of the WDM and νDM matter power spectra. More
+specifically, we will investigate whether the acoustic damping features present in the νDM
+transfer function could leave observable imprints in the 21 cm power spectrum as measured
+by HERA. Before doing so, in the following sections, we describe our treatment of the halo
+mass function. Simulations of the 21 cm signal are performed with a modified version of the
+public code 21cmFAST [77] called 21cmCLAST2 [78] with an improved coupling to the CLASS
+version including massive neutrino interactions with DM [40]3 and new functionalities. In
+the latter framework, we detail the NCDM impact of the suppression of the matter power
+spectrum on the 21 cm signal.
+3
+Halo mass functions
+With the onset of the matter dominated era, under gravitational attraction the initial linear
+perturbations begin to grow into the nonlinear regime until they collapse to form virialised
+DM halos. Because DM halos become the hosts of galaxies when star formation begins, their
+distribution has a strong effect on the 21 cm signal.
+2https://github.com/gaetanfacchinetti/21cmCLAST
+3https://github.com/MarkMos/CLASS_nu-DM
+– 6 –
+
+
+3.1
+Spherical collapse
+The excursion set theory allows to derive an analytical expression for the halo mass function
+(HMF) studying the Brownian motion of the linear density contrast, see e.g. Press-Schechter
+[79] and Sheth-Tormen [80]. Let us assume that structures form from spherical collapse, when
+δw
+R, the linear density contrast smoothed over a region of size R using a window function w,
+reaches ∆c(z) = δcD(0)/D(z), where D is the growth factor and δc = 1.686. At redshift z
+inside a region of variance S0 with average linear density contrast δ0 < ∆c(z), the HMF is
+given by
+∂nw(M, z; δ0, S0)
+∂ln M
+= ρm,0
+√
+2π
+∆c(z) −δ0
+[Sw(M) −S0]3/2 exp
+(
+−(∆c(z) −δ0)2
+2[Sw(M) −S0]
+) 
+dSw
+dM
+ ,
+(3.1)
+where ρm,0 is the average matter density today and the function Sw : M 7→Sw(R) associates
+a halo mass to the variance of the linear matter power spectrum within the given region of
+size R. It is defined as
+Sw
+R ≡
+D
+(δw
+R)2E
+=
+Z
+d3k
+(2π)3 P(k)| ˆW w
+R (k)|2 ,
+(3.2)
+where P(k) again denotes the linear matter power spectrum of the scenario under study. In
+this paper, we set the window function to a sharp-k (w = SK) window function defined as
+ˆW SK
+R (k) = Θ(1 −kR) .
+(3.3)
+Note that it is with such a window function that the analytical form of the HMF was ini-
+tially derived. We furthermore choose to use the SK window function in this analysis because
+it has been shown that in the computation of the HMF, it properly accounts for the presence
+of NCDM [81, 82]. The top-hat (TH) window function is usually used a posteriori for CDM,
+as implemented by default in 21cmFAST v3, notably because it shows a clear correspondence
+between the mass of a halo and its radius, RTH(M), with M = 4/3πρm,0R3
+TH. The only
+drawback of the sharp-k window function is, indeed, that it does not define a finite volume
+in real space. Nonetheless, a simple prescription can be used with the halo radius RSK(M)
+to satisfy:
+M = 4
+3πρm,0(cSKRSK)3 .
+(3.4)
+An analytic solution for cSK is to define the sharp-k volume V (R) inside a region of radius
+R such that W SK
+R (0)V (R) = 1, which gives V (R) = 6π2R3 and cSK = (9π2/2)1/3 ≃2.42.
+Another solution is to directly rely on fits obtained from numerical simulations. This is the
+approach that we use in this work, using the radius-to-mass conversion factor cSK = 2.5
+obtained in Ref. [83] from numerical simulation assuming the same HMF as the one used in
+our analysis (described in Sec. 3.2). This choice is also in good agreement with the analytical
+prescription discussed above (cSK = 2.42).
+The importance of the sharp-k window function appears when computing the HMF with
+a rapidly varying matter power spectrum [81, 82, 84]. In the case of a sudden depletion on
+small scales, when M →0, the variance Sw(M) becomes a constant and the shape of the
+HMF is mostly driven by dSw/dM. This derivative is highly sensitive to the exact shape of
+any smooth window function. Adopting a window function different from the sharp-k actually
+leads to unphysical HMFs. This is discussed in more details in App. A.3.
+– 7 –
+
+
+102
+104
+106
+∂ρ⋆
+∂ln M [M⊙(h/Mpc)3]
+M III
+turn
+M II
+turn
+z = 10
+ACGs + MCGs
+ACGs
+MCGs
+CDM
+λcut = 1 × 10−3 Mpc/h
+λcut = 2 × 10−3 Mpc/h
+λcut = 4 × 10−3 Mpc/h
+106
+107
+108
+109
+1010
+1011
+M [M⊙]
+10−4
+10−2
+1
+102
+104
+∂nSK
+∂ln M [(h/Mpc)3]
+M SK
+1/2
+M SK
+1/2
+Figure 2.
+Upper panel Stellar mass distribution in ACGs and MCGs assuming CDM (black) and
+for three cutoff scales (coloured) considering the reference astrophysical model of Tab. 3 and using
+the fitting function of Eq. (2.6) to obtain the NCDM matter power spectrum. The different line
+styles show the respective contributions from ACGs and MCGs. The vertical lines in the upper panel
+indicate the values of M II
+turn and M III
+turn. Lower panel Corresponding halo mass function for CDM
+and the three values of λcut considered in the upper panel. The dash-dotted vertical lines show the
+halo mass M SK
+1/2 corresponding to a wave number at which the transfer function is equal to 1/2, see
+text for details.
+3.2
+Implementation with ellipsoidal collapse
+In this work, we do not work with Eq. (3.1) directly as we take into account ellipsoidal collapse.
+This leads to a correction factor in the HMF that takes the form of a normalisation factor to
+the collapsed fraction (see Ref. [77] for more details). More precisely, this correction factor is
+evaluated from the Sheth and Tormen HMF [80] which, for a sharp-k window function, takes
+the form:
+∂nSK(M, z)
+∂ln M
+
+ST
+= ρm,0
+√
+2π
+∆c(z)
+(SSK(M))3/2 A√q
+ 
+1 +
+ q∆2
+c(z)
+SSK(M)
+−p!
+e
+−
+q∆2c(z)
+2SSK(M)
+
+dSSK
+dM
+ .
+(3.5)
+In this expression, A = 0.322, p = 0.3 and q = 1.
+In the bottom panel of Fig. 2, we show the resulting HMF for CDM (black) and for three
+non-zero values of the cutoff scale (purple to yellow colours for increasing λcut or equivalently
+warmer or more strongly interacting DM). The HMF in Fig. 2 is computed assuming the
+fitted transfer function of Eq. (2.6). The dash-dotted vertical lines in both figures indicates
+the halo mass M SK
+1/2, which corresponds to a halo of radius RSK = k−1
+1/2 in Eq. (3.4), where
+k1/2 is the wavemode for which the transfer function is equal to 1/2. Using the best-fit values
+from Tab. 1 yields k1/2 = 0.13/λcut. It is visible that the abundance of halos with masses
+– 8 –
+
+
+≲MSK
+1/2 becomes significantly suppressed. For completeness, the HMF equivalent to the ones
+of Fig. 2 obtained assuming WDM or νDM cosmology are shown in the lower panel of Fig. 10.
+4
+NCDM imprint on the 21 cm signal
+In this section we summarise the basics of the 21 cm cosmology and introduce the 21 cm power
+spectrum that will be the observable of HERA. Then, we discuss the astrophysical modelling
+of star formation as implemented in version 3 of 21cmFAST and the degeneracies between
+the astrophysical parameters and the WDM or νDM parameters.
+4.1
+The 21 cm signal in cosmology
+As the dominant constituent of baryonic matter, hydrogen plays a key role in structure
+formation. Tracing its distribution and evolution during cosmic dawn is essential to probe
+the astrophysical and cosmological processes that shaped the early universe. A useful method
+for this relies on spin-flip transitions between the two ground state energy levels of neutral
+hydrogen that give rise to absorption or emission of photons of wavelength ∼21 cm. The
+relative occupancy of the two ground state energy levels is quantified by the spin temperature
+TS. Processes that affect the spin temperature include the emission and absorption of CMB
+photons, scatterings on other atoms and resonant Lyman-α transitions. For the redshift range
+of interest, it is given by its equilibrium value that can be expressed as [1]
+T −1
+S
+= T −1
+CMB + (xα + xc)T −1
+K
+1 + xα + xc
+,
+(4.1)
+where TK is the kinetic temperature of the IGM, xc encodes the efficiency of collisions within
+the gas and xα the coupling to Lyman-α photons, see also [85]. In this expression we have
+made the assumption that the colour temperature is equal to the kinetic temperature Tc = TK
+[86].
+When the redshifted 21 cm signal is observed in contrast with the CMB background it
+can be expressed in terms of the differential brightness temperature as
+δT21 ≡(TS −TCMB)
+(1 + z)
+ 1 −e−τν
+.
+(4.2)
+In this expression, τν is the optical depth to 21 cm photons and δT21 ≡δT21(x, z) depends
+on the line of sight. To a good approximation, the differential brightness temperature can be
+expressed as [87]
+δT21 ≈20 mK
+TS −TCMB
+TS
+
+xHI(1 + δb)
+
+1 + 1
+H
+dvr
+dr
+−1 r
+1 + z
+10
+0.15
+Ωmh2
+Ωbh2
+0.023 ,
+(4.3)
+where xHI is the neutral fraction of hydrogen, δb ≡δb(x, z) is the baryon density contrast and
+dvr/dr is the velocity gradient along the line of sight. For more comprehensive information,
+see [1, 87]. In practice, current and next-generation telescope arrays like HERA will mea-
+sure the quantity δT21
+2(z)∆2
+21(k, z), where ∆2
+21 denotes the dimensionless power spectrum of
+perturbations in the 21 cm signal
+∆2
+21(k, z) = 2k2
+π
+Z ∞
+0
+ξ21(r, z) sin(kr)rdr ,
+(4.4)
+– 9 –
+
+
+where ξ21 is the two-points correlation function of the brightness temperature contrast,
+ξ21(|x −y|, z) ≡⟨δ21(x, z)δ21(y, z)⟩
+with
+δ21(x, z) ≡δT21(x, z)
+δT21(z)
+−1 .
+(4.5)
+The brackets ⟨. . . ⟩refer to the ensemble average while the bar in δT21(z) refers to the spatial
+average. In our pipeline, the 21 cm power spectra are evaluated from the output of 21cmFAST
+using the python package powerbox [88]. In the following we will always consider the quantity
+δT21
+2(z)∆2
+21(k, z) as the 21 cm observable. The details of the model implemented in 21cmFAST
+are given in the next subsection.
+4.2
+Star formation, ionisation and X-ray emission
+We model the astrophysics using the implementation of 21cmFAST v3, as described in Ref. [89],
+that includes a prescription for both atomic and molecular cooling galaxies. The latter are
+expected to be hosted by minihalos. The stellar mass in a halo of virial mass M is parametrised
+by
+Mi
+⋆(M) ≡Mfi
+⋆(M) ,
+(4.6)
+where i = II, III correspond to PopII or PopIII stars, assumed to be hosted by ACG and
+MCG respectively, see e.g. Ref. [56]. f i
+⋆is the stellar-to-halo mass ratio. Both f i
+⋆and the
+fraction of ionising ultraviolet (UV) photons that escape the galaxies, fesc, are parametrised
+with a power law [90–92]
+fi
+⋆(M) = min
+(
+1, fi
+⋆,ℓi
+
+M
+10ℓi M⊙
+αi
+⋆)
+Ωb
+Ωm
+fi
+esc(M) = min
+
+1, fi
+esc,ℓi
+
+M
+10ℓi M⊙
+αesc
+,
+(4.7)
+where ℓi are set to ℓII = 10 and ℓIII = 7 respectively – to match with the characteristic
+mass scales of ACG and MCG hosting halos. Here, f i
+⋆,ℓi, αi
+⋆, fi
+esc,ℓi and αesc are 7 new free
+parameters. The inefficiency of star formation in low-mass halos is captured by a duty cycle
+parameter, conventionally expressed as [56, 90]
+fII
+duty(M, z) = exp
+
+−MII
+turn(z)
+M
+
+fIII
+duty(M, z) = exp
+
+−MIII
+turn(z)
+M
+
+exp
+
+−
+M
+Matom(z)
+
+(4.8)
+for ACGs and MCGs respectively where M denotes the halo mass. The second expression
+assumes that there is a smooth transition from MCGs, with halo mass of M < Matom that
+form PopIII stars, to ACGs, with halo mass M > Matom that form PopII stars. The atomic
+cooling mass threshold is given by Matom = 5 × 107 [(1 + z)/10]−3/2 M⊙[93]. For the ACGs,
+MII
+turn = max(Matom, MRE
+crit) where MRE
+crit is a characteristic mass below which photoheating
+during reionisation is able to significantly suppress gas content [94]. For the MCGs, M III
+turn =
+max(Mmol, MRE
+crit) where Mmol is the molecular cooling mass threshold that accounts for the
+photodissociation of H2 molecules from photons in the Lyman-Werner band (11.2–13.6 eV)
+[53].
+– 10 –
+
+
+log10 fII
+⋆
+αII
+⋆
+t⋆
+log10 fII
+esc
+αesc
+log10
+LII
+X
+erg s−1 M−1
+⊙yr
+E0 / eV
+−1.25
+0.5
+0.5
+−1.35
+−0.3
+40.5
+500
+log10 fIII
+⋆
+αIII
+⋆
+log10 fIII
+esc
+log10
+LIII
+X
+erg s−1 M−1
+⊙yr
+−2.5
+0.1
+−1.35
+40.5
+Table 3. Reference values of the astrophysical parameters used throughout this work. They are based
+on the fiducial values from the EOS2021 model introduced in [56], albeit with αIII
+⋆
+changed from 0.0
+to 0.1, for the purpose to ease the Fisher forecast treatment. In the upper panel we report the ACG
+and common parameter values while in the lower panel we report the corresponding MCG ones.
+The amounts of UV-ionising, Lyman-α or X-ray photons injected in the IGM by the
+galaxies depend on the stellar mass distribution, defined as the product of the halo mass
+function, the duty cycle and the stellar mass,
+∂ρi
+⋆(M, z; δR, SR)
+∂ln M
+≡∂nSK(M, z; δR, SR)
+∂ln M
+fi
+duty(M)Mi
+⋆(M, z) .
+(4.9)
+The X-ray specific emissivity at position x and redshift z with energy E is implemented as
+ϵX(x, E, z) = [1 + δb(x, z)]Li
+XE−αX
+t⋆H−1(z)
+X
+i∈{II,III}
+Z ∞
+0
+∂ρi
+⋆(M, z; δR, SR)
+∂ln M
+d ln M ,
+(4.10)
+where t⋆is a free parameter between zero and one that sets the star formation rate with
+respect to the Hubble rate, δb(x, z) is the average value of the nonlinear matter density
+contrast of the shell around (x, z), and Li
+X is the normalisation of the X-ray luminosity per
+star formation rate (SFR) [95]. In practice, Li
+X is not used as a parameter of the model but
+rather Li
+X, defined as the integrated soft-band (E0 < E < 2 keV) luminosity per SFR (in
+units of erg yr s−1 M−1
+⊙) according to
+Li
+X = Li
+X
+Z 2 keV
+E0
+dEE−αX .
+(4.11)
+Here, E0 is the threshold energy for X-rays to escape the host galaxy (and thus heat the
+IGM). Similarly, the amount of injected ionising UV photons is
+nion(x, z) = Nγ/b
+ρb(z)
+X
+i∈{II,III}
+Z ∞
+0
+∂ρi
+⋆(M, z; δR, SR)
+∂ln M
+fi
+esc(M)d ln M
+(4.12)
+where Nγ/b is the number of ionising photons per stellar baryon fixed to 5000 (otherwise
+largely degenerate with fi
+⋆,ℓi). Apart of the introduction of the escape fraction, both integrals
+in equations (4.10) and (4.12) are similar and mainly depend on the stellar mass distribution
+into ACGs and MCGs.
+In Tab. 3, we summarise the value of the astrophysical parameters that we consider in
+this work. We use the EOS2021 model of Ref. [56] as our reference model, albeit with αII
+⋆
+changed from 0 to 0.1 to simplify the computation of derivatives in the Fisher analyses. This
+model is compatible with the current best constraints on the 21 cm power spectrum [96] and,
+– 11 –
+
+
+according to the authors of Ref. [56], it is in agreement with the optical depth to reionisation
+constraint from Planck [97]. The resulting stellar mass distribution of Eq. (4.9) at z = 10
+is shown as a function of the halo mass in the top panel of Fig. 2 for CDM (black) and for
+three values of the NCDM cutoff scale. For the NCDM curves, we use the fitted transfer
+function of Eq. (2.6) as input. At large halo masses, ACGs dominate (dotted lines), while
+MCGs contribute mainly at smaller masses (dashed lines), producing two distinct bumps.
+The imprint of the NCDM cutoff scales is discussed in the next section.
+4.3
+Dark matter and astrophysics imprint
+The effect of non-cold dark matter is expected to be at least partially degenerate with other
+astrophysical parameters, see e.g. [63–66, 70]. More specifically, we expect a change in the
+previously defined cutoff scale to at least partially mimic the effects of changes in the as-
+trophysical parameters governing the star formation rate and efficiency. In this section, we
+illustrate this with the parameters f III
+⋆
+and αII
+⋆. Furthermore, large cutoff scales might prevent
+us from efficiently probing MCG parameters, because the abundance of the minihalos in which
+they form would be too suppressed, see also [63, 64]. This is already well-visible in the top
+panel of Fig. 2, which illustrates the impact of different cutoff scales (coloured lines) on the
+stellar mass distribution introduced in Eq. (4.9) with respect to the CDM scenario (black). It
+can be seen that increasing values of the cutoff scale λcut (purple to yellow colouring), equiv-
+alent to warmer or more strongly interacting DM scenarios, lead to a progressively stronger
+suppression of the MCG contribution (dotted lines). The CDM case (black) is recovered in
+the limit λcut →0. In the yellow case (λcut = 4 × 10−3 Mpc/h), the MCG contribution is
+so suppressed that we will not be able to reconstruct well the associated model parameters.
+In this case, we expect λcut to mainly be degenerate with ACG parameters, while for lower
+values of the cutoff scale we expect stronger degeneracies with MCG parameters to appear.
+Also note that Fig. 2 was made using the fitted transfer function of Eq. (2.6). The slightly
+different linear matter power spectra in the WDM and νDM scenarios lead to different halo
+mass functions, which is illustrated for two values of λcut = {1 and 2} × 10−3 Mpc/h in the
+appendix in lower panel of Fig. 10. More concretely, the additional power on small scales in
+the linear matter power spectrum in the νDM scenario (compare Fig. 1) leads to an increased
+abundance of small halos compared to the WDM scenario, as visible in the upper panel of
+Fig. 10. This in turn leads to an increased MCG stellar mass distribution, although this
+effect is subdominant w.r.t. the overall suppression of the MCG contribution induced by the
+NCDM.
+In Figs. 3 and 4, the evolution of the 21 cm power spectrum at k = 0.20 h/Mpc (upper
+panel) and of the sky averaged brightness temperature (lower panel) is shown as a function
+of redshift. The light and dark gray shaded bands show the experimental uncertainty at 68%
+and 95% CL for the reference model (with no NCDM cutoff) under the assumption of 20%
+modelling error, see Sec. 5.1 for more details. Each plot explores different values of some of
+the model parameters that are expected to show degeneracies between each other.
+Figure 3 illustrates that an increase in λcut, or equivalently an increase in uνDM or a
+decrease in mWDM, effectively delays the evolution of the differential brightness temperature
+and the 21 cm power spectrum, with each of their features appearing at later times. This
+happens because larger cut-offs suppresses the matter power spectrum on larger scales, which
+reduces the abundance of low-mass halos (as visible in the lower panel of Fig. 2).
+As a
+consequence, the production of Lyman-α, X-ray and UV photons that drive these features is
+diminished and postponed.
+– 12 –
+
+
+10−1
+100
+101
+102
+δT
+2
+21∆2
+21 [mK2]
+λcut = 4 × 10−3 Mpc/h
+λcut = 2 × 10−3 Mpc/h
+λcut = 1 × 10−3 Mpc/h
+CDM (reference)
+k = 0.20 h/Mpc
+4
+6
+8
+10
+12
+14
+16
+18
+z
+−100
+−50
+0
+δT 21 [mK]
+202.9
+157.8
+129.1
+109.2
+94.7
+83.5
+74.7
+ν [MHz]
+Figure 3. NCDM imprint on the 21 cm signal as a function of the redshift using the fitting function
+as an input. The upper panel displays the power spectrum at wavelength k = 0.20 h/Mpc, the lower
+panel shows the global signal. The black line assumes CDM and the coloured lines show the effect of
+different values of λcut. The dark and light shaded bands respectively indicate the associated 1 and
+2σ measurement noise of HERA, assuming 1000 hours of observation and a 20% modelling error (see
+also section 5). We assume our reference astrophysical model.
+10−1
+100
+101
+102
+δT
+2
+21∆2
+21 [mK2]
+log10 f III
+⋆
+= −3.0
+log10 f III
+⋆
+= −2.5 (reference)
+log10 f III
+⋆
+= −2.0
+k = 0.20 h/Mpc
+4
+6
+8
+10
+12
+14
+16
+18
+z
+−100
+−50
+0
+δT 21 [mK]
+202.9
+157.8
+129.1
+109.2
+94.7
+83.5
+74.7
+ν [MHz]
+10−1
+100
+101
+102
+δT
+2
+21∆2
+21 [mK2]
+αII
+⋆= 0.8
+αII
+⋆= 0.5 (reference)
+αII
+⋆= 0.2
+k = 0.20 h/Mpc
+4
+6
+8
+10
+12
+14
+16
+18
+z
+−100
+−50
+0
+δT 21 [mK]
+202.9
+157.8
+129.1
+109.2
+94.7
+83.5
+74.7
+ν [MHz]
+Figure 4. Same as Fig. 3, but assuming CDM and showing the effect of varying αIII
+⋆
+(left panel) and
+αesc (right panel).
+A reduced stellar-to-halo mass ratio in MCGs, meaning a lower f III
+⋆, results in a decreased
+energy injection into the IGM from the lowest mass halos and similarly causes a delay in the
+features in the power spectrum, as is visible in the left panel of Fig. 4. Conversely, a large
+positive value of αII
+⋆, which controls the dependence of the stellar-to-halo mass ratio on the
+– 13 –
+
+
+halo mass in Eq. (4.7), would analogously decrease the relative contribution of low-mass halos
+to the signal by suppressing the relative contribution to the Lyman-α, X-rays and ionising
+flux of low-mass halos. Increasing αII
+⋆would also shift the 21 cm signal towards later times,
+as shown in the right panel of Fig. 4, thereby also mimicking the effect of an NCDM cutoff
+scale, albeit less significantly. Further discussion of the degeneracies between astrophysical
+parameters and the NCDM cutoff scale is provided in Sec. 6.2 in the context of the analysis
+our results.
+5
+Analysis
+We estimate the sensitivity of the completed HERA telescope to both the WDM and νDM
+scenarios as well as a scenario using the fitted transfer function, assuming 1000 hours of
+observation. To that end, we perform a Fisher matrix forecast using the same tools as in
+Ref. [98]. In the following, we detail our application of the Fisher matrix formalism to this
+work and discuss our results.
+5.1
+Fisher matrices
+The Fisher information matrix for a set of parameters {θi} is defined as
+Fij ≡−EO
+
+∂2
+∂θi∂θj
+ln L(O | θ)
+ θ
+
+,
+(5.1)
+where L is the likelihood of the observed data given a model and EO the associated expectation
+value. The minimum covariance of two parameters can then be estimated as cov(θi, θj) =
+(F −1)ij at the Cramer-Rao bound [99–101], and thus the minimum marginalised standard
+deviation on a single parameter θi as σi = [(F −1)ii]1/2. Assuming a Gaussian Likelihood, we
+compute Fisher matrix elements as detailed in Ref. [98] as
+Fij =
+X
+ik
+X
+iz
+1
+σ2
+21(kik, ziz)
+∂O(kik, ziz)
+∂θi
+∂O(kik, ziz)
+∂θj
+.
+(5.2)
+The sums run over all the wavenumber k and redshift z bins, the observable in this case is
+O = δT
+2
+21∆2
+21 and for the measurement error we assume:
+σ2
+21(ik, iz) = σ2
+exp(ik, iz) + σ2
+shot(ik, iz) + [ε × O(ik, iz)]2 .
+(5.3)
+The first term accounts for the experimental error (i.e. thermal noise) and is evaluated using
+the public Python package 21cmSense4 [102, 103], the second term accounts for shot noise in
+each bin and the third term accounts for the modelling error on O. For the latter, a common
+practice in the field is to use ε = 0.2 [89]. However, we will find that the reconstruction error
+and detection threshold that we derive for the cutoff scale will depend strongly on the choice
+of ε. We will thus also consider the case where ε = 0, i.e. no modelling error.
+Using the Fisher matrix formalism, the sensitivity of HERA to our NCDM scenarios
+can be evaluated in several ways. One approach would be to estimate bounds on the WDM
+particle mass and νDM interaction strength from the 21 cm power spectrum, assuming CDM
+as the fiducial model, as done in e.g. Ref. [98] for decaying DM. However, for non-cold dark
+matter, this method is hindered by the locality of the Fisher matrix formalism, which relies on
+4https://github.com/jpober/21cmSense
+– 14 –
+
+
+linear extrapolations around the fiducial point. From the discussion in Sec. 4.3, we know that
+the NCDM suppression of low mass halos can mimic the effect of the threshold for star forming
+galaxies, particularly the one of minihalos set by M III
+turn. Yet, once the NCDM cutoff scale is
+small enough to significantly suppress the formation of halos of mass M < M III
+turn, the 21 cm
+power spectrum becomes largely insensitive to variations in λcut. The effect becomes indeed
+screened by M III
+turn. As a result, taking CDM as the fiducial model (or equivalently λcut →
+0) would lead to small corresponding Fisher matrix elements, resulting in large forecasted
+uncertainties and artificially weak constraints.
+In this work instead, we compute the Fisher matrix elements for a series of fixed NCDM
+parameters (λcut, mWDM or uνDM) and determine for which fiducial value of those parameters
+we can claim a detection with a certain confidence level. As a result, we report a detection
+threshold and not a constraint. Nonetheless, specific attention is required to derive meaningful
+detection thresholds that can be compared between the two different NCDM models. Indeed,
+the posterior distribution for WDM mass and νDM interaction strength are certainly not both
+Gaussian (and most likely none of them really is). Therefore, we cannot simply perform two
+independent Fisher analysis for the two scenarios and use the Fisher estimator of the standard
+deviation to obtain 95% CL intervals that can be compared together. The different shapes of
+the posterior can strongly bias the result. This issue is discussed in details in appendix C.1,
+and, in a different context, in e.g. [104, 105].
+To enable direct comparison between WDM and νDM scenarios, we adopt λcut as the
+universal input parameter for all simulations, that is converted to either mWDM or uνDM using
+the fit of Eq. (2.7) when relevant. The resulting quantity is then used as input for CLASS
+to compute the transfer function Ti(k), which is passed to 21cmFAST. More precisely, this
+conversion and communication pipeline is automated through new functions and interpolation
+tables implemented in the wrapper of 21cmCLAST. The input dictionary for CLASS is generated
+directly from the 21cmCLAST input object; CLASS is then called via its python wrapper, and
+the resulting transfer function is reformatted and passed to the C code for computing the
+evolution of the IGM. As a result, the user simply needs to specify the desired value of λcut
+in the standard CosmoParams object and select one of the following methods:
+1. use λcut directly in the fitted transfer function expression of Eq. (2.6), which is then
+applied to the CDM matter power spectrum as computed by CLASS,
+2. convert λcut to a WDM mass, which is then input into CLASS to obtain the WDM matter
+power spectrum,
+3. convert λcut to a νDM interaction strength, which is then input into CLASS to obtain
+the νDM matter power spectrum.
+5.2
+Confidence intevals
+In all three scenarios, 1-3, λcut remains the input parameter of the overall call. To derive
+confidence intervals, we assume the Cramér-Rao bound is saturated, so that the Fisher matrix
+is equivalent to the inverse of a covariance matrix. Under this assumption, one can directly
+associate a multivariate Gaussian distribution with the parameters – details of the numerical
+evaluation of the Fisher matrix are given in appendix C. However, we also need to take into
+account that λcut cannot be negative, i.e. enforce a (flat) prior λcut ∈[0, ∞) while keeping
+the posterior normalised. We thus take the marginalised posterior of λcut to be given by a
+– 15 –
+
+
+renormalised, truncated Gaussian probability distribution function
+pλcut(λcut) =
+r
+2
+πσ2
+e
+−
+ λcut −λfid
+cut
+2
+2σ2
+1 + erf
+ λfid
+cut
+√
+2σ
+
+for λcut ≥0
+(5.4)
+and 0 otherwise, where σ2 = (F −1)λcutλcut. Note that the variance Var(λcut) of this distribu-
+tion pλcut(λcut) is not given by σ2 unless λfid
+cut →∞.
+We can now introduce a confidence interval at confidence level α by solving for δλ in
+Z λfid
+cut+δλ
+max(λfid
+cut−δλ, 0)
+pλcut(x)dx = α.
+(5.5)
+If we find that δλ < λfid
+cut, then the confidence interval is [λfid
+cut −δλ, λfid
+cut + δλ] and is thus
+symmetric with respect to the fiducial value. This corresponds to a detection of λcut (or the
+associate DM mass or interaction strength depending on the chosen model) at confidence level
+α. On the contrary, if δλ ≥λfid
+cut, the confidence interval is [0, λfid
+cut + δλ] and we only obtain
+an upper limit on λcut.
+6
+Results
+In this section we present the results of our Fisher matrix analysis, performed as described in
+Sec. 5 under the assumption of the astrophysical model parameters given in Tab. 3 and the
+fully built HERA telescope with 1000 hours of observation. We first report on the forecast
+for the detection threshold of λcut in Sec. 6.1. In particular, the marginalised posteriors of
+the reconstructed λcut normalised to their fiducial values are shown in Fig. 5. We further
+comment on degeneracies between astrophysical and NCDM parameters in Sec. 6.2 with the
+two-dimensional posteriors of a selection of parameters shown in Fig. 6. Finally, we discuss
+the difficulty to distinguish between the WDM and νDM models in Sec. 6.3 and provide a
+∆χ2 estimate of the capacity of a "test" WDM scenario to account for a "true" νDM scenario.
+6.1
+Detection threshold
+Figure 5 shows the marginalised posteriors of the reconstructed value of λcut, normalised to
+the respective fiducial value λfid
+cut, as a function of λfid
+cut. The dark shaded areas correspond
+to 68% CL contours while the pale shaded ones denote the 95% CL contours. To obtain the
+results, the transfer function fit of Eq. (2.6) is applied directly to the CDM matter power
+spectrum following method 1. The markers show the obtained constraints at 68% and 95%
+CL for each evaluated λfid
+cut and the error we associate to each confidence interval, following
+the prescription given in appendix C.2. In the left panel, we assume a 20% modelling error
+(ε = 0.2), while in the right panel we neglect the modelling error, which greatly improves the
+value of the detection threshold.
+Indeed, with ε = 0.2, we find that HERA could make a detection at 95% CL of cutoff
+scales up to λcut ∼2 × 10−3 Mpc/h. This detection threshold corresponds to the smallest
+value of λfid
+cut for which the reconstructed 95% confidence interval does not include λcut = 0.
+This corresponds to WDM with a mass of mWDM = 5.1 keV or νDM interactions with an
+interaction strength of uνDM = 1.7 × 10−8. When assuming no modelling error (ε = 0), we
+– 16 –
+
+
+3
+3.5
+4
+5
+6
+8
+10
+20
+∞
+0
+0.1
+0.5
+1
+2
+3
+4
+5
+6
+0
+1
+2
+3
+4
+λﬁd
+cut [10−3 Mpc/h]
+0
+1
+2
+3
+4
+5
+Marginalised posterior of λcut/λﬁd
+cut
+mWDM [keV]
+108 × uνDM
+ε = 0.2
+Lyman-α
+3
+3.5
+4
+5
+6
+8
+10
+20
+∞
+0
+0.1
+0.5
+1
+2
+3
+4
+5
+6
+0
+1
+2
+3
+4
+λﬁd
+cut [10−3 Mpc/h]
+ε = 0.0
+Figure 5. Marginalised 68% (pale shaded area) and 95% (dark shaded area) confidence intervals
+of λcut, normalised to the value of λfid
+cut, as a function of λfid
+cut. The results are obtained by applying
+the fitted transfer function of Eq. (2.6) to the CDM matter power spectrum (input method 1). A
+conversion between λcut, mWDM and uνDM is also provided.
+The left panel corresponds to 20%
+modelling noise (ε = 0.2) while the right panel assumes no modelling noise (ε = 0). The markers
+show the obtained marginalised posteriors for each value of λfid
+cut for which we have effectively performed
+a Fisher forecast, and the corresponding error bars, see text for details.
+find that the detection threshold reduces to λcut ∼1 × 10−3 Mpc/h, which corresponds to
+mWDM = 9.3 keV or uνDM = 4.1 × 10−9. The strong improvement of the detection threshold
+with decreased modelling error is to be expected. In the redshift bins with 5 ≲z ≲7.5,
+the total noise in the lowest, most sensitive k-bins is strongly dominated by the modelling
+noise, which makes any results derived under the assumption of significant modelling noise
+rather sensitive to the value of ε. We also find that the detection thresholds we obtain are
+independent of the choice of input method (1-3). This implies that the presence of acoustic
+oscillations in the νDM case does not impact the 21 cm power spectrum enough to lead to
+a different detection threshold. We comment further on the ability to distinguish νDM from
+WDM in the data in Sec. 6.3.
+The 21cm cosmology forecasts are expected to be sensitive to the astrophysical model,
+see e.g. [64, 96, 98, 106–110] who studied the impact of the astrophysical modelling onto the
+21 signal or onto the reconstruction of the parameters shaping this signal, potentially including
+exotic DM physics. In particular, increasing LX and E0 to larger values could give rise to a
+smoother 21 cm signal and thus a more suppressed power spectrum that might become more
+difficult to probe and make it more difficult to extract DM properties [64, 98, 111]. In this
+work we find that our results do not change significantly when varying the X-ray parameters.
+We have varied LII
+X = LIII
+X between 1041 and 1040 erg s−1 M−1
+⊙yr, as allowed by the existing
+HERA data [3, 96], and increased E0 up to 1.1 keV. While the individual confidence intervals
+– 17 –
+
+
+of λcut for the same λfid
+cut varied by up to ∼15% between models, this did not affect the
+obtained detection thresholds at the level of the resolution that we have, even in the case
+where we set ε = 0.
+In the case of WDM and for ε = 0.2, the obtained WDM mass threshold for detection
+is already disfavoured by Lyman-α data, see [59] and the discussion in Sec. 1. On the other
+hand, in the case of νDM, the authors of [41] claimed a preference for νDM interactions
+with uνDM ∼5.5 × 10−5, corresponding to σνDM ∼3.7 × 10−32 cm2 for DM with a mass
+mDM = 1 GeV, using CMB, BAO and Lyman-α data. This would result in a cutoff scale
+similar to that of WDM with a mass of mWDM ∼0.4 keV. As this is already strongly excluded
+by a variety of data, the authors argued that the extra features in the matter power spectrum
+imprinted by νDM interactions could be at the origin for this preference. In our analysis,
+we find a direct correspondence between the forecasted HERA detection thresholds for uνDM
+and mWDM. Therefore, even if HERA should not be able to constrain WDM more than it
+already is by Lyman-α data when considering 20% modeling error, it should still improve on
+the detectability of νDM with a detection threshold at uνDM = 1.7 × 10−8. As this is orders
+of magnitude below the asserted preferred value of uνDM, HERA should thus easily be able
+to confirm or disprove the claim. Accounting for the difference in methodology and telescope,
+our results are in good agreement with Ref. [70], which reported forecasted constraints at the
+level of uνDM ≤6.6 × 10−7 and Ref. [69], which estimated constraints of mWDM ≥4 keV and
+uνDM ≤3.6 × 10−8 for 1000 hours of observation time with SKA.
+In this work, in the most optimistic scenario, neglecting any modelling error on the
+signal (ε = 0), we find that HERA forecast should probe WDM masses up to mWDM ∼
+9.3 keV, significantly above the current Lyman-α bound. Bearing in mind the differences
+in methodology, astrophysical model and potentially 21 cm simulator, this is in line with
+the results of [63, 64]. Within the same framework, νDM interactions could be probed for
+interaction strengths down to uνDM ∼4.1 × 10−9.
+6.2
+Astrophysics-DM Degeneracies
+Figure 6 shows the marginalised one- and two-dimensional posteriors at 95% CL for a selection
+of astrophysical parameters that are expected to show some level of degeneracy with λcut, see
+the discussion in Sec. 4.3. Here again we assume the transfer function as the input method
+(method 1 above). For completeness, a full plot containing all parameters is available in the
+appendix with Fig. 13. The warmer (colder) or equivalently more strongly (weakly) interacting
+DM case is shown as a yellow (purple) contour, corresponding to λfid
+cut = 4 × 10−3 Mpc/h
+(1×10−3 Mpc/h). The intermediate case shown in red corresponds to λcut = 2×10−3 Mpc/h,
+which is the smallest detectable cutoff scale at ε = 0.2, as discussed above.
+As can be seen, for larger cutoff scales, or equivalently warmer or more strongly in-
+teracting DM (yellow), the constraints on the astrophysical parameters related to MCGs in
+minihalos become much less stringent. This is well-visible for f III
+⋆
+in Fig. 6, where the poste-
+rior widens significantly for larger λcut (yellow lines). The same behaviour can be observed
+for αIII
+⋆, fIII
+esc and LIII
+X in Fig. 13 in the appendix. This is a result of the suppression induced
+by the NCDM of low-mass halos and subsequently their impact on the 21 cm signal. The un-
+certainties on ACG parameters in contrast decrease if the NCDM suppression is very strong
+(large λcut). This is well-visible for αII
+⋆in Fig. 6, but also for the ACG parameters f II
+⋆fII
+esc, LII
+X
+(as well as for t⋆and αesc, which in our astrophysical model are shared between ACGs and
+MCGs). Conversely, in the "colder" dark matter case (purple), the uncertainty on the MCG
+parameters is reduced while the reconstruction of λcut worsens. This also shows in the widen-
+– 18 –
+
+
+±2.3
+±6.9
+±15
+−2.5
+−0.8
+0.0
+0.8
+1.6
+αII
+∗
+±0.68
+±0.45
+±0.27
+0.5
+−40
+−20
+0
+20
+log10 f III
+∗
+1
+2
+3
+4
+5
+λcut / λﬁd
+cut
+−0.8
+0.0
+0.8
+1.6
+αII
+∗
+1
+2
+3
+4
+5
+λcut / λﬁd
+cut
++2.5 −1.0
+±0.94
+±0.27
+1.0
+λﬁd
+cut = 1 × 10−3 Mpc/h
+λﬁd
+cut = 2 × 10−3 Mpc/h
+λﬁd
+cut = 4 × 10−3 Mpc/h
+Figure 6.
+Marginalised one- and two-dimensional posteriors at 95% CL from our Fisher matrix
+analysis of a reduced sets of parameters for different values of λfid
+cut, assuming the transfer function
+as the input method. The one-dimensional posterior of each parameter is shown along the diagonal
+axis of the plot, and the fiducial value and 95% confidence interval for the respective parameter are
+written above. The yellow contours correspond to larger values of λfid
+cut, or equivalently warmer or
+more strongly interacting DM, while darker contours correspond to colder or more weakly interacting
+DM.
+ing of the posterior of λcut/λfid
+cut in Fig. 5 at low λfid
+cut. There are thus two competing effects:
+when MCGs contribute the most (small λcut, CDM-like), parameters related to those galaxies
+can be reconstructed very well and show little degeneracy with λcut, meaning that λcut can
+also be reconstructed well. When MCGs barely contribute (at large λcut, NCDM suppressed),
+ACG parameters can be reconstructed better. In both of these cases, degeneracies between
+some astrophysical parameters and λcut can be reduced (see the yellow and purple contours
+in the bottom row of Fig. 6).
+In the intermediate regime, astrophysical parameters show stronger degeneracies with
+λcut.
+This is illustrated with the example of the red curves in Fig. 6, which correspond
+to λcut = 2 × 10−3 Mpc/h.
+The degeneracies can be understood with the discussion in
+Sec. 4.3. We see for example that λcut is positively correlated with f III
+⋆, as decreasing the
+latter parameter reduces the contribution of MCGs to all forms of radiation and pushes all
+features of the 21 cm power spectrum towards later times. This can partially be compensated
+by a decrease of λcut, which leads to colder DM and less suppressed MCGs, see Fig. 3. In
+contrast, λcut is anti-correlated with αII
+⋆.
+An increase of αII
+⋆indeed leads to an effective
+– 19 –
+
+
+suppression of the contribution of low mass halos w.r.t. to larger ones, see Fig. 4, which can
+then partially be compensated by a decrease in λcut.
+6.3
+Distinguishing WDM from νDM
+Another relevant question is, assuming that HERA detects a signal compatible with an NCDM
+model, will it be able to discriminate whether it is WDM or νDM? Fisher matrices only allow
+us to compare the different values obtained in the two different configurations (WDM or νDM)
+for the detection thresholds of λcut. For a given astrophysical model, if these two values are
+similar, one can expect the models to be undistinguishable, none imprinting a distinctive
+signature. On the contrary, if not similar, one would be able to identify the detected model
+in the window of λcut values were one is detectable while the other is not. Yet, this simple
+discussion cannot constitute a rigorous argument.
+Below we provide a more quantitative
+assessment.
+Let us assume that one NCDM model is the underlying "true" model of the universe,
+and that a given value λcut ̸= 0 is detected. We consider the possibility to interpret the data
+within a "test" NCDM model that differs from the "true" model. We want to assess how well
+the "test" model fits the data and whether it would induce any bias in the reconstruction of
+λcut. To do so, we compute the quantity
+∆χ2
+test|true(λtest
+cut , λtrue
+cut ) ≡
+X
+ik,iz
+Otrue(ik, iz | λtrue
+cut ) −Otest(ik, iz | λtest
+cut )
+σtrue
+21 (ik, iz | λtrue
+cut )
+2
+,
+(6.1)
+where the "true" and "test" models can be either one of WDM and νDM (denoted as "W"
+and "ν" for short, respectively), the observable is O = δT
+2
+21∆2
+21, and the measurement error
+σtrue
+21 (ik, iz | λcut) is computed in each k- and z-bin for the true 21 cm power spectrum. All
+model parameters other than λcut are set to the values reported in Tab. 3. Although this
+approach suffers from the same shortcoming as the Fisher matrix formalism in that it assumes
+a fixed astrophysical fiducial model, it does provide a more concrete estimate of HERA’s
+potential to discriminate between the models.
+In Fig. 7 we show the resulting values of ∆χ2
+W|ν for three different values of λtrue
+cut = {1, 2
+and 3} × 10−3 Mpc/h (purple, red and orange colours, respectively), where we take νDM to
+be the true model and WDM to be the test model. The values of λtrue
+cut are indicated with
+coloured vertical dot dashed lines. We show the cases where ε = 0.2 (continuous lines) and
+ε = 0 (dashed lines). Both cases show a very similar trend. A larger value of ε corresponds
+to more noise and thus less discriminatory ability. Furthermore, the value of ∆χ2 decreases
+with increasing cutoff scale λtrue
+cut , which means that the discriminatory ability between WDM
+and νDM decreases when DM is warmer or more strongly interacting. For completeness, we
+show a full 2D plot of log10 ∆χ2
+W|ν as a function of λtrue
+cut and λtest
+cut in the appendix in Fig. 12.
+One way to quantify the discriminatory ability of HERA is to compute the difference
+in the Akaike Information Criterion (AIC) between the true and the test model. The AIC
+is defined as AIC ≡2NDOF −2 ln ˆL, where ˆL is the maximum likelihood and NDOF the
+number of degrees of freedom of the model. The relative likelihood of the test model com-
+pared to the true model is then given by exp(−∆AICtest|true/2). Under the assumption of
+a Gaussian likelihood and given that in our case, the true model perfectly fits the data, the
+AIC difference reduces to ∆AICtest|true = min ∆χ2
+test|true. We find that already when keeping
+the astrophysical parameters fixed, min ∆χ2
+test|true ≲O(1) in all cases. This corresponds to
+relative likelihoods of the test models of ≳0.6, which indicates no statistically meaningful
+– 20 –
+
+
+0.2
+1
+2
+3
+4
+λtest
+cut [10−3 Mpc/h]
+10−2
+10−1
+100
+101
+102
+103
+104
+105
+∆χ2
+W|ν
+Test WDM, true νDM
+λtrue
+cut = 1 × 10−3 Mpc/h
+λtrue
+cut = 2 × 10−3 Mpc/h
+λtrue
+cut = 3 × 10−3 Mpc/h
+ε = 0.0
+ε = 0.2
+λtrue
+cut
+Figure 7.
+∆χ2
+W|ν, testing the goodness of fit of WDM for an underlying, "true" νDM model, as a
+function of the "test" value of λcut for 3 values of the "true" value λtrue
+cut . The case where ε = 0.2 is
+displayed as continuous lines, while ε = 0 is shown with dashed lines.
+discrimination. Allowing the astrophysical parameters to vary would only further weaken
+HERA’s ability to distinguish between these models.
+In both Figs. 7 and 12, it is visible that for values λtrue
+cut ≲1 × 10−3 Mpc/h, the best-fit
+of λtest
+cut is at a value of λcut < λtrue
+cut . This means that for such values of λtrue
+cut , assuming WDM
+in place of νDM would yield a biased reconstruction of λcut towards smaller values. This can
+be understood in that the νDM model gives rise to more power (and thus more formation
+of structures) at small scales than WDM, making it more CDM-like for the same value of
+λcut and inducing a smaller shift in the 21 cm power spectrum towards later redshifts than
+the equivalent WDM model does. The fact that the bias disappears for larger λtrue
+cut could be
+understood in that for such large values of λtrue
+cut , the MCG population is so suppressed that
+it cannot significantly impact the 21 cm signal, and no difference appears. Yet, in all cases
+represented here the bias is small.
+7
+Conclusion
+In this paper, we have explored the sensitivity of the near-future radio telescope HERA, that
+probes the fluctuations in the 21 cm signal, to two different non-cold dark matter (NCDM)
+scenarios. Here we focus on thermal warm dark matter (WDM) and dark matter interacting
+with neutrinos (νDM), two NCDM models which exhibit similar but not equal suppressions
+of small-scale structure formation. The suppressions are sourced by different physical mecha-
+nisms: free-streaming in the case of WDM and collisional damping with acoustic oscillations
+for νDM. In Sec. 2, we discuss the WDM and νDM power spectra and the associated transfer
+functions, which can be fit in terms of a cutoff scale λcut that directly depends on the NCDM
+parameters. These are namely the WDM mass, mWDM, and the neutrino-DM interaction
+strength, uνDM. We took special care to self-consistently account for massive neutrinos. The
+– 21 –
+
+
+definition of the cutoff scale allows us to map νDM and WDM onto each other, a process
+that neglects the extra power on small scales caused by the dark acoustic oscillations in the
+νDM case.
+In Secs. 3 and 4, we detail how we derive the halo mass function and the power spectrum
+of 21 cm signal fluctuations from the linear matter power spectrum considering two popula-
+tions of galaxies, namely ACGs and MCGs. Our reference astrophysical scenario is based
+on the EOS2021 best-fit parameters of Ref. [56] and is given in Tab. 3. We make use of the
+extended Press-Schechter formalism, using a sharp-k window function, which is well-suited
+for NCDM scenarios. In the subsequent description of our astrophysical model, we have in-
+troduced the stellar mass distribution, which depends on both the halo mass function and the
+efficiency of star formation. We have shown that in the presence of NCDM, the MCG contri-
+bution is strongly affected by the NCDM-induced damping of small-scale structures. This is
+because MCGs are hosted in minihalos, the abundance of which is significantly impacted by
+the NCDM. We further detail the impact of NCDM on the 21 cm signal. As already noted
+in previous works, NCDM tends to shift the signal to lower redshift, as all forms of radiation
+fluxes shaping the signal are suppressed. The νDM scenario induces a slightly less pronounced
+shift than WDM due to the extra power on small scales, yet this effect appears to be minor
+for the considered astrophysical framework. We also discuss some of the degeneracies with
+astrophysical parameters.
+In Sec. 5, we employ the Fisher matrix formalism to forecast HERA’s sensitivity to the
+NCDM scenarios, assuming 1000 hours of observation, and determine the detection threshold
+for λcut. We find that the results are independent of our input method, either using the
+WDM (νDM) power spectrum from CLASS with the corresponding mWDM (uνDM) as the
+input parameter, or applying directly the featureless fit of the transfer function to the CDM
+power spectrum. We also show that the detection threshold strongly depends on the amount
+of modelling noise that we assume. For the standard 20% modelling noise, we find that HERA
+could detect values of λcut ≈2 × 10−3 Mpc/h at 95% CL, which corresponds to mWDM ≈
+5.1 keV or uνDM ≈1.7 × 10−8.
+These thresholds are either already excluded by current
+Lyman-α constraints in the WDM case or will allow HERA to test recent claims of a non-
+zero interaction strength [41] in the νDM case. Under the assumption of no modelling noise,
+the detection threshold improves to λcut ≈1 × 10−3 Mpc/h at 95% CL, which corresponds
+to mWDM ≈9.3 keV or uνDM ≈4.1 × 10−9. In this optimistic case, HERA would be able
+to probe the NCDM scenarios well beyond e.g. current Lyman-α limits. We find that these
+results barely change when varying the heating parameters.
+We also discuss the degeneracies between NCDM and astrophysical parameters in the
+Fisher matrix posteriors, recovering the expected dependencies as discussed in Sec. 4. We
+find that when MCGs are strongly suppressed, ACG parameters are well-reconstructed and
+degeneracies between those and λcut are alleviated. When MCGs are less suppressed (CDM-
+like), MCG parameters are well-reconstructed with little degeneracy with λcut, at the expense
+of ACG parameters. In the transitional regime, neither ACG nor MCG parameters can be
+reconstructed as precisely and we observe stronger degeneracies between λcut and astrophys-
+ical parameters. Finally, we more quantitatively study the capacity of HERA to distinguish
+between νDM and WDM through a ∆χ2 test. We confirm that the expected bias in λcut is
+non-zero but small when assuming the wrong model in the reconstruction of the cutoff scales
+for the value range of interest.
+Our results show that, assuming two populations of galaxies, the 21 cm signal has the
+power to further probe the properties of NCDM. The constraining power will significantly
+– 22 –
+
+
+depend on the amount of modelling noise that can be reached in the 21 cm signal simula-
+tions. Yet, even in the most optimistic scenarios with negligible modelling uncertainty, the
+extra power on small scales in the νDM case will unfortunately not allow this model to be
+distinguished from WDM.
+A
+Cosmology, NCDM and Astrophysics details
+Throughout this paper, we use the natural units convention (ℏ= kB = c = 1) and a default
+cosmology from Planck 2018 including TT,TE,EE+lowE+lensing+BAO [97], (h = 0.6766,
+Ωbh2 = 0.02242, Ωch2 = 0.11933, σ8 = 0.8102, ns = 0.9665). In addition, we work with
+the most up-to-date value of the effective number of light degrees of freedom Neff = 3.044
+[112, 113]. Fisher analyses are produced with 21cmCAST5. We use the following parameters
+for 21cmFAST: redshift = 3.5, max_redshift = 35, HII_DIM = 200, BOX_LEN = 300, DIM =
+800, PERTURB_ON_HIGH_RES = True, PS_FILTER = SHARPK, USE_RELATIVE_VELOCITIES =
+False,6 USE_MINI_HALOS = True, USE_MASS_DEPENDENT_ZETA = True, SUBCELL_RSD = True,
+INHOMO_RECO = True, USE_TS_FLUCT = True. We also perform all CLASS calculations with
+the in-built fluid approximation disabled, i.e. by setting fluid_approximation = 3. Further-
+more, note that in this paper the CDM model refers to ΛCDM with 3 massive neutrinos and
+that in all cosmologies considered here the three neutrino masses have been set to mν = 0.02
+eV.
+A.1
+Free-streaming length
+Here we detail how the approximation of Eq. (2.2) for the free-streaming length of the WDM
+has been derived. In particular, its definition in Eq. (2.1) is directly related to the induced
+cutoff scale in the linear matter power spectrum. After decoupling, the momentum of one
+WDM particles follows the FLRW geodesics and evolves as p(a) = pkdakd/a. Replacing this
+expression into the definition of the comoving free-streaming length yields
+λfs =
+Z a
+akd
+da′
+a′2H(a′)
+pkd
+Tkd
+r
+a′2
+
+m
+akdTkd
+2
++
+
+pkd
+Tkd
+2 ,
+(A.1)
+where we have introduced the temperature at kinetic decoupling Tkd.
+This temperature
+satisfies, by definition, Td,0 ≡Tkdakd. From the new expression of λfs and for simplicity, in
+the following we will use the reduced mass and momenta
+µ ≡m
+Td,0
+,
+and
+q ≡pkd
+Tkd
+.
+(A.2)
+To follow the computation further, one first needs the initial condition at kinetic decoupling
+of the WDM particle dynamics. The distribution of momenta at kinetic decoupling is given
+by the Fermi-Dirac distribution, which in terms of the variable q can be written
+pq(q) = 1
+N
+q2
+e
+√
+(akdµ)2+q2 + 1
+,
+(A.3)
+5https://github.com/gaetanfacchinetti/exo21cmCAST
+6One can account for star formation quenching in the smallest galaxies (in MCGs) due to the DM-baryon
+relative velocities, see [53].
+Yet, this would require a consistent implementation of relative velocity feed-
+back in a NCDM scenarios.
+We do not address this technical issue in our work and select the option
+USE_RELATIVE_VELOCITIES = False in 21cmFAST.
+– 23 –
+
+
+where N is a normalisation constant. By nature, we must assume that almost all the WDM
+particles are relativistic when the entire fluid kinetically decouples. This implies that Tkd ≫
+m, which, put differently, is akdµ ≪1. Thus, this leads, in excellent approximation, to
+pq(q) ≃
+2
+3ζ(3)
+q2
+eq + 1 .
+(A.4)
+Then, to evaluate λfs at a given WDM mass, one can consider the typical free streaming
+length defined from the the average momentum as
+λfs ≃
+Z a
+0
+da′
+a′2H(a′)
+⟨q⟩
+q
+(a′µ)2 + ⟨q⟩2 ,
+with
+⟨q⟩=
+Z ∞
+0
+pq(q)qdq =
+7π4
+180ζ(3) .
+(A.5)
+In addition, plugging Eq. (2.3) into the expression of µ one obtains
+µ = 2.3 × 108
+ 0.12
+ΩDMh2
+1/3 2.73 K
+Tγ,0
+ mWDM
+5 keV
+4/3
+.
+(A.6)
+Therefore, for mWDM > 5 keV one has µ > 108, while ⟨q⟩≃3.15. Consequently, the integral
+in the expression of λfs is largely dominated by the first part, in range of scale factors a′
+corresponding to the radiation dominated era (i.e. for small values of a′ in the square root in
+the denominator). A good approximation for λfs is thus
+λfs ≃
+⟨q⟩
+H0
+p
+Ωγ,0
+Z aeq
+0
+da′
+1
+q
+(a′µ)2 + ⟨q⟩2
+≃
+⟨q⟩
+H0
+p
+Ωγ,0
+1
+µ
+
+ln µ + ln
+2aeq
+⟨q⟩
+
+.
+(A.7)
+The typical comoving free streaming mode is then
+kfs ≃2π
+λfs
+≃2π
+⟨q⟩H0
+p
+Ωγ,0
+m
+Td,0
+ln
+
+m
+Td,0
+
++ ln
+
+2aeq
+⟨q⟩
+ ,
+(A.8)
+and plugging in numbers yields
+kfs ≃
+4.1r
+1 + 0.15 ln r h/Mpc
+with
+r =
+ m
+keV
+ Tγ,0
+Td,0
+
+.
+(A.9)
+A.2
+Global fit of the transfer function
+In order to perform a global fit of the transfer function on both the WDM and νDM scenarios
+we minimise the total square error
+E ≡
+X
+j,l
+(
+TWDM(kj, z = 0) −f
+ 
+kj, aWDM
+ 1 keV
+mDM,l
+bWDM!)2
++
+X
+j,l
+(
+TνDM(kj, z = 0) −f
+ 
+kj, aνDM
+
+uνDM,l
+8.5 × 10−7
+bνDM!)2
+.
+(A.10)
+– 24 –
+
+
+where mDM,l corresponds to a grid of 20 points, chosen such that the inverse values 1/mDM,l
+are equally spaced, between 1 keV to 20 keV and uνDM,l is a grid of 20 points logarithmically
+distributed from 10−9 to 10−6. In order to only capture the first break in the slope (and not
+the subsequent small bumps), the arrays kj are limited to the initial range where T(kj,l) > 0.15
+for each DM mass and DM-neutrino coupling strength.
+The best-fit is found by minimising Eq. (A.10). In the right panel of Fig. 1, we plot the
+transfer functions obtained numerically from CLASS for WDM (solid coloured lines) and νDM
+(dashed lines) together with the fitted expression f(k, λcut) from Eq. (2.6) (dotted lines). For
+the fitted transfer function, we use the derived best-fit values of the parameters shown in
+Tab. 1. This clearly illustrates the goodness of the fit.
+A.3
+Excursion set formalism and the window function choice: top-hat vs sharp-k
+A.3.1
+Excursion - set theory in a nutshell
+Assuming Gaussian distributed initial perturbations, the excursion set theory relates the
+linear matter power spectrum to the halo mass distribution [114–116]. To each region of size
+R we can associate a smoothed linear density contrast δR over a window W w
+R where w tags
+the different possible window choices, some of which are discussed below. More precisely, we
+define
+δw
+R ≡
+Z
+d3x δ(x)W w
+R (|x|) =
+Z
+d3k
+(2π)3 ˆδ(k) ˆW w
+R (k)
+(A.11)
+where ˆδ (resp.
+ˆW w
+R ) is the Fourier transform of the density contrast field δ(x) (resp. W w
+R ).
+The first natural choice of window function is the top-hat, W TH
+R (x) = 3Θ(R −|x|)/(4πR3),
+which has the Fourier transform
+ˆW TH
+R (k) =
+3
+4πR3
+Z
+|x|<R
+d3x e−ikx
+=
+3
+(kR)3 [sin(kR) −kR cos(kR)] ,
+(A.12)
+and that defines δTH
+R
+as the volume average of the density contrast inside a sphere of radius
+R. Assuming that the Universe is homogeneous and isotropic, and that the linear density
+contrast is Gaussian-distributed, it follows the probability density functional
+Pδ[δ] ∝exp
+ 
+−1
+2
+Z
+d3k
+(2π)3
+|ˆδ(k)|2
+P(k)
+!
+,
+(A.13)
+where the variance P(k) is the linear matter power spectrum. The smoothed density contrast
+δR being defined as an integral over a range of modes weighted by the window function, it
+follows a Gaussian distribution of mean 0 and variance Sw
+R of Eq. (3.2). 7
+In the excursion set approach, counting halos inside a given volume and around a given
+point in space can be done by tracking the evolution of δR (until it reaches the linear collapse
+threshold δc) as we decrease R – or equivalently as we increase Sw = Sw
+R since there is a
+7Note that Eq. (A.13) gives a implicit definition of the matter power spectrum as
+D
+ˆδ(k)ˆδ⋆(k′)
+E
+≡(2π)3δD(k −k′)P(k)
+(A.14)
+– 25 –
+
+
+one-to-one correspondence between R and Sw
+R. Let us consider two regions of size R and
+R −ϵ with 0 < ϵ ≪R. The difference of density contrast between these two regions,
+δw
+R−ϵ −δw
+R =
+Z
+d3k
+(2π)3 ˆδ(k)
+h
+ˆW i
+R−ϵ(k) −ˆW w
+R (k)
+i
+,
+(A.15)
+is in general not independent on δw
+R because the support of ˆW w
+R−ϵ(k) −ˆW w
+R (k) overlaps that
+of ˆW w
+R (k).
+This can be seen, in the case of the top-hat, directly from equation (A.12).
+This makes the construction of an analytical theory of structure formation with an arbitrary
+window function extremely challenging. The only exception is for the sharp-k window function
+defined from its Fourier transform in Eq. (3.3). With that choice, Eq. (A.15) reduces to an
+integral of ˆδ(k) over k ∈[1/R, 1/(R −ϵ)], completely independent of the associated δSK
+R
+obtained from the integral in Eq. (A.11) performed over k ∈[0, 1/R]. The evolution of δSK
+R
+with R can then described as a random walk, each step size being drawn out of a Gaussian
+distribution δSK
+R−ϵ −δSK
+R
+∼N(0, SSK
+R−ϵ −SSK
+R ). In the limit ϵ →0, δSK
+R
+thus follows a Brownian
+motion and properties of collapsed halos can be directly inferred from its properties [114].
+0.1
+1
+10
+102
+x = kR
+10−8
+10−6
+10−4
+10−2
+1
+w2
+ϵ(x)
+ϵ = 0.05
+ϵ = 0.10
+ϵ = 0.25
+ϵ = 0.50
+ϵ = 0.75
+ϵ = 1.00
+0.1
+1
+10
+102
+x = kR
+10−6
+10−5
+10−4
+10−3
+10−2
+0.1
+1
+10
+102
+dw2
+ϵ(x)
+dx
+
+ϵ = 0.05
+ϵ = 0.10
+ϵ = 0.25
+ϵ = 0.50
+ϵ = 0.75
+ϵ = 1.00
+Figure 8. Left panel. Square of the generalised window function wϵ(x) for selected values of ϵ.
+Right panel. Absolute value of its derivative, which enters the definition of S′(R).
+A.3.2
+The importance of the window function
+In order to recover the correct mass function it is necessary to properly evaluate the derivative
+of the variance of the matter power spectrum S,
+S′(R) ≡dS
+dR =
+Z
+d3k
+(2π)3 P(k)d| ˆWR(k)|2
+dR
+.
+(A.16)
+In the following we introduce the dimensionless matter power spectrum Pm(k) = k3P(k)/(2π2).
+Moreover, because the Fourier transform of the smoothing window is a function of the prod-
+uct kR, it is possible to introduce the reduced window function w : x 7→w(x) = ˆWR(x/R),
+independent of R, such that the variance takes the simple form
+S′(R) = 1
+R
+Z ∞
+0
+dx Pm
+ x
+R
+ dw2(x)
+dx
+.
+(A.17)
+– 26 –
+
+
+Depending on the shape of the window function this integral may give a different result. To
+quantify this effect, let us define the family of valid window functions,
+wϵ : x 7→wTH(ϵx)
+"
+1 + exp
+ −1
+ϵ
+
+1 + exp
+  x−1
+ϵ
+
+#1−ϵ
+(A.18)
+parametrised by ϵ ∈(0, 1], and where wTH is the usual top-hat window function
+wTH : y 7→3
+y3 [sin(y) −y cos(y)] .
+(A.19)
+This set of functions is chosen to provide a continuous interpolation between the top-hat and
+the sharp-k, wSK : x 7→Θ(1 −x), window functions as they satisfy the following limits
+
+
+
+
+
+w1(x) = wTH(x)
+lim
+ϵ→0 wϵ(x) = wSK(x)
+∀x ∈[0, ∞) .
+(A.20)
+In the left panel of Fig. 8 we show w2
+ϵ(x) for selected values of ϵ, while the right panel dis-
+plays the absolute value of its derivative, which enters the expression of S′(R). As ϵ decreases
+from 1 to 0, the oscillatory pattern characteristic of the top-hat window function gradually
+vanishes, and for small ϵ the derivative tends toward a Dirac delta distribution. For ϵ ∼1,
+the broad derivative implies that the integral for S′(R) receives significant contributions from
+values of the matter power spectrum at k ≪1/R. When the power spectrum is truncated,
+this can produce an artificially large S′(R) on scales where the spectrum is nearly zero. Con-
+sequently, the value of S′(R) becomes sensitive to the detailed shape of the window function
+derivative itself, which lacks physical meaning.
+To illustrate the significance of this issue, Fig. 9 shows the behavior of S′(R) as a
+function of R and ϵ: for selected ϵ values in the left panel and as a contour map in the right
+panel. In the left panel, the solid lines correspond to the exact integration using the matter
+power spectrum of a ∼7 keV WDM model (computed from the analytical transfer function)
+displaying suppressed power for wave modes larger than k0 ∼7×101 Mpc−1. The dashed lines,
+in contrast, assume that the dimensionless matter power spectrum is approximately constant
+over the relevant modes and sharply truncated at k = k0. The latter case approximation is
+useful as it allows to derive an analytic expression of the derivative of the variance given by
+S′(R) ∼P0
+R
+
+1 −w2
+ϵ(k0R)
+
+,
+(A.21)
+with P0 a normalisation constant (that should be set here to 12 to approximate the 7 keV
+WDM case). Remarkably, this approximation reproduces the exact result particularly well
+for large ϵ, highlighting the direct correspondence between the shape of S′(R) and that of
+the window function. The right panel further shows that for ϵ ≳0.1, S′(R) remains sizeable
+down to R < 10−4 Mpc, even though the matter power spectrum is sharply truncated around
+1/k0 ∼10−2 Mpc. Moreover, in that case, the precise amplitude depends sensitively on the
+arbitrary choice of ϵ.
+In the end, in the main text, we have first re-derived that the vanilla Press-Schechter
+halo mass function can only be derived assuming a sharp-k window function. Then, we have
+shown here that the halo mass function of a truncated matter power spectrum obtained with
+the top-hat window function is driven by the shape of the window function itself. Therefore,
+we conclude that the sharp-k window function is the best choice for consistency and accuracy
+for our models.
+– 27 –
+
+
+−4.0
+−3.5
+−3.0
+−2.5
+−2.0
+−1.5
+−1.0
+log10(R/Mpc)
+−2
+−1
+0
+1
+2
+3
+4
+log10 |S′(R)|
+exact
+approx.
+ϵ →0
+ϵ = 0.05
+ϵ = 0.10
+ϵ = 0.25
+ϵ = 0.50
+ϵ = 0.75
+ϵ = 1.00
+ϵ →0
+ϵ = 0.05
+ϵ = 0.10
+ϵ = 0.25
+ϵ = 0.50
+ϵ = 0.75
+ϵ = 1.00
+−4.0
+−3.5
+−3.0
+−2.5
+−2.0
+−1.5
+log10(R/Mpc)
+−1.4
+−1.2
+−1.0
+−0.8
+−0.6
+−0.4
+−0.2
+0.0
+log10(ϵ)
+log10 |S′(R)|
+−2.7
+−1.8
+−0.9
+0.0
+0.9
+1.8
+2.7
+Figure 9. Derivative of the variance of the matter power spectrum in terms of the smoothing radius
+R for various values of ϵ (i.e., for different shape of the window function). Left panel. Result for a
+finite set of values for ϵ, comparing the exact expression (solid lines) to the approximation (dashed
+lines) obtained from Eq. (A.21). Right panel. Contour map in terms of both R and ϵ.
+B
+Effect of WDM vs νDM
+Here we provide some extra plots illustrating the differences or similarities between WDM
+and νDM. The impact of assuming either the WDM or νDM power spectra or the fitted
+transfer function as input method 1-3 on the halo mass function and stellar mass distribution
+(discussed in Secs. 3 and 4.2) is shown in Fig. 10. We see that the strongest differences start
+to appear at low halo masses, which are already significantly suppressed w.r.t. the CDM
+prediction.
+The impact of using WDM or νDM as the input (method 2 or 3) on the 21 cm power
+spectrum is shown in Fig. 11 for the same values of λcut as in the Fig. 3. Here in particular we
+show the power spectra for two different values of k = 0.20 h/Mpc (left, as in the top panels
+of Figs. 3 and 4) and k = 0.49 h/Mpc (right plot). The differences are slightly stronger for
+larger values of k.
+The value of ∆χ2
+W|ν, testing the goodness of fit of WDM as "test" model against data
+given by νDM considered to be the "true" model, are plotted with a gradient of colours in the
+two dimensional plane of (λtrue
+cut , λtest
+cut ) in Fig. 12. Darker colours indicate the lower ∆χ2
+W|ν,
+while the dashed white diagonal line highlights where λtrue
+cut = λtest
+cut . We show the case where
+ε = 0.2, however setting ε = 0 effectively only changes the scaling of the legend, such that
+log10 ∆χ2(ε = 0) ≃1.24 × log10 ∆χ2(ε = 0.2). Note that ∆χ2
+W|ν is shown as a function of
+λtest
+cut for three values of λtrue
+cut in Fig. 7. As in the latter case, we find that the minimum value
+of ∆χ2 for a fixed λtrue
+cut corresponds to a value of λtest
+cut slightly below λtrue
+cut . This is particularly
+visible λtrue
+cut ≲1 × 10−3 Mpc/h. This implies that the assumption of the wrong model leads
+to a small bias in the reconstruction of λcut.
+– 28 –
+
+
+102
+104
+106
+∂ρ⋆
+∂ln M [M⊙(h/Mpc)3]
+M III
+turn
+M II
+turn
+z = 10
+CDM
+λcut = 1 × 10−3 Mpc/h
+λcut = 2 × 10−3 Mpc/h
+TF
+WDM
+νDM
+106
+107
+108
+109
+1010
+1011
+M [M⊙]
+10−4
+10−2
+1
+102
+104
+∂nSK
+∂ln M [(h/Mpc)3]
+M SK
+1/2
+M SK
+1/2
+Figure 10. Same as Fig. 2, but for two fixed values of λcut, comparing the effect that the assumption
+of the fitted transfer function (continuous), WDM (dotted) or νDM (dashed) (input methods 1-
+3 respectively) have on the stellar mass distribution (upper panel) and halo mass function (lower
+panel). For the stellar mass distribution, the halos with masses in the range 105 ≤M/M⊙≤109 get
+contributions from MCGs while halos in the mass range 107 ≤M/M⊙≤1011 get contributions from
+ACGs.
+C
+Fisher matrix analysis and results
+C.1
+Change of variables with Fisher matrices
+Assuming that the Fisher matrix saturates the Cramer-Rao bound, we may estimate the sen-
+sitivity of an observable to a given parameter by determining which value of that parameter
+is equal to the associated inverse Fisher matrix element (for a 1σ detection threshold). In
+this appendix we detail while this approach must be performed with extreme caution.
+Consider a model defined by a set of parameters θ that can be mapped to another set of
+parameters ρ by the bijective function g such that g(θ) = ρ and g−1(ρ) = θ. To this model
+we can associate two Fisher matrices to the same observable. Let us call them Fθ and Fρ
+respectively associated with θ and ρ. From the general expression of a Fisher matrix, our
+two matrices are nonetheless related by the equation
+Fθ = JT FρJ ,
+or equivalently
+F −1
+ρ
+= JF −1
+θ JT ,
+(C.1)
+with J the Jacobian of the function g evaluated at the fiducial value. Consider now more
+specifically the idealised scenario in which our astro/cosmo model is fully described by the
+analytical transfer function derived in section 2. In that case, we can associate a DM mass
+m to an interaction strength u. Let us denote h(m) the value of u that gives the exact same
+– 29 –
+
+
+10−1
+100
+101
+102
+δT
+2
+21∆2
+21 [mK2]
+λcut = 4 × 10−3 Mpc/h
+λcut = 2 × 10−3 Mpc/h
+λcut = 1 × 10−3 Mpc/h
+CDM (reference)
+WDM
+νDM
+k = 0.20 h/Mpc
+4
+6
+8
+10
+12
+14
+16
+18
+z
+−0.1
+0.0
+0.1
+(δT
+2
+21∆2
+21)νDM
+(δT
+2
+21∆2
+21)WDM −1
+202.9
+157.8
+129.1
+109.2
+94.7
+83.5
+74.7
+ν [MHz]
+10−1
+100
+101
+102
+δT
+2
+21∆2
+21 [mK2]
+λcut = 4 × 10−3 Mpc/h
+λcut = 2 × 10−3 Mpc/h
+λcut = 1 × 10−3 Mpc/h
+CDM (reference)
+WDM
+νDM
+k = 0.49 h/Mpc
+4
+6
+8
+10
+12
+14
+16
+18
+z
+−0.1
+0.0
+0.1
+(δT
+2
+21∆2
+21)νDM
+(δT
+2
+21∆2
+21)WDM −1
+202.9
+157.8
+129.1
+109.2
+94.7
+83.5
+74.7
+ν [MHz]
+Figure 11. Upper panels. 21 cm power spectra as a function of the redshift computed with WDM
+(dotted) or νDM (dashed) as the input method for three different values of λcut at k = 0.20 h/Mpc
+(left) and k = 0.49 h/Mpc (right). The upper panel of the left plot can be compared to the upper
+panel of Fig. 3 assuming the fitting function as an input. Note that the dashed and the dotted curves
+lie almost exactly on top of each other. Lower panels. Ratio of the νDM and WDM power spectra
+for different values of λcut.
+0.2
+1
+2
+3
+4
+λtrue
+cut [10−3 Mpc/h]
+0.2
+1
+2
+3
+4
+λtest
+cut [10−3 Mpc/h]
+Test WDM, true νDM
+−1
+0
+1
+2
+3
+4
+log10 ∆χ2
+W|ν (ε = 0.2)
+Figure 12. Values of ∆χ2
+W|ν, testing the goodness of fit of WDM against data given by νDM as the
+"true" model shown as a colour gradient as a function of λtrue
+cut and λtest
+cut . For this plot, the modelling
+error is set to ϵ = 0.2. The dashed white diagonal line indicates where λtrue
+cut = λtest
+cut .
+transfer function in the νDM scenario than a WDM mass m in the WDM scenario. We can
+then use the previous equations with g = (1, h), θ = (. . . , m), and ρ = (. . . , u), where the
+dots would denote other model parameters than u and m that would be taken equal in θ and
+– 30 –
+
+
+ρ. It yields
+(F −1
+θ )mm = (F −1
+ρ )uu
+[h′(m⋆)]2 ,
+(C.2)
+where we denote the fiducial values u⋆and m⋆such that u⋆= h(m⋆). Consider now that the
+fiducial model is such that
+u⋆=
+q
+(F −1
+ρ )uu
+(C.3)
+which, for the purpose of this appendix we will call at the detection limit of the νDM scenario.
+The definition of detection threshold slightly differs in the main text as we account for the
+fact that the posterior of u has to be truncated and is only defined on positive values, but
+the exact same conclusion would hold. This simple requirement implies that
+q
+(F −1
+θ )mm = h(m⋆)
+|h′(m⋆)|
+(C.4)
+which is equal to m⋆if and only if h(m) = cmq with q = ±1 and c a constant. In other
+word, unless the the relationship between u and m is linear or inverse there is no way that
+q
+(F −1
+θ )mm = m⋆when u⋆=
+q
+(F −1
+ρ )uu. In the specific case where f(m) = amb (which is
+the case here, with b ≃−2.5) one has
+q
+(F −1
+θ )mm = m⋆
+|b| .
+(C.5)
+That is, for |b| > 1 it yields
+q
+(F −1
+θ )mm < m⋆and when we detect u⋆we have already
+detected the corresponding m⋆. Said differently, the sensitivity on m that we estimate with
+the Fisher method is inherently stronger than that on u whatever we do. Notice that this
+does not depend on the sign of b therefore, considering 1/m as a parameter instead of m
+would not change anything. This result is associated to the fact that, even if one of the two
+posterior distributions for u or m is Gaussian, then the other can only be Gaussian too if and
+only if f(m) = am.
+C.2
+Computing the Fisher matrix: finding the plateaux
+Evaluating the Fisher matrix elements requires the derivatives of the 21 cm power spectrum
+over the parameters of the model. Numerically, for a parameter θ it can be obtained by the
+evaluation of the power spectrum at two values θ± = θfiducial ± δθ around the fiducial. For
+accuracy the step δθ must be large enough so that the difference of power spectra from θ+ and
+θ−is not dominated by numerical noise, and small enough so that the two-points estimation
+of the derivative makes sense. A good guess is usually to consider δθ to be a few percent
+of the standard deviation σθ. For all astrophysical parameters we use the values obtained
+in Ref. [117]. However, for an arbitrary cutoff scale, we do not know in advance the value
+of the standard deviation and must rely on a shooting method. In practice we test a large
+panel of values for δθ and try to identify a plateau where the value of σθ obtained becomes
+independent of δθ, as it should be. However, this technique is often delicate to apply, due to
+some residual numerical noise that makes the identification of a single plateau value arbitrary
+to some level. In that regard, we have developed a fully automatised method in order to
+overcome the arbitrariness and estimate the uncertainty in the identification of the plateau.
+– 31 –
+
+
+Let us assume that we have {σi
+θ} for a range of steps {δi
+θ} with i ∈[1, N]. We introduce
+the 2D phase-space vectors yi = (σi
+θ, δσi
+θ) where δσi
+θ is the gradient of σi
+θ evaluated as
+δσi
+θ =
+
+
+
+
+
+
+
+
+
+σi+1
+θ
+−σi−1
+θ
+2
+∀i ∈[2, N −1]
+σ2
+θ −σ1
+θ
+for i = 1
+σN
+θ −σN−1
+θ
+for i = N .
+(C.6)
+A plateau corresponds to a cluster of y values close to (µ, 0) with µ a constant. In order to
+identify such a cluster we try to fit it with a Gaussian distribution of mean m = (µ, 0) and
+covariance matrix C. Consider that the points in the cluster follow a distribution ∼P with
+probability density function p. Then, we want to minimise the Kullback-Leibler divergence,
+DKL(P || Q) =
+Z
+d2y p(y) ln
+p(y)
+pN(y |m, C) .
+(C.7)
+where pN is the probability density function associated to a bivariate normal distribution.
+This minimisation problem is equivalent to the minimisation of the cost function
+LN(µ, C) ≡−
+Z
+d2y p(y) ln [pN(y |m, C)] ∼−
+X
+y
+ln [pN(y | m, C)] .
+(C.8)
+However, as such, the Gaussian distribution tries to accommodate for points that are far from
+the plateau and therefore not in the cluster. A solution is, instead of a normal distribution,
+to use an unnormalised truncated Gaussian distribution defined as
+q(y |m, C, r, λ) =
+(
+pN(y | m, C)
+if
+p
+(y −m)TC−1(y −m) ≤r
+λ
+if
+p
+(y −m)TC−1(y −m) > r
+(C.9)
+with r a chosen value and λ a constant chosen such that λ ≫N exp(−r2)/
+p
+|det C|/(2π).
+As a matter of fact, the value of λ is not important as long as it is satisfies the previous
+condition. This choice is such that it will look for a cluster with an extension of r sigmas and
+a distribution of point that is random elsewhere. In other words, the parameter r quantify the
+compactness of the cluster making a plateau, and is the only arbitrary input of this method.
+In the end, finding a plateau amounts to minimising
+Lq(µ, C | r, λ) ≡−
+X
+y
+ln [q(y | m, C, r, λ)] ,
+(C.10)
+for given values of r and λ. In this work we choose r = 2.58 (such that the Gaussian covers
+99% of the cluster) and verify a posteriori the validity of our choice for λ. The minimisation
+is performed using the stochastic gradient descent algorithm AdamW implemented in pyTorch.
+Interestingly, this method automatically gives an estimated error on σθ. We choose to vary
+λcut by 20 linearly distributed values of δλcut between 1% and 5%.
+C.3
+Triangle plots
+Fig. 13 shows the marginalised one- and two-dimensional posteriors at 95% CL of the full set
+of astrophysical parameters considered in the analysis. A selection of degeneracies relevant
+for the λcut analysis are already discussed in Sec. 6.2. Also note that in the colder DM case
+– 32 –
+
+
+(purple), we recover similar degeneracies as the one obtained in the Fisher matrix forecasts of
+Ref. [117], such as the anti-correlation betweens fesc and f⋆and between α⋆and αesc, as well as
+similar 1D uncertainties. Some differences arise due to the fact that the astrophysics and noise
+models are not exactly the same ([117] considered an older system temperature description).
+For example, [117] uses one single X-ray amplitude which shows similar degeneracies as our
+MCG amplitude LII
+X but not necessarily with LIII
+X .
+Acknowledgments
+The authors would like to thank J. Foster, S. Palomares and B. Zaldivar for insightful discus-
+sions. LLH, GF and JS are supported by the Fonds de la Recherche Scientifique F.R.S.-FNRS
+through a senior research associate, a postdoctoral researcher and research fellow position,
+respectively. All the authors also acknowledge the support of the FNRS research grant num-
+ber J.0134.24, the ARC program of the Federation Wallonie-Bruxelles and the IISN conven-
+tion No. 4.4503.15. Computational resources have been provided by the Consortium des
+Équipements de Calcul Intensif (CÉCI), funded by the Fonds de la Recherche Scientifique
+de Belgique (F.R.S.-FNRS) under Grant No. 2.5020.11 and by the Walloon Region of Bel-
+gium. LLH, GF and JS are also members of BLU-ULB (Brussels Laboratory of the Universe,
+blu.ulb.be).
+References
+[1] J. R. Pritchard and A. Loeb, “21-cm cosmology,” Rept. Prog. Phys. 75 (2012) 086901,
+arXiv:1109.6012 [astro-ph.CO].
+[2] HERA Collaboration, Z. Abdurashidova et al., “First Results from HERA Phase I: Upper
+Limits on the Epoch of Reionization 21 cm Power Spectrum,” Astrophys. J. 925 no. 2, (2022)
+221, arXiv:2108.02263 [astro-ph.CO].
+[3] HERA Collaboration, Z. Abdurashidova et al., “Improved Constraints on the 21 cm EoR
+Power Spectrum and the X-Ray Heating of the IGM with HERA Phase I Observations,”
+Astrophys. J. 945 no. 2, (2023) 124, arXiv:2210.04912 [astro-ph.CO].
+[4] J. S. Bullock and M. Boylan-Kolchin, “Small-Scale Challenges to the ΛCDM Paradigm,” Ann.
+Rev. Astron. Astrophys. 55 (2017) 343–387, arXiv:1707.04256 [astro-ph.CO].
+[5] J. Dubinski and R. G. Carlberg, “The Structure of cold dark matter halos,” Astrophys. J. 378
+(1991) 496.
+[6] R. A. Flores and J. R. Primack, “Observational and theoretical constraints on singular dark
+matter halos,” Astrophys. J. Lett. 427 (1994) L1–4, arXiv:astro-ph/9402004.
+[7] P. Bode, J. P. Ostriker, and N. Turok, “Halo formation in warm dark matter models,”
+Astrophys. J. 556 (2001) 93–107, arXiv:astro-ph/0010389.
+[8] A. Pontzen and F. Governato, “How supernova feedback turns dark matter cusps into cores,”
+Mon. Not. Roy. Astron. Soc. 421 (2012) 3464, arXiv:1106.0499 [astro-ph.CO].
+[9] P. Madau, S. Shen, and F. Governato, “Dark Matter Heating and Early Core Formation in
+Dwarf Galaxies,” Astrophys. J. Lett. 789 (2014) L17, arXiv:1405.2577 [astro-ph.GA].
+[10] T. K. Chan, D. Kereš, J. Oñorbe, P. F. Hopkins, A. L. Muratov, C. A. Faucher-Giguère, and
+E. Quataert, “The impact of baryonic physics on the structure of dark matter haloes: the
+view from the FIRE cosmological simulations,” Mon. Not. Roy. Astron. Soc. 454 no. 3, (2015)
+2981–3001, arXiv:1507.02282 [astro-ph.GA].
+– 33 –
+
+
+±1.0
+±0.88
+±0.035
+−1.25
+−30
+−15
+0
+15
+30
+log10 f III
+∗
+±2.3
+±6.9
+±15
+−2.5
+−0.8
+0.0
+0.8
+1.6
+αII
+∗
+±0.68
+±0.45
+±0.27
+0.5
+−8
+−4
+0
+4
+8
+αIII
+∗
+±1.2
+±1.5
+±3.7
+0.1
+−3.0
+−1.5
+0.0
+1.5
+3.0
+t∗
+±1.5
+±1.2
+±0.11
+0.5
+−3
+−2
+−1
+0
+log10 f II
+esc
+±1.0
+±0.86
+±0.049
+−1.35
+−40
+−20
+0
+20
+log10 f III
+esc
+±2.2
+±6.3
+±16
+−1.35
+−1.0
+−0.5
+0.0
+0.5
+1.0
+αesc
+±0.51
+±0.35
+±0.25
+−0.3
+39
+40
+41
+42
+log10
+LII
+X
+erg s−1 M−1
+⊙yr
+±0.88
+±0.69
+±0.47
+40.5
+−80
+0
+80
+160
+log10
+LIII
+X
+erg s−1 M−1
+⊙yr
+±2.5
+±7.8
+±64
+40.5
+400
+480
+560
+640
+E0 / eV
+±61
+±55
+±69
+500.0
+−3
+−2
+−1
+0
+1
+log10 f II
+∗
+1
+2
+3
+4
+5
+λcut / λﬁd
+cut
+−30
+−15
+0
+15
+30
+log10 f III
+∗
+−0.8
+0.0
+0.8
+1.6
+αII
+∗
+−8
+−4
+0
+4
+8
+αIII
+∗
+−3.0
+−1.5
+0.0
+1.5
+3.0
+t∗
+−3
+−2
+−1
+0
+log10 f II
+esc
+−40
+−20
+0
+20
+log10 f III
+esc
+−1.0
+−0.5
+0.0
+0.5
+1.0
+αesc
+39
+40
+41
+42
+log10
+LII
+X
+erg s−1 M−1
+⊙yr
+−80
+0
+80
+160
+log10
+LIII
+X
+erg s−1 M−1
+⊙yr
+400
+480
+560
+640
+E0 / eV
+1
+2
+3
+4
+5
+λcut / λﬁd
+cut
++2.5 −1.0
+±0.94
+±0.27
+1.0
+λﬁd
+cut = 1 × 10−3 Mpc/h
+λﬁd
+cut = 2 × 10−3 Mpc/h
+λﬁd
+cut = 4 × 10−3 Mpc/h
+Figure 13. Same as Fig. 6, but showing all astrophysical parameters and λcut.
+– 34 –
+
+
+[11] J. Oñorbe, M. Boylan-Kolchin, J. S. Bullock, P. F. Hopkins, D. Kerěs, C.-A. Faucher-Giguère,
+E. Quataert, and N. Murray, “Forged in FIRE: cusps, cores, and baryons in low-mass dwarf
+galaxies,” Mon. Not. Roy. Astron. Soc. 454 no. 2, (2015) 2092–2106, arXiv:1502.02036
+[astro-ph.GA].
+[12] J. I. Read, O. Agertz, and M. L. M. Collins, “Dark matter cores all the way down,” Mon. Not.
+Roy. Astron. Soc. 459 no. 3, (2016) 2573–2590, arXiv:1508.04143 [astro-ph.GA].
+[13] J. F. Navarro, A. Benítez-Llambay, A. Fattahi, C. S. Frenk, A. D. Ludlow, K. A. Oman,
+M. Schaller, and T. Theuns, “The origin of the mass discrepancy-acceleration relation in
+ΛCDM,” Mon. Not. Roy. Astron. Soc. 471 no. 2, (2017) 1841–1848, arXiv:1612.06329
+[astro-ph.GA].
+[14] A. Paranjape and R. K. Sheth, “The radial acceleration relation in a ΛCDM universe,” Mon.
+Not. Roy. Astron. Soc. 507 no. 1, (2021) 632–650, arXiv:2102.13116 [astro-ph.GA].
+[15] S. Weinberg, “Entropy generation and the survival of protogalaxies in an expanding universe,”
+Astrophys. J. 168 (1971) 175.
+[16] C. Boehm, P. Fayet, and R. Schaeffer, “Constraining dark matter candidates from structure
+formation,” Phys. Lett. B 518 (2001) 8–14, arXiv:astro-ph/0012504.
+[17] C. Boehm, A. Riazuelo, S. H. Hansen, and R. Schaeffer, “Interacting dark matter disguised as
+warm dark matter,” Phys. Rev. D 66 (2002) 083505, arXiv:astro-ph/0112522.
+[18] C. Boehm and R. Schaeffer, “Constraints on dark matter interactions from structure
+formation: Damping lengths,” Astron. Astrophys. 438 (2005) 419–442,
+arXiv:astro-ph/0410591.
+[19] A. Loeb and M. Zaldarriaga, “The Small-scale power spectrum of cold dark matter,” Phys.
+Rev. D 71 (2005) 103520, arXiv:astro-ph/0504112.
+[20] J. Silk, “Cosmic black body radiation and galaxy formation,” Astrophys. J. 151 (1968)
+459–471.
+[21] M. Escudero, L. Lopez-Honorez, O. Mena, S. Palomares-Ruiz, and P. Villanueva-Domingo, “A
+fresh look into the interacting dark matter scenario,” JCAP 06 (2018) 007,
+arXiv:1803.08427 [astro-ph.CO].
+[22] A. D. Dolgov, S. L. Dubovsky, G. I. Rubtsov, and I. I. Tkachev, “Constraints on millicharged
+particles from Planck data,” Phys. Rev. D 88 no. 11, (2013) 117701, arXiv:1310.2376
+[hep-ph].
+[23] F.-Y. Cyr-Racine and K. Sigurdson, “Cosmology of atomic dark matter,” Phys. Rev. D 87
+no. 10, (2013) 103515, arXiv:1209.5752 [astro-ph.CO].
+[24] K. Sigurdson, M. Doran, A. Kurylov, R. R. Caldwell, and M. Kamionkowski, “Dark-matter
+electric and magnetic dipole moments,” Phys. Rev. D 70 (2004) 083501,
+arXiv:astro-ph/0406355. [Erratum: Phys.Rev.D 73, 089903 (2006)].
+[25] R. J. Wilkinson, J. Lesgourgues, and C. Boehm, “Using the CMB angular power spectrum to
+study Dark Matter-photon interactions,” JCAP 04 (2014) 026, arXiv:1309.7588
+[astro-ph.CO].
+[26] C. Boehm, J. A. Schewtschenko, R. J. Wilkinson, C. M. Baugh, and S. Pascoli, “Using the
+Milky Way satellites to study interactions between cold dark matter and radiation,” Mon.
+Not. Roy. Astron. Soc. 445 (2014) L31–L35, arXiv:1404.7012 [astro-ph.CO].
+[27] J. A. Schewtschenko, R. J. Wilkinson, C. M. Baugh, C. Bœhm, and S. Pascoli, “Dark
+matter–radiation interactions: the impact on dark matter haloes,” Mon. Not. Roy. Astron.
+Soc. 449 no. 4, (2015) 3587–3596, arXiv:1412.4905 [astro-ph.CO].
+– 35 –
+
+
+[28] J. A. Schewtschenko, C. M. Baugh, R. J. Wilkinson, C. Bœhm, S. Pascoli, and T. Sawala,
+“Dark matter–radiation interactions: the structure of Milky Way satellite galaxies,” Mon.
+Not. Roy. Astron. Soc. 461 no. 3, (2016) 2282–2287, arXiv:1512.06774 [astro-ph.CO].
+[29] M. Escudero, O. Mena, A. C. Vincent, R. J. Wilkinson, and C. Bœhm, “Exploring dark matter
+microphysics with galaxy surveys,” JCAP 09 (2015) 034, arXiv:1505.06735 [astro-ph.CO].
+[30] S. D. McDermott, H.-B. Yu, and K. M. Zurek, “Turning off the Lights: How Dark is Dark
+Matter?,” Phys. Rev. D 83 (2011) 063509, arXiv:1011.2907 [hep-ph].
+[31] J. A. D. Diacoumis and Y. Y. Y. Wong, “Using CMB spectral distortions to distinguish
+between dark matter solutions to the small-scale crisis,” JCAP 09 (2017) 011,
+arXiv:1707.07050 [astro-ph.CO].
+[32] Y. Ali-Haïmoud, J. Chluba, and M. Kamionkowski, “Constraints on Dark Matter Interactions
+with Standard Model Particles from Cosmic Microwave Background Spectral Distortions,”
+Phys. Rev. Lett. 115 no. 7, (2015) 071304, arXiv:1506.04745 [astro-ph.CO].
+[33] J. Stadler and C. Bœhm, “Constraints on γ-CDM interactions matching the Planck data
+precision,” JCAP 10 (2018) 009, arXiv:1802.06589 [astro-ph.CO].
+[34] L. Lopez-Honorez, O. Mena, and P. Villanueva-Domingo, “Dark matter microphysics and 21
+cm observations,” Phys. Rev. D 99 no. 2, (2019) 023522, arXiv:1811.02716 [astro-ph.CO].
+[35] G. Mangano, A. Melchiorri, P. Serra, A. Cooray, and M. Kamionkowski, “Cosmological
+bounds on dark matter-neutrino interactions,” Phys. Rev. D 74 (2006) 043517,
+arXiv:astro-ph/0606190.
+[36] P. Serra, F. Zalamea, A. Cooray, G. Mangano, and A. Melchiorri, “Constraints on neutrino –
+dark matter interactions from cosmic microwave background and large scale structure data,”
+Phys. Rev. D 81 (2010) 043507, arXiv:0911.4411 [astro-ph.CO].
+[37] R. J. Wilkinson, C. Boehm, and J. Lesgourgues, “Constraining Dark Matter-Neutrino
+Interactions using the CMB and Large-Scale Structure,” JCAP 05 (2014) 011,
+arXiv:1401.7597 [astro-ph.CO].
+[38] E. Di Valentino, C. Bøehm, E. Hivon, and F. R. Bouchet, “Reducing the H0 and σ8 tensions
+with Dark Matter-neutrino interactions,” Phys. Rev. D 97 no. 4, (2018) 043513,
+arXiv:1710.02559 [astro-ph.CO].
+[39] J. Stadler, C. Bœhm, and O. Mena, “Comprehensive Study of Neutrino-Dark Matter Mixed
+Damping,” JCAP 08 (2019) 014, arXiv:1903.00540 [astro-ph.CO].
+[40] M. R. Mosbech, C. Boehm, S. Hannestad, O. Mena, J. Stadler, and Y. Y. Y. Wong, “The full
+Boltzmann hierarchy for dark matter-massive neutrino interactions,” JCAP 03 (2021) 066,
+arXiv:2011.04206 [astro-ph.CO].
+[41] D. C. Hooper and M. Lucca, “Hints of dark matter-neutrino interactions in Lyman-α data,”
+Phys. Rev. D 105 no. 10, (2022) 103504, arXiv:2110.04024 [astro-ph.CO].
+[42] K. Akita and S. Ando, “Constraints on dark matter-neutrino scattering from the Milky-Way
+satellites and subhalo modeling for dark acoustic oscillations,” JCAP 11 (2023) 037,
+arXiv:2305.01913 [astro-ph.CO].
+[43] D. E. Kaplan, G. Z. Krnjaic, K. R. Rehermann, and C. M. Wells, “Atomic Dark Matter,”
+JCAP 05 (2010) 021, arXiv:0909.0753 [hep-ph].
+[44] S. Das and K. Sigurdson, “Cosmological Limits on Hidden Sector Dark Matter,” Phys. Rev. D
+85 (2012) 063510, arXiv:1012.4458 [astro-ph.CO].
+[45] R. Diamanti, E. Giusarma, O. Mena, M. Archidiacono, and A. Melchiorri, “Dark Radiation
+and interacting scenarios,” Phys. Rev. D 87 no. 6, (2013) 063509, arXiv:1212.6007
+[astro-ph.CO].
+– 36 –
+
+
+[46] M. A. Buen-Abad, G. Marques-Tavares, and M. Schmaltz, “Non-Abelian dark matter and
+dark radiation,” Phys. Rev. D 92 no. 2, (2015) 023531, arXiv:1505.03542 [hep-ph].
+[47] J. Lesgourgues, G. Marques-Tavares, and M. Schmaltz, “Evidence for dark matter interactions
+in cosmological precision data?,” JCAP 02 (2016) 037, arXiv:1507.04351 [astro-ph.CO].
+[48] S. Das, R. Mondal, V. Rentala, and S. Suresh, “On dark matter - dark radiation interaction
+and cosmic reionization,” JCAP 08 (2018) 045, arXiv:1712.03976 [astro-ph.CO].
+[49] P. Ko, N. Nagata, and Y. Tang, “Hidden Charged Dark Matter and Chiral Dark Radiation,”
+Phys. Lett. B 773 (2017) 513–520, arXiv:1706.05605 [hep-ph].
+[50] M. Archidiacono, D. C. Hooper, R. Murgia, S. Bohr, J. Lesgourgues, and M. Viel,
+“Constraining Dark Matter-Dark Radiation interactions with CMB, BAO, and Lyman-α,”
+JCAP 10 (2019) 055, arXiv:1907.01496 [astro-ph.CO].
+[51] T. Bringmann and S. Hofmann, “Thermal decoupling of WIMPs from first principles,” JCAP
+04 (2007) 016, arXiv:hep-ph/0612238. [Erratum: JCAP 03, E02 (2016)].
+[52] H. Plombat, T. Simon, J. Flitter, and V. Poulin, “Probing dark relativistic species and their
+interactions with dark matter through CMB and 21 cm surveys,” JCAP 01 (2025) 071,
+arXiv:2410.01486 [astro-ph.CO].
+[53] J. B. Muñoz, C. Dvorkin, and F.-Y. Cyr-Racine, “Probing the Small-Scale Matter Power
+Spectrum with Large-Scale 21-cm Data,” Phys. Rev. D 101 no. 6, (2020) 063526,
+arXiv:1911.11144 [astro-ph.CO].
+[54] J. Verwohlt, C. A. Mason, J. B. Muñoz, F.-Y. Cyr-Racine, M. Vogelsberger, and J. Zavala,
+“Separating dark acoustic oscillations from astrophysics at cosmic dawn,” Phys. Rev. D 110
+no. 10, (2024) 103533, arXiv:2404.17640 [astro-ph.CO].
+[55] M. Tegmark, J. Silk, M. J. Rees, A. Blanchard, T. Abel, and F. Palla, “How small were the
+first cosmological objects?,” Astrophys. J. 474 (1997) 1–12, arXiv:astro-ph/9603007.
+[56] J. B. Muñoz, Y. Qin, A. Mesinger, S. G. Murray, B. Greig, and C. Mason, “The impact of the
+first galaxies on cosmic dawn and reionization,” Mon. Not. Roy. Astron. Soc. 511 no. 3,
+(2022) 3657–3681, arXiv:2110.13919 [astro-ph.CO].
+[57] M. Viel, J. Lesgourgues, M. G. Haehnelt, S. Matarrese, and A. Riotto, “Constraining warm
+dark matter candidates including sterile neutrinos and light gravitinos with WMAP and the
+Lyman-alpha forest,” Phys. Rev. D 71 (2005) 063534, arXiv:astro-ph/0501562.
+[58] M. Viel, G. D. Becker, J. S. Bolton, and M. G. Haehnelt, “Warm dark matter as a solution to
+the small scale crisis: New constraints from high redshift Lyman-α forest data,” Phys. Rev. D
+88 (2013) 043502, arXiv:1306.2314 [astro-ph.CO].
+[59] V. Iršič et al., “Unveiling dark matter free streaming at the smallest scales with the high
+redshift Lyman-alpha forest,” Phys. Rev. D 109 no. 4, (2024) 043511, arXiv:2309.04533
+[astro-ph.CO].
+[60] R. E. Keeley et al., “JWST lensed quasar dark matter survey – II. Strongest gravitational
+lensing limit on the dark matter free streaming length to date,” Mon. Not. Roy. Astron. Soc.
+535 no. 2, (2024) 1652–1671, arXiv:2405.01620 [astro-ph.CO].
+[61] C. Y. Tan, A. Dekker, and A. Drlica-Wagner, “Mixed warm dark matter constraints using
+Milky Way satellite galaxy counts,” Phys. Rev. D 111 no. 6, (2025) 063079,
+arXiv:2409.18917 [astro-ph.CO].
+[62] D. Gilman et al., “JWST lensed quasar dark matter survey IV: Stringent warm dark matter
+constraints from the joint reconstruction of extended lensed arcs and quasar flux ratios,”
+arXiv:2511.07513 [astro-ph.CO].
+– 37 –
+
+
+[63] S. K. Giri and A. Schneider, “Imprints of fermionic and bosonic mixed dark matter on the
+21-cm signal at cosmic dawn,” Phys. Rev. D 105 no. 8, (2022) 083011, arXiv:2201.02210
+[astro-ph.CO].
+[64] Q. Decant, A. Dimitriou, L. L. Honorez, and B. Zaldivar, “Simulation-based inference on
+warm dark matter from HERA forecasts,” arXiv:2412.10310 [astro-ph.CO].
+[65] B. Schosser, C. Heneka, and T. Plehn, “Optimal, fast, and robust inference of reionization-era
+cosmology with the 21cmPIE-INN,” SciPost Phys. Core 8 (2025) 037, arXiv:2401.04174
+[astro-ph.CO].
+[66] J. J. Hibbard, J. Mirocha, D. Rapetti, N. Bassett, J. O. Burns, and K. Tauscher,
+“Constraining Warm Dark Matter and Population III Stars with the Global 21 cm Signal,”
+Astrophys. J. 929 no. 2, (2022) 151, arXiv:2201.02638 [astro-ph.CO].
+[67] A. Schneider, “Constraining noncold dark matter models with the global 21-cm signal,” Phys.
+Rev. D 98 no. 6, (2018) 063021, arXiv:1805.00021 [astro-ph.CO].
+[68] H. Park, R. Barkana, N. Yoshida, S. Sikder, R. Mondal, and A. Fialkov, “The Signature of
+Sub-galactic Dark Matter Clumping in the Global 21-cm Signal of Hydrogen,”
+arXiv:2509.11055 [astro-ph.CO].
+[69] M. R. Mosbech, C. Boehm, and Y. Y. Y. Wong, “Probing dark matter interactions with 21cm
+observations,” JCAP 03 (2023) 047, arXiv:2207.03107 [astro-ph.CO].
+[70] A. Dey, A. Paul, and S. Pal, “Constraints on dark matter–neutrino interaction from 21-cm
+cosmology and forecasts on SKA1-Low,” Mon. Not. Roy. Astron. Soc. 524 no. 1, (2023)
+100–107, arXiv:2207.02451 [astro-ph.CO].
+[71] S. Hofmann, D. J. Schwarz, and H. Stoecker, “Damping scales of neutralino cold dark
+matter,” Phys. Rev. D 64 (2001) 083507, arXiv:astro-ph/0104173.
+[72] A. M. Green, S. Hofmann, and D. J. Schwarz, “The First wimpy halos,” JCAP 08 (2005) 003,
+arXiv:astro-ph/0503387.
+[73] E. Bertschinger, “The Effects of Cold Dark Matter Decoupling and Pair Annihilation on
+Cosmological Perturbations,” Phys. Rev. D 74 (2006) 063509, arXiv:astro-ph/0607319.
+[74] D. Blas, J. Lesgourgues, and T. Tram, “The Cosmic Linear Anisotropy Solving System
+(CLASS) II: Approximation schemes,” JCAP 07 (2011) 034, arXiv:1104.2933
+[astro-ph.CO].
+[75] J. Lesgourgues and T. Tram, “The Cosmic Linear Anisotropy Solving System (CLASS) IV:
+efficient implementation of non-cold relics,” JCAP 09 (2011) 032, arXiv:1104.2935
+[astro-ph.CO].
+[76] D. Boyanovsky and J. Wu, “Small scale aspects of warm dark matter : power spectra and
+acoustic oscillations,” Phys. Rev. D 83 (2011) 043524, arXiv:1008.0992 [astro-ph.CO].
+[77] A. Mesinger, S. Furlanetto, and R. Cen, “21cmFAST: A Fast, Semi-Numerical Simulation of
+the High-Redshift 21-cm Signal,” Mon. Not. Roy. Astron. Soc. 411 (2011) 955,
+arXiv:1003.3878 [astro-ph.CO].
+[78] G. Facchinetti, “Neural network emulation of reionization to constrain new physics with early-
+and late-time probes,” arXiv:2503.11261 [astro-ph.CO].
+[79] W. H. Press and P. Schechter, “Formation of galaxies and clusters of galaxies by selfsimilar
+gravitational condensation,” Astrophys. J. 187 (1974) 425–438.
+[80] R. K. Sheth and G. Tormen, “Large scale bias and the peak background split,” Mon. Not.
+Roy. Astron. Soc. 308 (1999) 119, arXiv:astro-ph/9901122.
+[81] A. J. Benson, A. Farahi, S. Cole, L. A. Moustakas, A. Jenkins, M. Lovell, R. Kennedy,
+J. Helly, and C. Frenk, “Dark Matter Halo Merger Histories Beyond Cold Dark Matter: I -
+– 38 –
+
+
+Methods and Application to Warm Dark Matter,” Mon. Not. Roy. Astron. Soc. 428 (2013)
+1774, arXiv:1209.3018 [astro-ph.CO].
+[82] A. Schneider, R. E. Smith, and D. Reed, “Halo Mass Function and the Free Streaming Scale,”
+Mon. Not. Roy. Astron. Soc. 433 (2013) 1573, arXiv:1303.0839 [astro-ph.CO].
+[83] A. Schneider, “Structure formation with suppressed small-scale perturbations,” Mon. Not.
+Roy. Astron. Soc. 451 no. 3, (2015) 3117–3130, arXiv:1412.2133 [astro-ph.CO].
+[84] M. Leo, C. M. Baugh, B. Li, and S. Pascoli, “A new smooth-k space filter approach to
+calculate halo abundances,” JCAP 04 (2018) 010, arXiv:1801.02547 [astro-ph.CO].
+[85] J. Flitter, S. Libanore, and E. D. Kovetz, “More careful treatment of matter density
+fluctuations in 21-cm simulations,” Phys. Rev. D 112 no. 2, (2025) 023537,
+arXiv:2411.00089 [astro-ph.CO].
+[86] C. M. Hirata, “Wouthuysen-Field coupling strength and application to high-redshift 21 cm
+radiation,” Mon. Not. Roy. Astron. Soc. 367 (2006) 259–274, arXiv:astro-ph/0507102.
+[87] S. Furlanetto, S. P. Oh, and F. Briggs, “Cosmology at Low Frequencies: The 21 cm Transition
+and the High-Redshift Universe,” Phys. Rept. 433 (2006) 181–301, arXiv:astro-ph/0608032.
+[88] S. G. Murray, “powerbox: A python package for creating structured fields with isotropic
+power spectra,” Journal of Open Source Software 3 no. 28, (2018) 850.
+https://doi.org/10.21105/joss.00850.
+[89] J. Park, A. Mesinger, B. Greig, and N. Gillet, “Inferring the astrophysics of reionization and
+cosmic dawn from galaxy luminosity functions and the 21-cm signal,” Mon. Not. Roy. Astron.
+Soc. 484 no. 1, (2019) 933–949, arXiv:1809.08995 [astro-ph.GA].
+[90] Y. Qin, A. Mesinger, J. Park, B. Greig, and J. B. Muñoz, “A tale of two sites – I. Inferring
+the properties of minihalo-hosted galaxies from current observations,” Mon. Not. Roy. Astron.
+Soc. 495 no. 1, (2020) 123–140, arXiv:2003.04442 [astro-ph.CO].
+[91] M. Stefanon, R. J. Bouwens, I. Labbé, G. D. Illingworth, V. Gonzalez, and P. A. Oesch,
+“Galaxy stellar mass functions from z ∼10 to z ∼6 using the deepest spitzer/infrared array
+camera data: No significant evolution in the stellar-to-halo mass ratio of galaxies in the first
+gigayear of cosmic time,” The Astrophysical Journal 922 no. 1, (Nov., 2021) 29.
+http://dx.doi.org/10.3847/1538-4357/ac1bb6.
+[92] M. Shuntov et al., “COSMOS2020: Cosmic evolution of the stellar-to-halo mass relation for
+central and satellite galaxies up to z ∼5,” Astron. Astrophys. 664 (2022) A61,
+arXiv:2203.10895 [astro-ph.GA].
+[93] R. Barkana and A. Loeb, “In the beginning: The First sources of light and the reionization of
+the Universe,” Phys. Rept. 349 (2001) 125–238, arXiv:astro-ph/0010468.
+[94] E. Sobacchi and A. Mesinger, “How does radiative feedback from a UV background impact
+reionization?,” Mon. Not. Roy. Astron. Soc. 432 (2013) 3340, arXiv:1301.6781
+[astro-ph.CO].
+[95] A. Das, A. Mesinger, A. Pallottini, A. Ferrara, and J. H. Wise, “High Mass X-ray Binaries
+and the Cosmic 21-cm Signal: Impact of Host Galaxy Absorption,” Mon. Not. Roy. Astron.
+Soc. 469 no. 1, (2017) 1166–1174, arXiv:1702.00409 [astro-ph.CO].
+[96] HERA Collaboration, Z. Abdurashidova et al., “HERA Phase I Limits on the Cosmic 21 cm
+Signal: Constraints on Astrophysics and Cosmology during the Epoch of Reionization,”
+Astrophys. J. 924 no. 2, (2022) 51, arXiv:2108.07282 [astro-ph.CO].
+[97] Planck Collaboration, N. Aghanim et al., “Planck 2018 results. VI. Cosmological
+parameters,” Astron. Astrophys. 641 (2020) A6, arXiv:1807.06209 [astro-ph.CO].
+[Erratum: Astron.Astrophys. 652, C4 (2021)].
+– 39 –
+
+
+[98] G. Facchinetti, L. Lopez-Honorez, Y. Qin, and A. Mesinger, “21cm signal sensitivity to dark
+matter decay,” JCAP 01 (2024) 005, arXiv:2308.16656 [astro-ph.CO].
+[99] M. Fréchet, “Sur l’extension de certaines evaluations statistiques au cas de petits
+echantillons,” Revue de l’Institut International de Statistique (1943) 182–205.
+[100] G. Darmois, “Sur les limites de la dispersion de certaines estimations,” Revue de l’Institut
+International de Statistique (1945) 9–15.
+[101] A. Aitken and H. Silverstone, “Xv.—on the estimation of statistical parameters,” Proceedings
+of the Royal Society of Edinburgh Section A: Mathematics 61 no. 2, (1942) 186–194.
+[102] J. C. Pober, A. R. Parsons, D. R. DeBoer, P. McDonald, M. McQuinn, J. E. Aguirre, Z. Ali,
+R. F. Bradley, T.-C. Chang, and M. F. Morales, “The Baryon Acoustic Oscillation Broadband
+and Broad-beam Array: Design Overview and Sensitivity Forecasts,” Astron. J. 145 (2013)
+65, arXiv:1210.2413 [astro-ph.CO].
+[103] J. C. Pober et al., “What Next-Generation 21 cm Power Spectrum Measurements Can Teach
+Us About the Epoch of Reionization,” Astrophys. J. 782 (2014) 66, arXiv:1310.7031
+[astro-ph.CO].
+[104] J. W. Foster, N. L. Rodd, and B. R. Safdi, “Revealing the Dark Matter Halo with Axion
+Direct Detection,” Phys. Rev. D 97 no. 12, (2018) 123006, arXiv:1711.10489
+[astro-ph.CO].
+[105] G. Cowan, K. Cranmer, E. Gross, and O. Vitells, “Asymptotic formulae for likelihood-based
+tests of new physics,” Eur. Phys. J. C 71 (2011) 1554, arXiv:1007.1727
+[physics.data-an]. [Erratum: Eur.Phys.J.C 73, 2501 (2013)].
+[106] L. Lopez-Honorez, O. Mena, A. Moliné, S. Palomares-Ruiz, and A. C. Vincent, “The 21 cm
+signal and the interplay between dark matter annihilations and astrophysical processes,”
+JCAP 08 (2016) 004, arXiv:1603.06795 [astro-ph.CO].
+[107] Q. Decant, J. Heisig, D. C. Hooper, and L. Lopez-Honorez, “Lyman-α constraints on freeze-in
+and superWIMPs,” JCAP 03 (2022) 041, arXiv:2111.09321 [astro-ph.CO].
+[108] B. Greig, D. Prelogović, J. Mirocha, Y. Qin, Y.-S. Ting, and A. Mesinger, “Exploring the role
+of the halo-mass function for inferring astrophysical parameters during reionization,” Mon.
+Not. Roy. Astron. Soc. 533 no. 2, (2024) 2502–2529, arXiv:2403.14061 [astro-ph.CO].
+[109] D. Agius, R. Essig, D. Gaggero, S. Palomares-Ruiz, G. Suczewski, and M. Valli,
+“Astrophysical uncertainties challenge 21-cm forecasts: A primordial black hole case study,”
+arXiv:2510.14877 [astro-ph.CO].
+[110] D. Agius and T. R. Slatyer, “Boosting the cosmic 21-cm signal with exotic Lyman-α from
+dark matter,” arXiv:2510.26791 [astro-ph.CO].
+[111] A. Mesinger, A. Ewall-Wice, and J. Hewitt, “Reionization and beyond: detecting the peaks of
+the cosmological 21 cm signal,” Mon. Not. Roy. Astron. Soc. 439 no. 4, (2014) 3262–3274,
+arXiv:1310.0465 [astro-ph.CO].
+[112] J. Froustey, C. Pitrou, and M. C. Volpe, “Neutrino decoupling including flavour oscillations
+and primordial nucleosynthesis,” JCAP 12 (2020) 015, arXiv:2008.01074 [hep-ph].
+[113] J. J. Bennett, G. Buldgen, P. F. De Salas, M. Drewes, S. Gariazzo, S. Pastor, and Y. Y. Y.
+Wong, “Towards a precision calculation of Neff in the Standard Model II: Neutrino decoupling
+in the presence of flavour oscillations and finite-temperature QED,” JCAP 04 (2021) 073,
+arXiv:2012.02726 [hep-ph].
+[114] J. R. Bond, S. Cole, G. Efstathiou, and N. Kaiser, “Excursion set mass functions for
+hierarchical Gaussian fluctuations,” Astrophys. J. 379 (1991) 440.
+– 40 –
+
+
+[115] A. R. Zentner, “The Excursion Set Theory of Halo Mass Functions, Halo Clustering, and Halo
+Growth,” Int. J. Mod. Phys. D 16 (2007) 763–816, arXiv:astro-ph/0611454.
+[116] H. Mo, F. C. van den Bosh, and S. White, Galaxy formation and evolution. Cambridge
+University Press, 2010.
+https://www.cambridge.org/us/universitypress/subjects/physics/astrophysics/
+galaxy-formation-and-evolution-1?format=HB&isbn=9780521857932.
+[117] C. A. Mason, J. B. Muñoz, B. Greig, A. Mesinger, and J. Park, “21cmfish: Fisher-matrix
+framework for fast parameter forecasts from the cosmic 21-cm signal,” Mon. Not. Roy.
+Astron. Soc. 524 no. 3, (2023) 4711–4728, arXiv:2212.09797 [astro-ph.CO].
+– 41 –
