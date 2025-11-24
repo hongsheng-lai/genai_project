@@ -44,3 +44,10 @@ python inference.py \
   --model_size 4b \
   --batch_size 1
 ```
+
+### Evaluation
+Evaluate predictions against ground truth.
+
+```bash
+python evaluation.py --ground_truth <GROUND_TRUTH_JSON_FILE> --predictions <PREDICTIONS_FILE>
+```
