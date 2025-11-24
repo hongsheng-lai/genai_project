@@ -28,6 +28,9 @@ def parse_hidden_answer_file(file_path: Path) -> Tuple[List[Tuple[int, str]], Di
         line = raw_line.strip()
         if not line:
             continue
+        # Skip the questions header line if present
+        if line.startswith("=== QUESTIONS ==="):
+            continue
         if line.startswith("=== ANSWERS ==="):
             in_answers = True
             continue
